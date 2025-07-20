@@ -1,0 +1,13 @@
+moviepy
+whisper
+pydub
+pysrt
+webvtt-py
+spacy
+rich
+transformers
+torch
+tqdm
+numpy
+opencv-python
+ffmpeg-python

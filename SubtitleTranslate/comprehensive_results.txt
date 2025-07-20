@@ -1,0 +1,52 @@
+Comprehensive Batch Speed Test Results
+========================================
+
+Batch Size 1:
+  Average Time: 15.33s
+  Standard Deviation: 1.15s
+  Throughput: 6.52 texts/second
+  Speedup: 1.00x
+
+Batch Size 2:
+  Average Time: 9.40s
+  Standard Deviation: 0.29s
+  Throughput: 10.63 texts/second
+  Speedup: 1.63x
+
+Batch Size 4:
+  Average Time: 5.69s
+  Standard Deviation: 0.02s
+  Throughput: 17.57 texts/second
+  Speedup: 2.69x
+
+Batch Size 8:
+  Average Time: 3.52s
+  Standard Deviation: 0.07s
+  Throughput: 28.38 texts/second
+  Speedup: 4.35x
+
+Batch Size 16:
+  Average Time: 2.60s
+  Standard Deviation: 0.04s
+  Throughput: 38.48 texts/second
+  Speedup: 5.90x
+
+Batch Size 32:
+  Average Time: 2.40s
+  Standard Deviation: 0.03s
+  Throughput: 41.64 texts/second
+  Speedup: 6.39x
+
+Batch Size 64:
+  Average Time: 2.30s
+  Standard Deviation: 0.05s
+  Throughput: 43.40 texts/second
+  Speedup: 6.65x
+
+Batch Size 128:
+  Average Time: 2.52s
+  Standard Deviation: 0.01s
+  Throughput: 39.67 texts/second
+  Speedup: 6.08x
+
+Optimal Batch Size: 64
