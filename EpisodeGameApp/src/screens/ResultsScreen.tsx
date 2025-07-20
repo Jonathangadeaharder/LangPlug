@@ -8,12 +8,13 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { useGameSession } from '../context/GameSessionContext';
+import { useGameSession, useGameSessionActions } from '../stores/useAppStore';
 
 const { width } = Dimensions.get('window');
 
 export default function ResultsScreen({ navigation }: any) {
-  const { state, resetGame } = useGameSession();
+  const gameState = useGameSession();
+  const { resetGame } = useGameSessionActions();
 
   const handlePlayAgain = () => {
     resetGame();
@@ -38,7 +39,7 @@ export default function ResultsScreen({ navigation }: any) {
     return 'Keep practicing! 💪';
   };
 
-  if (!state.selectedEpisode) {
+  if (!gameState.selectedEpisode) {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.errorText}>No episode data available</Text>
@@ -46,7 +47,7 @@ export default function ResultsScreen({ navigation }: any) {
     );
   }
 
-  const percentage = state.totalQuestions > 0 ? (state.correctAnswers / state.totalQuestions) * 100 : 0;
+  const percentage = gameState.totalQuestions > 0 ? (gameState.correctAnswers / gameState.totalQuestions) * 100 : 0;
   const scoreColor = getScoreColor(percentage);
   const scoreMessage = getScoreMessage(percentage);
 
@@ -55,7 +56,7 @@ export default function ResultsScreen({ navigation }: any) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.completedText}>🎉 Episode Completed!</Text>
-          <Text style={styles.episodeTitle}>{state.selectedEpisode.title}</Text>
+          <Text style={styles.episodeTitle}>{gameState.selectedEpisode.title}</Text>
         </View>
 
         <View style={styles.scoreContainer}>
@@ -73,21 +74,21 @@ export default function ResultsScreen({ navigation }: any) {
 
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{state.correctAnswers}</Text>
+            <Text style={styles.statNumber}>{gameState.correctAnswers}</Text>
             <Text style={styles.statLabel}>Correct</Text>
           </View>
           
           <View style={styles.statDivider} />
           
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{state.totalQuestions - state.correctAnswers}</Text>
+            <Text style={styles.statNumber}>{gameState.totalQuestions - gameState.correctAnswers}</Text>
             <Text style={styles.statLabel}>Incorrect</Text>
           </View>
           
           <View style={styles.statDivider} />
           
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{state.totalQuestions}</Text>
+            <Text style={styles.statNumber}>{gameState.totalQuestions}</Text>
             <Text style={styles.statLabel}>Total</Text>
           </View>
         </View>
@@ -98,7 +99,7 @@ export default function ResultsScreen({ navigation }: any) {
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Final Score:</Text>
             <Text style={[styles.detailValue, { color: scoreColor }]}>
-              {state.currentScore} points
+              {gameState.currentScore} points
             </Text>
           </View>
           
@@ -112,15 +113,15 @@ export default function ResultsScreen({ navigation }: any) {
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Difficulty Level:</Text>
             <Text style={styles.detailValue}>
-              {state.selectedEpisode.difficultyLevel.charAt(0).toUpperCase() + 
-               state.selectedEpisode.difficultyLevel.slice(1)}
+              {gameState.selectedEpisode.difficultyLevel.charAt(0).toUpperCase() + 
+               gameState.selectedEpisode.difficultyLevel.slice(1)}
             </Text>
           </View>
           
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Episode Duration:</Text>
             <Text style={styles.detailValue}>
-              {state.selectedEpisode.duration} minutes
+              {gameState.selectedEpisode.duration} minutes
             </Text>
           </View>
         </View>
@@ -128,9 +129,9 @@ export default function ResultsScreen({ navigation }: any) {
         <View style={styles.vocabularyReview}>
           <Text style={styles.vocabularyTitle}>Vocabulary Reviewed</Text>
           <View style={styles.vocabularyGrid}>
-            {state.selectedEpisode.vocabularyWords.map((word, index) => {
+            {gameState.selectedEpisode.vocabularyWords.map((word, index) => {
               const questionId = `q${index}`;
-              const userAnswer = state.userAnswers[questionId];
+              const userAnswer = gameState.userAnswers[questionId];
               const isCorrect = userAnswer === `meaning of ${word}`;
               
               return (

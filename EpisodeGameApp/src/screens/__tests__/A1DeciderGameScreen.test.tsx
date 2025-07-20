@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import A1DeciderGameScreen from '../A1DeciderGameScreen';
-import { GlobalStateProvider } from '../../context/GlobalStateProvider';
+import { useAppStore } from '../../store/useAppStore';
 import { SubtitleService } from '../../services/SubtitleService';
 import { defaultEpisodes } from '../../models/Episode';
 
@@ -32,11 +32,11 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const renderWithProvider = () => {
-  return render(
-    <GlobalStateProvider>
-      <A1DeciderGameScreen />
-    </GlobalStateProvider>
-  );
+  // Initialize Zustand store with test data
+  const { selectEpisode } = useAppStore.getState();
+  selectEpisode(defaultEpisodes[0]);
+  
+  return render(<A1DeciderGameScreen />);
 };
 
 describe('A1DeciderGameScreen', () => {

@@ -8,6 +8,7 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
+// MIGRATION: Replace Context API import with Zustand store
 import { useGameSession, useGameSessionActions } from '../stores/useAppStore';
 
 // Import reusable components
@@ -36,8 +37,11 @@ const { width } = Dimensions.get('window');
 
 export default function GameScreen({ navigation }: any) {
   const theme = useTheme();
+  
+  // MIGRATION: Separate state and actions using Zustand
   const gameState = useGameSession();
   const { startGame, answerQuestion, completeGame } = useGameSessionActions();
+  
   const [questions, setQuestions] = useState<Question[]>([]);
   
   // Use the new game logic hook
@@ -52,6 +56,7 @@ export default function GameScreen({ navigation }: any) {
   });
 
   useEffect(() => {
+    // MIGRATION: Access state directly from gameState object
     if (gameState.selectedEpisode) {
       generateQuestions();
       startGame();
@@ -66,6 +71,7 @@ export default function GameScreen({ navigation }: any) {
   }, [questions]);
 
   const generateQuestions = () => {
+    // MIGRATION: Access selectedEpisode from gameState
     if (!gameState.selectedEpisode) return;
 
     const generatedQuestions: Question[] = gameState.selectedEpisode.vocabularyWords.map((word, index) => {
@@ -104,6 +110,7 @@ export default function GameScreen({ navigation }: any) {
 
   const styles = createStyles(theme);
 
+  // MIGRATION: Check gameState directly
   if (!gameState.selectedEpisode || questions.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
@@ -118,6 +125,7 @@ export default function GameScreen({ navigation }: any) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
+        {/* MIGRATION: Access episode title from gameState */}
         <Text style={styles.episodeTitle}>{gameState.selectedEpisode.title}</Text>
         <ProgressBar
           progress={progress}
@@ -294,3 +302,33 @@ const createStyles = (theme: any) => {
     },
   });
 };
+
+/*
+MIGRATION SUMMARY:
+
+1. IMPORTS:
+   - Replaced: import { useGameSession } from '../context/GameSessionContext';
+   - With: import { useGameSession, useGameSessionActions } from '../stores/useAppStore';
+
+2. STATE ACCESS:
+   - Before: const { state, startGame, answerQuestion, completeGame } = useGameSession();
+   - After: 
+     const gameState = useGameSession();
+     const { startGame, answerQuestion, completeGame } = useGameSessionActions();
+
+3. STATE USAGE:
+   - Before: state.selectedEpisode
+   - After: gameState.selectedEpisode
+
+4. BENEFITS:
+   - Cleaner separation of state and actions
+   - Better performance with selective subscriptions
+   - No provider wrapper needed
+   - Smaller bundle size
+   - Better TypeScript support
+
+5. PERFORMANCE OPTIMIZATION OPPORTUNITIES:
+   - Could use selective subscriptions: useAppStore(state => state.gameSession.selectedEpisode)
+   - Could separate timer updates from main component re-renders
+   - Could memoize expensive calculations
+*/

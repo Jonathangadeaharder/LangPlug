@@ -9,7 +9,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Episode, defaultEpisodes } from '../models/Episode';
-import { useGameSession } from '../context/GameSessionContext';
+import { useGameSessionActions } from '../stores/useAppStore';
 import { useTheme } from '../theme/ThemeProvider';
 import { createCommonStyles, getDifficultyColors } from '../theme/styleUtils';
 
@@ -71,7 +71,7 @@ function EpisodeCard({ episode, onSelect }: EpisodeCardProps) {
 }
 
 export default function EpisodeSelectionScreen({ navigation }: any) {
-  const { selectEpisode } = useGameSession();
+  const { selectEpisode } = useGameSessionActions();
   const { theme } = useTheme();
   const commonStyles = createCommonStyles(theme);
   const styles = createStyles(theme);

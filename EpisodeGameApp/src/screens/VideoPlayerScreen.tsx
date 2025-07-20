@@ -8,12 +8,12 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
-import { useGameSession } from '../context/GameSessionContext';
+import { useGameSession } from '../stores/useAppStore';
 
 const { width, height } = Dimensions.get('window');
 
 export default function VideoPlayerScreen({ navigation }: any) {
-  const { state } = useGameSession();
+  const gameState = useGameSession();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [showSubtitles, setShowSubtitles] = useState(true);
@@ -32,7 +32,7 @@ export default function VideoPlayerScreen({ navigation }: any) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!state.selectedEpisode) {
+  if (!gameState.selectedEpisode) {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.errorText}>No episode selected</Text>
@@ -40,7 +40,7 @@ export default function VideoPlayerScreen({ navigation }: any) {
     );
   }
 
-  const totalDuration = state.selectedEpisode.duration * 60; // Convert to seconds
+  const totalDuration = gameState.selectedEpisode.duration * 60; // Convert to seconds
   const progress = (currentTime / totalDuration) * 100;
 
   return (
@@ -49,7 +49,7 @@ export default function VideoPlayerScreen({ navigation }: any) {
         <TouchableOpacity onPress={handleBackToGame} style={styles.backButton}>
           <Text style={styles.backButtonText}>← Back to Game</Text>
         </TouchableOpacity>
-        <Text style={styles.episodeTitle}>{state.selectedEpisode.title}</Text>
+        <Text style={styles.episodeTitle}>{gameState.selectedEpisode.title}</Text>
       </View>
 
       <View style={styles.videoContainer}>
@@ -143,7 +143,7 @@ export default function VideoPlayerScreen({ navigation }: any) {
         <Text style={styles.vocabularyTitle}>Episode Vocabulary</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.vocabularyList}>
-            {state.selectedEpisode.vocabularyWords.map((word, index) => (
+            {gameState.selectedEpisode.vocabularyWords.map((word, index) => (
               <View key={index} style={styles.vocabularyCard}>
                 <Text style={styles.vocabularyWord}>{word}</Text>
               </View>

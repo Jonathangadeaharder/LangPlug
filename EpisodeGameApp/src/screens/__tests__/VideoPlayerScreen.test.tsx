@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import VideoPlayerScreen from '../VideoPlayerScreen.web';
-import { GlobalStateProvider } from '../../context/GlobalStateProvider';
+import { useAppStore } from '../../store/useAppStore';
 import { SubtitleService } from '../../services/SubtitleService';
 import { defaultEpisodes } from '../../models/Episode';
 
@@ -39,11 +39,16 @@ Object.defineProperty(HTMLMediaElement.prototype, 'load', {
 });
 
 const renderWithProvider = () => {
-  return render(
-    <GlobalStateProvider>
-      <VideoPlayerScreen />
-    </GlobalStateProvider>
-  );
+  // Initialize Zustand store with test data
+  const { selectEpisode } = useAppStore.getState();
+  selectEpisode({
+    ...defaultEpisodes[0],
+    subtitleUrl: '/path/to/subtitle.srt',
+    hasFilteredSubtitles: true,
+    hasTranslatedSubtitles: true,
+  });
+  
+  return render(<VideoPlayerScreen />);
 };
 
 describe('VideoPlayerScreen', () => {

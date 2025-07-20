@@ -10,9 +10,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { useGameSession } from '../context/GameSessionContext';
-import { useEpisodeProcessing } from '../context/EpisodeProcessingContext';
-import { useVocabularyLearning } from '../context/VocabularyLearningContext';
+import { useGameSession, useGameSessionActions, useEpisodeProcessing, useEpisodeProcessingActions, useVocabularyLearning, useVocabularyLearningActions } from '../stores/useAppStore';
 import SubtitleService from '../services/SubtitleService';
 import PythonBridgeService from '../services/PythonBridgeService';
 
@@ -46,9 +44,12 @@ const { width } = Dimensions.get('window');
 
 export default function A1DeciderGameScreen({ navigation }: any) {
   const theme = useTheme();
-  const { state, startGame, completeGame, updateEpisodeStatus } = useGameSession();
-  const { state: processingState, startProcessing, updateProcessingProgress, completeProcessing } = useEpisodeProcessing();
-  const { state: vocabularyState, addKnownWord, addUnknownWord, addSkippedWord, setVocabularyAnalysis } = useVocabularyLearning();
+  const gameState = useGameSession();
+  const { startGame, completeGame, updateEpisodeStatus } = useGameSessionActions();
+  const processingState = useEpisodeProcessing();
+  const { startProcessing, updateProcessingProgress, completeProcessing } = useEpisodeProcessingActions();
+  const vocabularyState = useVocabularyLearning();
+  const { addKnownWord, addUnknownWord, addSkippedWord, setVocabularyAnalysis } = useVocabularyLearningActions();
   const [gamePhase, setGamePhase] = useState<'processing' | 'vocabulary-check' | 'complete'>('processing');
   const [vocabularyWords, setVocabularyWords] = useState<VocabularyWordWithStatus[]>([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -70,13 +71,13 @@ export default function A1DeciderGameScreen({ navigation }: any) {
   });
 
   useEffect(() => {
-    if (state.selectedEpisode) {
+    if (gameState.selectedEpisode) {
       initializeWorkflow();
     }
-  }, [state.selectedEpisode]);
+  }, [gameState.selectedEpisode]);
 
   const initializeWorkflow = async () => {
-    if (!state.selectedEpisode) return;
+    if (!gameState.selectedEpisode) return;
 
     startProcessing();
     startGame();
@@ -84,11 +85,11 @@ export default function A1DeciderGameScreen({ navigation }: any) {
 
     try {
       // Check if episode needs processing
-      const status = await SubtitleService.checkSubtitleStatus(state.selectedEpisode);
+      const status = await SubtitleService.checkSubtitleStatus(gameState.selectedEpisode);
       
       if (!status.isTranscribed || !status.hasFilteredSubtitles || !status.hasTranslatedSubtitles) {
         // Run the complete processing workflow with new hook integration
-        await SubtitleService.processEpisode(state.selectedEpisode, (progress) => {
+        await SubtitleService.processEpisode(gameState.selectedEpisode, (progress) => {
           updateProcessingProgress(progress.stage, progress.progress, progress.message);
           // Update the new workflow hook as well
           const stepId = progress.stage;
@@ -107,7 +108,7 @@ export default function A1DeciderGameScreen({ navigation }: any) {
       }
 
       // Load real vocabulary for assessment
-      const subtitleUrl = state.selectedEpisode.subtitleUrl;
+      const subtitleUrl = gameState.selectedEpisode.subtitleUrl;
       const vocabulary = await SubtitleService.loadRealVocabulary(subtitleUrl);
       const vocabularyWithStatus = vocabulary.map(vocabWord => ({ word: vocabWord.german, isKnown: undefined }));
       setVocabularyWords(vocabularyWithStatus);
@@ -182,7 +183,7 @@ export default function A1DeciderGameScreen({ navigation }: any) {
 
   const styles = createStyles(theme);
 
-  if (!state.selectedEpisode) {
+  if (!gameState.selectedEpisode) {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.loadingText}>No episode selected</Text>
@@ -194,7 +195,7 @@ export default function A1DeciderGameScreen({ navigation }: any) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.processingContainer}>
-          <Text style={styles.episodeTitle}>{state.selectedEpisode.title}</Text>
+          <Text style={styles.episodeTitle}>{gameState.selectedEpisode.title}</Text>
           
           <ProcessingStatusIndicator
             currentStage={processingWorkflow.currentStage}
@@ -214,7 +215,7 @@ export default function A1DeciderGameScreen({ navigation }: any) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.episodeTitle}>{state.selectedEpisode.title}</Text>
+          <Text style={styles.episodeTitle}>{gameState.selectedEpisode.title}</Text>
           <Text style={styles.subtitle}>Vocabulary Knowledge Check</Text>
           
           <ProgressBar

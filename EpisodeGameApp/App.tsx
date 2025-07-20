@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'react-native';
 
-import { GlobalStateProvider } from './src/context/GlobalStateProvider';
+
 import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 import EpisodeSelectionScreen from './src/screens/EpisodeSelectionScreen';
 import GameScreen from './src/screens/GameScreen';
@@ -17,8 +17,7 @@ function AppContent(): React.JSX.Element {
   const theme = useTheme();
   
   return (
-    <GlobalStateProvider>
-      <NavigationContainer>
+    <NavigationContainer>
       <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background.primary} />
       <Stack.Navigator
         initialRouteName="EpisodeSelection"
@@ -83,8 +82,7 @@ function AppContent(): React.JSX.Element {
             }}
           />
         </Stack.Navigator>
-        </NavigationContainer>
-      </GlobalStateProvider>
+      </NavigationContainer>
   );
 }
 

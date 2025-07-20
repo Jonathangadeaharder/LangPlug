@@ -5,7 +5,7 @@ import argparse
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from rich.console import Console
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 
 # Add the parent directory to the system path to allow imports from shared_utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -119,7 +119,6 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        console.print(f"
-[bold red]An error occurred: {e}[/bold red]")
+        console.print(f"[bold red]An error occurred: {e}[/bold red]")
         traceback.print_exc()
         sys.exit(1)

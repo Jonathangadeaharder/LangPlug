@@ -1,25 +1,21 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
-import { GlobalStateProvider } from '../GlobalStateProvider';
-import { useGameSession } from '../GameSessionContext';
-import { useEpisodeProcessing } from '../EpisodeProcessingContext';
-import { useVocabularyLearning } from '../VocabularyLearningContext';
+import { useAppStore } from '../../store/useAppStore';
 import { defaultEpisodes } from '../../models/Episode';
 
-// Test component to access contexts
+// Test component to access Zustand store
 const TestComponent = () => {
-  const { state: gameState, selectEpisode, startGame, completeGame, updateEpisodeStatus } = useGameSession();
-  const { state: processingState, startProcessing, updateProcessingProgress, completeProcessing } = useEpisodeProcessing();
-  const { state: vocabularyState, addKnownWord, addUnknownWord } = useVocabularyLearning();
+  const { gameState } = useAppStore();
+  const { selectEpisode, startGame, completeGame, updateEpisodeStatus, startProcessing, updateProcessingProgress, completeProcessing, addKnownWord } = useAppStore();
 
   return (
     <>
       <div testID="current-episode">{gameState.selectedEpisode?.title || 'No episode'}</div>
       <div testID="game-started">{gameState.gameStarted.toString()}</div>
       <div testID="game-completed">{gameState.gameCompleted.toString()}</div>
-      <div testID="is-processing">{processingState.isProcessing.toString()}</div>
-      <div testID="processing-stage">{processingState.processingStage}</div>
-      <div testID="known-words">{vocabularyState.knownWords.length.toString()}</div>
+      <div testID="is-processing">{gameState.isProcessing.toString()}</div>
+      <div testID="processing-stage">{gameState.processingStage}</div>
+      <div testID="known-words">{gameState.knownWords.length.toString()}</div>
       <button testID="select-episode" onPress={() => selectEpisode(defaultEpisodes[0])} />
       <button testID="start-game" onPress={() => startGame()} />
       <button testID="complete-game" onPress={() => completeGame()} />
@@ -33,14 +29,10 @@ const TestComponent = () => {
 };
 
 const renderWithProvider = () => {
-  return render(
-    <GlobalStateProvider>
-      <TestComponent />
-    </GlobalStateProvider>
-  );
+  return render(<TestComponent />);
 };
 
-describe('Granular Contexts Integration', () => {
+describe('Zustand Store Integration', () => {
   it('should provide initial state', () => {
     const { getByTestId } = renderWithProvider();
 
