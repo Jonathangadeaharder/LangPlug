@@ -4,9 +4,9 @@ This document provides comprehensive information about the testing setup and how
 
 ## Overview
 
-The project includes both unit and integration tests for:
+The project includes unit and integration tests for:
 - **Frontend**: React Native components, services, and context
-- **Backend**: Express.js server API endpoints
+- **Python API Integration**: Direct communication with Python FastAPI backend
 
 ## Test Structure
 
@@ -23,7 +23,7 @@ Location: `src/` directory with `__tests__` subdirectories
   - Covers episode processing, vocabulary loading, progress updates
 
 - **PythonBridgeService** (`src/services/__tests__/PythonBridgeService.test.ts`)
-  - Tests backend communication
+  - Tests direct Python API communication
   - Covers health checks, subtitle processing, vocabulary analysis
 
 #### Integration Tests
@@ -35,27 +35,21 @@ Location: `src/` directory with `__tests__` subdirectories
   - Tests video playback integration
   - Covers subtitle display, processing status, error handling
 
-### Backend Tests
-Location: `backend/__tests__/` directory
+### Python API Integration Tests
+Note: The Node.js backend has been eliminated. The frontend now communicates directly with the Python FastAPI server.
 
-#### Integration Tests
-- **Server API** (`backend/__tests__/server.test.js`)
-  - Tests all API endpoints
-  - Covers health checks, dependency validation, subtitle processing
-  - Tests error handling and edge cases
+#### Integration Testing
+- Python API endpoints are tested through frontend service tests
+- Direct API communication is validated in PythonBridgeService tests
+- End-to-end testing covers the complete frontend-to-Python workflow
 
 ## Testing Dependencies
 
 ### Frontend
 - `@testing-library/react-native` - React Native testing utilities
 - `@testing-library/jest-native` - Additional Jest matchers
-- `jest-fetch-mock` - Mock fetch API calls
+- `jest-fetch-mock` - Mock fetch API calls for Python API integration
 - `react-test-renderer` - React component rendering
-
-### Backend
-- `jest` - Testing framework
-- `supertest` - HTTP assertion library
-- Mocked dependencies: `child_process`, `fs`
 
 ## Running Tests
 
@@ -76,28 +70,15 @@ npm test -- --watch
 npm test -- GameContext.test.tsx
 ```
 
-#### Backend Tests Only
-```bash
-# From backend directory
-cd backend
-npm test
-
-# With coverage
-npm test -- --coverage
-
-# Specific test file
-npm test -- server.test.js
-```
-
 ### All Tests
 ```bash
-# From project root - runs both frontend and backend tests
+# From project root - runs all frontend tests including Python API integration
 npm run test:all
 ```
 
 This command will:
 1. Run all frontend tests
-2. Run all backend tests
+2. Run Python API integration tests
 3. Provide a summary of results
 4. Exit with appropriate code (0 for success, 1 for failure)
 
