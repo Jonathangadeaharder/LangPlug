@@ -95,6 +95,19 @@ class UIConfig:
     default_style: str
     
 
+@dataclass
+class DatabaseConfig:
+    """Configuration for database settings."""
+    enabled: bool
+    database_path: str
+    backup_enabled: bool
+    backup_directory: str
+    cache_size: int
+    journal_mode: str
+    migration_batch_size: int
+    auto_vacuum: bool
+    
+
 class AppConfig:
     """Main application configuration class."""
     
@@ -161,6 +174,18 @@ class AppConfig:
             default_style="bold green"
         )
         
+        # Database Configuration
+        self.database = DatabaseConfig(
+            enabled=os.getenv("A1DECIDER_USE_DATABASE", "false").lower() == "true",
+            database_path=str(self.base_dir / "vocabulary.db"),
+            backup_enabled=True,
+            backup_directory=str(self.base_dir / "backups"),
+            cache_size=10000,
+            journal_mode="WAL",
+            migration_batch_size=1000,
+            auto_vacuum=True
+        )
+        
         # Environment variable overrides
         self._apply_env_overrides()
         
@@ -195,6 +220,16 @@ class AppConfig:
             self.word_lists.onomatopoeia = str(base_path / "onomatopoeia.txt")
             self.word_lists.interjections = str(base_path / "interjections.txt")
             self.file_paths.global_unknowns_file = str(base_path / "globalunknowns.json")
+        
+        # Database configuration overrides
+        if os.getenv("A1DECIDER_DB_PATH"):
+            self.database.database_path = os.getenv("A1DECIDER_DB_PATH")
+        if os.getenv("A1DECIDER_DB_CACHE_SIZE"):
+            self.database.cache_size = int(os.getenv("A1DECIDER_DB_CACHE_SIZE"))
+        if os.getenv("A1DECIDER_DB_JOURNAL_MODE"):
+            self.database.journal_mode = os.getenv("A1DECIDER_DB_JOURNAL_MODE")
+        if os.getenv("A1DECIDER_DB_BACKUP_DIR"):
+            self.database.backup_directory = os.getenv("A1DECIDER_DB_BACKUP_DIR")
     
     def validate_config(self) -> Dict[str, bool]:
         """Validate configuration and return status of required components."""
@@ -209,6 +244,21 @@ class AppConfig:
         validation_results["base_directory"] = os.path.exists(self.file_paths.base_dir)
         validation_results["output_directory"] = os.path.exists(self.file_paths.output_dir)
         validation_results["temp_directory"] = os.path.exists(self.file_paths.temp_dir)
+        
+        # Check database configuration
+        if self.database.enabled:
+            validation_results["database_enabled"] = True
+            validation_results["database_path_valid"] = (
+                os.path.exists(self.database.database_path) or 
+                os.path.exists(os.path.dirname(self.database.database_path))
+            )
+            if self.database.backup_enabled:
+                validation_results["backup_directory"] = (
+                    os.path.exists(self.database.backup_directory) or
+                    os.access(os.path.dirname(self.database.backup_directory), os.W_OK)
+                )
+        else:
+            validation_results["database_enabled"] = False
         
         return validation_results
     
@@ -295,6 +345,16 @@ class AppConfig:
                 "progress_update_interval": self.ui.progress_update_interval,
                 "console_width": self.ui.console_width,
                 "default_style": self.ui.default_style
+            },
+            "database": {
+                "enabled": self.database.enabled,
+                "database_path": self.database.database_path,
+                "backup_enabled": self.database.backup_enabled,
+                "backup_directory": self.database.backup_directory,
+                "cache_size": self.database.cache_size,
+                "journal_mode": self.database.journal_mode,
+                "migration_batch_size": self.database.migration_batch_size,
+                "auto_vacuum": self.database.auto_vacuum
             }
         }
 
@@ -338,6 +398,14 @@ def get_batch_size() -> int:
 def get_api_config() -> APIConfig:
     """Get the API configuration."""
     return get_config().api
+
+def get_database_config() -> DatabaseConfig:
+    """Get the database configuration."""
+    return get_config().database
+
+def is_database_enabled() -> bool:
+    """Check if database mode is enabled."""
+    return get_config().database.enabled
 
 
 if __name__ == "__main__":
