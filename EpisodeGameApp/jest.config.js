@@ -4,7 +4,6 @@ module.exports = {
   testEnvironment: '<rootDir>/jest-environment-react-native.js',
   testPathIgnorePatterns: [
     '/node_modules/',
-    '/backend/',
   ],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',

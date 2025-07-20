@@ -52,30 +52,21 @@ function runTests(directory, name) {
 async function runAllTests() {
   const projectRoot = __dirname;
   const frontendDir = projectRoot;
-  const backendDir = path.join(projectRoot, 'backend');
   
   log(`${colors.bright}${colors.magenta}🧪 Running All Tests for EpisodeGameApp${colors.reset}`);
   log(`${colors.cyan}Project Root: ${projectRoot}${colors.reset}`);
+  log(`${colors.yellow}Note: Backend eliminated in ARCH-02 - Direct Python API communication${colors.reset}`);
   
   const results = {
-    frontend: false,
-    backend: false
+    frontend: false
   };
   
   try {
-    // Run frontend tests
-    await runTests(frontendDir, 'Frontend');
+    // Run frontend tests (includes Python API integration tests)
+    await runTests(frontendDir, 'Frontend & Python API Integration');
     results.frontend = true;
   } catch (error) {
     log(`${colors.red}Frontend tests failed: ${error.message}${colors.reset}`);
-  }
-  
-  try {
-    // Run backend tests
-    await runTests(backendDir, 'Backend');
-    results.backend = true;
-  } catch (error) {
-    log(`${colors.red}Backend tests failed: ${error.message}${colors.reset}`);
   }
   
   // Summary
@@ -85,14 +76,10 @@ async function runAllTests() {
   const frontendStatus = results.frontend ? 
     `${colors.green}✓ PASSED${colors.reset}` : 
     `${colors.red}✗ FAILED${colors.reset}`;
-  const backendStatus = results.backend ? 
-    `${colors.green}✓ PASSED${colors.reset}` : 
-    `${colors.red}✗ FAILED${colors.reset}`;
   
-  log(`Frontend Tests: ${frontendStatus}`);
-  log(`Backend Tests:  ${backendStatus}`);
+  log(`Frontend & Python API Tests: ${frontendStatus}`);
   
-  const allPassed = results.frontend && results.backend;
+  const allPassed = results.frontend;
   
   if (allPassed) {
     log(`\n${colors.bright}${colors.green}🎉 All tests passed successfully!${colors.reset}`);
