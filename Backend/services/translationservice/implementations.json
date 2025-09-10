@@ -1,0 +1,17 @@
+{
+  "implementations": [
+    {
+      "name": "nllb",
+      "class": "NLLBTranslationService",
+      "description": "Facebook/Meta NLLB-200 Translation Model",
+      "config": {
+        "model_name": "facebook/nllb-200-distilled-600M",
+        "max_length": 512
+      },
+      "test": {
+        "enabled": true,
+        "skip_reason": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "implementations": [
+    {
+      "name": "whisper-large-v3-turbo",
+      "class": "WhisperTranscriptionService",
+      "description": "OpenAI Whisper Large v3 Turbo - Fast & Accurate",
+      "config": {
+        "model_size": "large-v3-turbo"
+      },
+      "test": {
+        "enabled": true,
+        "skip_reason": null
+      }
+    },
+    {
+      "name": "parakeet-tdt-0.6b",
+      "class": "ParakeetTranscriptionService",
+      "description": "NVIDIA Parakeet TDT 0.6B - Fast English ASR",
+      "config": {
+        "model_name": "parakeet-tdt-0.6b"
+      },
+      "test": {
+        "enabled": false,
+        "skip_reason": "Requires NVIDIA NeMo toolkit installation"
+      }
+    }
+  ]
+}

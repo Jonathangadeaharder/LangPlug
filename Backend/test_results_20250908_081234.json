@@ -1,0 +1,93 @@
+{
+  "timestamp": "2025-09-08T08:12:34.382063",
+  "base_url": "http://localhost:8000",
+  "total_tests": 14,
+  "passed": 8,
+  "failed": 6,
+  "results": [
+    {
+      "test": "Health Check",
+      "success": true,
+      "details": "Server version: 1.0.0",
+      "timestamp": "2025-09-08T08:12:24.406259"
+    },
+    {
+      "test": "User Registration",
+      "success": true,
+      "details": "Registered user: testuser_20250908081224_1646",
+      "timestamp": "2025-09-08T08:12:24.956057"
+    },
+    {
+      "test": "User Login",
+      "success": true,
+      "details": "Logged in as: testuser_20250908081224_1646",
+      "timestamp": "2025-09-08T08:12:25.506216"
+    },
+    {
+      "test": "Get Current User",
+      "success": true,
+      "details": "Current user: testuser_20250908081224_1646",
+      "timestamp": "2025-09-08T08:12:26.011187"
+    },
+    {
+      "test": "User Logout",
+      "success": true,
+      "details": "Session invalidated successfully",
+      "timestamp": "2025-09-08T08:12:26.523281"
+    },
+    {
+      "test": "User Login",
+      "success": true,
+      "details": "Logged in as: testuser_20250908081224_1646",
+      "timestamp": "2025-09-08T08:12:27.072750"
+    },
+    {
+      "test": "Vocabulary Stats",
+      "success": true,
+      "details": "Total words: 0",
+      "timestamp": "2025-09-08T08:12:27.609551"
+    },
+    {
+      "test": "Vocabulary Levels",
+      "success": false,
+      "details": "A1: Failed, A2: Failed, B1: Failed, B2: Failed",
+      "timestamp": "2025-09-08T08:12:28.225717"
+    },
+    {
+      "test": "Mark Word Known",
+      "success": false,
+      "details": "No words available to mark",
+      "timestamp": "2025-09-08T08:12:28.746121"
+    },
+    {
+      "test": "Bulk Mark Words",
+      "success": false,
+      "details": "Failed to bulk mark",
+      "timestamp": "2025-09-08T08:12:31.841203"
+    },
+    {
+      "test": "List Videos",
+      "success": false,
+      "details": "Failed to list videos",
+      "timestamp": "2025-09-08T08:12:32.351369"
+    },
+    {
+      "test": "Get Video Details",
+      "success": false,
+      "details": "No videos available",
+      "timestamp": "2025-09-08T08:12:32.863703"
+    },
+    {
+      "test": "Subtitle Upload",
+      "success": false,
+      "details": "Failed to upload subtitle",
+      "timestamp": "2025-09-08T08:12:33.371252"
+    },
+    {
+      "test": "Blocking Words",
+      "success": true,
+      "details": "Found 3 blocking words",
+      "timestamp": "2025-09-08T08:12:33.880486"
+    }
+  ]
+}
