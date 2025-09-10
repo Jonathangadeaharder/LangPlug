@@ -292,6 +292,9 @@ cython_debug/
 # Excluded projects (moved out of main repo)
 IdeaProjects_Excluded/
 
+# Archived experimental tests
+archived/
+
 # Server state files
 server_state.json
 nul
