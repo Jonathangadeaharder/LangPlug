@@ -301,3 +301,12 @@ test_*.html
 
 # Repomix output
 repomix-output.xml
+
+# Test and debug files
+test_results_*.json
+test_output/
+test_reports/
+debug_*.py
+**/test_*.py
+**/*.backup
+test_video.mp4
