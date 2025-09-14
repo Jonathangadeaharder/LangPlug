@@ -1,0 +1,59 @@
+[tool.ruff]
+# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "DTZ", "T20", "PYI", "PT", "PTH", "PD", "PL", "RUF"]
+extend-select = ["W", "C9", "T"]
+line-length = 88
+target-version = "py311"
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "api_venv",
+]
+
+[tool.ruff.per-file-ignores]
+# Ignore `E402` (import violations) in all `__init__.py` files
+"__init__.py" = ["E402"]
+# Ignore `E501` (line too long) in migration files
+"database/migrations/*" = ["E501"]
+
+[tool.ruff.flake8-quotes]
+docstring-quotes = "double"
+inline-quotes = "double"
+
+[tool.ruff.isort]
+known-first-party = ["api", "core", "database", "services", "tests"]
+known-third-party = ["fastapi", "passlib", "pytest", "sqlite3", "uvicorn"]
+
+[tool.ruff.pycodestyle]
+max-doc-length = 88
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+[build-system]
+requires = ["setuptools", "wheel"]

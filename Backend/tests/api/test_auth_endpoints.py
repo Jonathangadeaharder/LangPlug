@@ -1,105 +1,102 @@
-#!/usr/bin/env python3
 """
-Test authentication endpoints to verify dependency injection fix
+In-process API tests for auth endpoints using FastAPI TestClient and dependency overrides.
+Removes external localhost dependency and speeds up feedback.
 """
-import requests
-import time
+from __future__ import annotations
 
-def test_register_endpoint():
-    """Test user registration endpoint"""
-    
-    url = "http://localhost:8000/auth/register"
-    data = {
-        "username": f"testuser_{int(time.time())}",
-        "password": "testpass123"
-    }
-    
-    print(f"Testing registration endpoint: {url}")
-    print(f"Data: {data}")
-    
-    start_time = time.time()
-    
-    try:
-        response = requests.post(
-            url, 
-            json=data,
-            timeout=15
-        )
-        
-        elapsed = time.time() - start_time
-        print(f"[OK] Request completed in {elapsed:.3f} seconds")
-        print(f"[OK] Status code: {response.status_code}")
-        print(f"[OK] Response: {response.text}")
-        
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
-        assert response.json() is not None
-        
-    except requests.exceptions.Timeout:
-        elapsed = time.time() - start_time
-        print(f"[ERROR] REQUEST TIMED OUT after {elapsed:.3f} seconds")
-        return None
-        
-    except Exception as e:
-        elapsed = time.time() - start_time
-        print(f"[ERROR] Request failed after {elapsed:.3f} seconds: {str(e)}")
-        return None
+from datetime import datetime, timedelta
+from typing import Dict
 
-def test_login_endpoint():
-    """Test user login endpoint"""
-    
-    url = "http://localhost:8000/auth/login"
-    data = {
-        "username": "admin",
-        "password": "admin"
-    }
-    
-    print(f"\nTesting login endpoint: {url}")
-    print(f"Data: {data}")
-    
-    start_time = time.time()
-    
-    try:
-        response = requests.post(
-            url, 
-            json=data,
-            timeout=15
-        )
-        
-        elapsed = time.time() - start_time
-        print(f"[OK] Request completed in {elapsed:.3f} seconds")
-        print(f"[OK] Status code: {response.status_code}")
-        print(f"[OK] Response: {response.text}")
-        
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
-        assert response.json() is not None
-        
-    except requests.exceptions.Timeout:
-        elapsed = time.time() - start_time
-        print(f"[ERROR] REQUEST TIMED OUT after {elapsed:.3f} seconds")
-        return None
-        
-    except Exception as e:
-        elapsed = time.time() - start_time
-        print(f"[ERROR] Request failed after {elapsed:.3f} seconds: {str(e)}")
-        return None
+import pytest
 
-if __name__ == "__main__":
-    print("Testing authentication endpoints to verify dependency injection fix...")
-    print("=" * 70)
-    
-    # Test registration
-    register_result = test_register_endpoint()
-    
-    # Test login
-    login_result = test_login_endpoint()
-    
-    print("\n" + "=" * 70)
-    
-    # Summary
-    if register_result or login_result:
-        print("SUCCESS: At least one authentication endpoint is working!")
-        print("The dependency injection fix appears to be successful.")
-    else:
-        print("FAILURE: Authentication endpoints are still having issues.")
-    
-    print("Test completed")
+
+class _User:
+    def __init__(self, user_id: int, username: str):
+        self.id = user_id
+        self.username = username
+        self.is_admin = False
+        self.is_active = True
+        self.created_at = datetime.utcnow().isoformat()
+        self.last_login = None
+
+
+class _Session:
+    def __init__(self, token: str, user: _User):
+        self.session_token = token
+        self.user = user
+        self.expires_at = datetime.utcnow() + timedelta(hours=1)
+
+
+class FakeAuthService:
+    """Minimal in-memory auth service for API tests."""
+    def __init__(self) -> None:
+        self._users: Dict[str, _User] = {}
+        self._next_id = 1
+        self._tokens: Dict[str, _User] = {}
+
+    # Methods used by routes
+    def register_user(self, username: str, password: str, email: str | None = None) -> _User:
+        if username in self._users:
+            raise ValueError("User already exists")
+        user = _User(self._next_id, username)
+        self._next_id += 1
+        self._users[username] = user
+        return user
+
+    def login(self, username: str, password: str) -> _Session:
+        if username not in self._users:
+            # auto-register for convenience in test
+            self.register_user(username, password)
+        user = self._users[username]
+        user.last_login = datetime.utcnow().isoformat()
+        token = f"testtoken-{user.id}-{username}"
+        self._tokens[token] = user
+        return _Session(token, user)
+
+    def logout(self, token: str) -> bool:
+        return self._tokens.pop(token, None) is not None
+
+    # Used by get_current_user (not directly in these tests)
+    def validate_session(self, token: str) -> _User:
+        user = self._tokens.get(token)
+        if not user:
+            raise ValueError("Invalid token")
+        return user
+
+
+# Uses shared client fixture from conftest.py
+
+
+import pytest
+
+
+@pytest.mark.anyio
+async def test_register_endpoint(async_client):
+    payload = {"username": "testuser_api", "password": "TestPass123"}
+    resp = await async_client.post("/api/auth/register", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["username"] == payload["username"]
+    assert isinstance(data["id"], int)
+    assert data["is_active"] is True
+
+
+@pytest.mark.anyio
+async def test_login_endpoint(async_client):
+    # ensure user exists
+    await async_client.post("/api/auth/register", json={"username": "admin", "password": "AdminPass123"})
+
+    resp = await async_client.post("/api/auth/login", json={"username": "admin", "password": "AdminPass123"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "token" in data and data["token"].startswith("testtoken-")
+    assert data["user"]["username"] == "admin"
+
+
+@pytest.mark.anyio
+async def test_register_duplicate_username(async_client):
+    payload = {"username": "dupuser", "password": "TestPass123"}
+    r1 = await async_client.post("/api/auth/register", json=payload)
+    assert r1.status_code == 200
+    r2 = await async_client.post("/api/auth/register", json=payload)
+    assert r2.status_code == 400
