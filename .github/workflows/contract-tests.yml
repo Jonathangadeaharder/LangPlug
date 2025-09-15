@@ -40,25 +40,20 @@ jobs:
 
   backend-contract-tests:
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_USER: testuser
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+    
+    - name: Start Postgres (docker)
+      run: |
+        docker run --name act-postgres-backend -e POSTGRES_PASSWORD=testpass -e POSTGRES_USER=testuser -e POSTGRES_DB=testdb -p 5432:5432 -d postgres:15
+
+    - name: Wait for Postgres (docker)
+      run: |
+        for i in $(seq 1 30); do
+          docker exec act-postgres-backend pg_isready -U testuser && exit 0 || sleep 1
+        done
+        echo "Postgres did not become ready" && exit 1
       
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -100,25 +95,20 @@ jobs:
   integration-contract-tests:
     runs-on: ubuntu-latest
     needs: [frontend-contract-tests, backend-contract-tests]
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_USER: testuser
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Start Postgres (docker)
+      run: |
+        docker run --name act-postgres-integration -e POSTGRES_PASSWORD=testpass -e POSTGRES_USER=testuser -e POSTGRES_DB=testdb -p 5432:5432 -d postgres:15
+
+    - name: Wait for Postgres (docker)
+      run: |
+        for i in $(seq 1 30); do
+          docker exec act-postgres-integration pg_isready -U testuser && exit 0 || sleep 1
+        done
+        echo "Postgres did not become ready" && exit 1
       
     - name: Setup Node.js
       uses: actions/setup-node@v4
