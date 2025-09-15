@@ -91,3 +91,7 @@ def create_app() -> FastAPI:
     
     logger.info("FastAPI application created and configured")
     return app
+
+
+# Create the app instance
+app = create_app()

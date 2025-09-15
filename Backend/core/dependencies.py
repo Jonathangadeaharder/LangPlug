@@ -14,11 +14,19 @@ from services.authservice.auth_service import AuthService, SessionExpiredError
 from services.authservice.models import AuthUser
 from services.dataservice.authenticated_user_vocabulary_service import AuthenticatedUserVocabularyService
 from services.transcriptionservice.factory import TranscriptionServiceFactory
+from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 from services.filterservice.filter_chain import SubtitleFilterChain
 from services.filterservice.vocabulary_filter import VocabularyFilter
 from services.filterservice.user_knowledge_filter import UserKnowledgeFilter
-from services.filterservice.spacy_vocabulary_filter import SpacyVocabularyFilter
 from services.filterservice.difficulty_level_filter import DifficultyLevelFilter
+
+# Import SpaCy filter with fallback
+try:
+    from services.filterservice.spacy_vocabulary_filter import SpacyVocabularyFilter
+    SPACY_AVAILABLE = True
+except ImportError:
+    SpacyVocabularyFilter = None
+    SPACY_AVAILABLE = False
 
 
 # Global service registry
@@ -80,6 +88,23 @@ def get_transcription_service() -> Optional[object]:
     return result
 
 
+def get_subtitle_processor() -> DirectSubtitleProcessor:
+    """Get direct subtitle processor instance"""
+    if "subtitle_processor" not in _service_registry:
+        logger.info("Creating direct subtitle processor...")
+        db_manager = get_database_manager()
+        processor = DirectSubtitleProcessor(db_manager)
+        _service_registry["subtitle_processor"] = processor
+        logger.info("Direct subtitle processor created successfully")
+    return _service_registry["subtitle_processor"]
+
+
+def get_user_subtitle_processor(current_user: AuthUser) -> DirectSubtitleProcessor:
+    """Get subtitle processor for user-specific processing"""
+    # Return the same processor instance - user-specific logic is handled in processing parameters
+    return get_subtitle_processor()
+
+
 def get_filter_chain() -> SubtitleFilterChain:
     """Get filter chain instance (without user-specific filters)"""
     if "filter_chain" not in _service_registry:
@@ -91,11 +116,16 @@ def get_filter_chain() -> SubtitleFilterChain:
         filter_chain.add_filter(vocabulary_filter)
         logger.info("Added VocabularyFilter to chain")
         
-        # Temporarily disable SpaCy filter to isolate timeout issue
-        logger.info("SpaCy filter temporarily disabled for debugging")
+        # Add SpaCy filter if available
+        if SPACY_AVAILABLE:
+            spacy_filter = SpacyVocabularyFilter(language="en")
+            filter_chain.add_filter(spacy_filter)
+            logger.info("Added SpaCy filter to chain")
+        else:
+            logger.info("SpaCy filter not available, skipping")
         
         _service_registry["filter_chain"] = filter_chain
-        logger.info("Filter chain created successfully")
+        logger.info("Filter chain created and registered")
     return _service_registry["filter_chain"]
 
 
@@ -107,6 +137,11 @@ def get_user_filter_chain(current_user: AuthUser, session_token: str) -> Subtitl
     # Add basic vocabulary filter (removes interjections, proper names, etc.)
     vocabulary_filter = VocabularyFilter(language="de")  # German for Superstore
     filter_chain.add_filter(vocabulary_filter)
+    
+    # Add SpaCy filter if available
+    if SPACY_AVAILABLE:
+        spacy_filter = SpacyVocabularyFilter(language="de")
+        filter_chain.add_filter(spacy_filter)
     
     # Add user knowledge filter (removes words user already knows)
     vocabulary_service = get_vocabulary_service()
