@@ -18,7 +18,7 @@ A Netflix-style language learning platform that combines video streaming with in
 - **FastAPI Server**: RESTful API with automatic documentation
 - **AI Services**: Whisper transcription, vocabulary filtering, translation
 - **Database**: SQLite with repository pattern for user progress and vocabulary
-- **Authentication**: Secure session-based authentication with PBKDF2 hashing
+- **Authentication**: Secure session-based authentication with bcrypt hashing
 
 ### Frontend (`Frontend/`)  
 - **React + TypeScript**: Modern frontend with type safety
