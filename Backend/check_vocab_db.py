@@ -19,7 +19,7 @@ def check_vocab_db():
     print("===========================\n")
     
     try:
-        from database.database_manager import DatabaseManager
+        from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
         from core.config import settings
         
         db_path = settings.get_database_path()

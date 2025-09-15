@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 os.environ.setdefault('ENVIRONMENT', 'development')
 
-from database.database_manager import DatabaseManager
+from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
 from core.config import settings
 
 # German vocabulary data

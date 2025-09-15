@@ -19,7 +19,7 @@ def load_german_vocabulary():
     print("=============================\n")
     
     try:
-        from database.database_manager import DatabaseManager
+        from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
         from core.config import settings
         
         # Sample German vocabulary with CEFR levels
