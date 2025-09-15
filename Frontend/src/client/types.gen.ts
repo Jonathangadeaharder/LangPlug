@@ -195,6 +195,27 @@ export type FrontendLogEntry = {
 };
 
 /**
+ * FullPipelineRequest
+ */
+export type FullPipelineRequest = {
+    /**
+     * Video Path
+     * Path to the video file to process
+     */
+    video_path: string;
+    /**
+     * Source Lang
+     * Source language code (e.g., 'de', 'en-US')
+     */
+    source_lang?: string;
+    /**
+     * Target Lang
+     * Target language code (e.g., 'en', 'de-DE')
+     */
+    target_lang?: string;
+};
+
+/**
  * GameSession
  * Game session model
  */
@@ -1193,22 +1214,9 @@ export type PrepareEpisodeForLearningApiProcessPrepareEpisodePostResponses = {
 };
 
 export type FullPipelineApiProcessFullPipelinePostData = {
-    body?: never;
+    body: FullPipelineRequest;
     path?: never;
-    query: {
-        /**
-         * Video Path
-         */
-        video_path: string;
-        /**
-         * Source Lang
-         */
-        source_lang?: string;
-        /**
-         * Target Lang
-         */
-        target_lang?: string;
-    };
+    query?: never;
     url: '/api/process/full-pipeline';
 };
 
@@ -1865,5 +1873,5 @@ export type TestPostWithDataApiDebugTestWithDataPostResponses = {
 export type TestPostWithDataApiDebugTestWithDataPostResponse = TestPostWithDataApiDebugTestWithDataPostResponses[keyof TestPostWithDataApiDebugTestWithDataPostResponses];
 
 export type ClientOptions = {
-    baseUrl: `${string}://${string}` | (string & {});
+    baseUrl: 'http://localhost:8000' | (string & {});
 };

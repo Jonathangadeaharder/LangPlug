@@ -18,7 +18,7 @@ vi.mock('@/services/api', () => ({
 }));
 
 // Mock logger
-vi.mock('@/utils/logger', () => ({
+vi.mock('@/services/logger', () => ({
   logger: {
     info: vi.fn(),
     error: vi.fn(),

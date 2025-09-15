@@ -10,7 +10,7 @@ import {
 } from '@heroicons/react/24/solid'
 import axios from 'axios'
 import { videoService } from '@/services/api'
-import { logger } from '@/utils/logger'
+import { logger } from '@/services/logger'
 
 const PlayerContainer = styled.div`
   background: #000;

@@ -418,7 +418,11 @@ export const fullPipelineApiProcessFullPipelinePost = <ThrowOnError extends bool
             }
         ],
         url: '/api/process/full-pipeline',
-        ...options
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
     });
 };
 

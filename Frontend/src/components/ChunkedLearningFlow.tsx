@@ -5,7 +5,7 @@ import { ProcessingScreen } from './ProcessingScreen'
 import { VocabularyGame } from './VocabularyGame'
 import { ChunkedLearningPlayer } from './ChunkedLearningPlayer'
 import { videoService, handleApiError } from '@/services/api'
-import { logger } from '@/utils/logger'
+import { logger } from '@/services/logger'
 import type { VideoInfo, ProcessingStatus, VocabularyWord } from '@/types'
 
 interface ChunkData {
