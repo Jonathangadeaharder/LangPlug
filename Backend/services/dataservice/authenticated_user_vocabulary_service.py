@@ -22,7 +22,7 @@ except ImportError:
     from services.authservice.auth_service import AuthService
     from services.authservice.models import AuthUser
     from services.filterservice.interface import IUserVocabularyService
-    from database.database_manager import DatabaseManager
+    from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
 
 class InsufficientPermissionsError(Exception):
     """Raised when user lacks required permissions"""

@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Any, Dict
 from passlib.context import CryptContext
 
-from database.database_manager import DatabaseManager
+from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
 from services.repository.user_repository import UserRepository, User
 from .models import (
     AuthUser, AuthSession, AuthenticationError, 
