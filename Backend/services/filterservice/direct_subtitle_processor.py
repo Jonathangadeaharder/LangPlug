@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Set, Optional
 from datetime import datetime
 
 from .interface import FilteredSubtitle, FilteredWord, WordStatus, FilteringResult
-from database.database_manager import DatabaseManager
+from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
 
 logger = logging.getLogger(__name__)
 

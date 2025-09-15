@@ -102,44 +102,6 @@ class ISubtitleFilter(ABC):
         return {}
 
 
-class ISubtitleFilterChain(ABC):
-    """
-    Interface for the filter chain processor
-    Manages the sequence of filters using Chain of Command pattern
-    """
-    
-    @abstractmethod
-    def add_filter(self, filter_impl: ISubtitleFilter) -> 'ISubtitleFilterChain':
-        """
-        Add a filter to the chain
-        
-        Args:
-            filter_impl: Filter implementation to add
-            
-        Returns:
-            Self for method chaining
-        """
-        pass
-    
-    @abstractmethod
-    def process(self, subtitles: List[FilteredSubtitle]) -> FilteringResult:
-        """
-        Process subtitles through the entire filter chain
-        
-        Args:
-            subtitles: Input subtitles to process
-            
-        Returns:
-            Filtering result with categorized subtitles
-        """
-        pass
-    
-    @abstractmethod
-    def get_filter_statistics(self) -> Dict[str, Dict[str, Any]]:
-        """Get statistics from all filters in the chain"""
-        pass
-
-
 class IUserVocabularyService(ABC):
     """
     Interface for authenticated user vocabulary data service
