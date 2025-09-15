@@ -1,6 +1,6 @@
 """SRT Subtitle Parser Utility
 
-Utility for parsing SRT subtitle files into structured data.
+Parser for SRT subtitle files that handles both single-language and dual-language formats. Supports Windows and Unix line endings.
 """
 
 import re

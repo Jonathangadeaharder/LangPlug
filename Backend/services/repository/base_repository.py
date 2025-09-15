@@ -7,8 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Union, TypeVar, Generic
 from contextlib import contextmanager
 
-from database.database_manager import DatabaseManager
-from database.unified_database_manager import UnifiedDatabaseManager
+from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +19,7 @@ class BaseRepository(ABC, Generic[T]):
     Provides common CRUD operations and transaction management
     """
     
-    def __init__(self, db_manager: Union[DatabaseManager, UnifiedDatabaseManager]):
+    def __init__(self, db_manager: DatabaseManager):
         self.db_manager = db_manager
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
     

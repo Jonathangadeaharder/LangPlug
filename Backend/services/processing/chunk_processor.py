@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 from api.models.processing import ProcessingStatus
 from services.authservice.models import AuthUser
 from services.utils.srt_parser import SRTParser, SRTSegment
-from core.dependencies import get_transcription_service, get_user_filter_chain, get_auth_service
+from core.dependencies import get_transcription_service, get_subtitle_processor, get_auth_service
 from core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -168,23 +168,23 @@ class ChunkProcessingService:
         # Get authenticated user
         current_user = self._get_authenticated_user(user_id, session_token)
         
-        # Create user-specific filter chain
-        user_filter_chain = get_user_filter_chain(current_user, session_token)
+        # Get subtitle processor
+        subtitle_processor = get_subtitle_processor()
         
-        logger.info(f"[CHUNK DEBUG] Filter chain created for user {current_user.username}")
+        logger.info(f"[CHUNK DEBUG] Subtitle processor created for user {current_user.username}")
         logger.info(f"[CHUNK DEBUG] Processing SRT file: {srt_file_path}")
         
-        # Process the SRT file through the complete filter chain
-        filter_result = await user_filter_chain.process_file(srt_file_path, user_id)
+        # Process the SRT file through the subtitle processor
+        filter_result = await subtitle_processor.process_file(srt_file_path, user_id)
         
         logger.info(f"[CHUNK DEBUG] Filter result keys: {list(filter_result.keys())}")
         logger.info(f"[CHUNK DEBUG] Filter result statistics: {filter_result.get('statistics', {})}")
         
-        # Check for filter chain errors
+        # Check for processing errors
         if "error" in filter_result.get("statistics", {}):
             error_msg = filter_result["statistics"]["error"]
-            logger.error(f"[CHUNK ERROR] Filter chain failed: {error_msg}")
-            raise ChunkProcessingError(f"Filter processing failed: {error_msg}")
+            logger.error(f"[CHUNK ERROR] Subtitle processing failed: {error_msg}")
+            raise ChunkProcessingError(f"Subtitle processing failed: {error_msg}")
         
         # Extract blocking words
         vocabulary = filter_result.get("blocking_words", [])

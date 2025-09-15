@@ -6,7 +6,7 @@ Loads vocabulary data from text files into the database
 import logging
 from pathlib import Path
 from typing import List, Dict, Set
-from database.database_manager import DatabaseManager
+from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
 
 logger = logging.getLogger(__name__)
 
