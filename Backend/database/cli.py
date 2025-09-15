@@ -14,7 +14,7 @@ from datetime import datetime
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from database.database_manager import DatabaseManager
+from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
 from database.migration import DataMigration
 from database.repositories.vocabulary_repository import VocabularyRepository
 from database.repositories.unknown_words_repository import UnknownWordsRepository

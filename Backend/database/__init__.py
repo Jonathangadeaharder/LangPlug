@@ -1,6 +1,6 @@
 """Database package for A1Decider vocabulary management."""
 
-from .database_manager import DatabaseManager
+from .unified_database_manager import UnifiedDatabaseManager as DatabaseManager
 from .repositories import (
     VocabularyRepository,
     UnknownWordsRepository,
