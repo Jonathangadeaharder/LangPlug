@@ -22,7 +22,8 @@ import venv_activator  # noqa: F401
 import httpx
 from fastapi.testclient import TestClient
 from core.app import create_app
-from core.dependencies import get_database_manager, get_auth_service
+from core.dependencies import get_database_manager, get_auth_service, get_user_subtitle_processor, get_subtitle_processor
+from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 from contextlib import asynccontextmanager
 
 
@@ -169,9 +170,14 @@ def client(temp_db, mock_auth_service):
     # Disable heavy startup/shutdown
     app.router.lifespan_context = no_lifespan
 
+    # Create test subtitle processor with test database
+    def get_test_subtitle_processor():
+        return DirectSubtitleProcessor(temp_db)
+    
     # Dependency overrides
     app.dependency_overrides[get_database_manager] = lambda: temp_db
     app.dependency_overrides[get_auth_service] = lambda: mock_auth_service
+    app.dependency_overrides[get_subtitle_processor] = get_test_subtitle_processor
 
     # Use FastAPI TestClient instead of httpx.Client
     return TestClient(app)
