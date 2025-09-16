@@ -24,7 +24,7 @@ describe('Auth API Contract Tests', () => {
       const mockUserResponse: UserResponse = {
         id: 1,
         username: 'testuser',
-        is_admin: false,
+        is_superuser: false,
         is_active: true,
         created_at: '2024-01-01T00:00:00Z',
         last_login: null,
@@ -48,7 +48,7 @@ describe('Auth API Contract Tests', () => {
       expect(result.data).toMatchObject({
         id: expect.any(Number),
         username: expect.any(String),
-        is_admin: expect.any(Boolean),
+        is_superuser: expect.any(Boolean),
         is_active: expect.any(Boolean),
         created_at: expect.any(String),
       });
@@ -80,7 +80,7 @@ describe('Auth API Contract Tests', () => {
         user: {
           id: 1,
           username: 'testuser',
-          is_admin: false,
+          is_superuser: false,
           is_active: true,
           created_at: '2024-01-01T00:00:00Z',
           last_login: '2024-01-01T12:00:00Z',
@@ -108,7 +108,7 @@ describe('Auth API Contract Tests', () => {
         user: expect.objectContaining({
           id: expect.any(Number),
           username: expect.any(String),
-          is_admin: expect.any(Boolean),
+          is_superuser: expect.any(Boolean),
           is_active: expect.any(Boolean),
           created_at: expect.any(String),
         }),
@@ -133,7 +133,7 @@ describe('Auth API Contract Tests', () => {
       const userResponse: UserResponse = {
         id: 1,
         username: 'testuser',
-        is_admin: false,
+        is_superuser: false,
         is_active: true,
         created_at: '2024-01-01T00:00:00Z',
         last_login: null,
@@ -142,7 +142,7 @@ describe('Auth API Contract Tests', () => {
       // Verify all required fields are present
       expect(userResponse.id).toBeTypeOf('number');
       expect(userResponse.username).toBeTypeOf('string');
-      expect(userResponse.is_admin).toBeTypeOf('boolean');
+      expect(userResponse.is_superuser).toBeTypeOf('boolean');
       expect(userResponse.is_active).toBeTypeOf('boolean');
       expect(userResponse.created_at).toBeTypeOf('string');
       
@@ -156,7 +156,7 @@ describe('Auth API Contract Tests', () => {
         user: {
           id: 1,
           username: 'testuser',
-          is_admin: false,
+          is_superuser: false,
           is_active: true,
           created_at: '2024-01-01T00:00:00Z',
           last_login: null,
