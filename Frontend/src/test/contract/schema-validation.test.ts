@@ -18,9 +18,9 @@ describe('Schema Validation Tests', () => {
         id: 1,
         username: 'testuser',
         is_admin: false,
+        is_superuser: false,
         is_active: true,
-        created_at: '2024-01-01T00:00:00Z',
-        last_login: null,
+        created_at: '2025-01-01T00:00:00Z',
       };
 
       expect(() => validateUserResponse(validUser)).not.toThrow();
@@ -33,9 +33,10 @@ describe('Schema Validation Tests', () => {
         id: 1,
         username: 'testuser',
         is_admin: false,
+        is_superuser: false,
         is_active: true,
-        created_at: '2024-01-01T00:00:00Z',
-        last_login: '2024-01-01T12:00:00Z',
+        created_at: '2025-01-01T00:00:00Z',
+        last_login: '2025-01-02T00:00:00Z',
       };
 
       expect(() => validateUserResponse(validUser)).not.toThrow();
@@ -45,7 +46,7 @@ describe('Schema Validation Tests', () => {
       const invalidUser = {
         id: 1,
         username: 'testuser',
-        // missing is_admin, is_active, created_at
+        // missing is_superuser, is_active, created_at
       };
 
       expect(() => validateUserResponse(invalidUser)).toThrow(SchemaValidationError);
@@ -55,7 +56,7 @@ describe('Schema Validation Tests', () => {
       const invalidUser = {
         id: '1', // should be number
         username: 'testuser',
-        is_admin: 'false', // should be boolean
+        is_superuser: 'false', // should be boolean
         is_active: true,
         created_at: '2024-01-01T00:00:00Z',
       };
@@ -67,16 +68,16 @@ describe('Schema Validation Tests', () => {
   describe('AuthResponse Validation', () => {
     it('should validate correct AuthResponse', () => {
       const validAuth = {
-        token: 'jwt-token-string',
+        token: 'jwt-token-123',
         user: {
           id: 1,
           username: 'testuser',
           is_admin: false,
+          is_superuser: false,
           is_active: true,
-          created_at: '2024-01-01T00:00:00Z',
-          last_login: null,
+          created_at: '2025-01-01T00:00:00Z',
         },
-        expires_at: '2024-01-02T00:00:00Z',
+        expires_at: '2025-01-02T00:00:00Z',
       };
 
       expect(() => validateAuthResponse(validAuth)).not.toThrow();
@@ -89,7 +90,7 @@ describe('Schema Validation Tests', () => {
         user: {
           id: 1,
           username: 'testuser',
-          is_admin: false,
+          is_superuser: false,
           is_active: true,
           created_at: '2024-01-01T00:00:00Z',
         },
@@ -190,7 +191,7 @@ describe('Schema Validation Tests', () => {
       const invalidData = {
         id: 'not-a-number',
         username: 123, // wrong type
-        is_admin: 'not-boolean',
+        is_superuser: 'not-boolean',
       };
 
       try {
@@ -220,8 +221,9 @@ describe('Schema Validation Tests', () => {
         id: 1,
         username: 'testuser',
         is_admin: false,
+        is_superuser: false,
         is_active: true,
-        created_at: '2024-01-01T00:00:00Z',
+        created_at: '2025-01-01T00:00:00Z',
       };
 
       const result = UserResponseSchema.parse(validUser);
