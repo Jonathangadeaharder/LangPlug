@@ -1,7 +1,7 @@
 export interface User {
   id: number
   username: string
-  is_admin: boolean
+  is_superuser: boolean
   is_active: boolean
   created_at: string
   last_login?: string
