@@ -14,17 +14,16 @@ from datetime import datetime
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
+from core.database import get_async_session, init_database
 from database.migration import DataMigration
-from database.repositories.vocabulary_repository import VocabularyRepository
-from database.repositories.unknown_words_repository import UnknownWordsRepository
-from database.repositories.word_category_repository import WordCategoryRepository
-from database.repositories.user_progress_repository import UserProgressRepository
+import asyncio
+from sqlalchemy import text, func
+from sqlalchemy.ext.asyncio import AsyncSession
 # Default database configuration
 DEFAULT_DATABASE_PATH = "data/a1decider.db"
 
 
-def create_database(args):
+async def create_database_async(args):
     """Create a new database with schema."""
     db_path = args.database or DEFAULT_DATABASE_PATH
     
@@ -34,19 +33,23 @@ def create_database(args):
         return 1
     
     try:
-        db_manager = DatabaseManager(db_path)
-        db_manager.create_database()
+        # Initialize the database with async SQLAlchemy
+        await init_database()
         print(f"Database created successfully at {db_path}")
         
-        # Show database statistics
-        stats = db_manager.get_database_statistics()
-        print(f"Database size: {stats['size_mb']:.2f} MB")
-        print(f"Tables created: {stats['table_count']}")
+        # Show basic database info
+        if os.path.exists(db_path):
+            size_mb = os.path.getsize(db_path) / (1024 * 1024)
+            print(f"Database size: {size_mb:.2f} MB")
         
         return 0
     except Exception as e:
         print(f"Error creating database: {e}")
         return 1
+
+def create_database(args):
+    """Sync wrapper for create_database_async."""
+    return asyncio.run(create_database_async(args))
 
 
 def migrate_data(args):
@@ -98,7 +101,7 @@ def migrate_data(args):
         return 1
 
 
-def show_stats(args):
+async def show_stats_async(args):
     """Show database statistics."""
     db_path = args.database or DEFAULT_DATABASE_PATH
     
@@ -107,58 +110,48 @@ def show_stats(args):
         return 1
     
     try:
-        db_manager = DatabaseManager(db_path)
-        vocab_repo = VocabularyRepository(db_manager)
-        unknown_repo = UnknownWordsRepository(db_manager)
-        category_repo = WordCategoryRepository(db_manager)
-        progress_repo = UserProgressRepository(db_manager)
-        
-        print(f"Database Statistics for {db_path}")
-        print("=" * 50)
-        
-        # Database info
-        db_stats = db_manager.get_database_statistics()
-        print(f"Database size: {db_stats['size_mb']:.2f} MB")
-        print(f"Tables: {db_stats['table_count']}")
-        print(f"Last modified: {datetime.fromtimestamp(os.path.getmtime(db_path))}")
-        print()
-        
-        # Vocabulary statistics
-        vocab_stats = vocab_repo.get_vocabulary_statistics()
-        print("Vocabulary:")
-        print(f"  Total words: {vocab_stats['total_words']}")
-        print(f"  Average frequency: {vocab_stats['avg_frequency']:.1f}")
-        print(f"  Languages: {', '.join(vocab_stats['languages'])}")
-        print()
-        
-        # Unknown words statistics
-        unknown_stats = unknown_repo.get_unknown_words_statistics()
-        print("Unknown Words:")
-        print(f"  Total unknown: {unknown_stats['total_unknown']}")
-        print(f"  Total frequency: {unknown_stats['total_frequency']}")
-        print(f"  Average frequency: {unknown_stats['avg_frequency']:.1f}")
-        print()
-        
-        # Categories
-        categories = category_repo.get_all_categories()
-        print(f"Categories: {len(categories)}")
-        for category in categories[:5]:  # Show first 5
-            word_count = len(category_repo.get_words_in_category(category['id']))
-            print(f"  - {category['name']}: {word_count} words")
-        if len(categories) > 5:
-            print(f"  ... and {len(categories) - 5} more")
-        print()
-        
-        # Recent activity
-        recent_sessions = progress_repo.get_recent_sessions(limit=5)
-        print(f"Recent Sessions: {len(recent_sessions)}")
-        for session in recent_sessions:
-            print(f"  - {session['session_type']} ({session['created_at'][:10]})")
+        async with get_async_session() as session:
+            print(f"Database Statistics for {db_path}")
+            print("=" * 50)
+            
+            # Database info
+            size_mb = os.path.getsize(db_path) / (1024 * 1024)
+            print(f"Database size: {size_mb:.2f} MB")
+            print(f"Last modified: {datetime.fromtimestamp(os.path.getmtime(db_path))}")
+            print()
+            
+            # Vocabulary statistics
+            vocab_count = await session.execute(text("SELECT COUNT(*) FROM vocabulary"))
+            total_words = vocab_count.scalar()
+            
+            avg_freq = await session.execute(text("SELECT AVG(frequency) FROM vocabulary WHERE frequency > 0"))
+            avg_frequency = avg_freq.scalar() or 0
+            
+            languages = await session.execute(text("SELECT DISTINCT language FROM vocabulary WHERE language IS NOT NULL"))
+            lang_list = [row[0] for row in languages.fetchall()]
+            
+            print("Vocabulary:")
+            print(f"  Total words: {total_words}")
+            print(f"  Average frequency: {avg_frequency:.1f}")
+            print(f"  Languages: {', '.join(lang_list) if lang_list else 'None'}")
+            print()
+            
+            # User progress statistics
+            progress_count = await session.execute(text("SELECT COUNT(*) FROM user_learning_progress"))
+            total_progress = progress_count.scalar()
+            
+            print("User Progress:")
+            print(f"  Total progress entries: {total_progress}")
+            print()
         
         return 0
     except Exception as e:
         print(f"Error getting statistics: {e}")
         return 1
+
+def show_stats(args):
+    """Sync wrapper for show_stats_async."""
+    return asyncio.run(show_stats_async(args))
 
 
 def backup_database(args):
@@ -170,8 +163,18 @@ def backup_database(args):
         return 1
     
     try:
-        db_manager = DatabaseManager(db_path)
-        backup_path = db_manager.backup_database(args.backup_path)
+        import shutil
+        from datetime import datetime
+        
+        # Create backup filename if not provided
+        if args.backup_path:
+            backup_path = args.backup_path
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_path = f"{db_path}.backup_{timestamp}"
+        
+        # Copy the database file
+        shutil.copy2(db_path, backup_path)
         
         print(f"Database backed up to: {backup_path}")
         
@@ -185,7 +188,7 @@ def backup_database(args):
         return 1
 
 
-def search_words(args):
+async def search_words_async(args):
     """Search for words in the database."""
     db_path = args.database or DEFAULT_DATABASE_PATH
     
@@ -194,42 +197,67 @@ def search_words(args):
         return 1
     
     try:
-        db_manager = DatabaseManager(db_path)
-        vocab_repo = VocabularyRepository(db_manager)
-        unknown_repo = UnknownWordsRepository(db_manager)
-        
-        query = args.query
-        limit = args.limit
-        
-        print(f"Searching for '{query}'...")
-        print()
-        
-        # Search vocabulary
-        vocab_results = vocab_repo.search_words(query, limit=limit)
-        if vocab_results:
-            print(f"Vocabulary ({len(vocab_results)} results):")
-            for word in vocab_results:
-                print(f"  {word['word']} (freq: {word['frequency']}, level: {word['difficulty_level'] or 'N/A'})")
+        async with get_async_session() as session:
+            query = args.query
+            limit = args.limit
+            
+            print(f"Searching for '{query}'...")
             print()
-        
-        # Search unknown words
-        unknown_results = unknown_repo.search_unknown_words(query, limit=limit)
-        if unknown_results:
-            print(f"Unknown Words ({len(unknown_results)} results):")
-            for word in unknown_results:
-                print(f"  {word['word']} (freq: {word['frequency']})")
-            print()
-        
-        if not vocab_results and not unknown_results:
-            print("No results found.")
+            
+            # Search vocabulary
+            vocab_query = text("""
+                SELECT word, frequency, difficulty_level 
+                FROM vocabulary 
+                WHERE word LIKE :query 
+                ORDER BY frequency DESC 
+                LIMIT :limit
+            """)
+            vocab_results = await session.execute(vocab_query, {
+                "query": f"%{query}%",
+                "limit": limit
+            })
+            vocab_rows = vocab_results.fetchall()
+            
+            if vocab_rows:
+                print(f"Vocabulary ({len(vocab_rows)} results):")
+                for row in vocab_rows:
+                    word, frequency, difficulty_level = row
+                    print(f"  {word} (freq: {frequency}, level: {difficulty_level or 'N/A'})")
+                print()
+            
+            # Search user progress
+            progress_query = text("""
+                SELECT DISTINCT word 
+                FROM user_learning_progress 
+                WHERE word LIKE :query 
+                LIMIT :limit
+            """)
+            progress_results = await session.execute(progress_query, {
+                "query": f"%{query}%",
+                "limit": limit
+            })
+            progress_rows = progress_results.fetchall()
+            
+            if progress_rows:
+                print(f"User Progress ({len(progress_rows)} results):")
+                for row in progress_rows:
+                    print(f"  {row[0]}")
+                print()
+            
+            if not vocab_rows and not progress_rows:
+                print("No results found.")
         
         return 0
     except Exception as e:
         print(f"Error searching: {e}")
         return 1
 
+def search_words(args):
+    """Sync wrapper for search_words_async."""
+    return asyncio.run(search_words_async(args))
 
-def vacuum_database(args):
+
+async def vacuum_database_async(args):
     """Vacuum the database to reclaim space."""
     db_path = args.database or DEFAULT_DATABASE_PATH
     
@@ -241,8 +269,9 @@ def vacuum_database(args):
         # Get size before vacuum
         size_before = os.path.getsize(db_path) / (1024 * 1024)
         
-        db_manager = DatabaseManager(db_path)
-        db_manager.vacuum_database()
+        async with get_async_session() as session:
+            await session.execute(text("VACUUM"))
+            await session.commit()
         
         # Get size after vacuum
         size_after = os.path.getsize(db_path) / (1024 * 1024)
@@ -257,6 +286,10 @@ def vacuum_database(args):
     except Exception as e:
         print(f"Error vacuuming database: {e}")
         return 1
+
+def vacuum_database(args):
+    """Sync wrapper for vacuum_database_async."""
+    return asyncio.run(vacuum_database_async(args))
 
 
 def main():

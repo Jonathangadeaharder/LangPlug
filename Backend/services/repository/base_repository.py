@@ -5,9 +5,11 @@ Addresses standardization of database access patterns across services
 import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Union, TypeVar, Generic
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 
-from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
+from core.database import get_async_session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, insert, update, delete, func, text
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +21,7 @@ class BaseRepository(ABC, Generic[T]):
     Provides common CRUD operations and transaction management
     """
     
-    def __init__(self, db_manager: DatabaseManager):
-        self.db_manager = db_manager
+    def __init__(self):
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
     
     @property
@@ -29,238 +30,146 @@ class BaseRepository(ABC, Generic[T]):
         """Return the primary table name for this repository"""
         pass
     
+    @property
     @abstractmethod
-    def _row_to_model(self, row: Dict[str, Any]) -> T:
-        """Convert database row to domain model"""
+    def model_class(self):
+        """Return the SQLAlchemy model class for this repository"""
         pass
     
-    @abstractmethod
-    def _model_to_dict(self, model: T) -> Dict[str, Any]:
-        """Convert domain model to dictionary for database insertion/update"""
-        pass
+    @asynccontextmanager
+    async def get_session(self):
+        """Get async database session with proper error handling"""
+        async with get_async_session() as session:
+            try:
+                yield session
+            except Exception as e:
+                self.logger.error(f"Database session error: {e}")
+                await session.rollback()
+                raise
     
-    @contextmanager
-    def get_connection(self):
-        """Get database connection with proper error handling"""
-        try:
-            with self.db_manager.get_connection() as conn:
-                yield conn
-        except Exception as e:
-            self.logger.error(f"Database connection error: {e}")
-            raise
-    
-    @contextmanager
-    def transaction(self):
+    @asynccontextmanager
+    async def transaction(self):
         """Execute operations within a transaction"""
-        try:
-            if hasattr(self.db_manager, 'transaction'):
-                with self.db_manager.transaction() as conn:
-                    yield conn
-            else:
-                # Fallback for basic connection
-                with self.get_connection() as conn:
-                    try:
-                        yield conn
-                        conn.commit()
-                    except Exception:
-                        conn.rollback()
-                        raise
-        except Exception as e:
-            self.logger.error(f"Transaction error: {e}")
-            raise
+        async with get_async_session() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception as e:
+                self.logger.error(f"Transaction error: {e}")
+                await session.rollback()
+                raise
     
-    def find_by_id(self, id_value: Union[int, str]) -> Optional[T]:
+    async def find_by_id(self, id_value: Union[int, str]) -> Optional[T]:
         """Find entity by primary key"""
         try:
-            with self.get_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute(f"SELECT * FROM {self.table_name} WHERE id = ?", (id_value,))
-                row = cursor.fetchone()
-                
-                if row:
-                    if hasattr(row, '_asdict'):
-                        return self._row_to_model(row._asdict())
-                    elif isinstance(row, dict):
-                        return self._row_to_model(row)
-                    else:
-                        # Convert sqlite3.Row to dict
-                        return self._row_to_model(dict(row))
-                return None
+            async with self.get_session() as session:
+                stmt = select(self.model_class).where(self.model_class.id == id_value)
+                result = await session.execute(stmt)
+                row = result.scalar_one_or_none()
+                return row
         except Exception as e:
             self.logger.error(f"Error finding {self.table_name} by id {id_value}: {e}")
             raise
     
-    def find_all(self, limit: Optional[int] = None, offset: Optional[int] = None) -> List[T]:
+    async def find_all(self, limit: Optional[int] = None, offset: Optional[int] = None) -> List[T]:
         """Find all entities with optional pagination"""
         try:
-            with self.get_connection() as conn:
-                cursor = conn.cursor()
-                query = f"SELECT * FROM {self.table_name}"
-                params = []
+            async with self.get_session() as session:
+                stmt = select(self.model_class)
                 
                 if limit is not None:
-                    query += " LIMIT ?"
-                    params.append(limit)
+                    stmt = stmt.limit(limit)
                     
                 if offset is not None:
-                    query += " OFFSET ?"
-                    params.append(offset)
+                    stmt = stmt.offset(offset)
                 
-                cursor.execute(query, params)
-                rows = cursor.fetchall()
-                
-                results = []
-                for row in rows:
-                    if hasattr(row, '_asdict'):
-                        results.append(self._row_to_model(row._asdict()))
-                    elif isinstance(row, dict):
-                        results.append(self._row_to_model(row))
-                    else:
-                        results.append(self._row_to_model(dict(row)))
-                
-                return results
+                result = await session.execute(stmt)
+                rows = result.scalars().all()
+                return list(rows)
         except Exception as e:
             self.logger.error(f"Error finding all {self.table_name}: {e}")
             raise
     
-    def find_by_criteria(self, criteria: Dict[str, Any]) -> List[T]:
+    async def find_by_criteria(self, criteria: Dict[str, Any]) -> List[T]:
         """Find entities by custom criteria"""
         try:
             if not criteria:
-                return self.find_all()
+                return await self.find_all()
             
-            with self.get_connection() as conn:
-                cursor = conn.cursor()
+            async with self.get_session() as session:
+                stmt = select(self.model_class)
                 
                 # Build WHERE clause
-                conditions = []
-                params = []
                 for key, value in criteria.items():
-                    conditions.append(f"{key} = ?")
-                    params.append(value)
+                    if hasattr(self.model_class, key):
+                        stmt = stmt.where(getattr(self.model_class, key) == value)
                 
-                query = f"SELECT * FROM {self.table_name} WHERE {' AND '.join(conditions)}"
-                cursor.execute(query, params)
-                rows = cursor.fetchall()
-                
-                results = []
-                for row in rows:
-                    if hasattr(row, '_asdict'):
-                        results.append(self._row_to_model(row._asdict()))
-                    elif isinstance(row, dict):
-                        results.append(self._row_to_model(row))
-                    else:
-                        results.append(self._row_to_model(dict(row)))
-                
-                return results
+                result = await session.execute(stmt)
+                rows = result.scalars().all()
+                return list(rows)
         except Exception as e:
-            self.logger.error(f"Error finding {self.table_name} by criteria {criteria}: {e}")
-            raise
+             self.logger.error(f"Error finding {self.table_name} by criteria {criteria}: {e}")
+             raise
     
-    def save(self, entity: T) -> T:
+    async def save(self, entity: T) -> T:
         """Save entity (insert or update)"""
         try:
-            data = self._model_to_dict(entity)
-            
-            with self.transaction() as conn:
-                cursor = conn.cursor()
-                
+            async with self.transaction() as session:
                 # Check if entity has an ID (update vs insert)
-                if 'id' in data and data['id'] is not None:
-                    return self._update(cursor, entity, data)
+                if hasattr(entity, 'id') and entity.id is not None:
+                    # Update existing entity
+                    await session.merge(entity)
                 else:
-                    return self._insert(cursor, entity, data)
+                    # Insert new entity
+                    session.add(entity)
+                
+                await session.flush()  # Get the ID if it's a new entity
+                return entity
         except Exception as e:
             self.logger.error(f"Error saving {self.table_name}: {e}")
             raise
     
-    def delete_by_id(self, id_value: Union[int, str]) -> bool:
+    async def delete_by_id(self, id_value: Union[int, str]) -> bool:
         """Delete entity by primary key"""
         try:
-            with self.transaction() as conn:
-                cursor = conn.cursor()
-                cursor.execute(f"DELETE FROM {self.table_name} WHERE id = ?", (id_value,))
-                return cursor.rowcount > 0
+            async with self.transaction() as session:
+                stmt = delete(self.model_class).where(self.model_class.id == id_value)
+                result = await session.execute(stmt)
+                return result.rowcount > 0
         except Exception as e:
             self.logger.error(f"Error deleting {self.table_name} with id {id_value}: {e}")
             raise
     
-    def count(self, criteria: Optional[Dict[str, Any]] = None) -> int:
+    async def count(self, criteria: Optional[Dict[str, Any]] = None) -> int:
         """Count entities matching criteria"""
         try:
-            with self.get_connection() as conn:
-                cursor = conn.cursor()
+            async with self.get_session() as session:
+                stmt = select(func.count()).select_from(self.model_class)
                 
                 if criteria:
-                    conditions = []
-                    params = []
                     for key, value in criteria.items():
-                        conditions.append(f"{key} = ?")
-                        params.append(value)
-                    
-                    query = f"SELECT COUNT(*) FROM {self.table_name} WHERE {' AND '.join(conditions)}"
-                    cursor.execute(query, params)
-                else:
-                    cursor.execute(f"SELECT COUNT(*) FROM {self.table_name}")
+                        if hasattr(self.model_class, key):
+                            stmt = stmt.where(getattr(self.model_class, key) == value)
                 
-                return cursor.fetchone()[0]
+                result = await session.execute(stmt)
+                return result.scalar()
         except Exception as e:
             self.logger.error(f"Error counting {self.table_name}: {e}")
             raise
     
-    def _insert(self, cursor, entity: T, data: Dict[str, Any]) -> T:
-        """Internal method for inserting new entity"""
-        # Remove id from data for insert
-        insert_data = {k: v for k, v in data.items() if k != 'id'}
-        
-        columns = list(insert_data.keys())
-        placeholders = ['?'] * len(columns)
-        values = list(insert_data.values())
-        
-        query = f"INSERT INTO {self.table_name} ({', '.join(columns)}) VALUES ({', '.join(placeholders)})"
-        cursor.execute(query, values)
-        
-        # Update entity with new ID
-        new_id = cursor.lastrowid
-        if hasattr(entity, 'id'):
-            entity.id = new_id
-        
-        return entity
-    
-    def _update(self, cursor, entity: T, data: Dict[str, Any]) -> T:
-        """Internal method for updating existing entity"""
-        entity_id = data.pop('id')
-        
-        if not data:
-            return entity
-        
-        set_clauses = [f"{key} = ?" for key in data.keys()]
-        values = list(data.values()) + [entity_id]
-        
-        query = f"UPDATE {self.table_name} SET {', '.join(set_clauses)} WHERE id = ?"
-        cursor.execute(query, values)
-        
-        return entity
-    
-    def execute_raw_query(self, query: str, params: tuple = ()) -> List[Dict[str, Any]]:
+    async def execute_raw_query(self, query: str, params: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """Execute raw SQL query - use sparingly and with caution"""
         self.logger.warning(f"Executing raw query: {query}")
         try:
-            with self.get_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute(query, params)
-                rows = cursor.fetchall()
+            async with self.get_session() as session:
+                stmt = text(query)
+                if params:
+                    result = await session.execute(stmt, params)
+                else:
+                    result = await session.execute(stmt)
                 
-                results = []
-                for row in rows:
-                    if hasattr(row, '_asdict'):
-                        results.append(row._asdict())
-                    elif isinstance(row, dict):
-                        results.append(row)
-                    else:
-                        results.append(dict(row))
-                
-                return results
+                rows = result.fetchall()
+                return [dict(row._mapping) for row in rows]
         except Exception as e:
             self.logger.error(f"Error executing raw query: {e}")
             raise

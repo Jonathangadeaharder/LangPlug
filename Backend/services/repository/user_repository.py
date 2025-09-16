@@ -7,7 +7,6 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 
 from .base_repository import BaseRepository
-from services.authservice.models import AuthUser
 
 logger = logging.getLogger(__name__)
 
@@ -15,12 +14,12 @@ logger = logging.getLogger(__name__)
 class User:
     """User domain model"""
     def __init__(self, id: Optional[int] = None, username: str = "", 
-                 password_hash: str = "", email: str = "", 
+                 hashed_password: str = "", email: str = "", 
                  native_language: str = "en", target_language: str = "de",
                  created_at: Optional[datetime] = None):
         self.id = id
         self.username = username
-        self.password_hash = password_hash
+        self.hashed_password = hashed_password
         self.email = email
         self.native_language = native_language
         self.target_language = target_language
@@ -39,7 +38,7 @@ class UserRepository(BaseRepository[User]):
         return User(
             id=row.get('id'),
             username=row.get('username', ''),
-            password_hash=row.get('password_hash', ''),
+            hashed_password=row.get('hashed_password', ''),
             email=row.get('email', ''),
             native_language=row.get('native_language', 'en'),
             target_language=row.get('target_language', 'de'),
@@ -51,7 +50,7 @@ class UserRepository(BaseRepository[User]):
         return {
             'id': user.id,
             'username': user.username,
-            'password_hash': user.password_hash,
+            'hashed_password': user.hashed_password,
             'email': user.email,
             'native_language': user.native_language,
             'target_language': user.target_language,
@@ -188,26 +187,7 @@ class UserRepository(BaseRepository[User]):
             self.logger.error(f"Error deactivating session {session_token}: {e}")
             raise
 
-    def to_auth_user(self, user: User) -> AuthUser:
-        """Convert User domain model to AuthUser for compatibility"""
-        return AuthUser(id=user.id, username=user.username)
-    
-    def from_auth_user_data(self, user_id: int) -> Optional[User]:
-        """Get full User from AuthUser ID for backward compatibility"""
-        return self.find_by_id(user_id)
-    
-    def create_from_data(self, username: str, password_hash: str, **kwargs) -> int:
-        """Create a new user from raw data and return the user ID"""
-        user = User(
-            username=username,
-            password_hash=password_hash,
-            is_admin=kwargs.get('is_admin', False),
-            is_active=kwargs.get('is_active', True),
-            native_language=kwargs.get('native_language', 'en'),
-            target_language=kwargs.get('target_language', 'de'),
-            created_at=datetime.now()
-        )
-        return self.create(user)
+    # Legacy create_from_data method removed - use FastAPI-Users for user creation
     
     def update_last_login(self, user_id: int) -> bool:
         """Update user's last login timestamp"""

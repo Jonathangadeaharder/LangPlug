@@ -5,11 +5,9 @@ from sqlalchemy import (
     Column, Integer, String, Boolean, DateTime, ForeignKey, Text, Float,
     UniqueConstraint, Index, func
 )
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
-
-Base = declarative_base()
+from core.auth import Base, User
 
 
 class WordCategory(Base):
@@ -149,6 +147,7 @@ class SessionWordDiscovery(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(String(100), ForeignKey('processing_sessions.session_id'), nullable=False)
+    word_id = Column(Integer, ForeignKey('vocabulary.id'), nullable=True)
     word = Column(String(100), nullable=False)
     frequency_in_session = Column(Integer, default=1)
     context_examples = Column(Text)
@@ -163,45 +162,19 @@ class SessionWordDiscovery(Base):
     )
 
 
-class User(Base):
-    """Users Table"""
-    __tablename__ = 'users'
-    
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(50), unique=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
-    salt = Column(String(32), nullable=False)
-    is_admin = Column(Boolean, default=False)
-    is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    last_login = Column(DateTime)
-    
-    # Relationships
-    sessions = relationship("UserSession", back_populates="user")
-    
-    __table_args__ = (
-        Index('idx_users_username', 'username'),
-        Index('idx_users_active', 'is_active'),
-        Index('idx_users_created', 'created_at'),
-        Index('idx_users_last_login', 'last_login'),
-    )
-
-
 class UserSession(Base):
     """User Sessions Table"""
     __tablename__ = 'user_sessions'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(String(36), ForeignKey('users.id'), nullable=False)
     session_token = Column(String(128), unique=True, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=func.now())
     last_used = Column(DateTime, default=func.now())
     is_active = Column(Boolean, default=True)
     
-    # Relationships
-    user = relationship("User", back_populates="sessions")
+    # Note: No relationship defined since FastAPI-Users User model doesn't have sessions relationship
     
     __table_args__ = (
         Index('idx_sessions_token', 'session_token'),

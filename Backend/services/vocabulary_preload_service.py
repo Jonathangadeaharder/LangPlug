@@ -6,7 +6,10 @@ Loads vocabulary data from text files into the database
 import logging
 from pathlib import Path
 from typing import List, Dict, Set
-from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
+from sqlalchemy.ext.asyncio import AsyncSession
+from database.models import Vocabulary
+from core.database import get_async_session
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +17,10 @@ logger = logging.getLogger(__name__)
 class VocabularyPreloadService:
     """Service for preloading vocabulary data from files"""
 
-    def __init__(self, db_manager: DatabaseManager):
-        self.db = db_manager
+    def __init__(self):
         self.data_path = Path(__file__).parent.parent / "data"
 
-    def load_vocabulary_files(self) -> Dict[str, int]:
+    async def load_vocabulary_files(self) -> Dict[str, int]:
         """
         Load all vocabulary files into the database
 
@@ -34,18 +36,19 @@ class VocabularyPreloadService:
             "B2": self.data_path / "b2.txt",
         }
 
-        for level, file_path in vocabulary_files.items():
-            if file_path.exists():
-                count = self._load_level_vocabulary(level, file_path)
-                result[level] = count
-                logger.info(f"Loaded {count} {level} words from {file_path}")
-            else:
-                logger.warning(f"Vocabulary file not found: {file_path}")
-                result[level] = 0
+        async with get_async_session() as session:
+            for level, file_path in vocabulary_files.items():
+                if file_path.exists():
+                    count = await self._load_level_vocabulary(session, level, file_path)
+                    result[level] = count
+                    logger.info(f"Loaded {count} {level} words from {file_path}")
+                else:
+                    logger.warning(f"Vocabulary file not found: {file_path}")
+                    result[level] = 0
 
         return result
 
-    def _load_level_vocabulary(self, level: str, file_path: Path) -> int:
+    async def _load_level_vocabulary(self, session: AsyncSession, level: str, file_path: Path) -> int:
         """Load vocabulary words from a specific level file"""
         words = []
 
@@ -56,24 +59,29 @@ class VocabularyPreloadService:
                     if word:  # Skip empty lines
                         words.append(word)
 
-            # Insert words into database using batch operation
+            # Insert words into database using SQLAlchemy
             if words:
-                query = """
-                    INSERT OR IGNORE INTO vocabulary 
-                    (word, difficulty_level, language, word_type, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
-                """
-                
-                # Prepare batch parameters
-                params_list = [
-                    (word.lower(), level, "de", "unknown")
-                    for word in words
-                ]
-                
                 try:
-                    loaded_count = self.db.execute_many(query, params_list)
+                    loaded_count = 0
+                    for word in words:
+                        # Check if word already exists
+                        existing = await session.get(Vocabulary, word.lower())
+                        if not existing:
+                            vocab_entry = Vocabulary(
+                                word=word.lower(),
+                                difficulty_level=level,
+                                language="de",
+                                word_type="unknown",
+                                created_at=datetime.utcnow(),
+                                updated_at=datetime.utcnow()
+                            )
+                            session.add(vocab_entry)
+                            loaded_count += 1
+                    
+                    await session.commit()
                     logger.info(f"Batch inserted {loaded_count} words for level {level}")
                 except Exception as e:
+                    await session.rollback()
                     logger.error(f"Failed to batch insert words for level {level}: {e}")
                     loaded_count = 0
             else:
@@ -85,119 +93,136 @@ class VocabularyPreloadService:
             logger.error(f"Error loading vocabulary from {file_path}: {e}")
             raise Exception(f"Failed to load vocabulary from {file_path}: {e}") from e
 
-    def get_level_words(self, level: str) -> List[Dict[str, str]]:
+    async def get_level_words(self, level: str) -> List[Dict[str, str]]:
         """Get all words for a specific difficulty level"""
         try:
-            results = self.db.execute_query(
-                """
-                SELECT id, word, difficulty_level, word_type, definition, part_of_speech
-                FROM vocabulary 
-                WHERE difficulty_level = ? AND language = 'de'
-                ORDER BY word
-            """,
-                (level,),
-            )
-
-            words = []
-            for row in results:
-                # Convert Row to dict for easier access
-                row_dict = dict(row)
-                words.append({
-                    "id": row_dict.get("id"),
-                    "word": row_dict.get("word"),
-                    "difficulty_level": row_dict.get("difficulty_level"),
-                    "word_type": row_dict.get("word_type", "noun"),
-                    "part_of_speech": row_dict.get("part_of_speech") or row_dict.get("word_type", "noun"),
-                    "definition": row_dict.get("definition", ""),
-                })
-            return words
+            async with get_async_session() as session:
+                from sqlalchemy import select
+                
+                stmt = select(Vocabulary).where(
+                    Vocabulary.difficulty_level == level,
+                    Vocabulary.language == 'de'
+                ).order_by(Vocabulary.word)
+                
+                result = await session.execute(stmt)
+                vocab_entries = result.scalars().all()
+                
+                words = []
+                for vocab in vocab_entries:
+                    words.append({
+                        "id": vocab.id,
+                        "word": vocab.word,
+                        "difficulty_level": vocab.difficulty_level,
+                        "word_type": vocab.word_type or "noun",
+                        "part_of_speech": vocab.part_of_speech or vocab.word_type or "noun",
+                        "definition": vocab.definition or "",
+                    })
+                return words
         except Exception as e:
             logger.error(f"Error getting {level} words: {e}")
             raise Exception(f"Failed to get {level} words: {e}") from e
 
-    def get_user_known_words(self, user_id: int, level: str = None) -> Set[str]:
+    async def get_user_known_words(self, user_id: int, level: str = None) -> Set[str]:
         """Get words that a user has marked as known"""
         try:
-            if level:
-                results = self.db.execute_query(
-                    """
-                    SELECT v.word
-                    FROM user_learning_progress ulp
-                    JOIN vocabulary v ON ulp.word_id = v.id
-                    WHERE ulp.user_id = ? AND v.difficulty_level = ? AND v.language = 'de'
-                """,
-                    (str(user_id), level),
-                )
-            else:
-                results = self.db.execute_query(
-                    """
-                    SELECT v.word
-                    FROM user_learning_progress ulp
-                    JOIN vocabulary v ON ulp.word_id = v.id
-                    WHERE ulp.user_id = ? AND v.language = 'de'
-                """,
-                    (str(user_id),),
-                )
-
-            return {row["word"] for row in results}
+            async with get_async_session() as session:
+                from sqlalchemy import select
+                from database.models import UserLearningProgress
+                
+                if level:
+                    stmt = select(Vocabulary.word).join(
+                        UserLearningProgress, UserLearningProgress.word_id == Vocabulary.id
+                    ).where(
+                        UserLearningProgress.user_id == str(user_id),
+                        Vocabulary.difficulty_level == level,
+                        Vocabulary.language == 'de'
+                    )
+                else:
+                    stmt = select(Vocabulary.word).join(
+                        UserLearningProgress, UserLearningProgress.word_id == Vocabulary.id
+                    ).where(
+                        UserLearningProgress.user_id == str(user_id),
+                        Vocabulary.language == 'de'
+                    )
+                
+                result = await session.execute(stmt)
+                words = result.scalars().all()
+                return set(words)
         except Exception as e:
             logger.error(f"Error getting user known words: {e}")
             raise Exception(f"Failed to get user known words: {e}") from e
 
-    def mark_user_word_known(self, user_id: int, word: str, known: bool = True) -> bool:
+    async def mark_user_word_known(self, user_id: int, word: str, known: bool = True) -> bool:
         """Mark a word as known/unknown for a specific user"""
         try:
-            # First, get the word_id from vocabulary table
-            word_results = self.db.execute_query(
-                """
-                SELECT id FROM vocabulary WHERE word = ? AND language = 'de'
-            """,
-                (word.lower(),),
-            )
-
-            if not word_results:
-                logger.warning(f"Word '{word}' not found in vocabulary")
-                return False
-
-            word_id = word_results[0]["id"]
-
-            if known:
-                # Insert or update as known
-                self.db.execute_update(
-                    """
-                    INSERT OR REPLACE INTO user_learning_progress 
-                    (user_id, word_id, learned_at, confidence_level, review_count, last_reviewed)
-                    VALUES (?, ?, datetime('now'), 5, 1, datetime('now'))
-                """,
-                    (str(user_id), word_id),
+            async with get_async_session() as session:
+                from sqlalchemy import select, delete
+                from database.models import UserLearningProgress
+                
+                # First, get the word from vocabulary table
+                vocab_stmt = select(Vocabulary).where(
+                    Vocabulary.word == word.lower(),
+                    Vocabulary.language == 'de'
                 )
-            else:
-                # Remove from known words
-                self.db.execute_update(
-                    """
-                    DELETE FROM user_learning_progress
-                    WHERE user_id = ? AND word_id = ?
-                """,
-                    (str(user_id), word_id),
-                )
+                vocab_result = await session.execute(vocab_stmt)
+                vocab_entry = vocab_result.scalar_one_or_none()
+                
+                if not vocab_entry:
+                    logger.warning(f"Word '{word}' not found in vocabulary")
+                    return False
 
-            return True
+                if known:
+                    # Check if progress entry already exists
+                    existing_stmt = select(UserLearningProgress).where(
+                        UserLearningProgress.user_id == str(user_id),
+                        UserLearningProgress.word_id == vocab_entry.id
+                    )
+                    existing_result = await session.execute(existing_stmt)
+                    existing_progress = existing_result.scalar_one_or_none()
+                    
+                    if existing_progress:
+                        # Update existing
+                        existing_progress.learned_at = datetime.utcnow()
+                        existing_progress.confidence_level = 5
+                        existing_progress.review_count = (existing_progress.review_count or 0) + 1
+                        existing_progress.last_reviewed = datetime.utcnow()
+                    else:
+                        # Create new
+                        progress = UserLearningProgress(
+                            user_id=str(user_id),
+                            word_id=vocab_entry.id,
+                            learned_at=datetime.utcnow(),
+                            confidence_level=5,
+                            review_count=1,
+                            last_reviewed=datetime.utcnow()
+                        )
+                        session.add(progress)
+                else:
+                    # Remove from known words
+                    delete_stmt = delete(UserLearningProgress).where(
+                        UserLearningProgress.user_id == str(user_id),
+                        UserLearningProgress.word_id == vocab_entry.id
+                    )
+                    await session.execute(delete_stmt)
+                
+                await session.commit()
+                return True
         except Exception as e:
             logger.error(
                 f"Error marking word '{word}' as {'known' if known else 'unknown'}: {e}"
             )
             return False
 
-    def bulk_mark_level_known(
+    async def bulk_mark_level_known(
         self, user_id: int, level: str, known: bool = True
     ) -> int:
         """Mark all words of a specific level as known/unknown for a user"""
         try:
-            level_words = self.get_level_words(level)
+            level_words = await self.get_level_words(level)
             success_count = 0
 
             for word_data in level_words:
-                if self.mark_user_word_known(user_id, word_data["word"], known):
+                if await self.mark_user_word_known(user_id, word_data["word"], known):
                     success_count += 1
 
             logger.info(
@@ -208,43 +233,43 @@ class VocabularyPreloadService:
             logger.error(f"Error bulk marking {level} words: {e}")
             raise Exception(f"Failed to bulk mark {level} words: {e}") from e
 
-    def get_vocabulary_stats(self) -> Dict[str, Dict[str, int]]:
+    async def get_vocabulary_stats(self) -> Dict[str, Dict[str, int]]:
         """Get vocabulary statistics by level"""
         try:
-            # Get comprehensive statistics with definitions and user knowledge counts
-            results = self.db.execute_query(
-                """
-                SELECT 
-                    v.difficulty_level,
-                    COUNT(*) as total_words,
-                    COUNT(CASE WHEN v.definition IS NOT NULL AND v.definition != '' THEN 1 END) as has_definition,
-                    COUNT(CASE WHEN ukw.word IS NOT NULL THEN 1 END) as user_known
-                FROM vocabulary v
-                LEFT JOIN user_known_words ukw ON v.word = ukw.word
-                WHERE v.language = 'de'
-                GROUP BY v.difficulty_level
-                ORDER BY v.difficulty_level
-            """
-            )
+            async with get_async_session() as session:
+                # Get comprehensive statistics with definitions and user knowledge counts
+                query = text("""
+                    SELECT 
+                        v.difficulty_level,
+                        COUNT(*) as total_words,
+                        COUNT(CASE WHEN v.definition IS NOT NULL AND v.definition != '' THEN 1 END) as has_definition,
+                        COUNT(CASE WHEN ukw.word IS NOT NULL THEN 1 END) as user_known
+                    FROM vocabulary v
+                    LEFT JOIN user_known_words ukw ON v.word = ukw.word
+                    WHERE v.language = 'de'
+                    GROUP BY v.difficulty_level
+                    ORDER BY v.difficulty_level
+                """)
+                
+                result = await session.execute(query)
+                rows = result.fetchall()
 
-            stats = {}
-            for row in results:
-                level = row["difficulty_level"]
-                stats[level] = {
-                    "total_words": row["total_words"],
-                    "has_definition": row["has_definition"],
-                    "user_known": row["user_known"],
-                }
+                stats = {}
+                for row in rows:
+                    level = row.difficulty_level
+                    stats[level] = {
+                        "total_words": row.total_words,
+                        "has_definition": row.has_definition,
+                        "user_known": row.user_known,
+                    }
 
-            return stats
+                return stats
         except Exception as e:
             logger.error(f"Error getting vocabulary stats: {e}")
             raise Exception(f"Failed to get vocabulary stats: {e}") from e
 
 
 # Utility function for easy access
-def get_vocabulary_preload_service(
-    db_manager: DatabaseManager,
-) -> VocabularyPreloadService:
+def get_vocabulary_preload_service() -> VocabularyPreloadService:
     """Get a vocabulary preload service instance"""
-    return VocabularyPreloadService(db_manager)
+    return VocabularyPreloadService()

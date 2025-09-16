@@ -9,7 +9,10 @@ from typing import List, Dict, Any, Set, Optional
 from datetime import datetime
 
 from .interface import FilteredSubtitle, FilteredWord, WordStatus, FilteringResult
-from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
+from core.database import get_async_session
+from database.models import UserLearningProgress, Vocabulary
+from sqlalchemy import select, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +23,8 @@ class DirectSubtitleProcessor:
     with direct, efficient processing combining all filter logic
     """
     
-    def __init__(self, db_manager: DatabaseManager):
-        self.db_manager = db_manager
+    def __init__(self):
+        pass
         
         # Pre-compiled patterns for efficiency
         self._proper_name_pattern = re.compile(r"^[A-Z][a-z]+$")
@@ -40,7 +43,7 @@ class DirectSubtitleProcessor:
         self._word_difficulty_cache: Dict[str, str] = {}
         self._user_known_words_cache: Dict[str, Set[str]] = {}
         
-    def process_subtitles(self, subtitles: List[FilteredSubtitle], user_id: int, 
+    async def process_subtitles(self, subtitles: List[FilteredSubtitle], user_id: int, 
                          user_level: str = "A1", language: str = "de") -> FilteringResult:
         """
         Process subtitles with all filtering logic combined for efficiency
@@ -57,11 +60,11 @@ class DirectSubtitleProcessor:
         logger.info(f"Processing {len(subtitles)} subtitles for user {user_id}")
         
         # Pre-load user's known words for efficiency
-        user_known_words = self._get_user_known_words(user_id, language)
+        user_known_words = await self._get_user_known_words(user_id, language)
         
         # Pre-load difficulty levels if needed
         if not self._word_difficulty_cache:
-            self._load_word_difficulties(language)
+            await self._load_word_difficulties(language)
         
         # Process each subtitle
         learning_subtitles = []
@@ -194,21 +197,21 @@ class DirectSubtitleProcessor:
         
         return False
     
-    def _get_user_known_words(self, user_id: int, language: str) -> Set[str]:
+    async def _get_user_known_words(self, user_id: int, language: str) -> Set[str]:
         """Get set of words the user already knows"""
         cache_key = f"{user_id}_{language}"
         
         if cache_key not in self._user_known_words_cache:
             try:
-                with self.db_manager.get_connection() as conn:
-                    cursor = conn.cursor()
-                    cursor.execute("""
-                        SELECT DISTINCT LOWER(word) 
-                        FROM user_vocabulary 
-                        WHERE user_id = ? AND language = ? AND known = 1
-                    """, (user_id, language))
+                async with get_async_session() as session:
+                    query = select(UserVocabulary.word).where(
+                        UserVocabulary.user_id == user_id,
+                        UserVocabulary.language == language,
+                        UserVocabulary.known == True
+                    ).distinct()
                     
-                    known_words = {row[0] for row in cursor.fetchall()}
+                    result = await session.execute(query)
+                    known_words = {word.lower() for (word,) in result.fetchall()}
                     self._user_known_words_cache[cache_key] = known_words
                     logger.debug(f"Loaded {len(known_words)} known words for user {user_id}")
                     
@@ -218,19 +221,19 @@ class DirectSubtitleProcessor:
         
         return self._user_known_words_cache[cache_key]
     
-    def _load_word_difficulties(self, language: str):
+    async def _load_word_difficulties(self, language: str):
         """Pre-load word difficulty levels for efficiency"""
         try:
-            with self.db_manager.get_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    SELECT DISTINCT LOWER(word), difficulty_level 
-                    FROM vocabulary 
-                    WHERE language = ?
-                """, (language,))
+            async with get_async_session() as session:
+                query = select(Vocabulary.word, Vocabulary.difficulty_level).where(
+                    Vocabulary.language == language
+                ).distinct()
                 
-                for word, difficulty in cursor.fetchall():
-                    self._word_difficulty_cache[word] = difficulty
+                result = await session.execute(query)
+                rows = result.fetchall()
+                
+                for word, difficulty in rows:
+                    self._word_difficulty_cache[word.lower()] = difficulty
                 
                 logger.debug(f"Loaded {len(self._word_difficulty_cache)} word difficulties")
                 
@@ -249,7 +252,7 @@ class DirectSubtitleProcessor:
         }
         return level_ranks.get(level.upper(), 3)  # Default to B1 level
     
-    def process_srt_file(self, srt_file_path: str, user_id: int, 
+    async def process_srt_file(self, srt_file_path: str, user_id: int, 
                         user_level: str = "A1", language: str = "de") -> Dict[str, Any]:
         """
         Process an SRT file directly - simplified version of filter chain process_file
@@ -278,7 +281,7 @@ class DirectSubtitleProcessor:
                 filtered_subtitles.append(filtered_subtitle)
             
             # Process through simplified filtering
-            filtering_result = self.process_subtitles(filtered_subtitles, user_id, user_level, language)
+            filtering_result = await self.process_subtitles(filtered_subtitles, user_id, user_level, language)
             
             # Convert blocker words to VocabularyWord objects
             blocking_words = []
