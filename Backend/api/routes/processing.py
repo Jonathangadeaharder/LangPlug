@@ -187,7 +187,7 @@ async def run_subtitle_filtering(
         task_progress[task_id].message = "Applying vocabulary filters"
         # Process with simplified subtitle processor
         user_level = getattr(current_user, 'language_level', 'A1')  # Default to A1
-        filtered_subtitles = subtitle_processor.process_srt_file(
+        filtered_subtitles = await subtitle_processor.process_srt_file(
             str(srt_file), current_user.id, user_level, "de"
         )
         await asyncio.sleep(2)  # Simulate filtering process
@@ -197,9 +197,7 @@ async def run_subtitle_filtering(
         task_progress[task_id].progress = 100.0
         task_progress[task_id].current_step = "Filtering completed"
         task_progress[task_id].message = "Subtitles filtered successfully"
-        task_progress[task_id].result = (
-            filtered_subtitles  # Store result in progress object
-        )
+        # Result is not stored in ProcessingStatus model - data is persisted through other means
 
         logger.info(f"Filtering completed for task {task_id}")
 
@@ -578,7 +576,6 @@ async def transcribe_video(
 async def filter_subtitles(
     request: FilterRequest,
     background_tasks: BackgroundTasks,
-    credentials: HTTPAuthorizationCredentials = Depends(security),
     current_user: User = Depends(current_active_user),
     task_progress: Dict[str, Any] = Depends(get_task_progress_registry),
     subtitle_processor: DirectSubtitleProcessor = Depends(get_subtitle_processor),

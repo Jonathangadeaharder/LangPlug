@@ -123,6 +123,12 @@ class TranslateRequest(BaseModel):
         if not v.strip():
             raise ValueError('Video path cannot be empty or whitespace')
         return v
+    
+    @validator('target_lang')
+    def validate_different_languages(cls, v, values):
+        if 'source_lang' in values and v == values['source_lang']:
+            raise ValueError("Target language must be different from source language")
+        return v
 
 
 class FullPipelineRequest(BaseModel):

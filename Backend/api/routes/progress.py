@@ -43,7 +43,7 @@ class DailyProgress(BaseModel):
     experience_gained: int = 0
 
 
-@router.get("/user", response_model=UserProgress)
+@router.get("/user", response_model=UserProgress, name="progress_get_user")
 async def get_user_progress(
     current_user: User = Depends(current_active_user)
 ):
@@ -89,7 +89,7 @@ async def get_user_progress(
         raise HTTPException(status_code=500, detail=f"Error retrieving user progress: {str(e)}")
 
 
-@router.post("/update")
+@router.post("/update", name="progress_update_user")
 async def update_user_progress(
     progress_update: Dict[str, Any],
     current_user: User = Depends(current_active_user)
@@ -130,7 +130,7 @@ async def update_user_progress(
         raise HTTPException(status_code=500, detail=f"Error updating user progress: {str(e)}")
 
 
-@router.get("/daily", response_model=List[DailyProgress])
+@router.get("/daily", response_model=List[DailyProgress], name="progress_get_daily")
 async def get_daily_progress(
     days: int = 7,
     current_user: User = Depends(current_active_user)

@@ -25,7 +25,7 @@ class FrontendLogEntry(BaseModel):
     userId: str = None
 
 
-@router.post("/frontend-logs")
+@router.post("/frontend-logs", name="debug_receive_frontend_logs")
 async def receive_frontend_log(log_entry: FrontendLogEntry) -> Dict[str, Any]:
     """Receive and store frontend log entries"""
     try:
@@ -44,7 +44,7 @@ async def receive_frontend_log(log_entry: FrontendLogEntry) -> Dict[str, Any]:
         return {"success": False, "error": str(e)}
 
 
-@router.get("/health")
+@router.get("/health", name="debug_health")
 async def debug_health() -> Dict[str, str]:
     """Debug health check endpoint"""
     logger.info("Debug health check called")
@@ -65,14 +65,14 @@ async def debug_health() -> Dict[str, str]:
     }
 
 
-@router.post("/test-minimal")
+@router.post("/test-minimal", name="debug_test_minimal")
 async def test_minimal_post() -> Dict[str, str]:
     """Minimal POST endpoint without dependencies"""
     logger.debug("Minimal POST endpoint called - immediate response")
     return {"status": "ok", "message": "Minimal POST endpoint working"}
 
 
-@router.post("/test-with-data")
+@router.post("/test-with-data", name="debug_test_with_data")
 async def test_post_with_data(data: Optional[dict] = None) -> Dict[str, Any]:
     """POST endpoint with data"""
     logger.debug(f"POST with data called: {data}")

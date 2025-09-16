@@ -28,13 +28,13 @@ def get_video_service(
     return VideoService(db_session, None)
 
 
-@router.get("", response_model=List[Dict[str, Any]], name="get_videos")
+@router.get("", response_model=List[VideoInfo], name="get_videos")
 async def get_available_videos(
     current_user: User = Depends(current_active_user),
     video_service: VideoService = Depends(get_video_service)
 ):
     """Get list of available videos/series"""
-    return video_service.get_videos_list()
+    return video_service.get_available_videos()
 
 
 @router.get("/subtitles/{subtitle_path:path}", name="get_subtitles")
@@ -131,7 +131,7 @@ async def upload_subtitle(
             )
         
         # Get video file path
-        videos_path = settings.videos_path
+        videos_path = settings.get_videos_path()
         video_file = videos_path / video_path
         
         if not video_file.exists():
@@ -174,7 +174,7 @@ async def get_user_videos(
     video_service: VideoService = Depends(get_video_service)
 ):
     """Get videos for the current user (alias for get_available_videos)"""
-    return video_service.get_videos_list()
+    return video_service.get_available_videos()
 
 
 @router.get("/{video_id}/vocabulary", response_model=List[VocabularyWord], name="get_video_vocabulary")
@@ -185,7 +185,7 @@ async def get_video_vocabulary(
     """Get vocabulary words extracted from a video"""
     try:
         # Convert video_id to video path
-        videos_path = settings.videos_path
+        videos_path = settings.get_videos_path()
         video_path = videos_path / video_id
         
         if not video_path.exists():
@@ -237,7 +237,7 @@ async def get_video_status(
         
         if not video_tasks:
             # No active processing, check if video exists and has been processed
-            videos_path = settings.videos_path
+            videos_path = settings.get_videos_path()
             video_path = videos_path / video_id
             
             if not video_path.exists():
@@ -295,7 +295,7 @@ async def upload_video(
             raise HTTPException(status_code=400, detail="File must be a video")
         
         # Get series directory
-        series_path = settings.videos_path / series
+        series_path = settings.get_videos_path() / series
         series_path.mkdir(parents=True, exist_ok=True)
         
         # Generate safe filename
@@ -345,7 +345,7 @@ async def upload_video(
             season=episode_info.get("season", "1"),
             episode=episode_info.get("episode", "Unknown"),
             title=episode_info.get("title", file_path.stem),
-            path=str(file_path.relative_to(settings.videos_path)),
+            path=str(file_path.relative_to(settings.get_videos_path())),
             has_subtitles=False,  # New uploads won't have subtitles initially
             duration=0
         )

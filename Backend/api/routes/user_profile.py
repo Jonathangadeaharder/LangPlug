@@ -52,7 +52,7 @@ class UserProfile(BaseModel):
     target_language: Dict[str, str]
 
 
-@router.get("", response_model=UserProfile)
+@router.get("", response_model=UserProfile, name="profile_get")
 async def get_profile(current_user: User = Depends(current_active_user)):
     """Get current user's profile"""
     try:
@@ -81,7 +81,7 @@ async def get_profile(current_user: User = Depends(current_active_user)):
         )
 
 
-@router.put("/languages", response_model=Dict[str, Any])
+@router.put("/languages", response_model=Dict[str, Any], name="profile_update_languages")
 async def update_language_preferences(
     preferences: LanguagePreferences,
     current_user: User = Depends(current_active_user)
@@ -120,7 +120,7 @@ async def update_language_preferences(
         )
 
 
-@router.get("/languages", response_model=Dict[str, Dict[str, str]])
+@router.get("/languages", response_model=Dict[str, Dict[str, str]], name="profile_get_supported_languages")
 async def get_supported_languages():
     """Get list of supported languages"""
     return SUPPORTED_LANGUAGES
@@ -138,7 +138,7 @@ class UserSettings(BaseModel):
     language_preferences: Optional[LanguagePreferences] = None
 
 
-@router.get("/settings", response_model=UserSettings)
+@router.get("/settings", response_model=UserSettings, name="profile_get_settings")
 async def get_user_settings(
     current_user: User = Depends(current_active_user)
 ):
@@ -170,7 +170,7 @@ async def get_user_settings(
         raise HTTPException(status_code=500, detail=f"Error retrieving user settings: {str(e)}")
 
 
-@router.put("/settings", response_model=UserSettings)
+@router.put("/settings", response_model=UserSettings, name="profile_update_settings")
 async def update_user_settings(
     settings_update: UserSettings,
     current_user: User = Depends(current_active_user)

@@ -28,7 +28,7 @@ class LogBatch(BaseModel):
     client_id: str = "frontend"
 
 
-@router.post("/frontend")
+@router.post("/frontend", name="logs_receive_frontend")
 async def receive_frontend_logs(log_batch: LogBatch):
     """Receive and save frontend logs to file"""
     try:
@@ -65,7 +65,7 @@ async def receive_frontend_logs(log_batch: LogBatch):
         raise HTTPException(status_code=500, detail=f"Failed to save logs: {str(e)}")
 
 
-@router.get("/list")
+@router.get("/list", name="logs_list_files")
 async def list_log_files():
     """List available log files"""
     try:
@@ -93,7 +93,7 @@ async def list_log_files():
         raise HTTPException(status_code=500, detail=f"Failed to list logs: {str(e)}")
 
 
-@router.get("/download/{filename}")
+@router.get("/download/{filename}", name="logs_download_file")
 async def download_log_file(filename: str):
     """Download a specific log file"""
     try:

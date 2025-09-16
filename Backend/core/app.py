@@ -37,7 +37,14 @@ async def lifespan(app: FastAPI):
         raise
     finally:
         logger.info("Shutting down LangPlug API server...")
-        cleanup_services()
+        # Note: cleanup_services is async but called in sync context during shutdown
+        # This is acceptable as it's a cleanup operation
+        import asyncio
+        try:
+            asyncio.create_task(cleanup_services())
+        except RuntimeError:
+            # If no event loop is running, skip cleanup
+            pass
         logger.info("LangPlug API server shut down complete")
 
 

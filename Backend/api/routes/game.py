@@ -64,7 +64,7 @@ class AnswerRequest(BaseModel):
     answer: str
 
 
-@router.post("/start", response_model=GameSession)
+@router.post("/start", response_model=GameSession, name="game_start_session")
 async def start_game_session(
     game_request: StartGameRequest,
     current_user: User = Depends(current_active_user)
@@ -120,7 +120,7 @@ async def start_game_session(
         raise HTTPException(status_code=500, detail=f"Error starting game session: {str(e)}")
 
 
-@router.get("/session/{session_id}", response_model=GameSession)
+@router.get("/session/{session_id}", response_model=GameSession, name="game_get_session")
 async def get_game_session(
     session_id: str,
     current_user: User = Depends(current_active_user)
@@ -152,7 +152,7 @@ async def get_game_session(
         raise HTTPException(status_code=500, detail=f"Error retrieving game session: {str(e)}")
 
 
-@router.post("/answer")
+@router.post("/answer", name="game_submit_answer")
 async def submit_answer(
     answer_request: AnswerRequest,
     current_user: User = Depends(current_active_user)
@@ -230,7 +230,7 @@ async def submit_answer(
         raise HTTPException(status_code=500, detail=f"Error submitting answer: {str(e)}")
 
 
-@router.get("/sessions", response_model=List[GameSession])
+@router.get("/sessions", response_model=List[GameSession], name="game_get_user_sessions")
 async def get_user_game_sessions(
     limit: int = 10,
     current_user: User = Depends(current_active_user)
