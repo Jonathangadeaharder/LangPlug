@@ -24,7 +24,7 @@ from core.app import create_app
 from core.database import get_async_session
 from core.auth import User, Base, get_user_db, get_user_manager
 from database.models import Base as ModelsBase
-from tests.url_builder import get_url_builder
+from tests.utils.url_builder import get_url_builder
 
 
 # Test database setup - use in-memory SQLite for speed and isolation
