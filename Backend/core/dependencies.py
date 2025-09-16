@@ -37,7 +37,7 @@ def get_subtitle_processor(
     db: Annotated[AsyncSession, Depends(get_db_session)]
 ) -> DirectSubtitleProcessor:
     """Get subtitle processor instance"""
-    return DirectSubtitleProcessor(db)
+    return DirectSubtitleProcessor()
 
 
 @lru_cache()
@@ -67,7 +67,7 @@ def get_user_filter_chain(user, session_token):
             if not self.processor:
                 # Create a new session for this operation
                 async with get_async_session() as session:
-                    self.processor = DirectSubtitleProcessor(session)
+                    self.processor = DirectSubtitleProcessor()
                     return await self.processor.process_file(srt_path, user_id)
             else:
                 return await self.processor.process_file(srt_path, user_id)
@@ -123,7 +123,7 @@ def get_user_subtitle_processor(
     db: Annotated[AsyncSession, Depends(get_db_session)]
 ) -> DirectSubtitleProcessor:
     """Get subtitle processor for authenticated user"""
-    return DirectSubtitleProcessor(db)
+    return DirectSubtitleProcessor()
 
 
 # Backward compatibility functions for tests

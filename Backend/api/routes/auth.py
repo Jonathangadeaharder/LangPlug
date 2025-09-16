@@ -15,7 +15,7 @@ from core.auth import UserCreate, UserRead
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["authentication"])
 
-@router.get("/test-prefix")
+@router.get("/test-prefix", name="auth_test_prefix")
 async def test_prefix_endpoint():
     """Test endpoint to verify router prefix configuration"""
     return {"message": "Auth router is working", "prefix": "should be /auth", "timestamp": "2025-01-14"}
@@ -27,7 +27,7 @@ async def test_prefix_endpoint():
 # Logout: POST /auth/logout
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me", response_model=UserResponse, name="auth_get_current_user")
 async def get_current_user_info(
     current_user: Annotated[User, Depends(current_active_user)]
 ):

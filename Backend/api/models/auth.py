@@ -4,6 +4,7 @@ Authentication API models
 from __future__ import annotations
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 from pydantic import BaseModel, Field, validator
 import re
 
@@ -50,17 +51,17 @@ class LoginRequest(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: int = Field(..., gt=0, description="Unique user identifier")
+    id: UUID = Field(..., description="Unique user identifier (UUID)")
     username: str = Field(..., min_length=3, max_length=50, description="Username")
     is_superuser: bool = Field(..., description="Whether user has superuser privileges")
     is_active: bool = Field(..., description="Whether user account is active")
     created_at: str = Field(..., description="Account creation timestamp (ISO format)")
     last_login: Optional[str] = Field(None, description="Last login timestamp (ISO format)")
-    
+
     class Config:
         schema_extra = {
             "example": {
-                "id": 1,
+                "id": "550e8400-e29b-41d4-a716-446655440000",
                 "username": "john_doe",
                 "is_superuser": False,
                 "is_active": True,

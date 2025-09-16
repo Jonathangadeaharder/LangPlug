@@ -8,6 +8,7 @@ from fastapi_users.schemas import BaseUser, BaseUserCreate, BaseUserUpdate
 from fastapi_users.authentication import (
     AuthenticationBackend,
     CookieTransport,
+    BearerTransport,
     JWTStrategy,
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
@@ -85,6 +86,13 @@ class UserManager(BaseUserManager[User, uuid.UUID]):
     reset_password_token_secret = settings.secret_key
     verification_token_secret = settings.secret_key
 
+    def parse_id(self, value: str) -> uuid.UUID:
+        """Parse string ID to UUID."""
+        try:
+            return uuid.UUID(value)
+        except ValueError:
+            raise ValueError(f"Invalid UUID format: {value}")
+
     async def on_after_register(self, user: User, request: Optional[Request] = None):
         print(f"User {user.id} has registered.")
 
@@ -117,16 +125,29 @@ cookie_transport = CookieTransport(
     cookie_samesite="lax",
 )
 
+# Bearer transport for JWT tokens in response body (for API use)
+bearer_transport = BearerTransport(tokenUrl="auth/login")
+
 # JWT Authentication
 def get_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(secret=settings.secret_key, lifetime_seconds=3600 * 24)
 
-# Authentication backend
-auth_backend = AuthenticationBackend(
-    name="jwt",
+# Cookie-based authentication backend
+cookie_auth_backend = AuthenticationBackend(
+    name="jwt-cookie",
     transport=cookie_transport,
     get_strategy=get_jwt_strategy,
 )
+
+# Bearer-based authentication backend (returns token in response)
+bearer_auth_backend = AuthenticationBackend(
+    name="jwt-bearer",
+    transport=bearer_transport,
+    get_strategy=get_jwt_strategy,
+)
+
+# Use bearer backend for login endpoints (what tests expect)
+auth_backend = bearer_auth_backend
 
 # FastAPI Users instance
 fastapi_users = FastAPIUsers[User, uuid.UUID](
