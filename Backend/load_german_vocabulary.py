@@ -13,14 +13,16 @@ sys.path.insert(0, str(Path(__file__).parent))
 # Set up environment
 os.environ.setdefault('ENVIRONMENT', 'development')
 
-def load_german_vocabulary():
+async def load_german_vocabulary_async():
     """Load German vocabulary data into database"""
     print("Loading German Vocabulary Data")
     print("=============================\n")
     
     try:
-        from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
+        from core.database import get_async_session, init_database
         from core.config import settings
+        import asyncio
+        from sqlalchemy import text
         
         # Sample German vocabulary with CEFR levels
         german_vocabulary = [
@@ -138,55 +140,47 @@ def load_german_vocabulary():
             ("beziehungsweise", "B2", "conjunction", "respectively/or rather"),
         ]
         
-        db_path = settings.get_database_path()
-        print(f"Database path: {db_path}")
+        # Initialize database
+        await init_database()
+        print("Database initialized")
         
-        db = DatabaseManager(db_path)
-        with db.get_connection() as conn:
-            cursor = conn.cursor()
-            
-            # Create vocabulary table if it doesn't exist
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS vocabulary (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    word TEXT NOT NULL,
-                    difficulty_level TEXT NOT NULL,
-                    word_type TEXT,
-                    definition TEXT,
-                    language TEXT DEFAULT 'de',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(word, language)
-                )
-            """)
+        async with get_async_session() as session:
+            # Create vocabulary table if it doesn't exist (handled by models)
             
             # Clear existing German vocabulary
-            cursor.execute("DELETE FROM vocabulary WHERE language = ?", ("de",))
+            await session.execute(text("DELETE FROM vocabulary WHERE language = :lang"), {"lang": "de"})
             print("Cleared existing German vocabulary")
             
             # Insert German vocabulary
             inserted = 0
             for word, level, word_type, definition in german_vocabulary:
                 try:
-                    cursor.execute("""
+                    await session.execute(text("""
                         INSERT INTO vocabulary (word, difficulty_level, word_type, definition, language)
-                        VALUES (?, ?, ?, ?, ?)
-                    """, (word, level, word_type, definition, "de"))
+                        VALUES (:word, :level, :word_type, :definition, :language)
+                    """), {
+                        "word": word,
+                        "level": level, 
+                        "word_type": word_type,
+                        "definition": definition,
+                        "language": "de"
+                    })
                     inserted += 1
                 except Exception as e:
                     print(f"Failed to insert '{word}': {e}")
             
-            conn.commit()
+            await session.commit()
             print(f"✅ Inserted {inserted} German vocabulary words")
             
             # Verify insertion
-            cursor.execute("SELECT COUNT(*) FROM vocabulary WHERE language = ?", ("de",))
-            total_german = cursor.fetchone()[0]
+            result = await session.execute(text("SELECT COUNT(*) FROM vocabulary WHERE language = :lang"), {"lang": "de"})
+            total_german = result.scalar()
             print(f"Total German words in database: {total_german}")
             
             # Show breakdown by level
             for level in ["A1", "A2", "B1", "B2"]:
-                cursor.execute("SELECT COUNT(*) FROM vocabulary WHERE language = ? AND difficulty_level = ?", ("de", level))
-                count = cursor.fetchone()[0]
+                result = await session.execute(text("SELECT COUNT(*) FROM vocabulary WHERE language = :lang AND difficulty_level = :level"), {"lang": "de", "level": level})
+                count = result.scalar()
                 print(f"  {level}: {count} words")
         
         print("\n✅ German vocabulary loaded successfully!")
@@ -196,6 +190,10 @@ def load_german_vocabulary():
         print(f"❌ Error loading German vocabulary: {e}")
         import traceback
         traceback.print_exc()
+
+def load_german_vocabulary():
+    """Sync wrapper for loading German vocabulary"""
+    asyncio.run(load_german_vocabulary_async())
 
 if __name__ == "__main__":
     load_german_vocabulary()

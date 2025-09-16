@@ -13,50 +13,46 @@ sys.path.insert(0, str(Path(__file__).parent))
 # Set up environment
 os.environ.setdefault('ENVIRONMENT', 'development')
 
-def check_vocab_db():
+async def check_vocab_db_async():
     """Check vocabulary database content"""
     print("Checking Vocabulary Database")
     print("===========================\n")
     
     try:
-        from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
+        from core.database import get_async_session, init_database
         from core.config import settings
+        import asyncio
+        from sqlalchemy import text
         
-        db_path = settings.get_database_path()
-        print(f"Database path: {db_path}")
+        # Initialize database
+        await init_database()
+        print("Database initialized")
         
-        if not Path(db_path).exists():
-            print("❌ Database file does not exist!")
-            return
-        
-        db = DatabaseManager(db_path)
-        with db.get_connection() as conn:
-            cursor = conn.cursor()
-            
+        async with get_async_session() as session:
             # Check total vocabulary count
-            cursor.execute("SELECT COUNT(*) FROM vocabulary")
-            total_count = cursor.fetchone()[0]
+            result = await session.execute(text("SELECT COUNT(*) FROM vocabulary"))
+            total_count = result.scalar()
             print(f"Total vocabulary words: {total_count}")
             
             # Check German words
-            cursor.execute("SELECT COUNT(*) FROM vocabulary WHERE language = ?", ("de",))
-            german_count = cursor.fetchone()[0]
+            result = await session.execute(text("SELECT COUNT(*) FROM vocabulary WHERE language = :lang"), {"lang": "de"})
+            german_count = result.scalar()
             print(f"German words: {german_count}")
             
             if german_count > 0:
                 print("\nSample German words:")
-                cursor.execute("SELECT word, difficulty_level FROM vocabulary WHERE language = ? LIMIT 10", ("de",))
-                for row in cursor.fetchall():
+                result = await session.execute(text("SELECT word, difficulty_level FROM vocabulary WHERE language = :lang LIMIT 10"), {"lang": "de"})
+                for row in result.fetchall():
                     print(f"  {row[0]} - {row[1]}")
                     
                 # Check for words that might be in Superstore subtitles
                 test_words = ["der", "die", "das", "und", "ist", "sein", "haben", "werden", "können", "möchten", "erste", "alles"]
                 print(f"\nChecking for common German words in DB:")
                 for word in test_words:
-                    cursor.execute("SELECT difficulty_level FROM vocabulary WHERE word = ? AND language = ?", (word, "de"))
-                    result = cursor.fetchone()
-                    if result:
-                        print(f"  ✅ {word} - {result[0]}")
+                    result = await session.execute(text("SELECT difficulty_level FROM vocabulary WHERE word = :word AND language = :lang"), {"word": word, "lang": "de"})
+                    row = result.fetchone()
+                    if row:
+                        print(f"  ✅ {word} - {row[0]}")
                     else:
                         print(f"  ❌ {word} - NOT FOUND")
             else:
@@ -67,6 +63,10 @@ def check_vocab_db():
         print(f"❌ Error checking database: {e}")
         import traceback
         traceback.print_exc()
+
+def check_vocab_db():
+    """Sync wrapper for checking vocabulary database"""
+    asyncio.run(check_vocab_db_async())
 
 if __name__ == "__main__":
     check_vocab_db()

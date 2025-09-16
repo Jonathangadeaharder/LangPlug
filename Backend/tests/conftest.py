@@ -1,148 +1,70 @@
 """
 Pytest configuration and fixtures for LangPlug tests
+Simplified to avoid circular import issues
 """
 import pytest
 import tempfile
 import os
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, AsyncMock
 from types import SimpleNamespace
+import asyncio
+from datetime import datetime, timedelta
 
 # Add project root to path for imports
 import sys
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
-
-# Ensure project venv site-packages are on sys.path before importing FastAPI
+# Ensure project venv site-packages are on sys.path
 import venv_activator  # noqa: F401
-
-# Optional in-process TestClient for API tests
-import httpx
-from fastapi.testclient import TestClient
-from core.app import create_app
-from core.dependencies import get_database_manager, get_auth_service, get_user_subtitle_processor, get_subtitle_processor
-from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
-from contextlib import asynccontextmanager
 
 
 @pytest.fixture
-def temp_db():
-    """Create a temporary database for testing"""
-    with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
-        db_path = f.name
-    
-    try:
-        # Create proper SQLite URL for DatabaseManager
-        db_url = f"sqlite:///{db_path}"
-        db_manager = DatabaseManager(db_url)
-        # DatabaseManager creates schema on first use; no explicit init needed
-        yield db_manager
-    finally:
-        if os.path.exists(db_path):
-            os.unlink(db_path)
+def mock_db_session():
+    """Mock database session for unit tests"""
+    mock_session = AsyncMock()
+    mock_session.execute = AsyncMock()
+    mock_session.commit = AsyncMock()
+    mock_session.rollback = AsyncMock()
+    mock_session.close = AsyncMock()
+    return mock_session
+
+@pytest.fixture
+def mock_sync_db_session():
+    """Mock synchronous database session for unit tests"""
+    mock_session = Mock()
+    mock_session.execute = Mock()
+    mock_session.commit = Mock()
+    mock_session.rollback = Mock()
+    mock_session.close = Mock()
+    return mock_session
 
 
 @pytest.fixture
 def mock_auth_service():
-    """In-memory fake authentication service for API tests."""
-    from datetime import datetime, timedelta
-    
-    class Fake:
-        def __init__(self):
-            self._users = {}
-            self._tokens = {}
-            self._next_id = 1
-            # Seed a default token for tests that use a static header
-            default_user = SimpleNamespace(
-                id=self._next_id,
-                username="testuser",
-                is_admin=False,
-                is_active=True,
-                created_at=datetime.now().isoformat(),
-                last_login=datetime.now().isoformat(),
-                native_language="en",
-                target_language="de",
-            )
-            self._users[default_user.username] = default_user
-            self._tokens["test_token"] = default_user
-            self._next_id += 1
-
-        def register_user(self, username: str, password: str):
-            if username in self._users:
-                raise ValueError("User already exists")
-            user = SimpleNamespace(
-                id=self._next_id,
-                username=username,
-                is_admin=False,
-                is_active=True,
-                created_at=datetime.now().isoformat(),
-                last_login=None,
-                native_language="en",
-                target_language="de",
-            )
-            self._next_id += 1
-            self._users[username] = user
-            return user
-
-        def authenticate_user(self, username: str, password: str):
-            if username == "nonexistent":
-                return None
-            if password.startswith("Wrong"):
-                return None
-            if username not in self._users:
-                return self.register_user(username, password)
-            user = self._users[username]
-            user.last_login = datetime.now().isoformat()
-            return user
-
-        def create_access_token(self, user_id: int):
-            return "mock_jwt_token_12345"
-
-        def get_token_expiry(self):
-            return datetime.now() + timedelta(hours=1)
-
-        def login(self, username: str, password: str):
-            # Check if user exists
-            if username not in self._users:
-                raise ValueError("Invalid username or password")
-            
-            user = self._users[username]
-            # For testing, we'll accept any password that doesn't start with "Wrong"
-            if password.startswith("Wrong"):
-                raise ValueError("Invalid username or password")
-            
-            token = f"testtoken-{user.id}-{username}"
-            self._tokens[token] = user
-            user.last_login = datetime.now().isoformat()
-            return SimpleNamespace(session_token=token, user=user, expires_at=datetime.now() + timedelta(hours=1))
-
-        def validate_session(self, token: str):
-            user = self._tokens.get(token)
-            if not user:
-                raise ValueError("Invalid or expired token")
-            return user
-
-        def verify_token(self, token: str):
-            user = self._tokens.get(token)
-            if not user:
-                raise ValueError("Invalid or expired token")
-            return {"user_id": user.id, "username": user.username}
-
-        def logout(self, token: str) -> bool:
-            return self._tokens.pop(token, None) is not None
-
-        def update_language_preferences(self, user_id: int, native: str, target: str) -> bool:
-            # Update on stored users
-            for u in self._users.values():
-                if u.id == user_id:
-                    u.native_language = native
-                    u.target_language = target
-                    return True
-            return False
-
-    return Fake()
+    """Mock authentication service for unit tests"""
+    mock_auth = Mock()
+    mock_auth.register_user = Mock(return_value=SimpleNamespace(
+        id=1, username="testuser", is_superuser=False, is_active=True
+    ))
+    mock_auth.authenticate_user = Mock(return_value=SimpleNamespace(
+        id=1, username="testuser", is_superuser=False, is_active=True
+    ))
+    mock_auth.create_access_token = Mock(return_value="mock_jwt_token_12345")
+    mock_auth.get_token_expiry = Mock(return_value=datetime.now() + timedelta(hours=1))
+    mock_auth.login = Mock(return_value=SimpleNamespace(
+        session_token="test_token", 
+        user=SimpleNamespace(id=1, username="testuser"),
+        expires_at=datetime.now() + timedelta(hours=1)
+    ))
+    mock_auth.validate_session = Mock(return_value=SimpleNamespace(
+        id=1, username="testuser", is_superuser=False, is_active=True
+    ))
+    mock_auth.verify_token = Mock(return_value={"user_id": 1, "username": "testuser"})
+    mock_auth.logout = Mock(return_value=True)
+    mock_auth.update_language_preferences = Mock(return_value=True)
+    return mock_auth
 
 
 @pytest.fixture
@@ -156,67 +78,267 @@ def sample_vocabulary():
 
 
 @pytest.fixture
-def client(temp_db, mock_auth_service):
-    """FastAPI TestClient with no-op lifespan and DI overrides.
+def mock_fastapi_app():
+    """Mock FastAPI application for unit tests"""
+    mock_app = Mock()
+    mock_app.dependency_overrides = {}
+    return mock_app
 
-    - Avoids hitting a live server (uses in-process app)
-    - Uses a temporary initialized database
-    - Injects a simple mock auth service
-    """
-    app = create_app()
 
-    @asynccontextmanager
-    async def no_lifespan(_app):
-        yield
+@pytest.fixture  
+def mock_test_client(mock_fastapi_app):
+    """Mock TestClient for API integration tests"""
+    mock_client = Mock()
+    mock_client.get = Mock()
+    mock_client.post = Mock() 
+    mock_client.put = Mock()
+    mock_client.delete = Mock()
+    return mock_client
 
-    # Disable heavy startup/shutdown
-    app.router.lifespan_context = no_lifespan
 
-    # Create test subtitle processor with test database
-    def get_test_subtitle_processor():
-        return DirectSubtitleProcessor(temp_db)
+@pytest.fixture
+async def async_client():
+    """Async HTTP client for integration tests"""
+    import httpx
+    from httpx import ASGITransport
+    from core.app import create_app
+    from core.database import get_async_session
+    from core.dependencies import get_auth_service
+    from core.auth import get_user_db, get_user_manager
+    from unittest.mock import AsyncMock, Mock
+    import uuid
+    from datetime import datetime
     
-    # Dependency overrides
-    app.dependency_overrides[get_database_manager] = lambda: temp_db
-    app.dependency_overrides[get_auth_service] = lambda: mock_auth_service
-    app.dependency_overrides[get_subtitle_processor] = get_test_subtitle_processor
-
-    # Use FastAPI TestClient instead of httpx.Client
-    return TestClient(app)
-
-
-@pytest.fixture
-async def async_client(temp_db, mock_auth_service):
-    """Async httpx client backed by ASGITransport for async tests."""
+    # Create the app
     app = create_app()
-
-    @asynccontextmanager
-    async def no_lifespan(_app):
-        yield
-    app.router.lifespan_context = no_lifespan
-
-    app.dependency_overrides[get_database_manager] = lambda: temp_db
-    app.dependency_overrides[get_auth_service] = lambda: mock_auth_service
-
-    transport = httpx.ASGITransport(app=app)
-    client = httpx.AsyncClient(transport=transport, base_url="http://testserver")
-    try:
+    
+    # Override dependencies with mocks for testing
+    async def mock_get_db():
+        users = {}  # Store users in-memory for this mock
+        
+        mock_session = AsyncMock()
+        
+        async def mock_execute(query):
+            # Mock the result object that SQLAlchemy returns
+            mock_result = Mock()
+            
+            # Check if this is a user creation query
+            if hasattr(query, 'table') and hasattr(query.table, 'name') and query.table.name == 'user':
+                # This is likely a user creation - check for duplicates
+                if hasattr(query, 'values') and 'email' in query.values:
+                    email = query.values['email']
+                    if email in users:
+                        mock_result.unique.return_value.scalar_one_or_none.return_value = Mock()  # Existing user
+                        return mock_result
+            
+            mock_result.unique.return_value.scalar_one_or_none.return_value = None  # No existing user
+            return mock_result
+        
+        mock_session.execute = mock_execute
+        mock_session.commit = AsyncMock()
+        mock_session.rollback = AsyncMock()
+        mock_session.close = AsyncMock()
+        mock_session.add = Mock()
+        mock_session.refresh = AsyncMock()
+        return mock_session
+    
+    async def mock_get_user_db():
+        """Mock user database for FastAPI-Users"""
+        from core.auth import User
+        users_by_email = {}  # Store users by email
+        users_by_username = {}  # Store users by username
+        
+        mock_user_db = AsyncMock()
+        
+        async def mock_get_by_email(email: str):
+            return users_by_email.get(email)
+            
+        async def mock_get_by_username(username: str):
+            return users_by_username.get(username)
+            
+        async def mock_create(user_create):
+            # Check for duplicate username
+            if user_create["username"] in users_by_username:
+                from fastapi import HTTPException
+                raise HTTPException(status_code=400, detail="USERNAME_ALREADY_EXISTS")
+            
+            # Check for duplicate email
+            if user_create["email"] in users_by_email:
+                from fastapi import HTTPException
+                raise HTTPException(status_code=400, detail="EMAIL_ALREADY_EXISTS")
+            
+            # Create a new user with the provided data
+            user = User(
+                id=uuid.uuid4(),
+                username=user_create["username"],
+                email=user_create["email"],
+                hashed_password="hashed_password",  # Mock hashed password
+                is_active=True,
+                is_superuser=False,
+                is_verified=False,
+                created_at=datetime.now()
+            )
+            users_by_email[user_create["email"]] = user
+            users_by_username[user_create["username"]] = user
+            return user
+            
+        mock_user_db.get_by_email = mock_get_by_email
+        mock_user_db.get_by_username = mock_get_by_username
+        mock_user_db.create = mock_create
+        return mock_user_db
+    
+    def mock_get_auth():
+        users = {}  # Store users in-memory for this mock
+        next_id = 1
+        
+        mock_auth = Mock()
+        
+        def mock_register_user(username: str, password: str, email: str):
+            # Check if user already exists
+            if email in users:
+                raise ValueError("User already exists")
+            
+            # Create new user
+            user = SimpleNamespace(
+                id=next_id,
+                username=username,
+                is_superuser=False,
+                is_active=True,
+                created_at="2024-01-01T00:00:00Z"
+            )
+            users[email] = user
+            next_id += 1
+            return user
+            
+        mock_auth.register_user = mock_register_user
+        return mock_auth
+    
+    app.dependency_overrides[get_async_session] = mock_get_db
+    app.dependency_overrides[get_auth_service] = mock_get_auth
+    app.dependency_overrides[get_user_db] = mock_get_user_db
+    
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         yield client
-    finally:
-        await client.aclose()
 
 
 @pytest.fixture
-def ws_client(temp_db, mock_auth_service):
-    """Starlette TestClient for WebSocket-specific tests."""
+def client():
+    """Real FastAPI TestClient for integration tests"""
+    from fastapi.testclient import TestClient
+    from core.app import create_app
+    from core.database import get_async_session
+    from core.dependencies import get_auth_service
+    from core.auth import get_user_db, get_user_manager
+    from unittest.mock import AsyncMock, Mock
+    import uuid
+    from datetime import datetime
+    
+    # Create the app
     app = create_app()
-
-    @asynccontextmanager
-    async def no_lifespan(_app):
-        yield
-    app.router.lifespan_context = no_lifespan
-
-    app.dependency_overrides[get_database_manager] = lambda: temp_db
-    app.dependency_overrides[get_auth_service] = lambda: mock_auth_service
-
+    
+    # Override dependencies with mocks for testing
+    async def mock_get_db():
+        users = {}  # Store users in-memory for this mock
+        
+        mock_session = AsyncMock()
+        
+        async def mock_execute(query):
+            # Mock the result object that SQLAlchemy returns
+            mock_result = Mock()
+            
+            # Check if this is a user creation query
+            if hasattr(query, 'table') and hasattr(query.table, 'name') and query.table.name == 'user':
+                # This is likely a user creation - check for duplicates
+                if hasattr(query, 'values') and 'email' in query.values:
+                    email = query.values['email']
+                    if email in users:
+                        mock_result.unique.return_value.scalar_one_or_none.return_value = Mock()  # Existing user
+                        return mock_result
+            
+            mock_result.unique.return_value.scalar_one_or_none.return_value = None  # No existing user
+            return mock_result
+        
+        mock_session.execute = mock_execute
+        mock_session.commit = AsyncMock()
+        mock_session.rollback = AsyncMock()
+        mock_session.close = AsyncMock()
+        mock_session.add = Mock()
+        mock_session.refresh = AsyncMock()
+        return mock_session
+    
+    async def mock_get_user_db():
+        """Mock user database for FastAPI-Users"""
+        from core.auth import User
+        users_by_email = {}  # Store users by email
+        users_by_username = {}  # Store users by username
+        
+        mock_user_db = AsyncMock()
+        
+        async def mock_get_by_email(email: str):
+            return users_by_email.get(email)
+            
+        async def mock_get_by_username(username: str):
+            return users_by_username.get(username)
+            
+        async def mock_create(user_create):
+            # Check for duplicate username
+            if user_create["username"] in users_by_username:
+                from fastapi import HTTPException
+                raise HTTPException(status_code=400, detail="USERNAME_ALREADY_EXISTS")
+            
+            # Check for duplicate email
+            if user_create["email"] in users_by_email:
+                from fastapi import HTTPException
+                raise HTTPException(status_code=400, detail="EMAIL_ALREADY_EXISTS")
+            
+            # Create a new user with the provided data
+            user = User(
+                id=uuid.uuid4(),
+                username=user_create["username"],
+                email=user_create["email"],
+                hashed_password="hashed_password",  # Mock hashed password
+                is_active=True,
+                is_superuser=False,
+                is_verified=False,
+                created_at=datetime.now()
+            )
+            users_by_email[user_create["email"]] = user
+            users_by_username[user_create["username"]] = user
+            return user
+            
+        mock_user_db.get_by_email = mock_get_by_email
+        mock_user_db.get_by_username = mock_get_by_username
+        mock_user_db.create = mock_create
+        return mock_user_db
+    
+    def mock_get_auth():
+        users = {}  # Store users in-memory for this mock
+        next_id = 1
+        
+        mock_auth = Mock()
+        
+        def mock_register_user(username: str, password: str, email: str):
+            # Check if user already exists
+            if email in users:
+                raise ValueError("User already exists")
+            
+            # Create new user
+            user = SimpleNamespace(
+                id=next_id,
+                username=username,
+                is_superuser=False,
+                is_active=True,
+                created_at="2024-01-01T00:00:00Z"
+            )
+            users[email] = user
+            next_id += 1
+            return user
+            
+        mock_auth.register_user = mock_register_user
+        return mock_auth
+    
+    app.dependency_overrides[get_async_session] = mock_get_db
+    app.dependency_overrides[get_auth_service] = mock_get_auth
+    app.dependency_overrides[get_user_db] = mock_get_user_db
+    
     return TestClient(app)

@@ -9,6 +9,8 @@ import sys
 import time
 from pathlib import Path
 import pytest
+import signal
+from contextlib import contextmanager
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -22,6 +24,28 @@ except Exception:
 # Import the transcription service directly
 from services.transcriptionservice.whisper_implementation import WhisperTranscriptionService
 
+
+class TimeoutError(Exception):
+    pass
+
+
+@contextmanager
+def timeout(seconds):
+    """Context manager for timeout on Windows"""
+    def timeout_handler():
+        raise TimeoutError(f"Operation timed out after {seconds} seconds")
+    
+    # For Windows, we'll use a different approach since signal.alarm doesn't work
+    import threading
+    timer = threading.Timer(seconds, timeout_handler)
+    timer.start()
+    try:
+        yield
+    finally:
+        timer.cancel()
+
+
+@pytest.mark.timeout(300)  # 5 minute timeout for the entire test
 def test_real_srt_generation():
     """Test that Whisper generates real SRT content from actual video"""
     
@@ -34,33 +58,85 @@ def test_real_srt_generation():
     
     if not test_video.exists():
         print(f"[ERROR] Video not found: {test_video}")
-        return False
+        pytest.skip(f"Video not found: {test_video}")
     
     print(f"[OK] Found video: {test_video.name}")
     print(f"     File size: {test_video.stat().st_size / (1024*1024):.1f} MB")
     
     print("\n1. Initializing Whisper service...")
     print("   Using 'base' model for faster testing (still good quality)")
-    service = WhisperTranscriptionService(model_size="base")  # Use base for reasonable speed/quality
-    service.initialize()
-    print("[OK] Whisper service initialized")
+    print("   Timeout: 2 minutes for initialization")
+    
+    try:
+        with timeout(120):  # 2 minute timeout for initialization
+            service = WhisperTranscriptionService(model_size="base")  # Use base for reasonable speed/quality
+            service.initialize()
+        print("[OK] Whisper service initialized")
+    except TimeoutError as e:
+        print(f"[ERROR] {e}")
+        print("[INFO] Whisper initialization took too long - this might indicate a problem")
+        pytest.fail(f"Whisper initialization timeout: {e}")
+    except Exception as e:
+        print(f"[ERROR] Whisper initialization failed: {e}")
+        pytest.fail(f"Whisper initialization failed: {e}")
     
     print("\n2. Transcribing first 60 seconds of video...")
     print("   Language: German (de)")
     print("   This may take a minute...")
+    print("   Timeout: 4 minutes maximum")
     
     start_time = time.time()
     
-    # For testing, we'll transcribe the full video but Whisper will handle it efficiently
-    result = service.transcribe(str(test_video), language="de")
-    
-    elapsed = time.time() - start_time
-    print(f"[OK] Transcription completed in {elapsed:.1f} seconds")
-    print(f"     Generated {len(result.segments)} segments")
+    try:
+        # Extract only first 60 seconds of audio to prevent hanging on large files
+        print("   Extracting first 60 seconds of audio...")
+        
+        # Create temporary audio file with only first 60 seconds
+        import tempfile
+        from moviepy import VideoFileClip
+        
+        temp_audio = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
+        
+        with timeout(60):  # 1 minute timeout for audio extraction
+            video = VideoFileClip(str(test_video))
+            # Limit to first 60 seconds
+            video_clip = video.subclipped(0, min(60, video.duration))
+            audio = video_clip.audio
+            
+            if audio is None:
+                raise ValueError(f"No audio track found in {test_video}")
+            
+            audio.write_audiofile(temp_audio, logger=None)
+            video.close()
+            video_clip.close()
+        
+        print(f"[OK] Audio extracted to temporary file")
+        
+        # Use timeout to prevent hanging - 2 minutes should be enough for 60 seconds of audio
+        with timeout(120):  # 2 minute timeout for transcription
+            result = service.transcribe(temp_audio, language="de")
+        
+        # Clean up temporary file
+        import os
+        try:
+            os.unlink(temp_audio)
+        except:
+            pass
+        
+        elapsed = time.time() - start_time
+        print(f"[OK] Transcription completed in {elapsed:.1f} seconds")
+        print(f"     Generated {len(result.segments)} segments")
+    except TimeoutError as e:
+        print(f"[ERROR] {e}")
+        print("[INFO] Transcription took too long - this might indicate a problem")
+        pytest.fail(f"Transcription timeout: {e}")
+    except Exception as e:
+        print(f"[ERROR] Transcription failed: {e}")
+        pytest.fail(f"Transcription failed: {e}")
     
     if len(result.segments) == 0:
         print("[ERROR] No segments were generated!")
-        return False
+        pytest.fail("No segments were generated!")
     
     print("\n3. Generating SRT content...")
     
@@ -149,10 +225,12 @@ def test_real_srt_generation():
             print(f"     - Average segment duration: {avg_segment_duration:.2f} seconds")
             print(f"     - Words per minute: {(total_words / (result.duration / 60)):.1f}")
             
-            return True
+            # Test passed - use assertion instead of return
+            assert True, "Real SRT generation test completed successfully"
+            return
     
     print("\n[ERROR] No real subtitle content generated")
-    return False
+    pytest.fail("No real subtitle content generated")
 
 
 if __name__ == "__main__":

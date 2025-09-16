@@ -5,8 +5,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 os.environ.setdefault('ENVIRONMENT', 'development')
 
-from database.unified_database_manager import UnifiedDatabaseManager as DatabaseManager
+from core.database import get_async_session, init_database
 from core.config import settings
+import asyncio
+from sqlalchemy import text
 
 # German vocabulary data
 vocab_data = [
@@ -44,48 +46,43 @@ vocab_data = [
     ("Bewusstsein", "B2", "noun", "consciousness", "de"),
 ]
 
-print("Quick loading German vocabulary...")
-db_path = settings.get_database_path()
-db = DatabaseManager(db_path)
+async def quick_load_vocab_async():
+    print("Quick loading German vocabulary...")
+    
+    # Initialize database
+    await init_database()
+    
+    async with get_async_session() as session:
+        # Clear existing German vocab
+        await session.execute(text("DELETE FROM vocabulary WHERE language = 'de'"))
+        
+        # Insert vocabulary
+        for word, level, word_type, definition, language in vocab_data:
+            await session.execute(text("""
+                INSERT OR REPLACE INTO vocabulary (word, difficulty_level, word_type, definition, language)
+                VALUES (:word, :level, :word_type, :definition, :language)
+            """), {
+                "word": word,
+                "level": level,
+                "word_type": word_type,
+                "definition": definition,
+                "language": language
+            })
+        
+        await session.commit()
+        
+        # Verify
+        result = await session.execute(text("SELECT COUNT(*) FROM vocabulary WHERE language = 'de'"))
+        count = result.scalar()
+        print(f"Loaded {count} German words")
+        
+        # Show A2+ words
+        result = await session.execute(text("SELECT word, difficulty_level FROM vocabulary WHERE language = 'de' AND difficulty_level != 'A1'"))
+        print("A2+ words in database:")
+        for row in result.fetchall():
+            print(f"  {row[0]} - {row[1]}")
+    
+    print("✅ German vocabulary loaded successfully!")
 
-with db.get_connection() as conn:
-    cursor = conn.cursor()
-    
-    # Create table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS vocabulary (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            word TEXT NOT NULL,
-            difficulty_level TEXT NOT NULL,
-            word_type TEXT,
-            definition TEXT,
-            language TEXT DEFAULT 'de',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(word, language)
-        )
-    """)
-    
-    # Clear existing German vocab
-    cursor.execute("DELETE FROM vocabulary WHERE language = 'de'")
-    
-    # Insert vocabulary
-    for word, level, word_type, definition, language in vocab_data:
-        cursor.execute("""
-            INSERT OR REPLACE INTO vocabulary (word, difficulty_level, word_type, definition, language)
-            VALUES (?, ?, ?, ?, ?)
-        """, (word, level, word_type, definition, language))
-    
-    conn.commit()
-    
-    # Verify
-    cursor.execute("SELECT COUNT(*) FROM vocabulary WHERE language = 'de'")
-    count = cursor.fetchone()[0]
-    print(f"Loaded {count} German words")
-    
-    # Show A2+ words
-    cursor.execute("SELECT word, difficulty_level FROM vocabulary WHERE language = 'de' AND difficulty_level != 'A1'")
-    print("A2+ words in database:")
-    for row in cursor.fetchall():
-        print(f"  {row[0]} - {row[1]}")
-
-print("✅ German vocabulary loaded successfully!")
+if __name__ == "__main__":
+    asyncio.run(quick_load_vocab_async())
