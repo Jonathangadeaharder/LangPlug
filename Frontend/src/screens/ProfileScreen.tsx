@@ -118,7 +118,7 @@ const ProfileScreen: React.FC = () => {
       {profile && (
         <UserInfo>
           <Username>{profile.username}</Username>
-          {profile.is_admin && (
+          {profile.is_superuser && (
             <AdminBadge>
               <AdminText>Admin</AdminText>
             </AdminBadge>

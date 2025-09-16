@@ -11,12 +11,17 @@ afterEach(() => {
 });
 
 // Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
+class MockIntersectionObserver {
   constructor() {}
   disconnect() {}
   observe() {}
   unobserve() {}
-};
+  readonly root = null;
+  readonly rootMargin = '';
+  readonly thresholds = [];
+  takeRecords() { return [] };
+}
+global.IntersectionObserver = MockIntersectionObserver as any;
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
@@ -44,3 +49,29 @@ Object.defineProperty(window, 'matchMedia', {
 // Mock URL.createObjectURL
 global.URL.createObjectURL = vi.fn(() => 'mocked-url');
 global.URL.revokeObjectURL = vi.fn();
+
+// Mock localStorage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  length: 0,
+  key: vi.fn(),
+};
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock
+});
+
+// Mock sessionStorage
+const sessionStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  length: 0,
+  key: vi.fn(),
+};
+Object.defineProperty(window, 'sessionStorage', {
+  value: sessionStorageMock
+});
