@@ -1,4 +1,4 @@
-import { test, expect, vi } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { ChunkedLearningPlayer } from '../ChunkedLearningPlayer';
@@ -52,7 +52,7 @@ describe('ChunkedLearningPlayer', () => {
   test('displays chunk information', () => {
     render(<ChunkedLearningPlayer {...defaultProps} />);
     expect(screen.getByText('Playing Chunk')).toBeInTheDocument();
-    expect(screen.getByText('1 of 3')).toBeInTheDocument();
+    expect(screen.getByText('1 of 3 • 5:00')).toBeInTheDocument();
   });
 
   test('displays learned words count', () => {
