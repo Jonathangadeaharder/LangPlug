@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User } from '@/types'
-import { authService } from '@/services/api'
+import * as api from '@/services/api'
 
 interface AuthState {
   user: User | null
@@ -12,6 +12,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, name?: string) => Promise<void>
   logout: () => Promise<void>
+  initializeAuth: () => Promise<void>
   checkAuth: () => Promise<void>
   clearError: () => void
 }
@@ -28,7 +29,7 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true });
         try {
-          const response = await authService.login({ username: email, password })
+          const response = await api.login(email, password)
           set({
             user: response.user,
             token: response.token,
@@ -36,7 +37,7 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null,
           });
-          localStorage.setItem('authToken', response.token)
+          localStorage.setItem('auth_token', response.token)
         } catch (error: any) {
           const errorMessage = error.response?.data?.detail || error.message;
           set({ isLoading: false, error: errorMessage });
@@ -46,8 +47,15 @@ export const useAuthStore = create<AuthState>()(
       register: async (email: string, password: string, name?: string) => {
         set({ isLoading: true });
         try {
-          await authService.register({ username: email, password })
-          set({ isLoading: false, error: null })
+          const response = await api.register(email, password, name ?? '')
+          set({
+            user: response.user,
+            token: response.token,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          })
+          localStorage.setItem('auth_token', response.token)
         } catch (error: any) {
           const errorMessage = error.response?.data?.detail || error.message;
           set({ isLoading: false, error: errorMessage });
@@ -56,7 +64,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         // Clear state synchronously for tests that don't await logout
-        localStorage.removeItem('authToken')
+        localStorage.removeItem('auth_token')
         set({
           user: null,
           token: null,
@@ -65,34 +73,41 @@ export const useAuthStore = create<AuthState>()(
           error: null,
         });
         try {
-          await authService.logout();
+          await api.logout();
         } catch {
           // Ignore API errors on logout
         }
       },
 
-      checkAuth: async () => {
-        if (!authService.isAuthenticated()) {
-          return;
+      initializeAuth: async () => {
+        const storedToken = localStorage.getItem('auth_token')
+        if (!storedToken) {
+          return
         }
-
-        set({ isLoading: true });
+        set({ isLoading: true })
         try {
-          const user = await authService.getCurrentUser();
+          const user = await api.getProfile()
           set({
             user,
+            token: storedToken,
             isAuthenticated: true,
             isLoading: false,
             error: null,
-          });
+          })
         } catch (error) {
+          localStorage.removeItem('auth_token')
           set({
             user: null,
             token: null,
             isAuthenticated: false,
             isLoading: false,
-          });
+          })
         }
+      },
+
+      // Backwards-compatible alias
+      checkAuth: async () => {
+        await get().initializeAuth()
       },
 
 
@@ -110,3 +125,4 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+

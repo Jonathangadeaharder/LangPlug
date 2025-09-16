@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAuthStore } from '../useAuthStore';
 import * as api from '@/services/api';
+import type { AuthResponse } from '@/types';
 
 // Mock the API service
 vi.mock('@/services/api');
@@ -50,13 +51,14 @@ describe('useAuthStore', () => {
         user: {
           id: 1,
           username: 'testuser',
-          is_admin: false,
+          is_superuser: false,
           is_active: true,
           created_at: '2025-01-01T00:00:00Z',
         },
+        expires_at: '2025-12-31T00:00:00Z',
       };
       
-      mockApi.authService.login = vi.fn().mockResolvedValue(mockLoginResponse);
+      mockApi.login.mockResolvedValue(mockLoginResponse);
       
       const { result } = renderHook(() => useAuthStore());
       
@@ -64,7 +66,7 @@ describe('useAuthStore', () => {
         await result.current.login('test@example.com', 'password123');
       });
       
-      expect(mockApi.authService.login).toHaveBeenCalledWith('test@example.com', 'password123');
+      expect(mockApi.login).toHaveBeenCalledWith('test@example.com', 'password123');
       expect(result.current.user).toEqual(mockLoginResponse.user);
       expect(result.current.token).toBe('jwt-token-123');
       expect(result.current.isAuthenticated).toBe(true);
@@ -75,7 +77,7 @@ describe('useAuthStore', () => {
 
     it('handles login error', async () => {
       const loginError = new Error('Invalid credentials');
-      mockApi.authService.login = vi.fn().mockRejectedValue(loginError);
+      mockApi.login.mockRejectedValue(loginError);
       
       const { result } = renderHook(() => useAuthStore());
       
@@ -91,12 +93,12 @@ describe('useAuthStore', () => {
     });
 
     it('sets loading state during login', async () => {
-      let resolveLogin: (value: any) => void;
-      const loginPromise = new Promise((resolve) => {
+      let resolveLogin: (value: AuthResponse) => void;
+      const loginPromise = new Promise<AuthResponse>((resolve) => {
         resolveLogin = resolve;
       });
       
-      mockApi.authService.login = vi.fn().mockReturnValue(loginPromise);
+      mockApi.login.mockReturnValue(loginPromise);
       
       const { result } = renderHook(() => useAuthStore());
       
@@ -112,10 +114,11 @@ describe('useAuthStore', () => {
           user: {
             id: 1,
             username: 'testuser',
-            is_admin: false,
+            is_superuser: false,
             is_active: true,
             created_at: '2025-01-01T00:00:00Z',
           },
+          expires_at: '2025-12-31T00:00:00Z',
         });
         await loginPromise;
       });
@@ -131,13 +134,14 @@ describe('useAuthStore', () => {
         user: {
           id: 2,
           username: 'newuser',
-          is_admin: false,
+          is_superuser: false,
           is_active: true,
           created_at: '2025-01-02T00:00:00Z',
         },
+        expires_at: '2026-12-31T00:00:00Z',
       };
       
-      mockApi.authService.register = vi.fn().mockResolvedValue(mockRegisterResponse);
+      mockApi.register.mockResolvedValue(mockRegisterResponse);
       
       const { result } = renderHook(() => useAuthStore());
       
@@ -145,7 +149,7 @@ describe('useAuthStore', () => {
         await result.current.register('new@example.com', 'password123', 'New User');
       });
       
-      expect(mockApi.authService.register).toHaveBeenCalledWith('new@example.com', 'password123', 'New User');
+      expect(mockApi.register).toHaveBeenCalledWith('new@example.com', 'password123', 'New User');
       expect(result.current.user).toEqual(mockRegisterResponse.user);
       expect(result.current.token).toBe('jwt-token-456');
       expect(result.current.isAuthenticated).toBe(true);
@@ -154,7 +158,7 @@ describe('useAuthStore', () => {
 
     it('handles registration error', async () => {
       const registerError = new Error('Email already exists');
-      mockApi.authService.register = vi.fn().mockRejectedValue(registerError);
+      mockApi.register.mockRejectedValue(registerError);
       
       const { result } = renderHook(() => useAuthStore());
       
@@ -177,7 +181,7 @@ describe('useAuthStore', () => {
           user: {
             id: 1,
             username: 'testuser',
-            is_admin: false,
+            is_superuser: false,
             is_active: true,
             created_at: '2025-01-01T00:00:00Z',
           },
@@ -203,13 +207,13 @@ describe('useAuthStore', () => {
       const mockProfile = {
         id: 1,
         username: 'testuser',
-        is_admin: false,
+        is_superuser: false,
         is_active: true,
         created_at: '2025-01-01T00:00:00Z',
       };
       
       localStorageMock.getItem.mockReturnValue('stored-token-123');
-      mockApi.authService.getCurrentUser = vi.fn().mockResolvedValue(mockProfile);
+      mockApi.getProfile.mockResolvedValue(mockProfile);
       
       const { result } = renderHook(() => useAuthStore());
       
@@ -217,7 +221,7 @@ describe('useAuthStore', () => {
         await result.current.initializeAuth();
       });
       
-      expect(mockApi.authService.getCurrentUser).toHaveBeenCalled();
+      expect(mockApi.getProfile).toHaveBeenCalled();
       expect(result.current.user).toEqual(mockProfile);
       expect(result.current.token).toBe('stored-token-123');
       expect(result.current.isAuthenticated).toBe(true);
@@ -225,7 +229,7 @@ describe('useAuthStore', () => {
 
     it('handles invalid stored token', async () => {
       localStorageMock.getItem.mockReturnValue('invalid-token');
-      mockApi.authService.getCurrentUser = vi.fn().mockRejectedValue(new Error('Unauthorized'));
+      mockApi.getProfile.mockRejectedValue(new Error('Unauthorized'));
       
       const { result } = renderHook(() => useAuthStore());
       
