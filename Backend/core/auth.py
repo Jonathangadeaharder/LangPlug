@@ -1,22 +1,22 @@
 """FastAPI-Users authentication setup"""
 import uuid
-from typing import Optional
+from datetime import datetime
 
 from fastapi import Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials
 from fastapi_users import BaseUserManager, FastAPIUsers
-from fastapi_users.schemas import BaseUser, BaseUserCreate, BaseUserUpdate
 from fastapi_users.authentication import (
     AuthenticationBackend,
-    CookieTransport,
     BearerTransport,
+    CookieTransport,
     JWTStrategy,
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
+from fastapi_users.schemas import BaseUser, BaseUserCreate, BaseUserUpdate
+from pydantic import EmailStr, field_validator
+from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import String, Boolean, DateTime, func
-from datetime import datetime
-from pydantic import EmailStr, field_validator
 
 from core.config import settings
 from core.database import get_async_session
@@ -39,21 +39,21 @@ class User(Base):
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
-    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    last_login: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class UserCreate(BaseUserCreate):
     username: str
     email: EmailStr
     password: str
-    
+
     @field_validator('password')
     @classmethod
     def validate_password(cls, v):
         if not v or len(str(v).strip()) == 0:
             raise ValueError('Password cannot be empty')
         return v
-    
+
     @field_validator('username')
     @classmethod
     def validate_username(cls, v):
@@ -70,16 +70,16 @@ class UserRead(BaseUser):
     is_superuser: bool
     is_verified: bool
     created_at: datetime
-    last_login: Optional[datetime]
+    last_login: datetime | None
 
 
 class UserUpdate(BaseUserUpdate):
-    username: Optional[str] = None
-    email: Optional[str] = None
-    password: Optional[str] = None
-    is_active: Optional[bool] = None
-    is_superuser: Optional[bool] = None
-    is_verified: Optional[bool] = None
+    username: str | None = None
+    email: str | None = None
+    password: str | None = None
+    is_active: bool | None = None
+    is_superuser: bool | None = None
+    is_verified: bool | None = None
 
 
 class UserManager(BaseUserManager[User, uuid.UUID]):
@@ -93,13 +93,13 @@ class UserManager(BaseUserManager[User, uuid.UUID]):
         except ValueError:
             raise ValueError(f"Invalid UUID format: {value}")
 
-    async def on_after_register(self, user: User, request: Optional[Request] = None):
+    async def on_after_register(self, user: User, request: Request | None = None):
         print(f"User {user.id} has registered.")
 
     async def on_after_login(
         self,
         user: User,
-        request: Optional[Request] = None,
+        request: Request | None = None,
         *args,
         **kwargs
     ):
@@ -156,36 +156,76 @@ fastapi_users = FastAPIUsers[User, uuid.UUID](
 )
 
 # Current user dependencies
-current_active_user = fastapi_users.current_user(active=True)
+async def get_current_active_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_transport.scheme),
+    user: User = Depends(fastapi_users.current_user(active=True, optional=True))
+) -> User:
+    """Get current active user with blacklist checking"""
+    from .token_blacklist import token_blacklist
+    from fastapi import HTTPException, status
+    
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    
+    # Handle both string tokens and HTTPAuthorizationCredentials
+    if isinstance(credentials, str):
+        token = credentials
+    else:
+        token = credentials.credentials
+    
+    # Check if token is blacklisted
+    if await token_blacklist.is_blacklisted(token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked"
+        )
+    
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    
+    return user
+
+current_active_user = get_current_active_user
 current_superuser = fastapi_users.current_user(active=True, superuser=True)
 
 
 # JWT Authentication helper class for backward compatibility
 class JWTAuthentication:
     """JWT Authentication helper for backward compatibility"""
-    
-    async def authenticate(self, token: str, db_session: AsyncSession = None) -> Optional[User]:
+
+    async def authenticate(self, token: str, db_session: AsyncSession = None) -> User | None:
         """Authenticate user by JWT token"""
         try:
-            from jose import jwt, JWTError
-            
+            from jose import JWTError, jwt
+            from .token_blacklist import token_blacklist
+
+            # Check if token is blacklisted
+            if await token_blacklist.is_blacklisted(token):
+                return None
+
             # Decode the JWT token
             payload = jwt.decode(token, settings.secret_key, algorithms=["HS256"])
             user_id: str = payload.get("sub")
             if user_id is None:
                 return None
-                
+
             # Get user from database
             if db_session is None:
                 async for session in get_async_session():
                     db_session = session
                     break
-                    
+
             from sqlalchemy import select
             result = await db_session.execute(select(User).where(User.id == user_id))
             user = result.scalar_one_or_none()
             return user
-            
+
         except (JWTError, Exception):
             return None
 

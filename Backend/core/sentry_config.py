@@ -1,9 +1,9 @@
 """Sentry configuration for error tracking"""
 import sentry_sdk
-from sentry_sdk.integrations.fastapi import FastApiIntegration
-from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 from core.config import settings
 
@@ -12,7 +12,7 @@ def configure_sentry():
     """Configure Sentry for error tracking"""
     if not settings.sentry_dsn:
         return
-    
+
     sentry_sdk.init(
         dsn=settings.sentry_dsn,
         integrations=[
@@ -40,7 +40,7 @@ def filter_sensitive_data(event, hint):
         for header in sensitive_headers:
             if header in headers:
                 headers[header] = '[Filtered]'
-    
+
     # Remove sensitive form data
     if 'request' in event and 'data' in event['request']:
         data = event['request']['data']
@@ -49,7 +49,7 @@ def filter_sensitive_data(event, hint):
             for field in sensitive_fields:
                 if field in data:
                     data[field] = '[Filtered]'
-    
+
     return event
 
 

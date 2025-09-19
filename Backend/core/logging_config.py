@@ -1,26 +1,30 @@
 """Structured logging configuration using structlog"""
 import logging
 import sys
-from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import structlog
+from structlog.processors import (
+    JSONRenderer,
+    StackInfoRenderer,
+    TimeStamper,
+    add_log_level,
+)
 from structlog.stdlib import LoggerFactory
-from structlog.processors import JSONRenderer, TimeStamper, add_log_level, StackInfoRenderer
 
 from core.config import settings
 
 
 def configure_logging():
     """Configure structlog for the application"""
-    
+
     # Configure standard library logging
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
         level=getattr(logging, settings.log_level.upper()),
     )
-    
+
     # Configure structlog
     processors = [
         structlog.stdlib.filter_by_level,
@@ -31,12 +35,12 @@ def configure_logging():
         StackInfoRenderer(),
         structlog.processors.format_exc_info,
     ]
-    
+
     if settings.log_format == "json":
         processors.append(JSONRenderer())
     else:
         processors.append(structlog.dev.ConsoleRenderer())
-    
+
     structlog.configure(
         processors=processors,
         wrapper_class=structlog.stdlib.BoundLogger,
@@ -56,7 +60,7 @@ setup_logging = configure_logging
 
 class JSONFormatter(logging.Formatter):
     """JSON formatter for backward compatibility with tests"""
-    
+
     def format(self, record: logging.LogRecord) -> str:
         """Format log record as JSON"""
         log_data = {
@@ -68,7 +72,7 @@ class JSONFormatter(logging.Formatter):
             "function": record.funcName,
             "line": record.lineno,
         }
-        
+
         # Add any extra attributes
         for key, value in record.__dict__.items():
             if key not in {
@@ -79,7 +83,7 @@ class JSONFormatter(logging.Formatter):
                 'exc_text', 'stack_info'
             }:
                 log_data[key] = value
-        
+
         import json
         return json.dumps(log_data)
 
@@ -163,7 +167,7 @@ def log_filter_operation(
 def log_error(
     logger: structlog.stdlib.BoundLogger,
     error: Exception,
-    context: Dict[str, Any] = None,
+    context: dict[str, Any] = None,
     **kwargs
 ):
     """Log errors with structured data and context"""

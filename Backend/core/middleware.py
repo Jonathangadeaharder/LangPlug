@@ -3,33 +3,36 @@ Middleware for FastAPI application
 """
 import logging
 import time
+from collections.abc import Callable
 from datetime import datetime
-from typing import Callable
-from fastapi import FastAPI, Request, Response, HTTPException, status
+
+from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from .config import settings
-from .exceptions import LangPlugException
 from services.authservice.auth_service import (
-    InvalidCredentialsError, UserAlreadyExistsError, SessionExpiredError
+    InvalidCredentialsError,
+    SessionExpiredError,
+    UserAlreadyExistsError,
 )
 
+from .config import settings
+from .exceptions import LangPlugException
 
 logger = logging.getLogger(__name__)
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     """Middleware for request/response logging"""
-    
+
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         start_time = time.time()
         api_logger = logging.getLogger("api")
-        
+
         # Don't read request body in middleware - it causes issues with body consumption
         # Just log the request metadata
-        
+
         # Log detailed request information
         api_logger.info(
             f"API Request: {request.method} {request.url.path}",
@@ -45,12 +48,12 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "timestamp": datetime.utcnow().isoformat()
             }
         )
-        
+
         # Process request
         try:
             response = await call_next(request)
             process_time = time.time() - start_time
-            
+
             # Read response body for logging (if it's JSON and not too large)
             response_body = None
             content_type = response.headers.get("content-type", "")
@@ -62,7 +65,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                         response_body = "[Response body available but not logged for privacy]"
                 except Exception:
                     pass
-            
+
             # Log response
             api_logger.info(
                 f"API Response: {response.status_code} {request.method} {request.url.path}",
@@ -78,11 +81,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                     "timestamp": datetime.utcnow().isoformat()
                 }
             )
-            
+
             # Add processing time to response headers
             response.headers["X-Process-Time"] = str(process_time)
             return response
-            
+
         except Exception as e:
             process_time = time.time() - start_time
             logger.error(
@@ -101,7 +104,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
 class ErrorHandlingMiddleware(BaseHTTPMiddleware):
     """Middleware for global error handling"""
-    
+
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         try:
             return await call_next(request)
@@ -120,7 +123,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 }
             )
         except InvalidCredentialsError as e:
-            logger.warning(f"Invalid credentials: {str(e)}")
+            logger.warning(f"Invalid credentials: {e!s}")
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={
@@ -130,7 +133,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 }
             )
         except UserAlreadyExistsError as e:
-            logger.warning(f"User already exists: {str(e)}")
+            logger.warning(f"User already exists: {e!s}")
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={
@@ -140,7 +143,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 }
             )
         except SessionExpiredError as e:
-            logger.warning(f"Session expired: {str(e)}")
+            logger.warning(f"Session expired: {e!s}")
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={
@@ -151,7 +154,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             )
         except Exception as e:
             # Handle unexpected exceptions
-            logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+            logger.error(f"Unexpected error: {e!s}", exc_info=True)
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content={
@@ -164,7 +167,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 
 def setup_middleware(app: FastAPI) -> None:
     """Set up all middleware for the FastAPI application"""
-    
+
     # CORS middleware
     app.add_middleware(
         CORSMiddleware,
@@ -173,12 +176,12 @@ def setup_middleware(app: FastAPI) -> None:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
     # Custom middleware (order matters - first added runs last)
     # Temporarily disable custom middleware - causing OPTIONS request issues
     # app.add_middleware(ErrorHandlingMiddleware)
     # app.add_middleware(LoggingMiddleware)
-    
+
     # Exception handlers
     @app.exception_handler(LangPlugException)
     async def langplug_exception_handler(request: Request, exc: LangPlugException):
@@ -190,5 +193,5 @@ def setup_middleware(app: FastAPI) -> None:
                 "timestamp": datetime.utcnow().isoformat()
             }
         )
-    
+
     logger.info("Middleware configured successfully")

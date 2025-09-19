@@ -1,7 +1,7 @@
 """Database configuration with SQLAlchemy's built-in connection pooling"""
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import StaticPool
 
@@ -60,8 +60,8 @@ async def create_db_and_tables():
 async def init_db():
     """Initialize database tables"""
     # Import FastAPI-Users models and other models to ensure they're registered with Base
-    from core.auth import Base as AuthBase
     import database.models  # noqa: F401 - Import other models
+    from core.auth import Base as AuthBase
     async with engine.begin() as conn:
         await conn.run_sync(AuthBase.metadata.create_all)
 

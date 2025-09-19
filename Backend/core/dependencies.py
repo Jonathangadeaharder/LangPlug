@@ -1,20 +1,29 @@
 """Simplified dependency injection for FastAPI using native Depends system"""
-from typing import Optional, Annotated
 from functools import lru_cache
+from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .config import settings
-from .database import get_async_session as get_db_session, engine
-from .auth import get_user_manager, current_active_user
-from .logging_config import get_logger
 from database.models import User
-from services.dataservice.authenticated_user_vocabulary_service import AuthenticatedUserVocabularyService
+from services.dataservice.authenticated_user_vocabulary_service import (
+    AuthenticatedUserVocabularyService,
+)
 from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
-from services.transcriptionservice.factory import get_transcription_service as _get_transcription_service
+from services.transcriptionservice.factory import (
+    get_transcription_service as _get_transcription_service,
+)
 from services.transcriptionservice.interface import ITranscriptionService
+from services.translationservice.factory import (
+    get_translation_service as _get_translation_service,
+)
+from services.translationservice.interface import ITranslationService
+
+from .auth import current_active_user
+from .database import engine
+from .database import get_async_session as get_db_session
+from .logging_config import get_logger
 
 security = HTTPBearer()
 logger = get_logger(__name__)
@@ -40,13 +49,25 @@ def get_subtitle_processor(
     return DirectSubtitleProcessor()
 
 
-@lru_cache()
-def get_transcription_service() -> Optional[ITranscriptionService]:
+@lru_cache
+def get_transcription_service() -> ITranscriptionService | None:
     """Get transcription service instance (singleton)"""
     try:
-        return _get_transcription_service()
+        from .config import settings
+        return _get_transcription_service(settings.transcription_service)
     except Exception as e:
         logger.error(f"Failed to create transcription service: {e}")
+        return None
+
+
+@lru_cache
+def get_translation_service() -> ITranslationService | None:
+    """Get translation service instance (singleton)"""
+    try:
+        from .config import settings
+        return _get_translation_service(settings.translation_service)
+    except Exception as e:
+        logger.error(f"Failed to create translation service: {e}")
         return None
 
 
@@ -56,12 +77,13 @@ def get_user_filter_chain(user, session_token):
     # This is a legacy function kept for test compatibility
     # In production, we use DirectSubtitleProcessor directly
     from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
+
     from .database import get_async_session
-    
+
     class LegacyFilterChainWrapper:
         def __init__(self):
             self.processor = None
-            
+
         async def process_file(self, srt_path: str, user_id: int):
             """Process SRT file using DirectSubtitleProcessor"""
             if not self.processor:
@@ -71,7 +93,7 @@ def get_user_filter_chain(user, session_token):
                     return await self.processor.process_file(srt_path, user_id)
             else:
                 return await self.processor.process_file(srt_path, user_id)
-    
+
     return LegacyFilterChainWrapper()
 
 
@@ -82,9 +104,17 @@ async def get_current_user_ws(
     token: str,
     db: Annotated[AsyncSession, Depends(get_db_session)]
 ) -> User:
-    """Validate session token for WebSocket connections"""
+    """Validate session token for WebSocket connections with blacklist check"""
     from .auth import jwt_authentication
+    from .token_blacklist import token_blacklist
     
+    # Check if token is blacklisted
+    if await token_blacklist.is_blacklisted(token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked"
+        )
+
     try:
         user = await jwt_authentication.authenticate(token, db)
         if user is None:
@@ -102,13 +132,13 @@ async def get_current_user_ws(
 
 # Optional user dependency (for endpoints that work with or without auth)
 async def get_optional_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Annotated[AsyncSession, Depends(get_db_session)] = None
-) -> Optional[User]:
+) -> User | None:
     """Get current user if authenticated, None otherwise"""
     if not credentials:
         return None
-    
+
     try:
         from .auth import jwt_authentication
         token = credentials.credentials
@@ -129,7 +159,7 @@ def get_user_subtitle_processor(
 # Backward compatibility functions for tests
 def get_auth_service():
     """Get auth service for backward compatibility with tests"""
-    from .auth import fastapi_users, get_user_manager
+    from .auth import fastapi_users
     return fastapi_users
 
 
@@ -142,7 +172,7 @@ def get_database_manager():
 _task_progress_registry: dict = {}
 
 
-@lru_cache()
+@lru_cache
 def get_task_progress_registry() -> dict:
     """Get task progress registry for background tasks"""
     return _task_progress_registry
@@ -151,49 +181,53 @@ def get_task_progress_registry() -> dict:
 async def init_services():
     """Initialize all services on startup"""
     logger.info("Initializing services...")
-    
+
     # Initialize database tables
     from .database import init_db
     await init_db()
-    
+
     # Initialize transcription service
     get_transcription_service()
-    
+
+    # Initialize translation service
+    get_translation_service()
+
     # Initialize task progress registry
     get_task_progress_registry()
-    
+
     logger.info("All services initialized successfully")
 
 
 async def cleanup_services():
     """Cleanup services on shutdown"""
     logger.info("Cleaning up services...")
-    
+
     # Close database engine
     from .database import engine
     await engine.dispose()
-    
+
     # Clear LRU cache for singleton services
     get_transcription_service.cache_clear()
+    get_translation_service.cache_clear()
     get_task_progress_registry.cache_clear()
-    
+
     logger.info("Service cleanup complete")
 
 
 # Export commonly used dependencies for convenience
 __all__ = [
-    'get_vocabulary_service',
-    'get_subtitle_processor',
-    'get_transcription_service',
-    'get_user_subtitle_processor',
-    'get_task_progress_registry',
-    'get_current_user_ws',
-    'get_optional_user',
-    'current_active_user',
-    'security',
-    'init_services',
     'cleanup_services',
+    'current_active_user',
     'get_auth_service',
+    'get_current_user_ws',
     'get_database_manager',
-    'get_user_filter_chain'
+    'get_optional_user',
+    'get_subtitle_processor',
+    'get_task_progress_registry',
+    'get_transcription_service',
+    'get_user_filter_chain',
+    'get_user_subtitle_processor',
+    'get_vocabulary_service',
+    'init_services',
+    'security'
 ]
