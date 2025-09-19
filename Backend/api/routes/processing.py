@@ -2,37 +2,34 @@
 Processing API routes (transcription, filtering, translation)
 """
 
-import logging
 import asyncio
+import logging
 import time
-from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, Any
+from pathlib import Path
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from fastapi.security import HTTPAuthorizationCredentials
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
-from ..models.processing import (
-    TranscribeRequest,
-    ProcessingStatus,
-    ChunkProcessingRequest,
-    FilterRequest,
-    TranslateRequest,
-    FullPipelineRequest,
-    VocabularyWord,
-)
+from core.config import settings
 from core.dependencies import (
     current_active_user,
-    get_transcription_service,
     get_subtitle_processor,
-    get_user_subtitle_processor,
     get_task_progress_registry,
-    security,
+    get_transcription_service,
+    get_translation_service,
 )
-from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
-from core.config import settings
 from database.models import User
-from services.translationservice.factory import get_translation_service
+from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
+
+from ..models.processing import (
+    ChunkProcessingRequest,
+    FilterRequest,
+    FullPipelineRequest,
+    ProcessingStatus,
+    TranscribeRequest,
+    TranslateRequest,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["processing"])
@@ -48,7 +45,7 @@ def _format_srt_timestamp(seconds: float) -> str:
 
 
 async def run_transcription(
-    video_path: str, task_id: str, task_progress: Dict[str, Any]
+    video_path: str, task_id: str, task_progress: dict[str, Any]
 ) -> None:
     """Run transcription in background"""
     try:
@@ -62,7 +59,7 @@ async def run_transcription(
             message="Initializing Whisper model",
             started_at=int(time.time()),
         )
-        
+
         logger.info(f"Initialized task progress for background task: {task_id}")
 
         # Step 1: Load model (10% progress)
@@ -86,7 +83,7 @@ async def run_transcription(
         logger.info("Getting transcription service...")
         transcription_service = get_transcription_service()
         logger.info(f"Transcription service result: {transcription_service}")
-        
+
         if transcription_service is None:
             task_progress[task_id].status = "error"
             task_progress[task_id].current_step = "Service unavailable"
@@ -115,13 +112,13 @@ async def run_transcription(
             # Format timestamps in SRT format (HH:MM:SS,mmm)
             start_time = _format_srt_timestamp(segment.start_time)
             end_time = _format_srt_timestamp(segment.end_time)
-            
+
             # Build SRT entry
             srt_content.append(f"{i}")
             srt_content.append(f"{start_time} --> {end_time}")
             srt_content.append(segment.text)
             srt_content.append("")  # Empty line between entries
-        
+
         # Write SRT file
         with open(srt_path, "w", encoding="utf-8") as f:
             f.write("\n".join(srt_content))
@@ -148,7 +145,7 @@ async def run_transcription(
 async def run_subtitle_filtering(
     video_path: str,
     task_id: str,
-    task_progress: Dict[str, Any],
+    task_progress: dict[str, Any],
     subtitle_processor,
     current_user: User,
 ) -> None:
@@ -207,14 +204,14 @@ async def run_subtitle_filtering(
             status="error",
             progress=0.0,
             current_step="Filtering failed",
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
         )
 
 
 async def run_translation(
     video_path: str,
     task_id: str,
-    task_progress: Dict[str, Any],
+    task_progress: dict[str, Any],
     source_lang: str,
     target_lang: str,
 ) -> None:
@@ -264,25 +261,25 @@ async def run_translation(
         )
 
         # Read and parse the SRT file
-        from services.utils.srt_parser import SRTParser, SRTSegment
-        
+        from services.utils.srt_parser import SRTParser
+
         srt_parser = SRTParser()
         segments = srt_parser.parse_file(str(srt_file))
-        
+
         # Extract text for translation
         texts_to_translate = [segment.text for segment in segments]
-        
+
         # Translate in batches for efficiency
         translated_results = translation_service.translate_batch(
             texts_to_translate,
             source_lang,
             target_lang
         )
-        
+
         # Update segments with translated text
-        for segment, translation_result in zip(segments, translated_results):
+        for segment, translation_result in zip(segments, translated_results, strict=False):
             segment.text = translation_result.translated_text
-        
+
         # Save translated subtitles to new file
         output_path = str(srt_file).replace('.srt', f'_{target_lang}.srt')
         srt_parser.save_segments(segments, output_path)
@@ -301,12 +298,12 @@ async def run_translation(
             status="error",
             progress=0.0,
             current_step="Translation failed",
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
         )
 
 
 async def run_processing_pipeline(
-    video_path_str: str, task_id: str, task_progress: Dict[str, Any], user_id: int
+    video_path_str: str, task_id: str, task_progress: dict[str, Any], user_id: int
 ) -> None:
     """Run a full processing pipeline: Transcribe -> Filter -> Translate"""
     try:
@@ -413,14 +410,14 @@ async def run_chunk_processing(
     start_time: float,
     end_time: float,
     task_id: str,
-    task_progress: Dict[str, Any],
+    task_progress: dict[str, Any],
     user_id: int,
     session_token: str = None,
 ) -> None:
     """Process a specific chunk of video for vocabulary learning - REFACTORED"""
-    from services.processing.chunk_processor import ChunkProcessingService
     from core.database import get_async_session
-    
+    from services.processing.chunk_processor import ChunkProcessingService
+
     try:
         # Get database session and create service instance
         async for db_session in get_async_session():
@@ -442,7 +439,7 @@ async def run_chunk_processing(
             status="error",
             progress=0.0,
             current_step="Chunk processing failed",
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
         )
 
 
@@ -451,7 +448,7 @@ async def process_chunk(
     request: ChunkProcessingRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(current_active_user),
-    task_progress: Dict[str, Any] = Depends(get_task_progress_registry),
+    task_progress: dict[str, Any] = Depends(get_task_progress_registry),
 ):
     """Process a specific chunk of video for vocabulary learning"""
     try:
@@ -487,9 +484,9 @@ async def process_chunk(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to start chunk processing: {str(e)}", exc_info=True)
+        logger.error(f"Failed to start chunk processing: {e!s}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail=f"Chunk processing failed: {str(e)}"
+            status_code=500, detail=f"Chunk processing failed: {e!s}"
         )
 
 
@@ -498,46 +495,46 @@ async def transcribe_video(
     request: TranscribeRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(current_active_user),
-    task_progress: Dict[str, Any] = Depends(get_task_progress_registry),
+    task_progress: dict[str, Any] = Depends(get_task_progress_registry),
 ):
     """Transcribe video to generate subtitles"""
     try:
         print(f"DEBUG: Transcribe request received: {request.video_path}")
         logger.info(f"Transcribe request received: {request.video_path}")
-        
+
         # Check if transcription service is available
         transcription_service = get_transcription_service()
         if transcription_service is None:
             logger.warning("Transcription service not available")
             raise HTTPException(
-                status_code=422, 
+                status_code=422,
                 detail="Transcription service is not available. Please check server configuration."
             )
-        
+
         logger.info("Transcription service is available, checking video path")
-        
+
         try:
             videos_path = settings.get_videos_path()
             logger.info(f"Videos path: {videos_path}")
         except Exception as e:
             logger.error(f"Error getting videos path: {e}")
             raise HTTPException(status_code=500, detail="Configuration error")
-        
+
         full_path = (
             Path(request.video_path)
             if request.video_path.startswith("/")
             else videos_path / request.video_path
         )
-        
+
         logger.info(f"Full video path: {full_path}")
-        
+
         if not full_path.exists():
             logger.error(f"Video file not found: {full_path}")
             raise HTTPException(status_code=404, detail="Video file not found")
 
         # Start transcription in background
         task_id = f"transcribe_{current_user.id}_{datetime.now().timestamp()}"
-        
+
         # Initialize task progress before starting background task
         task_progress[task_id] = ProcessingStatus(
             status="processing",
@@ -545,15 +542,15 @@ async def transcribe_video(
             current_step="Initializing transcription",
             message="Preparing to start transcription"
         )
-        
+
         logger.info(f"Initialized task progress for: {task_id}")
         logger.info(f"Video path: {full_path}")
         logger.info(f"Task progress dict id: {id(task_progress)}")
-        
+
         # Test transcription service before starting background task
         test_service = get_transcription_service()
         logger.info(f"Pre-flight transcription service check: {test_service}")
-        
+
         background_tasks.add_task(
             run_transcription, str(full_path), task_id, task_progress
         )
@@ -564,9 +561,9 @@ async def transcribe_video(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to start transcription: {str(e)}", exc_info=True)
+        logger.error(f"Failed to start transcription: {e!s}", exc_info=True)
         logger.error(f"Exception type: {type(e)}")
-        logger.error(f"Exception repr: {repr(e)}")
+        logger.error(f"Exception repr: {e!r}")
         logger.error(f"Exception args: {e.args}")
         error_msg = str(e) if str(e) else f"Unknown error of type {type(e).__name__}"
         raise HTTPException(status_code=500, detail=f"Transcription failed: {error_msg}")
@@ -577,13 +574,25 @@ async def filter_subtitles(
     request: FilterRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(current_active_user),
-    task_progress: Dict[str, Any] = Depends(get_task_progress_registry),
+    task_progress: dict[str, Any] = Depends(get_task_progress_registry),
     subtitle_processor: DirectSubtitleProcessor = Depends(get_subtitle_processor),
 ):
     """Filter subtitles based on user's vocabulary knowledge"""
     try:
-        # Subtitle processor is now injected via dependency injection
-        
+        # Validate subtitle file exists before starting background task
+        video_file = (
+            Path(request.video_path)
+            if request.video_path.startswith("/")
+            else settings.get_videos_path() / request.video_path
+        )
+        srt_file = video_file.with_suffix(".srt")
+
+        if not srt_file.exists():
+            raise HTTPException(
+                status_code=422, 
+                detail=f"Subtitle file not found: {srt_file}"
+            )
+
         # Start filtering in background
         task_id = f"filter_{current_user.id}_{datetime.now().timestamp()}"
         background_tasks.add_task(
@@ -598,9 +607,12 @@ async def filter_subtitles(
         logger.info(f"Started filtering task: {task_id}")
         return {"task_id": task_id, "status": "started"}
 
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 422)
+        raise
     except Exception as e:
-        logger.error(f"Failed to start filtering: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Filtering failed: {str(e)}")
+        logger.error(f"Failed to start filtering: {e!s}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Filtering failed: {e!s}")
 
 
 @router.post("/translate-subtitles", name="translate_subtitles")
@@ -608,7 +620,7 @@ async def translate_subtitles(
     request: TranslateRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(current_active_user),
-    task_progress: Dict[str, Any] = Depends(get_task_progress_registry),
+    task_progress: dict[str, Any] = Depends(get_task_progress_registry),
 ):
     """Translate subtitles from one language to another"""
     try:
@@ -627,8 +639,8 @@ async def translate_subtitles(
         return {"task_id": task_id, "status": "started"}
 
     except Exception as e:
-        logger.error(f"Failed to start translation: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Translation failed: {str(e)}")
+        logger.error(f"Failed to start translation: {e!s}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Translation failed: {e!s}")
 
 
 @router.post("/prepare-episode", name="prepare_episode")
@@ -636,7 +648,7 @@ async def prepare_episode_for_learning(
     request: TranscribeRequest,  # We can reuse the same request model
     background_tasks: BackgroundTasks,
     current_user: User = Depends(current_active_user),
-    task_progress: Dict[str, Any] = Depends(get_task_progress_registry),
+    task_progress: dict[str, Any] = Depends(get_task_progress_registry),
 ):
     """Starts the full pipeline to prepare an episode for learning."""
     try:
@@ -668,9 +680,9 @@ async def prepare_episode_for_learning(
         # Preserve intended HTTP errors (e.g., 404 for missing file)
         raise
     except Exception as e:
-        logger.error(f"Failed to start episode preparation: {str(e)}", exc_info=True)
+        logger.error(f"Failed to start episode preparation: {e!s}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail=f"Failed to start processing: {str(e)}"
+            status_code=500, detail=f"Failed to start processing: {e!s}"
         )
 
 
@@ -679,7 +691,7 @@ async def full_pipeline(
     request: FullPipelineRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(current_active_user),
-    task_progress: Dict[str, Any] = Depends(get_task_progress_registry),
+    task_progress: dict[str, Any] = Depends(get_task_progress_registry),
 ):
     """Run a full processing pipeline: Transcribe -> Filter -> Translate"""
     try:
@@ -693,9 +705,9 @@ async def full_pipeline(
         return {"task_id": task_id, "status": "started"}
 
     except Exception as e:
-        logger.error(f"Failed to start processing pipeline: {str(e)}", exc_info=True)
+        logger.error(f"Failed to start processing pipeline: {e!s}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail=f"Processing pipeline failed: {str(e)}"
+            status_code=500, detail=f"Processing pipeline failed: {e!s}"
         )
 
 
@@ -703,12 +715,12 @@ async def full_pipeline(
 async def get_task_progress(
     task_id: str,
     current_user: User = Depends(current_active_user),
-    task_progress: Dict[str, Any] = Depends(get_task_progress_registry),
+    task_progress: dict[str, Any] = Depends(get_task_progress_registry),
 ):
     """Get progress of a background task"""
     logger.info(f"[PROGRESS CHECK] Task ID: {task_id}")
     logger.info(f"[PROGRESS CHECK] Available tasks: {list(task_progress.keys())}")
-    
+
     if task_id not in task_progress:
         logger.warning(f"[PROGRESS CHECK] ❌ Task {task_id} NOT FOUND in registry")
         raise HTTPException(status_code=404, detail="Task not found")
@@ -717,7 +729,7 @@ async def get_task_progress(
     logger.info(f"[PROGRESS CHECK] ✅ Task {task_id} found - Status: {progress_data.status}, Progress: {progress_data.progress}%")
     logger.info(f"[PROGRESS CHECK] Current step: {progress_data.current_step}")
     logger.info(f"[PROGRESS CHECK] Message: {progress_data.message}")
-    
+
     if progress_data.status == "completed":
         logger.info(f"[PROGRESS CHECK] 🎉 Task {task_id} is COMPLETED!")
         if hasattr(progress_data, 'vocabulary'):
@@ -726,5 +738,5 @@ async def get_task_progress(
             logger.info(f"[PROGRESS CHECK] Subtitle path: {progress_data.subtitle_path}")
         if hasattr(progress_data, 'translation_path'):
             logger.info(f"[PROGRESS CHECK] Translation path: {getattr(progress_data, 'translation_path', None)}")
-    
+
     return progress_data

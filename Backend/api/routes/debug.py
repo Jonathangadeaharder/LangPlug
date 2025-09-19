@@ -3,7 +3,8 @@ Debug and logging API routes
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -26,7 +27,7 @@ class FrontendLogEntry(BaseModel):
 
 
 @router.post("/frontend-logs", name="debug_receive_frontend_logs")
-async def receive_frontend_log(log_entry: FrontendLogEntry) -> Dict[str, Any]:
+async def receive_frontend_log(log_entry: FrontendLogEntry) -> dict[str, Any]:
     """Receive and store frontend log entries"""
     try:
         # Log the frontend entry with appropriate level - simplified to avoid issues
@@ -40,12 +41,12 @@ async def receive_frontend_log(log_entry: FrontendLogEntry) -> Dict[str, Any]:
         return {"success": True}
 
     except Exception as e:
-        logger.error(f"Failed to process frontend log: {str(e)}")
+        logger.error(f"Failed to process frontend log: {e!s}")
         return {"success": False, "error": str(e)}
 
 
 @router.get("/health", name="debug_health")
-async def debug_health() -> Dict[str, str]:
+async def debug_health() -> dict[str, str]:
     """Debug health check endpoint"""
     logger.info("Debug health check called")
     return {
@@ -66,14 +67,14 @@ async def debug_health() -> Dict[str, str]:
 
 
 @router.post("/test-minimal", name="debug_test_minimal")
-async def test_minimal_post() -> Dict[str, str]:
+async def test_minimal_post() -> dict[str, str]:
     """Minimal POST endpoint without dependencies"""
     logger.debug("Minimal POST endpoint called - immediate response")
     return {"status": "ok", "message": "Minimal POST endpoint working"}
 
 
 @router.post("/test-with-data", name="debug_test_with_data")
-async def test_post_with_data(data: Optional[dict] = None) -> Dict[str, Any]:
+async def test_post_with_data(data: dict | None = None) -> dict[str, Any]:
     """POST endpoint with data"""
     logger.debug(f"POST with data called: {data}")
     return {"status": "ok", "received_data": data}

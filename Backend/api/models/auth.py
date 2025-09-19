@@ -2,11 +2,11 @@
 Authentication API models
 """
 from __future__ import annotations
-from typing import Optional
-from datetime import datetime
-from uuid import UUID
-from pydantic import BaseModel, Field, validator
+
 import re
+from uuid import UUID
+
+from pydantic import BaseModel, Field, validator
 
 
 class RegisterRequest(BaseModel):
@@ -23,7 +23,7 @@ class RegisterRequest(BaseModel):
         max_length=128,
         description="Password must be at least 8 characters long"
     )
-    
+
     @validator('password')
     def validate_password_strength(cls, v):
         if not re.search(r'[A-Z]', v):
@@ -56,7 +56,7 @@ class UserResponse(BaseModel):
     is_superuser: bool = Field(..., description="Whether user has superuser privileges")
     is_active: bool = Field(..., description="Whether user account is active")
     created_at: str = Field(..., description="Account creation timestamp (ISO format)")
-    last_login: Optional[str] = Field(None, description="Last login timestamp (ISO format)")
+    last_login: str | None = Field(None, description="Last login timestamp (ISO format)")
 
     class Config:
         schema_extra = {
@@ -73,9 +73,9 @@ class UserResponse(BaseModel):
 
 class AuthResponse(BaseModel):
     token: str = Field(..., min_length=1, description="JWT authentication token")
-    user: "UserResponse" = Field(..., description="User information")
+    user: UserResponse = Field(..., description="User information")
     expires_at: str = Field(..., description="Token expiration timestamp (ISO format)")
-    
+
     class Config:
         schema_extra = {
             "example": {

@@ -1,9 +1,8 @@
 """
 Video API models
 """
-from typing import Optional
+
 from pydantic import BaseModel, Field, validator
-import os
 
 
 class VideoInfo(BaseModel):
@@ -40,12 +39,12 @@ class VideoInfo(BaseModel):
         ...,
         description="Whether subtitles are available for this video"
     )
-    duration: Optional[float] = Field(
+    duration: float | None = Field(
         None,
         ge=0,
         description="Video duration in seconds"
     )
-    
+
     @validator('path')
     def validate_path_format(cls, v):
         if not v.strip():
@@ -55,7 +54,7 @@ class VideoInfo(BaseModel):
         if not any(v.lower().endswith(ext) for ext in valid_extensions):
             raise ValueError(f'Path must end with a valid video extension: {", ".join(valid_extensions)}')
         return v
-    
+
     class Config:
         schema_extra = {
             "example": {

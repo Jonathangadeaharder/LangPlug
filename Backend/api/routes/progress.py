@@ -1,15 +1,15 @@
 """Progress tracking API routes"""
-import logging
 import json
-from typing import Dict, Any, List, Optional
+import logging
 from datetime import datetime, timedelta
-from pathlib import Path
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from core.config import settings
 from core.dependencies import current_active_user
 from database.models import User
-from core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +28,9 @@ class UserProgress(BaseModel):
     experience_points: int = 0
     daily_goals_completed: int = 0
     weekly_goals_completed: int = 0
-    last_activity: Optional[datetime] = None
-    achievements: List[str] = []
-    learning_stats: Dict[str, Any] = {}
+    last_activity: datetime | None = None
+    achievements: list[str] = []
+    learning_stats: dict[str, Any] = {}
 
 
 class DailyProgress(BaseModel):
@@ -51,86 +51,86 @@ async def get_user_progress(
     try:
         # Get user progress from database or file system
         user_progress_path = settings.get_user_data_path() / str(current_user.id) / "progress.json"
-        
+
         # Default progress
         default_progress = UserProgress(
             user_id=str(current_user.id),
             last_activity=datetime.now()
         )
-        
+
         if user_progress_path.exists():
             try:
-                with open(user_progress_path, 'r', encoding='utf-8') as f:
+                with open(user_progress_path, encoding='utf-8') as f:
                     progress_data = json.load(f)
-                    
+
                     # Convert datetime string back to datetime object
-                    if 'last_activity' in progress_data and progress_data['last_activity']:
+                    if progress_data.get('last_activity'):
                         progress_data['last_activity'] = datetime.fromisoformat(progress_data['last_activity'])
-                    
+
                     # Merge with defaults
                     for key, value in progress_data.items():
                         if hasattr(default_progress, key):
                             setattr(default_progress, key, value)
-                            
+
             except Exception as e:
-                logger.warning(f"Error loading user progress: {str(e)}")
-        
+                logger.warning(f"Error loading user progress: {e!s}")
+
         # Calculate current streak based on last activity
         if default_progress.last_activity:
             days_since_activity = (datetime.now() - default_progress.last_activity).days
             if days_since_activity > 1:
                 default_progress.current_streak = 0
-        
+
         logger.info(f"Retrieved progress for user {current_user.id}")
         return default_progress
-        
+
     except Exception as e:
-        logger.error(f"Error getting user progress: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error retrieving user progress: {str(e)}")
+        logger.error(f"Error getting user progress: {e!s}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error retrieving user progress: {e!s}")
 
 
 @router.post("/update", name="progress_update_user")
 async def update_user_progress(
-    progress_update: Dict[str, Any],
+    progress_update: dict[str, Any],
     current_user: User = Depends(current_active_user)
 ):
     """Update user progress data"""
     try:
         # Get current progress
         current_progress = await get_user_progress(current_user)
-        
+
         # Update fields
         for key, value in progress_update.items():
             if hasattr(current_progress, key):
                 setattr(current_progress, key, value)
-        
+
         # Update last activity
         current_progress.last_activity = datetime.now()
-        
+
         # Ensure user data directory exists
         user_data_path = settings.get_user_data_path() / str(current_user.id)
         user_data_path.mkdir(parents=True, exist_ok=True)
-        
+
         user_progress_path = user_data_path / "progress.json"
-        
+
         # Save progress to file
         progress_dict = current_progress.dict()
         # Convert datetime to string for JSON serialization
         if progress_dict['last_activity']:
             progress_dict['last_activity'] = progress_dict['last_activity'].isoformat()
-        
+
         with open(user_progress_path, 'w', encoding='utf-8') as f:
             json.dump(progress_dict, f, indent=2, ensure_ascii=False)
-        
+
         logger.info(f"Updated progress for user {current_user.id}")
         return {"message": "Progress updated successfully"}
-        
+
     except Exception as e:
-        logger.error(f"Error updating user progress: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error updating user progress: {str(e)}")
+        logger.error(f"Error updating user progress: {e!s}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error updating user progress: {e!s}")
 
 
-@router.get("/daily", response_model=List[DailyProgress], name="progress_get_daily")
+@router.get("/daily", response_model=list[DailyProgress], name="progress_get_daily")
 async def get_daily_progress(
     days: int = 7,
     current_user: User = Depends(current_active_user)
@@ -139,14 +139,14 @@ async def get_daily_progress(
     try:
         # Get daily progress from database or file system
         user_daily_path = settings.get_user_data_path() / str(current_user.id) / "daily_progress.json"
-        
+
         daily_progress = []
-        
+
         if user_daily_path.exists():
             try:
-                with open(user_daily_path, 'r', encoding='utf-8') as f:
+                with open(user_daily_path, encoding='utf-8') as f:
                     daily_data = json.load(f)
-                    
+
                     # Get last N days
                     for i in range(days):
                         date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
@@ -155,22 +155,22 @@ async def get_daily_progress(
                             date=date,
                             **day_data
                         ))
-                        
+
             except Exception as e:
-                logger.warning(f"Error loading daily progress: {str(e)}")
-        
+                logger.warning(f"Error loading daily progress: {e!s}")
+
         # Fill in missing days with empty progress
         if len(daily_progress) < days:
             for i in range(len(daily_progress), days):
                 date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
                 daily_progress.append(DailyProgress(date=date))
-        
+
         # Sort by date (most recent first)
         daily_progress.sort(key=lambda x: x.date, reverse=True)
-        
+
         logger.info(f"Retrieved {len(daily_progress)} days of progress for user {current_user.id}")
         return daily_progress
-        
+
     except Exception as e:
-        logger.error(f"Error getting daily progress: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error retrieving daily progress: {str(e)}")
+        logger.error(f"Error getting daily progress: {e!s}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error retrieving daily progress: {e!s}")

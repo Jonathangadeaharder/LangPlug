@@ -2,15 +2,14 @@
 Authentication API routes
 """
 import logging
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import HTTPAuthorizationCredentials
 from typing import Annotated
 
-from ..models.auth import RegisterRequest, LoginRequest, AuthResponse, UserResponse
-from core.dependencies import current_active_user
-from core.auth import auth_backend, fastapi_users
+from fastapi import APIRouter, Depends
+
+from core.auth import current_active_user
 from database.models import User
-from core.auth import UserCreate, UserRead
+
+from ..models.auth import UserResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["authentication"])
@@ -23,7 +22,7 @@ async def test_prefix_endpoint():
 
 # All authentication endpoints are now handled by FastAPI-Users
 # Register: POST /auth/register
-# Login: POST /auth/login  
+# Login: POST /auth/login
 # Logout: POST /auth/logout
 
 

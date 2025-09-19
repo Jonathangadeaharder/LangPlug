@@ -1,9 +1,10 @@
 """
 Processing API models
 """
-from typing import Optional, Dict, Any, List, Literal
+from typing import Literal
+
 from pydantic import BaseModel, Field, validator
-from datetime import datetime
+
 from .vocabulary import VocabularyWord
 
 
@@ -13,7 +14,7 @@ class TranscribeRequest(BaseModel):
         min_length=1,
         description="Path to the video file to transcribe"
     )
-    
+
     @validator('video_path')
     def validate_video_path(cls, v):
         if not v.strip():
@@ -45,29 +46,29 @@ class ProcessingStatus(BaseModel):
         max_length=200,
         description="Description of the current processing step"
     )
-    message: Optional[str] = Field(
+    message: str | None = Field(
         None,
         max_length=500,
         description="Additional status message or error details"
     )
-    started_at: Optional[int] = Field(
+    started_at: int | None = Field(
         None,
         ge=0,
         description="Unix timestamp when processing started"
     )
-    vocabulary: Optional[List[VocabularyWord]] = Field(
+    vocabulary: list[VocabularyWord] | None = Field(
         None,
         description="Vocabulary words extracted from completed chunks"
     )
-    subtitle_path: Optional[str] = Field(
+    subtitle_path: str | None = Field(
         None,
         description="Path to German transcription subtitle file (yellow)"
     )
-    translation_path: Optional[str] = Field(
+    translation_path: str | None = Field(
         None,
         description="Path to English translation subtitle file (white)"
     )
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -89,7 +90,7 @@ class FilterRequest(BaseModel):
         min_length=1,
         description="Path to the video file to filter subtitles for"
     )
-    
+
     @validator('video_path')
     def validate_video_path(cls, v):
         if not v.strip():
@@ -117,13 +118,13 @@ class TranslateRequest(BaseModel):
         pattern=r"^[a-z]{2}(-[A-Z]{2})?$",
         description="Target language code (e.g., 'en', 'de-DE')"
     )
-    
+
     @validator('video_path')
     def validate_video_path(cls, v):
         if not v.strip():
             raise ValueError('Video path cannot be empty or whitespace')
         return v
-    
+
     @validator('target_lang')
     def validate_different_languages(cls, v, values):
         if 'source_lang' in values and v == values['source_lang']:
@@ -151,13 +152,13 @@ class FullPipelineRequest(BaseModel):
         pattern=r"^[a-z]{2}(-[A-Z]{2})?$",
         description="Target language code (e.g., 'en', 'de-DE')"
     )
-    
+
     @validator('video_path')
     def validate_video_path(cls, v):
         if not v.strip():
             raise ValueError('Video path cannot be empty or whitespace')
         return v
-    
+
     @validator('source_lang', 'target_lang')
     def validate_language_codes(cls, v):
         # List of valid ISO 639-1 language codes
@@ -166,7 +167,7 @@ class FullPipelineRequest(BaseModel):
         if base_code not in valid_codes:
             raise ValueError(f'Invalid language code: {v}')
         return v
-    
+
     @validator('target_lang')
     def validate_different_languages(cls, v, values):
         if 'source_lang' in values and v == values['source_lang']:
@@ -190,19 +191,19 @@ class ChunkProcessingRequest(BaseModel):
         gt=0,
         description="End time of the chunk in seconds"
     )
-    
+
     @validator('video_path')
     def validate_video_path(cls, v):
         if not v.strip():
             raise ValueError('Video path cannot be empty or whitespace')
         return v
-    
+
     @validator('end_time')
     def validate_time_range(cls, v, values):
         if 'start_time' in values and v <= values['start_time']:
             raise ValueError('End time must be greater than start time')
         return v
-    
+
     class Config:
         schema_extra = {
             "example": {

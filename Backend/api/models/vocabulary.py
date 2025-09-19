@@ -1,7 +1,7 @@
 """
 Vocabulary API models
 """
-from typing import Optional, List, Dict
+
 from pydantic import BaseModel, Field, validator
 
 
@@ -12,7 +12,7 @@ class VocabularyWord(BaseModel):
         max_length=100,
         description="The vocabulary word"
     )
-    definition: Optional[str] = Field(
+    definition: str | None = Field(
         None,
         max_length=500,
         description="Definition of the word"
@@ -26,7 +26,7 @@ class VocabularyWord(BaseModel):
         False,
         description="Whether the user knows this word"
     )
-    
+
     @validator('word')
     def validate_word(cls, v):
         if not v.strip():
@@ -45,7 +45,7 @@ class MarkKnownRequest(BaseModel):
         ...,
         description="Whether to mark the word as known (true) or unknown (false)"
     )
-    
+
     @validator('word')
     def validate_word(cls, v):
         if not v.strip():
@@ -76,7 +76,7 @@ class VocabularyLibraryWord(BaseModel):
         max_length=50,
         description="Part of speech (noun, verb, adjective, etc.)"
     )
-    definition: Optional[str] = Field(
+    definition: str | None = Field(
         None,
         max_length=500,
         description="Definition of the word"
@@ -93,7 +93,7 @@ class VocabularyLevel(BaseModel):
         pattern=r"^(A1|A2|B1|B2|C1|C2)$",
         description="CEFR difficulty level (A1, A2, B1, B2, C1, C2)"
     )
-    words: List[VocabularyLibraryWord] = Field(
+    words: list[VocabularyLibraryWord] = Field(
         ...,
         description="List of vocabulary words at this level"
     )
@@ -107,7 +107,7 @@ class VocabularyLevel(BaseModel):
         ge=0,
         description="Number of known words at this level"
     )
-    
+
     @validator('known_count')
     def validate_known_count(cls, v, values):
         if 'total_count' in values and v > values['total_count']:
@@ -128,7 +128,7 @@ class BulkMarkRequest(BaseModel):
 
 
 class VocabularyStats(BaseModel):
-    levels: Dict[str, Dict[str, int]] = Field(
+    levels: dict[str, dict[str, int]] = Field(
         ...,
         description="Statistics by CEFR level with total and known counts"
     )
@@ -142,13 +142,13 @@ class VocabularyStats(BaseModel):
         ge=0,
         description="Total number of known words across all levels"
     )
-    
+
     @validator('total_known')
     def validate_total_known(cls, v, values):
         if 'total_words' in values and v > values['total_words']:
             raise ValueError('Total known cannot exceed total words')
         return v
-    
+
     class Config:
         schema_extra = {
             "example": {
