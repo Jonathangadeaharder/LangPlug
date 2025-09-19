@@ -1,14 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { 
-  getVideos, 
-  getVideoDetails, 
-  uploadVideo, 
-  processVideo, 
+import {
+  getVideos,
+  getVideoDetails,
+  uploadVideo,
+  processVideo,
   getProcessingStatus,
   login,
   register,
   getProfile
 } from '../api';
+import { assertApiCallMade, assertMockResolvedValue, assertMockRejectedValue } from '@/test/assertion-helpers';
 
 // Mock the generated SDK
 vi.mock('@/client/sdk.gen', () => ({
@@ -44,37 +45,31 @@ describe('API Service', () => {
   });
 
   describe('Video API', () => {
-    it('fetches videos successfully', async () => {
+    it('WhenVideosRequested_ThenReturnsVideoList', async () => {
       const mockVideos = [
         { id: '1', title: 'Test Video 1', description: 'Description 1' },
         { id: '2', title: 'Test Video 2', description: 'Description 2' }
       ];
-      
-      mockSdk.getAvailableVideosApiVideosGet.mockResolvedValue({ data: mockVideos });
-      
+
+      assertMockResolvedValue(mockSdk.getAvailableVideosApiVideosGet, { data: mockVideos });
+
       const result = await getVideos();
-      
-      expect(mockSdk.getAvailableVideosApiVideosGet).toHaveBeenCalled();
+
+      assertApiCallMade(mockSdk.getAvailableVideosApiVideosGet);
       expect(result).toEqual(mockVideos);
     });
 
-    it('fetches video details successfully', async () => {
+    it('WhenVideoDetailsRequested_ThenReturnsVideoInfo', async () => {
       const mockVideoDetails = {
-        id: '1',
-        title: 'Test Video',
-        description: 'Test Description',
-        episodes: [
-          { id: '1', title: 'Episode 1', duration: 1800 }
-        ]
+        id: '1', title: 'Test Video', description: 'Test Description',
+        episodes: [{ id: '1', title: 'Episode 1', duration: 1800 }]
       };
-      
-      mockSdk.getVideoStatusApiVideosVideoIdStatusGet.mockResolvedValue({ data: mockVideoDetails });
-      
+
+      assertMockResolvedValue(mockSdk.getVideoStatusApiVideosVideoIdStatusGet, { data: mockVideoDetails });
+
       const result = await getVideoDetails('1');
-      
-      expect(mockSdk.getVideoStatusApiVideosVideoIdStatusGet).toHaveBeenCalledWith({
-        path: { video_id: '1' }
-      });
+
+      assertApiCallMade(mockSdk.getVideoStatusApiVideosVideoIdStatusGet, { path: { video_id: '1' } });
       expect(result).toEqual(mockVideoDetails);
     });
 
@@ -180,20 +175,17 @@ describe('API Service', () => {
   });
 
   describe('Error Handling', () => {
-    it('handles network errors', async () => {
+    it('WhenNetworkErrorOccurs_ThenThrowsError', async () => {
       const networkError = new Error('Network Error');
-      mockSdk.getAvailableVideosApiVideosGet.mockRejectedValue(networkError);
-      
+      assertMockRejectedValue(mockSdk.getAvailableVideosApiVideosGet, networkError);
+
       await expect(getVideos()).rejects.toThrow('Network Error');
     });
 
-    it('handles API errors with status codes', async () => {
-      const apiError = {
-        status: 404,
-        message: 'Video not found'
-      };
-      mockSdk.getVideoStatusApiVideosVideoIdStatusGet.mockRejectedValue(apiError);
-      
+    it('WhenApiErrorWithStatusCode_ThenThrowsApiError', async () => {
+      const apiError = { status: 404, message: 'Video not found' };
+      assertMockRejectedValue(mockSdk.getVideoStatusApiVideosVideoIdStatusGet, apiError);
+
       await expect(getVideoDetails('nonexistent')).rejects.toEqual(apiError);
     });
   });

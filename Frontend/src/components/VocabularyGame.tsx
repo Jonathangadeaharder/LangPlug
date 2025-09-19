@@ -70,7 +70,9 @@ const CardContainer = styled.div`
   }
 `
 
-const VocabularyCard = styled(motion.div)`
+const VocabularyCard = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['dragConstraints', 'drag', 'onDragEnd'].includes(prop),
+})`
   position: absolute;
   width: 100%;
   height: 100%;
@@ -86,7 +88,7 @@ const VocabularyCard = styled(motion.div)`
   text-align: center;
   cursor: grab;
   user-select: none;
-  
+
   &:active {
     cursor: grabbing;
   }
@@ -411,7 +413,7 @@ export const VocabularyGame: React.FC<VocabularyGameProps> = ({
               <WordText>{currentWord.word}</WordText>
               
               <DifficultyBadge $level={currentWord.difficulty_level}>
-                {currentWord.difficulty_level.toUpperCase()} Level
+                {currentWord.difficulty_level?.toUpperCase() || 'UNKNOWN'} Level
               </DifficultyBadge>
               
               {currentWord.definition && (

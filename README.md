@@ -215,6 +215,15 @@ We welcome contributions! Here's how to get started:
 - Update documentation for API changes
 - Test on both development and production builds
 
+### Test Suite Shortcuts (from repo root)
+- Postgres-backed backend tests (Docker required):
+  - Bash: `./scripts/run_backend_tests_postgres.sh`
+  - PowerShell: `./scripts/run_backend_tests_postgres.ps1`
+  - Make: `make test-postgres`
+
+These wrap `Backend/scripts/run_tests_postgres.(sh|ps1)` to start Postgres via docker-compose and run
+the backend pytest suite with a 60s per-test timeout.
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

@@ -6,6 +6,12 @@ This document describes the comprehensive contract testing implementation for th
 
 Contract testing ensures that the frontend and backend maintain compatible API contracts, preventing integration issues and enabling confident independent development and deployment.
 
+## Policy Reference
+
+All contract updates must follow the governance defined in `CONTRACTDRIVENDEVELOPMENT.MD` and the
+operational guidance in `CONTRIBUTING.md`. Use the review checklist (`docs/review_checklists.md`) to
+confirm contract approvals, versioning, and automated test coverage before merging changes.
+
 ## Architecture
 
 ### Frontend Contract Testing

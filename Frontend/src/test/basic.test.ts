@@ -1,21 +1,22 @@
 import { describe, it, expect } from 'vitest';
+import { assertArrayLength } from './assertion-helpers';
 
 describe('Basic Test Suite', () => {
-  it('should perform basic arithmetic', () => {
+  it('WhenArithmeticPerformed_ThenReturnsCorrectResult', () => {
     expect(2 + 2).toBe(4);
   });
 
-  it('should handle string operations', () => {
+  it('WhenStringOperationsApplied_ThenReturnsTransformedString', () => {
     expect('hello'.toUpperCase()).toBe('HELLO');
   });
 
-  it('should work with arrays', () => {
+  it('WhenArrayCreated_ThenHasCorrectProperties', () => {
     const arr = [1, 2, 3];
-    expect(arr.length).toBe(3);
+    assertArrayLength(arr, 3);
     expect(arr.includes(2)).toBe(true);
   });
 
-  it('should handle async operations', async () => {
+  it('WhenAsyncOperationExecuted_ThenResolvedValueReturned', async () => {
     const promise = Promise.resolve('test');
     const result = await promise;
     expect(result).toBe('test');

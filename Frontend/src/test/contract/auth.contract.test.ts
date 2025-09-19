@@ -14,7 +14,7 @@ describe('Auth API Contract Tests', () => {
   });
 
   describe('Register Endpoint Contract', () => {
-    it('should have correct request structure for registration', async () => {
+    it('WhenRegisterCalledWithValidData_ThenReturnsCorrectStructure', async () => {
       const registerRequest: RegisterRequest = {
         username: 'testuser',
         password: 'testpass123',
@@ -54,7 +54,7 @@ describe('Auth API Contract Tests', () => {
       });
     });
 
-    it('should validate required fields in register request', () => {
+    it('WhenRegisterRequestValidated_ThenRequiredFieldsPresent', () => {
       // Test that TypeScript enforces required fields
       const validRequest: RegisterRequest = {
         username: 'test',
@@ -68,7 +68,7 @@ describe('Auth API Contract Tests', () => {
   });
 
   describe('Login Endpoint Contract', () => {
-    it('should have correct request structure for login', async () => {
+    it('WhenLoginCalledWithValidData_ThenReturnsCorrectStructure', async () => {
       const loginRequest: LoginRequest = {
         username: 'testuser',
         password: 'testpass123',
@@ -116,7 +116,7 @@ describe('Auth API Contract Tests', () => {
       });
     });
 
-    it('should validate required fields in login request', () => {
+    it('WhenLoginRequestValidated_ThenRequiredFieldsPresent', () => {
       const validRequest: LoginRequest = {
         username: 'test',
         password: 'pass',
@@ -129,7 +129,7 @@ describe('Auth API Contract Tests', () => {
   });
 
   describe('Response Type Validation', () => {
-    it('should validate UserResponse structure', () => {
+    it('WhenUserResponseValidated_ThenStructureCorrect', () => {
       const userResponse: UserResponse = {
         id: 1,
         username: 'testuser',
@@ -150,7 +150,7 @@ describe('Auth API Contract Tests', () => {
       expect(userResponse.last_login === null || typeof userResponse.last_login === 'string').toBe(true);
     });
 
-    it('should validate AuthResponse structure', () => {
+    it('WhenAuthResponseValidated_ThenStructureCorrect', () => {
       const authResponse: AuthResponse = {
         token: 'jwt-token',
         user: {

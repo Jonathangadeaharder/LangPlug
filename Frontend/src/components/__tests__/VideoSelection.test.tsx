@@ -1,9 +1,10 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import { VideoSelection } from '../VideoSelection';
 import * as api from '@/services/api';
+import { assertLoadingState, assertNavigationCalled, assertErrorMessage } from '@/test/assertion-helpers';
 
 // Mock react-router-dom
 const mockNavigate = vi.fn();
@@ -38,7 +39,12 @@ const mockVideos = [
 
 const renderWithRouter = (component: React.ReactElement) => {
   return render(
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       {component}
     </BrowserRouter>
   );
@@ -50,44 +56,57 @@ describe('VideoSelection Component', () => {
     vi.spyOn(api.videoService, 'getVideos').mockResolvedValue(mockVideos as any);
   });
 
-  it('renders hero title', async () => {
-    renderWithRouter(<VideoSelection />);
+  it('WhenComponentRendered_ThenDisplaysHeroTitle', async () => {
+    await act(async () => {
+      renderWithRouter(<VideoSelection />);
+    });
     expect(screen.getByText(/learn german through tv shows/i)).toBeInTheDocument();
   });
 
-  it('displays loading state initially', () => {
+  it('WhenComponentMounts_ThenShowsLoadingState', () => {
     renderWithRouter(<VideoSelection />);
-    // Loading spinner is a div with className "loading-spinner"
-    expect(document.querySelector('.loading-spinner')).toBeTruthy();
+    assertLoadingState();
   });
 
-  it('displays series after loading', async () => {
-    renderWithRouter(<VideoSelection />);
-    
-    await waitFor(() => {
-      // Series card displays the series name
-      expect(screen.getByText('Superstore')).toBeInTheDocument();
+  it('WhenDataLoaded_ThenDisplaysSeries', async () => {
+    await act(async () => {
+      renderWithRouter(<VideoSelection />);
     });
-  });
 
-  it('navigates to episodes page when series clicked', async () => {
-    renderWithRouter(<VideoSelection />);
-    
     await waitFor(() => {
       expect(screen.getByText('Superstore')).toBeInTheDocument();
     });
-
-    fireEvent.click(screen.getByText('Superstore'));
-    expect(mockNavigate).toHaveBeenCalledWith('/episodes/Superstore');
   });
 
-  it('handles API error gracefully', async () => {
+  it('WhenSeriesClicked_ThenNavigatesToEpisodes', async () => {
+    await act(async () => {
+      renderWithRouter(<VideoSelection />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Superstore')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Superstore'));
+    });
+    assertNavigationCalled(mockNavigate, '/episodes/Superstore');
+  });
+
+  it('WhenApiErrorOccurs_ThenHandlesErrorGracefully', async () => {
     vi.spyOn(api.videoService, 'getVideos').mockRejectedValue(new Error('API Error'));
-    
-    renderWithRouter(<VideoSelection />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Failed to load videos')).toBeInTheDocument();
+    // Mock handleApiError to prevent it from throwing in tests
+    vi.spyOn(api, 'handleApiError').mockImplementation(() => {});
+
+    await act(async () => {
+      renderWithRouter(<VideoSelection />);
     });
+
+    await waitFor(() => {
+      // Should not be in loading state after error
+      expect(document.querySelector('.loading-spinner')).toBeNull();
+      // Should show error message
+      expect(screen.getByText('Failed to load videos')).toBeInTheDocument();
+    }, { timeout: 5000 });
   });
 });

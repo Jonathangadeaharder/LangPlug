@@ -5,8 +5,19 @@ import { ChunkedLearningPlayer } from '../ChunkedLearningPlayer';
 
 // Mock react-player since it requires browser APIs
 vi.mock('react-player', () => {
+  const MockPlayer = React.forwardRef<any>((props, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      seekTo: vi.fn(),
+      getCurrentTime: vi.fn(() => 0),
+      getDuration: vi.fn(() => 100),
+    }));
+
+    return <div data-testid="mock-react-player">Mock Player</div>;
+  });
+  MockPlayer.displayName = 'MockPlayer';
+
   return {
-    default: vi.fn(() => <div data-testid="mock-react-player">Mock Player</div>),
+    default: MockPlayer,
   };
 });
 
