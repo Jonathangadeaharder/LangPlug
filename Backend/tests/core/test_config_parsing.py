@@ -9,11 +9,13 @@ import pytest
 from core.config import Settings
 
 
-def test_cors_origins_parsing_csv():
+@pytest.mark.timeout(30)
+def test_Whencors_origins_parsing_csvCalled_ThenSucceeds():
     out = Settings.parse_cors_origins("http://a.com,http://b.com")
     assert out == ["http://a.com", "http://b.com"]
 
 
-def test_cors_origins_parsing_json():
+@pytest.mark.timeout(30)
+def test_Whencors_origins_parsing_jsonCalled_ThenSucceeds():
     out = Settings.parse_cors_origins('["http://x", "http://y"]')
     assert out == ["http://x", "http://y"]

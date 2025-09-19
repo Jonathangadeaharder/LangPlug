@@ -5,10 +5,12 @@ from __future__ import annotations
 
 import json
 import logging
+import pytest
 from core.logging_config import JSONFormatter, setup_logging
 
 
-def test_json_formatter_serializes_record():
+@pytest.mark.timeout(30)
+def test_Whenjson_formatter_serializes_recordCalled_ThenSucceeds():
     formatter = JSONFormatter()
     logger = logging.getLogger("test.logger")
     record = logger.makeRecord(name="test.logger", level=logging.INFO, fn=__file__, lno=10, msg="hello", args=(), exc_info=None)
@@ -22,10 +24,19 @@ def test_json_formatter_serializes_record():
     assert data["user"] == "alice"
 
 
-def test_setup_logging_returns_log_file_path():
-    log_file = setup_logging()
-    from pathlib import Path
-    assert isinstance(log_file, Path)
-    # Test that logging works after setup
-    logger = logging.getLogger(__name__)
-    logger.info("ping")
+@pytest.mark.timeout(30)
+def test_Whensetup_logging_configures_correctlyCalled_ThenSucceeds():
+    """Test that setup_logging configures the logging system correctly"""
+    # setup_logging now returns None and configures structlog
+    result = setup_logging()
+    assert result is None  # New implementation doesn't return a file path
+
+    # Test that logging works after setup by verifying structlog is configured
+    import structlog
+    logger = structlog.get_logger(__name__)
+    # Should not raise an exception
+    logger.info("test message", test_field="test_value")
+
+    # Verify that standard logging is also configured
+    std_logger = logging.getLogger(__name__)
+    std_logger.info("standard logging test")

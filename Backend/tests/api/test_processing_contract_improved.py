@@ -1,68 +1,91 @@
-"""Improved contract tests for processing endpoints using async patterns.
+"""Async-first processing contract tests following the protective 80/20 rules."""
+from __future__ import annotations
 
-These tests verify that the processing API contract is maintained with proper async patterns.
-"""
-import pytest
-import uuid
 from pathlib import Path
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
+
+import pytest
+
+from tests.auth_helpers import AuthTestHelperAsync
+from tests.assertion_helpers import assert_dict_response, assert_validation_error_response
 
 
-@pytest.mark.asyncio
-@pytest.mark.api
-class TestProcessingContractImproved:
-    """Improved contract tests for processing API endpoints with async patterns."""
+async def _auth_headers(async_client) -> dict[str, str]:
+    flow = await AuthTestHelperAsync.register_and_login_async(async_client)
+    return flow["headers"]
 
-    async def setup_authenticated_client(self, async_client):
-        """Helper to create an authenticated client."""
-        unique_id = str(uuid.uuid4())[:8]
-        email = f"processtest_{unique_id}@example.com"
 
-        # Register with proper format
-        await async_client.post("/api/auth/register", json={
-            "username": f"processtest_{unique_id}",
-            "email": email,
-            "password": "SecurePass123!"
-        })
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenFilterSubtitlesCalled_ThenReturnsTaskMetadata(async_client):
+    """Happy path: filter-subtitles returns task metadata when video exists."""
+    headers = await _auth_headers(async_client)
+    payload = {"video_path": "series/S01E01.mp4"}
 
-        # Login with proper format (form data, email in username field)
-        login_response = await async_client.post("/api/auth/login", data={
-            "username": email,  # FastAPI-Users expects email here
-            "password": "SecurePass123!"
-        })
-        token = login_response.json()["access_token"]  # FastAPI-Users returns access_token
-        return {"Authorization": f"Bearer {token}"}
+    mock_settings = Mock()
+    mock_settings.get_videos_path.return_value = Path("/videos")
+    mock_settings.default_language = "en"
 
-    async def test_transcribe_video_endpoint_contract(self, async_client):
-        """Test /process/transcribe endpoint contract."""
-        headers = await self.setup_authenticated_client(async_client)
+    with (
+        patch("api.routes.processing.settings", mock_settings),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
+        response = await async_client.post(
+            "/api/process/filter-subtitles", json=payload, headers=headers
+        )
 
-        payload = {
-            "video_path": "test_series/S01E01.mp4"
-        }
+    assert_dict_response(response, {200, 202})
 
-        # Create a mock settings object
-        from core.config import Settings
-        mock_settings = Mock(spec=Settings)
-        mock_settings.get_videos_path.return_value = Path('/fake/videos')
-        mock_settings.default_language = "de"
 
-        # Using a single patch context to avoid syntax issues
-        with patch('pathlib.Path.exists', return_value=True):
-            with patch('api.routes.processing.get_transcription_service') as mock_get_service:
-                with patch('api.routes.processing.settings', mock_settings):
-                    mock_service = Mock()
-                    mock_service.transcribe.return_value = "task_123"
-                    mock_get_service.return_value = mock_service
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenFilterSubtitlesWithoutVideoPath_ThenRejected(async_client):
+    """Invalid input: missing video_path is rejected."""
+    headers = await _auth_headers(async_client)
 
-                    response = await async_client.post("/api/process/transcribe", json=payload, headers=headers)
+    response = await async_client.post(
+        "/api/process/filter-subtitles", json={}, headers=headers
+    )
 
-                    # Contract assertions
-                    assert response.status_code in [200, 202]  # OK or Accepted for async processing
-                    data = response.json()
+    assert_validation_error_response(response)
 
-                    # Should return task information
-                    assert isinstance(data, dict)
-                    # Common response patterns for async tasks
-                    expected_fields = ["task_id", "status", "message"]
-                    assert any(field in data for field in expected_fields)
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenTranslateSubtitlesCalled_ThenReturnsTask(async_client):
+    """Happy path: translating subtitles yields a task id using translation factory."""
+    headers = await _auth_headers(async_client)
+    payload = {
+        "video_path": "series/S01E01.mp4",
+        "source_lang": "en",
+        "target_lang": "es",
+    }
+
+    with (
+        patch("services.translationservice.factory.TranslationServiceFactory.create_service") as factory,
+        patch("pathlib.Path.exists", return_value=True),
+    ):
+        mock_service = Mock()
+        mock_service.translate.return_value = "task_456"
+        factory.return_value = mock_service
+
+        response = await async_client.post(
+            "/api/process/translate-subtitles", json=payload, headers=headers
+        )
+
+    assert_dict_response(response, {200, 202})
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenTranslateSubtitlesWithoutLanguages_ThenValidationError(async_client):
+    """Boundary: missing target language yields validation error."""
+    headers = await _auth_headers(async_client)
+
+    response = await async_client.post(
+        "/api/process/translate-subtitles",
+        json={"video_path": "series/S01E01.mp4", "source_lang": "en"},
+        headers=headers,
+    )
+
+    assert_validation_error_response(response)

@@ -12,8 +12,9 @@ from contextlib import asynccontextmanager
 from core.middleware import LoggingMiddleware
 
 
-@pytest.mark.asyncio
-async def test_logging_middleware_adds_header():
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenlogging_middleware_adds_headerCalled_ThenSucceeds():
     app = FastAPI()
 
     @asynccontextmanager
@@ -34,4 +35,3 @@ async def test_logging_middleware_adds_header():
         assert "X-Process-Time" in r.headers
         # Body should be intact
         assert r.json()["ok"] is True
-

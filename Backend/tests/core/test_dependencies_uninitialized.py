@@ -1,23 +1,33 @@
 """
-Coverage for get_database_manager/get_auth_service uninitialized error paths.
+Tests for core.dependencies service availability.
 """
 from __future__ import annotations
 
-import importlib
 import pytest
+from core import dependencies as deps
 
 
-def test_uninitialized_services_raise_runtime_error():
-    deps = importlib.import_module('core.dependencies')
-    # Backup and clear registry
-    backup = deps._service_registry.copy()
-    try:
-        deps._service_registry.clear()
-        with pytest.raises(RuntimeError):
-            deps.get_database_manager()
-        with pytest.raises(RuntimeError):
-            deps.get_auth_service()
-    finally:
-        deps._service_registry.clear()
-        deps._service_registry.update(backup)
+@pytest.mark.timeout(30)
+def test_Whendatabase_manager_availableCalled_ThenSucceeds():
+    """Test that database manager is available through dependency injection"""
+    db_manager = deps.get_database_manager()
+    # Should return the SQLAlchemy engine without errors
+    assert db_manager is not None
+
+
+@pytest.mark.timeout(30)
+def test_Whenauth_service_availableCalled_ThenSucceeds():
+    """Test that auth service is available through dependency injection"""
+    auth_service = deps.get_auth_service()
+    # Should return the FastAPI-Users instance without errors
+    assert auth_service is not None
+
+
+@pytest.mark.timeout(30)
+def test_Whentranscription_service_initializationCalled_ThenSucceeds():
+    """Test that transcription service can be initialized (may return None if unavailable)"""
+    # This should not raise an exception even if service is unavailable
+    transcription_service = deps.get_transcription_service()
+    # Service may be None if not properly configured, but should not raise an exception
+    assert transcription_service is None or hasattr(transcription_service, 'transcribe')
 

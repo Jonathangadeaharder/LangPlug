@@ -12,8 +12,9 @@ from core.middleware import setup_middleware
 from core.exceptions import LangPlugException
 
 
-@pytest.mark.asyncio
-async def test_cors_and_exception_handler():
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whencors_and_exception_handlerCalled_ThenSucceeds():
     app = FastAPI()
 
     @asynccontextmanager
@@ -42,4 +43,3 @@ async def test_cors_and_exception_handler():
         data = r.json()
         assert data.get("detail") == "boom"
         assert data.get("type") in ("LangPlugException", "ConfigurationError", "ProcessingError")
-

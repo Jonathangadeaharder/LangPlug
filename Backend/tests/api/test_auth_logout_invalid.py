@@ -6,9 +6,12 @@ from __future__ import annotations
 import pytest
 
 
-@pytest.mark.asyncio
-async def test_logout_invalid_token(async_client):
-    r = await async_client.post("/api/auth/logout", headers={"Authorization": "Bearer BAD"})
-    # FastAPI-Users returns 401 for invalid tokens
-    assert r.status_code == 401
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenLogoutWithInvalidtoken_ThenFails(async_client):
+    """Invalid input guard: logout with a bad token returns 401."""
+    response = await async_client.post(
+        "/api/auth/logout", headers={"Authorization": "Bearer BAD"}
+    )
 
+    assert response.status_code == 401

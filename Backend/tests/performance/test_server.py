@@ -1,80 +1,66 @@
-"""Test if server is responding to requests"""
+"""Server smoke tests that validate critical endpoints respond as expected."""
+from __future__ import annotations
+
+import os
 import pytest
-import requests
-from datetime import datetime
 
-BASE_URL = "http://localhost:8000"
-pytestmark = pytest.mark.performance
+from core.app import create_app
+from httpx import ASGITransport, AsyncClient
+from tests.auth_helpers import AuthTestHelper
 
-def test_health():
-    """Test GET /health endpoint"""
-    print(f"[{datetime.now()}] Testing GET /health...")
-    try:
-        response = requests.get(f"{BASE_URL}/health", timeout=5)
-        print(f"[{datetime.now()}] Response Status: {response.status_code}")
-        print(f"[{datetime.now()}] Response: {response.json()}")
-        return True
-    except requests.exceptions.Timeout:
-        print(f"[{datetime.now()}] Request timed out after 5 seconds")
-        return False
-    except Exception as e:
-        print(f"[{datetime.now()}] Error: {e}")
-        return False
 
-def test_login():
-    """Test POST /auth/login endpoint"""
-    print(f"\n[{datetime.now()}] Testing POST /auth/login...")
-    try:
-        data = {
-            "username": "testuser",
-            "password": "testpass123"
-        }
-        response = requests.post(f"{BASE_URL}/auth/login", json=data, timeout=5)
-        print(f"[{datetime.now()}] Response Status: {response.status_code}")
-        print(f"[{datetime.now()}] Response: {response.text}")
-        return True
-    except requests.exceptions.Timeout:
-        print(f"[{datetime.now()}] Request timed out after 5 seconds")
-        return False
-    except Exception as e:
-        print(f"[{datetime.now()}] Error: {e}")
-        return False
+@pytest.fixture
+async def async_client_no_db():
+    app = create_app()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
+        yield ac
 
-def test_register():
-    """Test POST /auth/register endpoint"""
-    print(f"\n[{datetime.now()}] Testing POST /auth/register...")
-    try:
-        data = {
-            "username": "newuser",
-            "email": "newuser@example.com",
-            "password": "newpass123"
-        }
-        response = requests.post(f"{BASE_URL}/auth/register", json=data, timeout=5)
-        print(f"[{datetime.now()}] Response Status: {response.status_code}")
-        print(f"[{datetime.now()}] Response: {response.text}")
-        return True
-    except requests.exceptions.Timeout:
-        print(f"[{datetime.now()}] Request timed out after 5 seconds")
-        return False
-    except Exception as e:
-        print(f"[{datetime.now()}] Error: {e}")
-        return False
 
-if __name__ == "__main__":
-    print("=" * 60)
-    print("Testing LangPlug Server")
-    print("=" * 60)
-    
-    # Test GET request
-    health_ok = test_health()
-    
-    # Test POST requests
-    login_ok = test_login()
-    register_ok = test_register()
-    
-    print("\n" + "=" * 60)
-    print("Test Results:")
-    print(f"  Health Check (GET): {'✓ PASSED' if health_ok else '✗ FAILED'}")
-    print(f"  Login (POST): {'✓ PASSED' if login_ok else '✗ FAILED'}")
-    print(f"  Register (POST): {'✓ PASSED' if register_ok else '✗ FAILED'}")
-    print("=" * 60)
+@pytest.mark.timeout(30)
+@pytest.mark.asyncio
+async def test_Whenhealth_includes_versionCalled_ThenSucceeds(async_client_no_db) -> None:
+    """Health endpoint should advertise the service version."""
+    response = await async_client_no_db.get("/health")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "healthy"
+    assert "version" in payload
+
+
+@pytest.mark.timeout(30)
+@pytest.mark.asyncio
+@pytest.mark.skipif(
+    os.environ.get("SKIP_DB_HEAVY_TESTS") == "1",
+    reason="Skipping auth endpoint check in constrained sandbox (requires DB)",
+)
+async def test_WhenloginWithoutform_encoding_ThenReturnsError(async_client_no_db) -> None:
+    """Submitting JSON to the login endpoint should trigger validation failure."""
+    response = await async_client_no_db.post(
+        "/api/auth/login",
+        json={"username": "user@example.com", "password": "Password123!"},
+    )
+
+    assert response.status_code in {400, 422}
+
+
+@pytest.mark.timeout(30)
+@pytest.mark.skipif(
+    os.environ.get("SKIP_DB_HEAVY_TESTS") == "1",
+    reason="Skipping DB-heavy performance test in constrained sandbox",
+)
+def test_Whenregister_and_login_via_sync_clientCalled_ThenSucceeds(client) -> None:
+    """The synchronous test client should handle an end-to-end auth flow."""
+    user_data = AuthTestHelper.generate_unique_user_data()
+
+    reg_status, _ = AuthTestHelper.register_user(client, user_data)
+    login_status, login_payload = AuthTestHelper.login_user(
+        client,
+        email=user_data["email"],
+        password=user_data["password"],
+    )
+
+    assert reg_status == 201
+    assert login_status == 200
+    assert login_payload["token_type"].lower() == "bearer"

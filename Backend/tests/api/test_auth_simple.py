@@ -1,69 +1,47 @@
-"""
-Simple implementation-agnostic auth tests.
-These tests verify basic API functionality without relying on specific implementation details.
-"""
+"""Lightweight auth smoke tests that stay behavior focused and contract aware."""
+from __future__ import annotations
+
 import pytest
 
-
-@pytest.mark.asyncio
-async def test_auth_endpoints_exist(async_client):
-    """Test that auth endpoints exist and return appropriate status codes."""
-    # Test register endpoint exists
-    register_response = await async_client.post("/api/auth/register", json={
-        "username": "testuser_exist", 
-        "password": "TestPass123", 
-        "email": "testuser_exist@example.com"
-    })
-    assert register_response.status_code in [200, 201, 400, 409, 422], f"Register endpoint should exist, got {register_response.status_code}"
-    
-    # Test login endpoint exists
-    login_response = await async_client.post("/api/auth/login", data={
-        "username": "testuser_exist", 
-        "password": "TestPass123"
-    })
-    assert login_response.status_code in [200, 400, 401, 422], f"Login endpoint should exist, got {login_response.status_code}"
-    
-    # Test me endpoint exists
-    me_response = await async_client.get("/api/auth/me")
-    assert me_response.status_code in [200, 401, 403], f"Me endpoint should exist, got {me_response.status_code}"
+from tests.auth_helpers import AuthTestHelper
+from tests.assertion_helpers import assert_json_response, assert_json_error_response
 
 
-@pytest.mark.asyncio
-async def test_auth_endpoints_return_json(async_client):
-    """Test that auth endpoints return JSON content type."""
-    # Test register endpoint
-    register_response = await async_client.post("/api/auth/register", json={
-        "username": "testuser_json", 
-        "password": "TestPass123", 
-        "email": "testuser_json@example.com"
-    })
-    assert "application/json" in register_response.headers.get("content-type", "")
-    
-    # Test login endpoint
-    login_response = await async_client.post("/api/auth/login", data={
-        "username": "testuser_json", 
-        "password": "TestPass123"
-    })
-    assert "application/json" in login_response.headers.get("content-type", "")
-    
-    # Test me endpoint
-    me_response = await async_client.get("/api/auth/me")
-    assert "application/json" in me_response.headers.get("content-type", "")
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenRegisterCalled_ThenReturnsJsonResponse(async_client):
+    """Happy path: register responds with JSON payload and 201 status."""
+    user_data = AuthTestHelper.generate_unique_user_data()
+
+    response = await async_client.post("/api/auth/register", json=user_data)
+
+    assert response.status_code == 201
+    assert_json_response(response)
 
 
-@pytest.mark.asyncio
-async def test_auth_validation_errors(async_client):
-    """Test that auth endpoints return validation errors for malformed requests."""
-    # Test register with missing fields
-    response = await async_client.post("/api/auth/register", json={
-        "username": "missing_fields"
-        # Missing password and email
-    })
-    assert response.status_code == 422, f"Should return 422 for missing fields, got {response.status_code}"
-    
-    # Test login with missing fields
-    response = await async_client.post("/api/auth/login", data={
-        "username": "missing_password"
-        # Missing password
-    })
-    assert response.status_code == 422, f"Should return 422 for missing login fields, got {response.status_code}"
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenLoginWithWrongPassword_ThenReturnsJsonError(async_client):
+    """Invalid input: wrong password yields JSON error structure."""
+    user_data = AuthTestHelper.generate_unique_user_data()
+    await AuthTestHelper.register_user_async(async_client, user_data)
+    login_data = {"username": user_data["email"], "password": "WrongPass123!"}
+
+    response = await async_client.post("/api/auth/login", data=login_data,
+                                      headers={"Content-Type": "application/x-www-form-urlencoded"})
+
+    assert_json_error_response(response, 400)
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenMeEndpointCalled_ThenReturnsJsonForBothAuthStates(async_client):
+    """Boundary: /me returns JSON both for unauthorized and authorized calls."""
+    unauth_response = await async_client.get("/api/auth/me")
+    assert_json_error_response(unauth_response, 401)
+
+    flow = await AuthTestHelper.register_and_login_async(async_client)
+    auth_response = await async_client.get("/api/auth/me",
+                                         headers={"Authorization": f"Bearer {flow['token']}"})
+    assert auth_response.status_code == 200
+    assert_json_response(auth_response)

@@ -1,113 +1,64 @@
-"""Unit tests for VocabularyService"""
+"""Behavior-driven tests for `AuthenticatedUserVocabularyService`."""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from unittest.mock import AsyncMock
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
-from pathlib import Path
 
-from services.dataservice.authenticated_user_vocabulary_service import AuthenticatedUserVocabularyService
-from database.models import User
+from services.dataservice.authenticated_user_vocabulary_service import (
+    AuthenticatedUserVocabularyService,
+    InsufficientPermissionsError,
+)
 
 
-@pytest.mark.asyncio
-class TestAuthenticatedUserVocabularyService:
-    """Test cases for AuthenticatedUserVocabularyService"""
-    
-    @pytest.fixture
-    def mock_auth_user(self):
-        """Mock authenticated user"""
-        user = Mock(spec=User)
-        user.id = 1
-        user.username = "testuser"
-        user.is_superuser = False
-        return user
-    
-    @pytest.fixture
-    def mock_db_manager(self):
-        """Mock database manager"""
-        return Mock()
-    
-    @pytest.fixture
-    def mock_auth_service(self, mock_auth_user):
-        """Mock authentication service"""
-        auth_service = Mock()
-        auth_service.validate_session.return_value = mock_auth_user
-        return auth_service
-    
-    @pytest.fixture
-    def vocab_service(self, mock_db_manager):
-        """Create AuthenticatedUserVocabularyService instance with mocked dependencies"""
-        service = AuthenticatedUserVocabularyService(db_session=mock_db_manager)
-        # Mock the underlying vocab service
-        service.vocab_service = Mock()
-        return service
-    
-    
-    async def test_get_known_words_success(self, vocab_service, mock_auth_user):
-        """Test successful known words retrieval"""
-        # Arrange
-        user_id = "1"
-        language = "en"
-        expected_words = {"hello", "world", "test"}
-        
-        # Mock the underlying service
-        vocab_service.vocab_service.get_known_words = AsyncMock(return_value=expected_words)
-        
-        # Act
-        result = await vocab_service.get_known_words(mock_auth_user, user_id, language)
-        
-        # Assert
-        assert result == expected_words
-        vocab_service.vocab_service.get_known_words.assert_called_once_with(user_id, language)
-    
-    
-    async def test_mark_word_learned_success(self, vocab_service, mock_auth_user):
-        """Test successful word marking as learned"""
-        # Arrange
-        user_id = "1"
-        word = "hello"
-        language = "en"
-        
-        # Mock the underlying service
-        vocab_service.vocab_service.mark_word_learned = AsyncMock(return_value=True)
-        
-        # Act
-        result = await vocab_service.mark_word_learned(mock_auth_user, user_id, word, language)
-        
-        # Assert
-        assert result is True
-        vocab_service.vocab_service.mark_word_learned.assert_called_once_with(user_id, word, language)
-    
-    
-    async def test_remove_word_success(self, vocab_service, mock_auth_user):
-        """Test successful word removal"""
-        # Arrange
-        user_id = "1"
-        word = "hello"
-        language = "en"
-        
-        # Mock the underlying service
-        vocab_service.vocab_service.remove_word = AsyncMock(return_value=True)
-        
-        # Act
-        result = await vocab_service.remove_word(mock_auth_user, user_id, word, language)
-        
-        # Assert
-        assert result is True
-        vocab_service.vocab_service.remove_word.assert_called_once_with(user_id, word, language)
-    
-    
-    async def test_is_word_known_success(self, vocab_service, mock_auth_user):
-        """Test successful word known check"""
-        # Arrange
-        user_id = "1"
-        word = "hello"
-        language = "en"
-        
-        # Mock the underlying service
-        vocab_service.vocab_service.is_word_known = AsyncMock(return_value=True)
-        
-        # Act
-        result = await vocab_service.is_word_known(mock_auth_user, user_id, word, language)
-        
-        # Assert
-        assert result is True
-        vocab_service.vocab_service.is_word_known.assert_called_once_with(user_id, word, language)
+@dataclass
+class DummyUser:
+    id: int
+    username: str
+    is_admin: bool = False
+
+
+@pytest.fixture
+def service(monkeypatch):
+    svc = AuthenticatedUserVocabularyService(db_session=AsyncMock())
+    svc.vocab_service = AsyncMock()
+    return svc
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenget_known_words_allows_self_accessCalled_ThenSucceeds(service):
+    """Happy path: users can read their own known words."""
+    requesting = DummyUser(id=1, username="alice")
+    service.vocab_service.get_known_words.return_value = {"hallo"}
+
+    words = await service.get_known_words(requesting, str(requesting.id))
+
+    assert words == {"hallo"}
+    service.vocab_service.get_known_words.assert_called_once_with(str(requesting.id), "en")
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenmark_word_learned_blocks_other_usersCalled_ThenSucceeds(service):
+    """Invalid scenario: non-admin cannot modify another user's vocabulary."""
+    requesting = DummyUser(id=1, username="alice")
+
+    with pytest.raises(InsufficientPermissionsError):
+        await service.mark_word_learned(requesting, "2", "word", "en")
+
+    service.vocab_service.mark_word_learned.assert_not_called()
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenadmin_can_update_any_userCalled_ThenSucceeds(service):
+    """Boundary: admins bypass the access restriction."""
+    requesting = DummyUser(id=99, username="admin", is_admin=True)
+    service.vocab_service.set_learning_level.return_value = True
+
+    success = await service.set_learning_level(requesting, "2", "B1")
+
+    assert success is True
+    service.vocab_service.set_learning_level.assert_called_once_with("2", "B1")

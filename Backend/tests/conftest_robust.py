@@ -2,18 +2,19 @@
 Pytest configuration for robust URL testing framework.
 This provides common fixtures and configurations for all robust tests.
 """
-import pytest
 import sys
-import os
 from pathlib import Path
+
+import pytest
 
 # Add Backend directory to Python path for all tests
 backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
 from fastapi.testclient import TestClient
-from tests.utils.url_builder import get_url_builder
+
 from main import app
+from tests.utils.url_builder import get_url_builder
 
 
 @pytest.fixture(scope="session")
@@ -63,15 +64,15 @@ def pytest_collection_modifyitems(config, items):
         # Auto-mark tests in robust directory
         if "robust" in str(item.fspath):
             item.add_marker(pytest.mark.robust)
-        
+
         # Auto-mark auth tests
         if "auth" in item.name.lower() or "auth" in str(item.fspath):
             item.add_marker(pytest.mark.auth)
-        
+
         # Auto-mark performance tests
         if "performance" in item.name.lower() or "performance" in str(item.fspath):
             item.add_marker(pytest.mark.performance)
-        
+
         # Auto-mark security tests
         if "security" in item.name.lower() or "security" in str(item.fspath):
             item.add_marker(pytest.mark.security)

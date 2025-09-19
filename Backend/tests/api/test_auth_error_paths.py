@@ -1,117 +1,56 @@
-"""
-Additional error-path coverage for auth routes: generic register/login failures.
-"""
+"""Focused auth error-path coverage respecting the CDD/TDD 80/20 rules."""
 from __future__ import annotations
 
-import httpx
 import pytest
-from contextlib import asynccontextmanager
 
-from core.app import create_app
-from core.dependencies import get_auth_service, get_database_manager
-
-
-class BoomAuth:
-    def register_user(self, username: str, password: str):
-        raise Exception("some other error")
-
-    def login(self, username: str, password: str):
-        raise Exception("boom")
+from tests.auth_helpers import AuthResponseStructures, AuthTestHelper
+from tests.assertion_helpers import assert_validation_error_response
 
 
-@pytest.mark.asyncio
-async def test_register_generic_error_returns_500(async_client):
-    app = create_app()
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenRegisterMissingEmail_ThenReturnsvalidation_detail(async_client):
+    """Invalid input: missing email should return FastAPI validation errors."""
+    payload = {
+        "username": "missing_email",
+        "password": "SecureTestPass123!",
+    }
 
-    @asynccontextmanager
-    async def no_lifespan(_):
-        yield
-    app.router.lifespan_context = no_lifespan
+    response = await async_client.post("/api/auth/register", json=payload)
 
-    # share db from main app if available
-    try:
-        shared_db = async_client._transport.app.dependency_overrides[get_database_manager]()
-    except Exception:
-        shared_db = None
-    if shared_db is not None:
-        app.dependency_overrides[get_database_manager] = lambda: shared_db
-    app.dependency_overrides[get_auth_service] = lambda: BoomAuth()
-
-    transport = httpx.ASGITransport(app=app)
-    client2 = httpx.AsyncClient(transport=transport, base_url="http://testserver")
-    try:
-        # Send valid data that will pass Pydantic validation but trigger service error
-        r = await client2.post("/api/auth/register", json={
-            "username": "testuser",
-            "email": "testuser@example.com",
-            "password": "TestPass123!"
-        })
-        # FastAPI validation happens first, so this returns 422 for validation errors
-        # The test setup doesn't actually trigger the service error due to dependency override issues
-        assert r.status_code in [422, 500]  # Accept both validation error and service error
-    finally:
-        await client2.aclose()
+    assert_validation_error_response(response, "email")
 
 
-@pytest.mark.asyncio
-async def test_login_generic_error_returns_500(async_client):
-    app = create_app()
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenLoginbad_credentials_ThenReturnscontract_error(async_client):
+    """Invalid input: wrong password returns the documented bad credentials error."""
+    user_data = AuthTestHelper.generate_unique_user_data()
+    await AuthTestHelper.register_user_async(async_client, user_data)
 
-    @asynccontextmanager
-    async def no_lifespan(_):
-        yield
-    app.router.lifespan_context = no_lifespan
+    response = await async_client.post(
+        "/api/auth/login",
+        data={"username": user_data["email"], "password": "WrongPass999!"},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
 
-    try:
-        shared_db = async_client._transport.app.dependency_overrides[get_database_manager]()
-    except Exception:
-        shared_db = None
-    if shared_db is not None:
-        app.dependency_overrides[get_database_manager] = lambda: shared_db
-    app.dependency_overrides[get_auth_service] = lambda: BoomAuth()
-
-    transport = httpx.ASGITransport(app=app)
-    client2 = httpx.AsyncClient(transport=transport, base_url="http://testserver")
-    try:
-        # JSON to login endpoint fails validation (expects form data)
-        r = await client2.post("/api/auth/login", json={"username": "testuser", "password": "TestPass123!"})
-        # FastAPI returns 422 for validation errors
-        assert r.status_code == 422
-    finally:
-        await client2.aclose()
+    assert response.status_code == AuthResponseStructures.LOGIN_BAD_CREDENTIALS["status_code"]
+    payload = response.json()
+    # Handle both custom error format and FastAPI standard format
+    if "error" in payload and "message" in payload["error"]:
+        assert payload["error"]["message"] == "LOGIN_BAD_CREDENTIALS"
+    elif "detail" in payload:
+        assert payload["detail"] in {"LOGIN_BAD_CREDENTIALS", AuthResponseStructures.LOGIN_BAD_CREDENTIALS.get("detail")}
+    else:
+        assert False, f"Unexpected error format: {payload}"
 
 
-@pytest.mark.asyncio
-async def test_register_validation_error_returns_400(async_client):
-    app = create_app()
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenLogoutwithout_token_ThenReturnsunauthorized(async_client):
+    """Boundary: logout without Authorization header returns uniform 401 response."""
+    response = await async_client.post("/api/auth/logout")
 
-    @asynccontextmanager
-    async def no_lifespan(_):
-        yield
-    app.router.lifespan_context = no_lifespan
-
-    class ValAuth:
-        def register_user(self, u, p, email=None):
-            raise Exception("password must be at least 8 characters")
-
-    try:
-        shared_db = async_client._transport.app.dependency_overrides[get_database_manager]()
-    except Exception:
-        shared_db = None
-    if shared_db is not None:
-        app.dependency_overrides[get_database_manager] = lambda: shared_db
-    app.dependency_overrides[get_auth_service] = lambda: ValAuth()
-
-    transport = httpx.ASGITransport(app=app)
-    client2 = httpx.AsyncClient(transport=transport, base_url="http://testserver")
-    try:
-        # Send data missing email to trigger validation error
-        r = await client2.post("/api/auth/register", json={
-            "username": "validuser",
-            "password": "ValidPass123!"
-            # Missing email field
-        })
-        # FastAPI returns 422 for validation errors
-        assert r.status_code == 422
-    finally:
-        await client2.aclose()
+    assert response.status_code == AuthResponseStructures.UNAUTHORIZED["status_code"]
+    www_authenticate = response.headers.get("www-authenticate")
+    assert www_authenticate is None or "bearer" in www_authenticate.lower()

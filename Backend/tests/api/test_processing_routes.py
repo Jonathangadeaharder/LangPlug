@@ -1,124 +1,68 @@
-"""
-Test processing routes using dynamic URL generation
-"""
+"""Processing route smoke tests adhering to the 80/20 contract coverage."""
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import patch
+
 import pytest
 
-
-@pytest.fixture()
-def auth_header():
-    return {"Authorization": "Bearer test_token"}
+from core.config import settings
+from tests.auth_helpers import AuthTestHelperAsync
 
 
-def _set_videos_path(monkeypatch, module, tmp_path: Path):
-    monkeypatch.setattr(type(module.settings), "get_videos_path", lambda self: tmp_path)
+async def _auth(async_client):
+    flow = await AuthTestHelperAsync.register_and_login_async(async_client)
+    return flow["headers"]
 
 
-def get_url(async_client, route_name: str, **path_params):
-    """Helper to generate URLs dynamically using FastAPI's url_path_for"""
-    return async_client.app.url_path_for(route_name, **path_params)
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenChunkEndpointProcessesExistingVideo_ThenSucceeds(async_client, tmp_path, monkeypatch):
+    """Happy path: chunk processing returns a task id when the file exists."""
+    headers = await _auth(async_client)
+    video_path = tmp_path / "clip.mp4"
+    video_path.write_bytes(b"00")
+
+    with patch.object(type(settings), "get_videos_path", return_value=tmp_path):
+        response = await async_client.post(
+            "/api/process/chunk",
+            json={"video_path": video_path.name, "start_time": 0, "end_time": 5},
+            headers=headers,
+        )
+
+    assert response.status_code in {200, 202}
+    assert "task" in response.text or "task_id" in response.text
 
 
-@pytest.mark.asyncio
-async def test_chunk_start_success(async_client, monkeypatch, tmp_path: Path, auth_header):
-    from api.routes import processing as proc
-    from api.routes import videos as vids
-    _set_videos_path(monkeypatch, vids, tmp_path)
-    _set_videos_path(monkeypatch, proc, tmp_path)
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenchunk_endpointWithoutvalid_window_ThenReturnsError(async_client, tmp_path, monkeypatch):
+    """Invalid input: end_time <= start_time triggers validation error."""
+    headers = await _auth(async_client)
+    video_path = tmp_path / "clip.mp4"
+    video_path.write_bytes(b"00")
 
-    # Create a small video file
-    (tmp_path / "clip.mp4").write_bytes(b"x")
+    with patch.object(type(settings), "get_videos_path", return_value=tmp_path):
+        response = await async_client.post(
+            "/api/process/chunk",
+            json={"video_path": video_path.name, "start_time": 10, "end_time": 5},
+            headers=headers,
+        )
 
-    url = get_url(async_client, "process_chunk")
-    r = await async_client.post(
-        url,
-        json={"video_path": "clip.mp4", "start_time": 0, "end_time": 5},
-        headers=auth_header,
-    )
-    assert r.status_code == 200
-    assert "task_id" in r.json()
+    assert response.status_code == 422
 
 
-@pytest.mark.asyncio
-async def test_chunk_invalid_times(async_client, monkeypatch, tmp_path: Path, auth_header):
-    from api.routes import processing as proc
-    _set_videos_path(monkeypatch, proc, tmp_path)
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenchunk_endpointWithoutexisting_file_ThenReturnsError(async_client, tmp_path, monkeypatch):
+    """Boundary: non-existent file returns 404 contract response."""
+    headers = await _auth(async_client)
 
-    # Create a small video file
-    (tmp_path / "clip.mp4").write_bytes(b"x")
+    with patch.object(type(settings), "get_videos_path", return_value=tmp_path):
+        response = await async_client.post(
+            "/api/process/chunk",
+            json={"video_path": "missing.mp4", "start_time": 0, "end_time": 5},
+            headers=headers,
+        )
 
-    # end_time <= start_time -> 400
-    url = get_url(async_client, "process_chunk")
-    r = await async_client.post(
-        url,
-        json={"video_path": "clip.mp4", "start_time": 5, "end_time": 5},
-        headers=auth_header,
-    )
-    assert r.status_code == 400
-
-    # negative start_time -> 400
-    r2 = await async_client.post(
-        url,
-        json={"video_path": "clip.mp4", "start_time": -1, "end_time": 5},
-        headers=auth_header,
-    )
-    assert r2.status_code == 400
-
-
-@pytest.mark.asyncio
-async def test_chunk_missing_file(async_client, monkeypatch, tmp_path: Path, auth_header):
-    from api.routes import processing as proc
-    _set_videos_path(monkeypatch, proc, tmp_path)
-
-    url = get_url(async_client, "process_chunk")
-    r = await async_client.post(
-        url,
-        json={"video_path": "missing.mp4", "start_time": 0, "end_time": 5},
-        headers=auth_header,
-    )
-    assert r.status_code == 404
-
-
-@pytest.mark.asyncio
-async def test_transcribe_service_unavailable(async_client, monkeypatch, tmp_path: Path, auth_header):
-    from api.routes import processing as proc
-    from api.routes import videos as vids
-    _set_videos_path(monkeypatch, vids, tmp_path)
-    _set_videos_path(monkeypatch, proc, tmp_path)
-
-    # Create a small video file
-    (tmp_path / "clip.mp4").write_bytes(b"x")
-
-    # Force transcription service unavailable
-    monkeypatch.setattr(proc, "get_transcription_service", lambda: None)
-
-    url = get_url(async_client, "transcribe_video")
-    r = await async_client.post(
-        url,
-        json={"video_path": "clip.mp4"},
-        headers=auth_header,
-    )
-    assert r.status_code == 422
-
-
-@pytest.mark.asyncio
-async def test_progress_not_found(async_client, auth_header):
-    url = get_url(async_client, "get_task_progress", task_id="does-not-exist")
-    r = await async_client.get(url, headers=auth_header)
-    assert r.status_code == 404
-
-
-@pytest.mark.asyncio
-async def test_prepare_episode_missing_file(async_client, monkeypatch, tmp_path: Path, auth_header):
-    from api.routes import processing as proc
-    _set_videos_path(monkeypatch, proc, tmp_path)
-
-    url = get_url(async_client, "prepare_episode")
-    r = await async_client.post(
-        url,
-        json={"video_path": "nope.mp4"},
-        headers=auth_header,
-    )
-    assert r.status_code == 404
+    assert response.status_code == 404

@@ -35,8 +35,9 @@ class FakeWS:
         self.sent.append(data)
 
 
-@pytest.mark.asyncio
-async def test_ws_missing_token_closes(monkeypatch):
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenws_missing_token_closesCalled_ThenSucceeds(monkeypatch):
         from api.routes.websocket import websocket_endpoint
         ws = FakeWS()
         await websocket_endpoint(ws, token=None)
@@ -45,32 +46,50 @@ async def test_ws_missing_token_closes(monkeypatch):
         assert "Missing" in (ws.close_reason or "")
 
 
-@pytest.mark.asyncio
-async def test_ws_invalid_token_closes(monkeypatch):
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_ws_InvalidToken_closes(monkeypatch):
     from api.routes import websocket as wsmod
     import core.dependencies as deps
 
-    class BadAuth:
-        def verify_token(self, token: str):
-            raise ValueError("bad token")
+    class MockJWTAuthBad:
+        async def authenticate(self, token: str, db):
+            # Simulate authentication failure by returning None
+            return None
 
-    monkeypatch.setattr(deps, "get_auth_service", lambda: BadAuth())
+    monkeypatch.setattr("core.auth.jwt_authentication", MockJWTAuthBad())
 
     ws = FakeWS()
     await wsmod.websocket_endpoint(ws, token="nope")
     assert ws.closed is True
-    # Errors inside the endpoint are mapped to 1011 Server error
-    assert ws.close_code == 1011
+    # Invalid authentication uses code 1008
+    assert ws.close_code == 1008
 
 
-@pytest.mark.asyncio
-async def test_ws_success_connect_and_disconnect(monkeypatch):
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenws_success_connect_and_disconnectCalled_ThenSucceeds(monkeypatch):
     from api.routes import websocket as wsmod
     import core.dependencies as deps
 
-    class GoodAuth:
-        def verify_token(self, token: str):
-            return {"user_id": "u42"}
+    from database.models import User
+
+    # Create a fake user for authentication
+    fake_user = User(
+        username="testuser",
+        email="test@example.com",
+        hashed_password="fake_hash",
+        is_active=True,
+        is_superuser=False,
+        is_verified=False
+    )
+    fake_user.id = 42  # Set ID directly
+
+    class MockJWTAuth:
+        async def authenticate(self, token: str, db):
+            if token == "ok":
+                return fake_user
+            return None
 
     events = {"connected": False, "disconnected": False}
 
@@ -85,7 +104,8 @@ async def test_ws_success_connect_and_disconnect(monkeypatch):
     def fake_disconnect(ws):
         events["disconnected"] = True
 
-    monkeypatch.setattr(deps, "get_auth_service", lambda: GoodAuth())
+    # Mock JWT authentication instead of auth service
+    monkeypatch.setattr("core.auth.jwt_authentication", MockJWTAuth())
     monkeypatch.setattr(wsmod.manager, "connect", fake_connect)
     monkeypatch.setattr(wsmod.manager, "handle_message", fake_handle_message)
     monkeypatch.setattr(wsmod.manager, "disconnect", fake_disconnect)
@@ -97,8 +117,9 @@ async def test_ws_success_connect_and_disconnect(monkeypatch):
     assert events["disconnected"] is True
 
 
-@pytest.mark.asyncio
-async def test_ws_status_route(monkeypatch):
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenws_status_routeCalled_ThenSucceeds(monkeypatch):
     from api.routes import websocket as wsmod
 
     class WS(FakeWS):

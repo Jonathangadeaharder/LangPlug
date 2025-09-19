@@ -1,322 +1,54 @@
-"""
-Test processing endpoints for transcription and filtering (live HTTP).
-Skipped by default unless RUN_LIVE_HTTP=1 is set.
-"""
+"""Integration tests for processing API endpoints."""
+from __future__ import annotations
 
-import os
-import pytest
-import requests
+from pathlib import Path
+from unittest.mock import Mock, patch
 
-pytestmark = pytest.mark.integration
-if os.environ.get("RUN_LIVE_HTTP") != "1":
-    pytest.skip(
-        "Skipping live HTTP integration tests; set RUN_LIVE_HTTP=1 to run.",
-        allow_module_level=True,
-    )
-
-BASE_URL = "http://localhost:8000"
-
-
-class TestProcessingEndpoints:
-    """Test video/audio processing endpoints"""
-    
-    def setup_method(self):
-        """Set up test fixtures"""
-        self.auth_token = None
-        self.test_user = {
-            "username": "admin",
-            "password": "admin"
-        }
-        
-    def get_auth_token(self):
-        """Get authentication token"""
-        if self.auth_token:
-            return self.auth_token
-        
-        # Login with admin credentials
-        response = requests.post(f"{BASE_URL}/auth/login", json={
-            "username": self.test_user["username"],
-            "password": self.test_user["password"]
-        })
-        
-        if response.status_code == 200:
-            data = response.json()
-            self.auth_token = data.get("access_token") or data.get("token")
-            return self.auth_token
-        return None
-    
-    def test_chunk_processing(self):
-        """Test chunk processing endpoint"""
-        token = self.get_auth_token()
-        if not token:
-            pytest.skip("Authentication failed")
-        
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        # Test chunk request
-        chunk_data = {
-            "video_path": "test_video.mp4",
-            "chunk_index": 0,
-            "total_chunks": 1
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/process/chunk",
-            json=chunk_data,
-            headers=headers
-        )
-        
-        # May fail if video doesn't exist, but should handle gracefully
-        assert response.status_code in [200, 404, 422]
-    
-    def test_transcribe_endpoint(self):
-        """Test transcription endpoint"""
-        token = self.get_auth_token()
-        if not token:
-            pytest.skip("Authentication failed")
-        
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        transcribe_data = {
-            "video_path": "test_video.mp4",
-            "language": "de",
-            "model_size": "base"
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/process/transcribe",
-            json=transcribe_data,
-            headers=headers
-        )
-        
-        # Debug: Print response details for debugging
-        print(f"Response status: {response.status_code}")
-        print(f"Response content: {response.text}")
-        
-        # Should return task_id for background processing or 404 if file not found
-        assert response.status_code in [200, 404, 422], f"Unexpected status code: {response.status_code}"
-        
-        if response.status_code == 200:
-            data = response.json()
-            assert "task_id" in data or "subtitle_path" in data
-    
-    def test_transcription_service_direct(self):
-        """Test transcription service directly"""
-        from core.dependencies import get_transcription_service
-        
-        service = get_transcription_service()
-        print(f"Transcription service: {service}")
-        assert service is not None, "Transcription service should be available"
-    
-    def test_filter_subtitles(self):
-        """Test subtitle filtering endpoint"""
-        token = self.get_auth_token()
-        if not token:
-            pytest.skip("Authentication failed")
-        
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        filter_data = {
-            "subtitle_path": "test.srt",
-            "filters": ["remove_music", "remove_silence"]
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/process/filter-subtitles",
-            json=filter_data,
-            headers=headers
-        )
-        
-        # May fail if subtitle doesn't exist
-        assert response.status_code in [200, 404, 422]
-    
-    def test_translate_subtitles(self):
-        """Test subtitle translation endpoint"""
-        token = self.get_auth_token()
-        if not token:
-            pytest.skip("Authentication failed")
-        
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        translate_data = {
-            "subtitle_path": "test.srt",
-            "source_language": "de",
-            "target_language": "en"
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/process/translate-subtitles",
-            json=translate_data,
-            headers=headers
-        )
-        
-        # May fail if subtitle doesn't exist
-        assert response.status_code in [200, 404, 422]
-    
-    def test_prepare_episode(self):
-        """Test episode preparation endpoint"""
-        token = self.get_auth_token()
-        if not token:
-            pytest.skip("Authentication failed")
-        
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        prepare_data = {
-            "video_path": "test_video.mp4",
-            "generate_subtitles": True,
-            "translate": False
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/process/prepare-episode",
-            json=prepare_data,
-            headers=headers
-        )
-        
-        # May fail if video doesn't exist
-        assert response.status_code in [200, 404, 422]
-    
-    def test_full_pipeline(self):
-        """Test full processing pipeline"""
-        token = self.get_auth_token()
-        if not token:
-            pytest.skip("Authentication failed")
-        
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        pipeline_data = {
-            "video_path": "test_video.mp4",
-            "language": "de",
-            "enable_translation": True,
-            "enable_filtering": True
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/process/full-pipeline",
-            json=pipeline_data,
-            headers=headers
-        )
-        
-        # May fail if video doesn't exist
-        assert response.status_code in [200, 202, 404, 422]
-        
-        if response.status_code in [200, 202]:
-            data = response.json()
-            assert "task_id" in data or "status" in data
-    
-    def test_invalid_language_code(self):
-        """Test handling of invalid language codes"""
-        token = self.get_auth_token()
-        if not token:
-            pytest.skip("Authentication failed")
-        
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        transcribe_data = {
-            "video_path": "test_video.mp4",
-            "language": "invalid_lang",
-            "model_size": "base"
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/process/transcribe",
-            json=transcribe_data,
-            headers=headers
-        )
-        
-        # Should handle invalid language gracefully
-        assert response.status_code in [400, 422]
-    
-    def test_invalid_model_size(self):
-        """Test handling of invalid model sizes"""
-        token = self.get_auth_token()
-        if not token:
-            pytest.skip("Authentication failed")
-        
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        transcribe_data = {
-            "video_path": "test_video.mp4",
-            "language": "de",
-            "model_size": "invalid_size"
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/process/transcribe",
-            json=transcribe_data,
-            headers=headers
-        )
-        
-        # Should handle invalid model size
-        assert response.status_code in [400, 422]
-
-
-class TestProcessingAuth:
-    """Test authentication for processing endpoints"""
-    
-    def test_processing_requires_auth(self):
-        """Test that all processing endpoints require authentication"""
-        endpoints = [
-            "/process/chunk",
-            "/process/transcribe",
-            "/process/filter-subtitles",
-            "/process/translate-subtitles",
-            "/process/prepare-episode",
-            "/process/full-pipeline"
-        ]
-        
-        for endpoint in endpoints:
-            response = requests.post(
-                f"{BASE_URL}{endpoint}",
-                json={}
-            )
-            
-            # Should fail with 403 (Forbidden) when no auth header provided
-            assert response.status_code == 403, f"Endpoint {endpoint} should require auth"
-
-
-class TestProgressTracking:
-    """Test progress tracking for long-running tasks"""
-    
-    def test_task_id_generation(self):
-        """Test that tasks generate unique IDs"""
-        # This would be tested with actual task submission
-        # Task IDs should be unique UUIDs
-        import uuid
-        
-        task_id = str(uuid.uuid4())
-        assert len(task_id) == 36  # UUID v4 format
-        assert task_id.count('-') == 4
-    
-    def test_progress_updates(self):
-        """Test that progress updates are sent"""
-        # This would integrate with WebSocket testing
-        # Progress should be sent at key stages:
-        # - 0%: Started
-        # - 10%: Loading model
-        # - 30%: Extracting audio
-        # - 70%: Transcribing
-        # - 90%: Saving results
-        # - 100%: Completed
-        
-        from core.constants import PROGRESS_STEPS
-        
-        assert PROGRESS_STEPS["INITIALIZING"] == 0
-        assert PROGRESS_STEPS["LOADING_MODEL"] == 10
-        assert PROGRESS_STEPS["EXTRACTING_AUDIO"] == 30
-        assert PROGRESS_STEPS["TRANSCRIBING"] == 70
-        assert PROGRESS_STEPS["SAVING_RESULTS"] == 90
-        assert PROGRESS_STEPS["COMPLETED"] == 100
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
-import os
 import pytest
 
-pytestmark = pytest.mark.integration
-if os.environ.get("RUN_LIVE_HTTP") != "1":
-    pytest.skip(
-        "Skipping live HTTP integration tests; set RUN_LIVE_HTTP=1 to run.",
-        allow_module_level=True,
+from core.config import settings
+from tests.auth_helpers import AuthTestHelperAsync
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whentranscribe_endpointCalled_ThenReturnstask(async_client, monkeypatch, tmp_path):
+    flow = await AuthTestHelperAsync.register_and_login_async(async_client)
+
+    with patch.object(type(settings), "get_videos_path", return_value=tmp_path):
+        video = tmp_path / "episode.mp4"
+        video.write_bytes(b"fake")
+        subtitle = tmp_path / "episode.srt"
+        subtitle.write_text(
+            "1\n00:00:00,000 --> 00:00:01,000\nHallo\n\n", encoding="utf-8"
+        )
+
+        transcriber = Mock()
+        transcriber.is_initialized = True
+        transcriber.transcribe.return_value = Mock(segments=[])
+        monkeypatch.setattr(
+            "api.routes.processing.get_transcription_service", lambda: transcriber
+        )
+
+        response = await async_client.post(
+            "/api/process/transcribe",
+            json={"video_path": "episode.mp4"},
+            headers=flow["headers"],
+        )
+
+        assert response.status_code in {200, 202}
+        assert "task_id" in response.json()
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenprepare_episodeWithoutexisting_video_ThenReturnsError(async_client):
+    flow = await AuthTestHelperAsync.register_and_login_async(async_client)
+
+    response = await async_client.post(
+        "/api/process/prepare-episode",
+        json={"video_path": "missing.mp4"},
+        headers=flow["headers"],
     )
+
+    assert response.status_code in {404, 422}

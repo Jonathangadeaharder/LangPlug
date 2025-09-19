@@ -3,6 +3,7 @@ Tiny tests to exercise custom exception classes and their status codes.
 """
 from __future__ import annotations
 
+import pytest
 from fastapi import status
 from core.exceptions import (
     LangPlugException,
@@ -16,7 +17,8 @@ from core.exceptions import (
 )
 
 
-def test_exception_status_codes():
+@pytest.mark.timeout(30)
+def test_Whenexception_status_codesCalled_ThenSucceeds():
     assert AuthenticationError().status_code == status.HTTP_401_UNAUTHORIZED
     assert AuthorizationError().status_code == status.HTTP_403_FORBIDDEN
     assert ValidationError().status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

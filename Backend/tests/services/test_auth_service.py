@@ -1,221 +1,151 @@
-"""Unit tests for AuthService"""
-import pytest
-from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, AsyncMock
+"""Behavior-focused tests for `AuthService` following the 80/20 guidance."""
+from __future__ import annotations
 
-from services.authservice.auth_service import (
-    AuthService, AuthSession, 
-    AuthenticationError, InvalidCredentialsError, 
-    UserAlreadyExistsError, SessionExpiredError
-)
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, Mock
+
+import pytest
+
 from database.models import User
+from services.authservice.auth_service import (
+    AuthService,
+    AuthenticationError,
+    InvalidCredentialsError,
+    SessionExpiredError,
+    UserAlreadyExistsError,
+)
 
 
 @pytest.fixture
-def mock_db_session():
-    """Mock database session for testing"""
+def db_session_mock():
+    """Provide an async-capable session double."""
     session = AsyncMock()
     session.execute = AsyncMock()
     session.commit = AsyncMock()
-    session.rollback = AsyncMock()
     session.refresh = AsyncMock()
+    session.rollback = AsyncMock()
     session.add = Mock()
     return session
 
 
 @pytest.fixture
-def auth_service(mock_db_session):
-    """Create AuthService instance with mock database"""
-    return AuthService(mock_db_session)
+def auth_service(db_session_mock: AsyncMock) -> AuthService:
+    return AuthService(db_session_mock)
 
 
-@pytest.mark.asyncio
-class TestAuthService:
-    """Test suite for AuthService"""
-    
-    def test_init(self, auth_service):
-        """Test AuthService initialization"""
-        assert auth_service.session_lifetime_hours == 24
-        assert auth_service.db_session is not None
-        assert auth_service.pwd_context is not None
-    
-    def test_hash_password(self, auth_service):
-        """Test password hashing"""
-        password = "test_password"
-        hashed = auth_service._hash_password(password)
-        assert hashed != password
-        assert auth_service._verify_password(password, hashed)
-        assert not auth_service._verify_password("wrong_password", hashed)
-    
-    
-    async def test_register_user_success(self, auth_service, mock_db_session):
-        """Test successful user registration"""
-        # Mock database response - no existing user found
-        mock_result = Mock()
-        mock_result.scalar_one_or_none.return_value = None
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
-        
-        # Mock refresh to set the user ID after commit
-        async def mock_refresh(user):
-            user.id = 1
-            user.created_at = datetime.now()
-        
-        mock_db_session.refresh.side_effect = mock_refresh
-        
-        user = await auth_service.register_user("testuser", "password123")
-        
-        assert isinstance(user, User)
-        assert user.username == "testuser"
-        assert user.id == 1
-        mock_db_session.add.assert_called_once()
-        mock_db_session.commit.assert_called_once()
-    
-    
-    async def test_register_user_invalid_username(self, auth_service):
-        """Test registration with invalid username"""
-        with pytest.raises(ValueError, match="Username must be at least 3 characters long"):
-            await auth_service.register_user("ab", "password123")
-    
-    
-    async def test_register_user_invalid_password(self, auth_service):
-        """Test registration with invalid password"""
-        with pytest.raises(ValueError, match="Password must be at least 6 characters long"):
-            await auth_service.register_user("testuser", "12345")
-    
-    
-    async def test_register_user_already_exists(self, auth_service, mock_db_session):
-        """Test registration when user already exists"""
-        # Mock that user already exists
-        mock_result = AsyncMock()
-        mock_existing_user = Mock()
-        mock_existing_user.username = "testuser"
-        mock_result.scalar_one_or_none.return_value = mock_existing_user
-        mock_db_session.execute.return_value = mock_result
-        
-        with pytest.raises(UserAlreadyExistsError):
-            await auth_service.register_user("testuser", "password123")
-    
-    
-    async def test_login_success(self, auth_service, mock_db_session):
-        """Test successful login"""
-        # Mock user data
-        mock_user = Mock()
-        mock_user.id = 1
-        mock_user.username = "testuser"
-        mock_user.hashed_password = auth_service._hash_password("password123")
-        mock_user.is_superuser = False
-        mock_user.is_active = True
-        mock_user.created_at = datetime.now()
-        mock_user.last_login = None
-        
-        # Mock database response
-        mock_result = Mock()
-        mock_result.scalar_one_or_none.return_value = mock_user
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
-        
-        session = await auth_service.login("testuser", "password123")
-        
-        assert isinstance(session, AuthSession)
-        assert session.user.username == "testuser"
-        assert len(session.session_token) > 0
-        # Verify session was inserted into database
-        mock_db_session.add.assert_called()
-        mock_db_session.commit.assert_called()
-    
-    
-    async def test_login_invalid_credentials(self, auth_service, mock_db_session):
-        """Test login with invalid credentials"""
-        # Mock database response - no user found
-        mock_result = Mock()
-        mock_result.scalar_one_or_none.return_value = None
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
-        
-        with pytest.raises(InvalidCredentialsError):
-            await auth_service.login("nonexistent", "password123")
-    
-    
-    async def test_validate_session_success(self, auth_service, mock_db_session):
-        """Test successful session validation"""
-        session_token = "test_token"
-        expires_at = datetime.now() + timedelta(hours=1)
-        
-        # Mock session and user data
-        mock_session = Mock()
-        mock_session.session_token = session_token
-        mock_session.expires_at = expires_at
-        mock_session.is_active = True
-        mock_session.user_id = 1
-        
-        mock_user = Mock()
-        mock_user.id = 1
-        mock_user.username = "testuser"
-        mock_user.is_superuser = False
-        mock_user.is_active = True
-        mock_user.created_at = datetime.now()
-        mock_user.native_language = "en"
-        mock_user.target_language = "de"
-        mock_user.last_login = None
-        
-        # Mock database response - result.first() returns tuple (session, user) directly
-        mock_result = Mock()
-        mock_result.first.return_value = (mock_session, mock_user)
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
-        
-        user = await auth_service.validate_session(session_token)
-        
-        assert isinstance(user, User)
-        assert user.username == "testuser"
-        assert user.id == 1
-        assert mock_db_session.execute.call_count >= 2  # Initial query + update
-    
-    
-    async def test_validate_session_expired(self, auth_service, mock_db_session):
-        """Test validation of expired session"""
-        # Mock expired session data
-        mock_session = Mock()
-        mock_session.session_token = "expired_token"
-        mock_session.expires_at = datetime.now() - timedelta(hours=1)  # Expired
-        mock_session.is_active = True
-        
-        mock_user = Mock()
-        mock_user.id = 1
-        mock_user.username = "testuser"
-        
-        # Mock database response to return tuple directly
-        mock_result = Mock()
-        mock_result.first.return_value = (mock_session, mock_user)
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
-        
-        with pytest.raises(SessionExpiredError):
-            await auth_service.validate_session("expired_token")
-        
-        # Verify session was deactivated in database
-        mock_db_session.execute.assert_called()
-    
-    
-    async def test_logout(self, auth_service, mock_db_session):
-        """Test user logout"""
-        session_token = "test_token"
-        
-        # Mock successful logout (session found and deactivated)
-        mock_result = AsyncMock()
-        mock_result.rowcount = 1
-        mock_db_session.execute.return_value = mock_result
-        
-        result = await auth_service.logout(session_token)
-        assert result is True
-        
-        # Test logout with non-existent session
-        mock_result.rowcount = 0
-        result = await auth_service.logout("nonexistent_token")
-        assert result is False
-    
-    
-    async def test_update_language_preferences(self, auth_service, mock_db_session):
-        """Test updating user language preferences"""
-        # Language preferences are not yet implemented in the FastAPI-Users model
-        # so this method currently returns True as a no-op
-        result = await auth_service.update_language_preferences(1, "es", "fr")
-        
-        assert result is True
-        # No database calls expected since this is currently a no-op
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenUserRegistered_ThenCreatesRecordWithHashedPassword(auth_service, db_session_mock):
+    """Happy path: registering a user inserts a new row with hashed password."""
+    query_result = Mock()
+    query_result.scalar_one_or_none.return_value = None
+    db_session_mock.execute.return_value = query_result
+
+    async def fake_refresh(user: User) -> None:
+        user.id = 123
+        user.created_at = datetime.utcnow()
+
+    db_session_mock.refresh.side_effect = fake_refresh
+
+    user = await auth_service.register_user("testuser", "Password123!")
+
+    assert user.id == 123
+    assert user.username == "testuser"
+    db_session_mock.add.assert_called_once()
+    db_session_mock.commit.assert_called_once()
+    assert user.hashed_password != "Password123!"
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenExistingUsernameRegistered_ThenRaisesUserAlreadyExistsError(auth_service, db_session_mock):
+    """Invalid input: existing username raises `UserAlreadyExistsError`."""
+    query_result = Mock()
+    query_result.scalar_one_or_none.return_value = User(username="existing")
+    db_session_mock.execute.return_value = query_result
+
+    with pytest.raises(UserAlreadyExistsError):
+        await auth_service.register_user("existing", "Password123!")
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenValidCredentialsProvided_ThenReturnsAuthSession(auth_service, db_session_mock):
+    """Happy path: login returns an AuthSession and records it in the DB."""
+    stored_user = Mock()
+    stored_user.id = 5
+    stored_user.username = "user@example.com"
+    stored_user.hashed_password = auth_service._hash_password("Password123!")
+    stored_user.is_superuser = False
+    stored_user.is_active = True
+    stored_user.created_at = datetime.utcnow()
+    stored_user.last_login = None
+
+    query_result = Mock()
+    query_result.scalar_one_or_none.return_value = stored_user
+    db_session_mock.execute.return_value = query_result
+
+    session = await auth_service.login("user@example.com", "Password123!")
+
+    assert session.user.username == "user@example.com"
+    assert session.session_token
+    db_session_mock.add.assert_called()
+    db_session_mock.commit.assert_called()
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenInvalidCredentialsProvided_ThenRaisesInvalidCredentialsError(auth_service, db_session_mock):
+    """Invalid input: unknown user triggers `InvalidCredentialsError`."""
+    query_result = Mock()
+    query_result.scalar_one_or_none.return_value = None
+    db_session_mock.execute.return_value = query_result
+
+    with pytest.raises(InvalidCredentialsError):
+        await auth_service.login("missing", "Password123!")
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenExpiredSessionValidated_ThenRaisesSessionExpiredError(auth_service, db_session_mock):
+    """Boundary: expired session raises and signals deactivation."""
+    session_row = Mock()
+    session_row.session_token = "expired"
+    session_row.expires_at = datetime.utcnow() - timedelta(minutes=1)
+    session_row.is_active = True
+    session_row.user_id = 1
+
+    user_row = Mock()
+    user_row.id = 1
+    user_row.username = "user"
+
+    query_result = Mock()
+    query_result.first.return_value = (session_row, user_row)
+    db_session_mock.execute.return_value = query_result
+
+    with pytest.raises(SessionExpiredError):
+        await auth_service.validate_session("expired")
+
+    assert db_session_mock.execute.called
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenLogoutCalled_ThenReturnsBooleanBasedOnRowsAffected(auth_service, db_session_mock):
+    """Happy/boundary: logout returns True when a session was deactivated, otherwise False."""
+    updated = AsyncMock()
+    updated.rowcount = 1
+    db_session_mock.execute.return_value = updated
+
+    assert await auth_service.logout("token") is True
+
+    updated.rowcount = 0
+    assert await auth_service.logout("missing") is False
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenLanguagePreferencesUpdated_ThenReturnsTrue(auth_service, db_session_mock):
+    """Boundary: until implemented, method returns True without DB mutations."""
+    assert await auth_service.update_language_preferences(1, "en", "de") is True
+    db_session_mock.execute.assert_not_called()

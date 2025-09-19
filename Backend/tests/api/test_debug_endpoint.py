@@ -1,11 +1,14 @@
 """In-process tests for debug endpoints using httpx async client fixture."""
 
 from datetime import datetime
+
 import pytest
+from tests.assertion_helpers import assert_validation_error_response
 
 
-@pytest.mark.asyncio
-async def test_debug_frontend_logs(async_client):
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenDebugFrontendLogsCalled_ThenSucceeds(async_client):
     log_entry = {
         "timestamp": datetime.now().isoformat(),
         "level": "INFO",
@@ -20,8 +23,24 @@ async def test_debug_frontend_logs(async_client):
     assert r.json().get("success") is True
 
 
-@pytest.mark.asyncio
-async def test_debug_health(async_client):
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenDebugFrontendLogs_MissingLevelCalled_ThenSucceeds(async_client):
+    """Invalid input: omitting required fields returns validation error."""
+    log_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "category": "Test",
+        "message": "Missing level should fail",
+    }
+
+    response = await async_client.post("/api/debug/frontend-logs", json=log_entry)
+
+    assert_validation_error_response(response, "level")
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenDebughealthCalled_ThenSucceeds(async_client):
     r = await async_client.get("/api/debug/health")
     assert r.status_code == 200
     data = r.json()

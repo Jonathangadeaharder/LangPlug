@@ -1,47 +1,51 @@
-"""
-Error-path tests for auth endpoints using isolated app + overrides.
-"""
+"""Targeted auth error cases following the protective testing guidelines."""
 from __future__ import annotations
 
 import pytest
-import httpx
-from contextlib import asynccontextmanager
 
-from core.app import create_app
-from core.dependencies import get_auth_service, get_database_manager
+from tests.auth_helpers import AuthTestHelper
+from tests.assertion_helpers import assert_validation_error_response
 
 
-class FailAuth:
-    def login(self, username: str, password: str):
-        raise Exception("Invalid username or password")
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenLoginWithjson_payload_ThenRejects(async_client):
+    """Boundary: sending JSON instead of form data yields a 422 validation error."""
+    user_data = AuthTestHelper.generate_unique_user_data()
+    await AuthTestHelper.register_user_async(async_client, user_data)
+
+    response = await async_client.post(
+        "/api/auth/login",
+        json={"username": user_data["email"], "password": user_data["password"]},
+    )
+
+    assert response.status_code == 422
 
 
-@pytest.mark.asyncio
-async def test_login_invalid_credentials_returns_401(async_client):
-    app = create_app()
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenloginWithoutpassword_ThenReturnsError(async_client):
+    """Invalid input: missing password triggers field-level validation failures."""
+    user_data = AuthTestHelper.generate_unique_user_data()
+    await AuthTestHelper.register_user_async(async_client, user_data)
 
-    @asynccontextmanager
-    async def no_lifespan(_app):
-        yield
-    app.router.lifespan_context = no_lifespan
+    response = await async_client.post(
+        "/api/auth/login",
+        data={"username": user_data["email"]},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
 
-    # Reuse same db manager as the shared app when available
-    try:
-        shared_db = async_client._transport.app.dependency_overrides[get_database_manager]()
-    except Exception:
-        shared_db = None
+    assert_validation_error_response(response, "password")
 
-    if shared_db is not None:
-        app.dependency_overrides[get_database_manager] = lambda: shared_db
-    app.dependency_overrides[get_auth_service] = lambda: FailAuth()
 
-    transport = httpx.ASGITransport(app=app)
-    client2 = httpx.AsyncClient(transport=transport, base_url="http://testserver")
-    try:
-        # Login expects form data, so JSON will fail validation first
-        r = await client2.post("/api/auth/login", json={"username": "x", "password": "y"})
-        # FastAPI returns 422 for validation errors (wrong content type)
-        assert r.status_code == 422
-    finally:
-        await client2.aclose()
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenloginWithoutusername_ThenReturnsError(async_client):
+    """Invalid input: missing username is rejected with validation detail."""
+    response = await async_client.post(
+        "/api/auth/login",
+        data={"password": "SecurePass123!"},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
 
+    assert_validation_error_response(response, "username")

@@ -25,8 +25,9 @@ class FailingWebSocket(FakeWebSocket):
         raise RuntimeError("fail")
 
 
-@pytest.mark.asyncio
-async def test_connect_send_disconnect():
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenconnect_send_disconnectCalled_ThenSucceeds():
     m = ConnectionManager()
     ws = FakeWebSocket()
 
@@ -53,8 +54,9 @@ async def test_connect_send_disconnect():
     assert m.get_connection_count() == 0
 
 
-@pytest.mark.asyncio
-async def test_send_personal_message_failure_removes_connection():
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whensend_personal_message_failure_removes_connectionCalled_ThenSucceeds():
     m = ConnectionManager()
     ws = FailingWebSocket()
     await m.connect(ws, "u2")
@@ -62,8 +64,9 @@ async def test_send_personal_message_failure_removes_connection():
     assert m.get_connection_count() == 0
 
 
-@pytest.mark.asyncio
-async def test_handle_message_subscribe_and_unknown():
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenhandle_message_subscribe_and_unknownCalled_ThenSucceeds():
     m = ConnectionManager()
     ws = FakeWebSocket()
     await m.connect(ws, "u3")
@@ -74,8 +77,9 @@ async def test_handle_message_subscribe_and_unknown():
     m.disconnect(ws)
 
 
-@pytest.mark.asyncio
-async def test_start_and_stop_health_checks():
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenstart_and_stop_health_checksCalled_ThenSucceeds():
     m = ConnectionManager()
     await m.start_health_checks()
     await m.stop_health_checks()

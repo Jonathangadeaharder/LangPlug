@@ -1,68 +1,50 @@
-"""
-Integration tests for API endpoints
-"""
+"""High-level API endpoint smoke tests complying with the CDD/TDD rules."""
+from __future__ import annotations
+
+import datetime as dt
+
 import pytest
-from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch
-
-from core.app import create_app
-from core.database import get_async_session
-from services.authservice.auth_service import AuthService
+from tests.assertion_helpers import assert_json_error_response
 
 
-@pytest.fixture
-def client():
-    """Create test client"""
-    app = create_app()
-    return TestClient(app)
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenHealthEndpointCalled_ThenReportsstatus(async_client):
+    """Happy path: /health reports overall status and metadata."""
+    response = await async_client.get("/health")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "healthy"
+    assert "version" in payload
+    dt.datetime.fromisoformat(payload["timestamp"])  # raises if not ISO formatted
 
 
-@pytest.fixture
-def mock_db_manager():
-    """Mock database manager"""
-    return Mock()
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenunknown_routeCalled_ThenReturnscontract_404(async_client):
+    """Invalid input: unknown route returns consistent 404 response."""
+    response = await async_client.get("/api/does-not-exist")
+
+    assert_json_error_response(response, 404)
+    payload = response.json()
+    # Handle both FastAPI standard format and custom error format
+    if "error" in payload and "message" in payload["error"]:
+        assert payload["error"]["message"] == "Not Found"
+    else:
+        assert payload.get("detail") == "Not Found"
 
 
-@pytest.fixture
-def mock_auth_service():
-    """Mock auth service"""
-    return Mock()
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_WhenHealthEndpoint_Thenread_only(async_client):
+    """Boundary: POSTing to /health is not allowed and surfaces 405."""
+    response = await async_client.post("/health")
 
-
-class TestHealthEndpoint:
-    """Test health check endpoint"""
-    
-    def test_health_check(self, client):
-        """Test health check endpoint"""
-        response = client.get("/health")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "healthy"
-        assert "timestamp" in data
-        assert "version" in data
-
-
-class TestAuthEndpoints:
-    """Test authentication endpoints"""
-    
-    def test_register_user(self, client):
-        """Test user registration endpoint"""
-        # This would require proper mocking of dependencies
-        # For now, we'll just verify the endpoint exists
-        pass
-    
-    def test_login_user(self, client):
-        """Test user login endpoint"""
-        # This would require proper mocking of dependencies
-        # For now, we'll just verify the endpoint exists
-        pass
-
-
-class TestVideoEndpoints:
-    """Test video endpoints"""
-    
-    def test_get_videos(self, client):
-        """Test get videos endpoint"""
-        # This would require proper mocking of dependencies
-        # For now, we'll just verify the endpoint exists
-        pass
+    assert_json_error_response(response, 405)
+    payload = response.json()
+    # Handle both FastAPI standard format and custom error format
+    if "error" in payload and "message" in payload["error"]:
+        assert payload["error"]["message"] == "Method Not Allowed"
+    else:
+        assert payload.get("detail") == "Method Not Allowed"

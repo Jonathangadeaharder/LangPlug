@@ -13,8 +13,9 @@ from core.exceptions import LangPlugException
 from services.authservice.auth_service import InvalidCredentialsError, UserAlreadyExistsError, SessionExpiredError
 
 
-@pytest.mark.asyncio
-async def test_error_handling_middleware_maps_exceptions():
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_Whenerror_handling_middleware_maps_exceptionsCalled_ThenSucceeds():
     app = FastAPI()
 
     @asynccontextmanager
@@ -56,4 +57,3 @@ async def test_error_handling_middleware_maps_exceptions():
         assert r.status_code == 401
         r = await client.get("/generic")
         assert r.status_code == 500
-

@@ -3,7 +3,6 @@ URL builder utility for robust test URLs using FastAPI route names.
 This prevents hardcoded paths from going out of sync with actual routes.
 """
 
-from typing import Dict, Any, Optional
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 
