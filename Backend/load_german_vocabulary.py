@@ -3,8 +3,8 @@
 Load German vocabulary data into the database
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add the backend directory to Python path
@@ -17,13 +17,13 @@ async def load_german_vocabulary_async():
     """Load German vocabulary data into database"""
     print("Loading German Vocabulary Data")
     print("=============================\n")
-    
+
     try:
-        from core.database import get_async_session, init_database
-        from core.config import settings
-        import asyncio
+
         from sqlalchemy import text
-        
+
+        from core.database import get_async_session, init_database
+
         # Sample German vocabulary with CEFR levels
         german_vocabulary = [
             # A1 Level - Basic words
@@ -61,7 +61,7 @@ async def load_german_vocabulary_async():
             ("Zeit", "A1", "noun", "time"),
             ("Wasser", "A1", "noun", "water"),
             ("Brot", "A1", "noun", "bread"),
-            
+
             # A2 Level - Common words
             ("können", "A2", "verb", "can/to be able to"),
             ("müssen", "A2", "verb", "must/to have to"),
@@ -92,8 +92,8 @@ async def load_german_vocabulary_async():
             ("braucht", "A2", "verb", "needs"),
             ("erste", "A2", "ordinal", "first"),
             ("alles", "A2", "pronoun", "everything"),
-            
-            # B1 Level - Intermediate words  
+
+            # B1 Level - Intermediate words
             ("Anlaufstelle", "B1", "noun", "point of contact/first port of call"),
             ("glücklicher", "B1", "adjective", "happier"),
             ("schlanker", "B1", "adjective", "slimmer"),
@@ -118,7 +118,7 @@ async def load_german_vocabulary_async():
             ("Situation", "B1", "noun", "situation"),
             ("Entscheidung", "B1", "noun", "decision"),
             ("Verantwortung", "B1", "noun", "responsibility"),
-            
+
             # B2 Level - Advanced words
             ("Eigenschaft", "B2", "noun", "characteristic/property"),
             ("Bewusstsein", "B2", "noun", "consciousness"),
@@ -139,18 +139,18 @@ async def load_german_vocabulary_async():
             ("grundsätzlich", "B2", "adverb", "fundamentally"),
             ("beziehungsweise", "B2", "conjunction", "respectively/or rather"),
         ]
-        
+
         # Initialize database
         await init_database()
         print("Database initialized")
-        
+
         async with get_async_session() as session:
             # Create vocabulary table if it doesn't exist (handled by models)
-            
+
             # Clear existing German vocabulary
             await session.execute(text("DELETE FROM vocabulary WHERE language = :lang"), {"lang": "de"})
             print("Cleared existing German vocabulary")
-            
+
             # Insert German vocabulary
             inserted = 0
             for word, level, word_type, definition in german_vocabulary:
@@ -160,7 +160,7 @@ async def load_german_vocabulary_async():
                         VALUES (:word, :level, :word_type, :definition, :language)
                     """), {
                         "word": word,
-                        "level": level, 
+                        "level": level,
                         "word_type": word_type,
                         "definition": definition,
                         "language": "de"
@@ -168,24 +168,24 @@ async def load_german_vocabulary_async():
                     inserted += 1
                 except Exception as e:
                     print(f"Failed to insert '{word}': {e}")
-            
+
             await session.commit()
             print(f"✅ Inserted {inserted} German vocabulary words")
-            
+
             # Verify insertion
             result = await session.execute(text("SELECT COUNT(*) FROM vocabulary WHERE language = :lang"), {"lang": "de"})
             total_german = result.scalar()
             print(f"Total German words in database: {total_german}")
-            
+
             # Show breakdown by level
             for level in ["A1", "A2", "B1", "B2"]:
                 result = await session.execute(text("SELECT COUNT(*) FROM vocabulary WHERE language = :lang AND difficulty_level = :level"), {"lang": "de", "level": level})
                 count = result.scalar()
                 print(f"  {level}: {count} words")
-        
+
         print("\n✅ German vocabulary loaded successfully!")
         print("Now the difficulty filter should identify words above A1 level.")
-        
+
     except Exception as e:
         print(f"❌ Error loading German vocabulary: {e}")
         import traceback

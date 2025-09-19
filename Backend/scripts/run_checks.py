@@ -25,19 +25,19 @@ class Colors:
     YELLOW = '\033[93m'
     RED = '\033[91m'
     RESET = '\033[0m'
-    
+
     @classmethod
     def info(cls, msg):
         print(f"{cls.CYAN}[checks] {msg}{cls.RESET}")
-    
+
     @classmethod
     def success(cls, msg):
         print(f"{cls.GREEN}[checks] {msg}{cls.RESET}")
-    
+
     @classmethod
     def warning(cls, msg):
         print(f"{cls.YELLOW}[checks] {msg}{cls.RESET}")
-    
+
     @classmethod
     def error(cls, msg):
         print(f"{cls.RED}[checks] {msg}{cls.RESET}")
@@ -47,16 +47,16 @@ class CodeQualityChecker:
     def __init__(self):
         self.backend_dir = Path(__file__).parent.parent
         self.failed_checks = []
-    
+
     def run_command(self, cmd, description):
         """Run a command and track failures."""
         Colors.info(f"{description}...")
         try:
             result = subprocess.run(
-                cmd, 
-                cwd=self.backend_dir, 
-                check=True, 
-                capture_output=True, 
+                cmd,
+                cwd=self.backend_dir,
+                check=True,
+                capture_output=True,
                 text=True
             )
             Colors.success(f"{description} passed")
@@ -74,14 +74,14 @@ class CodeQualityChecker:
             Colors.warning("Make sure the required tools are installed in your virtual environment")
             self.failed_checks.append(description)
             return False
-    
+
     def run_linting(self, fix=False):
         """Run Ruff linting checks."""
         cmd = ["python", "-m", "ruff", "check", "."]
         if fix:
             cmd.append("--fix")
         return self.run_command(cmd, "Ruff linting")
-    
+
     def run_formatting(self, fix=False):
         """Run Ruff code formatting."""
         if fix:
@@ -91,17 +91,17 @@ class CodeQualityChecker:
             cmd = ["python", "-m", "ruff", "format", "--check", "."]
             description = "Ruff formatting (check only)"
         return self.run_command(cmd, description)
-    
+
     def run_tests(self):
         """Run pytest with appropriate filters."""
         cmd = ["python", "-m", "pytest", "-q", "-m", "not slow and not performance"]
         return self.run_command(cmd, "Running tests")
-    
+
     def run_type_checking(self):
         """Run mypy type checking if available."""
         cmd = ["python", "-m", "mypy", ".", "--ignore-missing-imports"]
         return self.run_command(cmd, "Type checking (mypy)")
-    
+
     def print_summary(self):
         """Print summary of check results."""
         print("\n" + "="*50)
@@ -121,50 +121,50 @@ def main():
         description="Run code quality checks for the backend",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    
-    parser.add_argument("--lint-only", action="store_true", 
+
+    parser.add_argument("--lint-only", action="store_true",
                        help="Run only linting checks")
-    parser.add_argument("--format-only", action="store_true", 
+    parser.add_argument("--format-only", action="store_true",
                        help="Run only code formatting checks")
-    parser.add_argument("--test-only", action="store_true", 
+    parser.add_argument("--test-only", action="store_true",
                        help="Run only tests")
-    parser.add_argument("--type-only", action="store_true", 
+    parser.add_argument("--type-only", action="store_true",
                        help="Run only type checking")
-    parser.add_argument("--fix", action="store_true", 
+    parser.add_argument("--fix", action="store_true",
                        help="Automatically fix linting and formatting issues")
-    parser.add_argument("--no-tests", action="store_true", 
+    parser.add_argument("--no-tests", action="store_true",
                        help="Skip running tests")
-    
+
     args = parser.parse_args()
-    
+
     checker = CodeQualityChecker()
-    
+
     try:
         # Determine what checks to run
         run_all = not any([args.lint_only, args.format_only, args.test_only, args.type_only])
-        
+
         if args.lint_only or run_all:
             checker.run_linting(fix=args.fix)
-        
+
         if args.format_only or run_all:
             checker.run_formatting(fix=args.fix)
-        
+
         if args.type_only or run_all:
             # Type checking is optional - don't fail if mypy is not installed
             try:
                 checker.run_type_checking()
             except Exception:
                 Colors.warning("Type checking skipped (mypy not available)")
-        
+
         if (args.test_only or run_all) and not args.no_tests:
             checker.run_tests()
-        
+
         checker.print_summary()
-        
+
         # Exit with error code if any checks failed
         if checker.failed_checks:
             sys.exit(1)
-            
+
     except KeyboardInterrupt:
         Colors.warning("Checks interrupted by user")
         sys.exit(1)

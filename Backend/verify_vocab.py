@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import sqlite3
 from pathlib import Path
+
+import sqlite3
 
 print("=== German Vocabulary Verification ===")
 
@@ -39,7 +40,7 @@ vocab_data = [
     ("der", "A1", "article", "the (masculine)", "de"),
     ("die", "A1", "article", "the (feminine)", "de"),
     ("das", "A1", "article", "the (neuter)", "de"),
-    
+
     # A2+ words (should be detected as new vocabulary)
     ("amerikanische", "A2", "adjective", "American", "de"),
     ("anlaufstelle", "B1", "noun", "first port of call", "de"),

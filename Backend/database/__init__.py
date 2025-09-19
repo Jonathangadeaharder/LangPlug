@@ -5,9 +5,9 @@ from .models import *
 
 __all__ = [
     'Base',
-    'WordCategory',
-    'UserVocabulary', 
     'UnknownWords',
+    'User',
     'UserProgress',
-    'User'
+    'UserVocabulary',
+    'WordCategory'
 ]

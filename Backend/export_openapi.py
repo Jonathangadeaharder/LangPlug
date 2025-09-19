@@ -2,7 +2,6 @@
 Export OpenAPI specification to JSON file
 """
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -12,17 +11,18 @@ sys.path.insert(0, str(project_root))
 
 from core.app import create_app
 
+
 def export_openapi():
     """Export the current OpenAPI specification to a JSON file"""
     app = create_app()
     openapi_spec = app.openapi()
-    
+
     # Write to project root
     output_path = project_root.parent / 'openapi_spec.json'
-    
+
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(openapi_spec, f, indent=2, ensure_ascii=False)
-    
+
     print(f"OpenAPI specification exported to: {output_path.absolute()}")
     print(f"Specification contains {len(openapi_spec.get('paths', {}))} paths")
 

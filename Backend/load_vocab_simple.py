@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-import sqlite3
-import os
 from pathlib import Path
+
+import sqlite3
 
 # Database path - same as config
 backend_path = Path(__file__).parent
@@ -37,7 +37,7 @@ cursor.execute("DELETE FROM vocabulary WHERE language = 'de'")
 vocab_data = [
     # A1 Level (user already knows these)
     ("der", "A1", "article", "the (masculine)", "de"),
-    ("die", "A1", "article", "the (feminine)", "de"), 
+    ("die", "A1", "article", "the (feminine)", "de"),
     ("das", "A1", "article", "the (neuter)", "de"),
     ("und", "A1", "conjunction", "and", "de"),
     ("ist", "A1", "verb", "is", "de"),
@@ -45,8 +45,8 @@ vocab_data = [
     ("sein", "A1", "verb", "to be", "de"),
     ("man", "A1", "pronoun", "one/you", "de"),
     ("oder", "A1", "conjunction", "or", "de"),
-    
-    # A2 Level - These should be detected as new vocabulary  
+
+    # A2 Level - These should be detected as new vocabulary
     ("können", "A2", "verb", "can/to be able to", "de"),
     ("werden", "A2", "verb", "to become/will", "de"),
     ("möchten", "A2", "verb", "would like to", "de"),
@@ -55,7 +55,7 @@ vocab_data = [
     ("erste", "A2", "ordinal", "first", "de"),
     ("alles", "A2", "pronoun", "everything", "de"),
     ("amerikanische", "A2", "adjective", "American", "de"),
-    
+
     # B1 Level - More advanced vocabulary from Superstore
     ("anlaufstelle", "B1", "noun", "point of contact/first port of call", "de"),
     ("superstore", "B1", "noun", "superstore", "de"),

@@ -4,9 +4,10 @@ LangPlug - German Language Learning Platform
 Entry point for the FastAPI server
 """
 
-import venv_activator  # Auto-activate virtual environment
-import uvicorn
 from pathlib import Path
+
+import uvicorn
+
 from core.app import create_app
 from core.config import settings
 
@@ -21,7 +22,7 @@ if __name__ == "__main__":
         str(Path(__file__).parent / "core"),
         str(Path(__file__).parent / "services")
     ] if settings.reload else None
-    
+
     # Configure reload with conservative settings to minimize watchfiles spam
     reload_config = {
         "reload": settings.reload,
@@ -40,10 +41,10 @@ if __name__ == "__main__":
             "**/*.log"
         ] if settings.reload else None
     }
-    
+
     if reload_dirs:
         print(f"📁 Watching directories: {reload_dirs}")
-    
+
     uvicorn.run(
         "core.app:create_app",
         host=settings.host,

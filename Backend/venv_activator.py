@@ -22,7 +22,7 @@ def _detect_wsl() -> bool:
     try:
         if os.environ.get('WSL_DISTRO_NAME'):
             return True
-        with open('/proc/version', 'r', encoding='utf-8') as f:
+        with open('/proc/version', encoding='utf-8') as f:
             return 'Microsoft' in f.read()
     except Exception:
         return False
@@ -88,14 +88,14 @@ def activate_venv():
 def _activate_venv_in_place(venv_path):
     """Activate virtual environment by modifying sys.path and environment variables."""
     venv_path = Path(venv_path)
-    
+
     # Set VIRTUAL_ENV environment variable
     os.environ['VIRTUAL_ENV'] = str(venv_path)
-    
+
     # Remove existing PYTHONHOME if set (can interfere with venv)
     if 'PYTHONHOME' in os.environ:
         del os.environ['PYTHONHOME']
-    
+
     # Determine site-packages path
     if (venv_path / 'Scripts').exists():  # Windows
         site_packages = venv_path / 'Lib' / 'site-packages'
@@ -112,19 +112,19 @@ def _activate_venv_in_place(venv_path):
         else:
             site_packages = venv_path / 'lib' / 'site-packages'
         scripts_dir = venv_path / 'bin'
-    
+
     # Add site-packages to sys.path if not already present
     site_packages_str = str(site_packages)
     if site_packages.exists() and site_packages_str not in sys.path:
         sys.path.insert(0, site_packages_str)
-    
+
     # Update PATH to include venv scripts directory
     if scripts_dir.exists():
         scripts_str = str(scripts_dir)
         current_path = os.environ.get('PATH', '')
         if scripts_str not in current_path:
             os.environ['PATH'] = scripts_str + os.pathsep + current_path
-    
+
     # Avoid printing in automated test environments
     if os.environ.get('LANGPLUG_DEBUG_VENV') == '1':
         print(f"Virtual environment activated in-place: {venv_path}")

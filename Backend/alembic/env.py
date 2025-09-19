@@ -1,9 +1,8 @@
 import sys
-from pathlib import Path
 from logging.config import fileConfig
+from pathlib import Path
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
@@ -12,8 +11,8 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 # Import our models and config
-from database.models import Base
 from core.config import settings
+from database.models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -68,7 +67,7 @@ def run_migrations_online() -> None:
     # Override the database URL in the config
     configuration = config.get_section(config.config_ini_section, {})
     configuration["sqlalchemy.url"] = settings.get_database_url()
-    
+
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",

@@ -3,18 +3,19 @@
 Script to run all currently passing tests.
 This provides a baseline for verifying that core functionality works.
 """
+import os
 import subprocess
 import sys
-import os
+
 
 def run_tests():
     """Run all currently passing tests with 60s timeout."""
     # Get the backend directory
     backend_dir = os.path.dirname(os.path.abspath(__file__))
-    
+
     # Change to backend directory
     os.chdir(backend_dir)
-    
+
     # Test command with timeout
     cmd = [
         "api_venv/Scripts/python.exe", "-m", "pytest",
@@ -48,20 +49,20 @@ def run_tests():
         # Add timeout and verbose flags
         "-v", "--timeout=60"
     ]
-    
+
     print("Running passing tests...")
     print(f"Command: {' '.join(cmd)}")
     print("-" * 50)
-    
+
     try:
         # Run the tests
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=300)
+
         # Print output
         print(result.stdout)
         if result.stderr:
             print("STDERR:", result.stderr)
-        
+
         # Check result
         if result.returncode == 0:
             print("\n[PASS] All passing tests completed successfully!")
@@ -69,7 +70,7 @@ def run_tests():
         else:
             print(f"\n[FAIL] Tests failed with return code {result.returncode}")
             return False
-            
+
     except subprocess.TimeoutExpired:
         print("[FAIL] Tests timed out after 300 seconds")
         return False

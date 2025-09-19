@@ -8,8 +8,9 @@ Comprehensive cleanup and server startup script
 """
 import subprocess
 import time
-import psutil
 from pathlib import Path
+
+import psutil
 
 LOG_PATH = Path(__file__).parent.parent / "logs" / "cleanup_and_start_log.txt"
 
@@ -24,7 +25,7 @@ def kill_port_processes(port: int):
     """Kill all processes using the specified port"""
     log_line(f"Checking for processes on port {port}...")
     killed_count = 0
-    
+
     for proc in psutil.process_iter(['pid', 'name', 'connections']):
         try:
             connections = proc.info['connections']
@@ -37,7 +38,7 @@ def kill_port_processes(port: int):
                         break
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             continue
-    
+
     log_line(f"Killed {killed_count} processes on port {port}")
     return killed_count
 
@@ -45,7 +46,7 @@ def kill_langplug_processes():
     """Kill processes with 'python' that are running LangPlug scripts"""
     log_line("Checking for LangPlug Python processes...")
     killed_count = 0
-    
+
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
             if proc.info['name'] in ['python.exe', 'python3.exe', 'python']:
@@ -56,7 +57,7 @@ def kill_langplug_processes():
                     killed_count += 1
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             continue
-    
+
     log_line(f"Killed {killed_count} LangPlug processes")
     return killed_count
 
@@ -77,13 +78,13 @@ def wait_for_port_free(port: int, timeout: int = 10):
                     break
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 continue
-        
+
         if port_free:
             log_line(f"Port {port} is now free")
             return True
-        
+
         time.sleep(1)
-    
+
     log_line(f"Port {port} still in use after {timeout}s timeout")
     return False
 
@@ -93,15 +94,15 @@ def start_backend():
     backend_dir = Path(__file__).parent.parent
     python_exe = backend_dir / "api_venv" / "Scripts" / "python.exe"
     run_script = backend_dir / "run_backend.py"
-    
+
     if not python_exe.exists():
         log_line(f"ERROR: Python executable not found at {python_exe}")
         return None
-    
+
     if not run_script.exists():
         log_line(f"ERROR: Backend script not found at {run_script}")
         return None
-    
+
     try:
         # Start backend process
         proc = subprocess.Popen(
@@ -121,10 +122,10 @@ def verify_server_health():
     """Verify server is responding to health checks"""
     log_line("Waiting for server to start...")
     time.sleep(3)
-    
+
     import json
     from urllib import request as urlreq
-    
+
     for attempt in range(10):
         try:
             req = urlreq.Request("http://localhost:8000/health")
@@ -139,41 +140,41 @@ def verify_server_health():
                     log_line(f"Server health check returned {code}")
         except Exception as e:
             log_line(f"Health check attempt {attempt + 1}: {e}")
-        
+
         time.sleep(2)
-    
+
     log_line("Server health check FAILED after 10 attempts")
     return False
 
 def main():
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Clear previous log
     with LOG_PATH.open("w", encoding="utf-8") as f:
-        f.write(f"=== LangPlug Cleanup and Startup Log ===\n")
-    
+        f.write("=== LangPlug Cleanup and Startup Log ===\n")
+
     log_line("Starting comprehensive cleanup...")
-    
+
     # Kill processes on ports
     kill_port_processes(8000)
     kill_port_processes(3000)
-    
+
     # Kill LangPlug processes
     kill_langplug_processes()
-    
+
     # Wait for ports to be free
     port_8000_free = wait_for_port_free(8000)
     port_3000_free = wait_for_port_free(3000)
-    
+
     if not port_8000_free:
         log_line("WARNING: Port 8000 still not free, continuing anyway...")
-    
+
     # Start backend
     backend_proc = start_backend()
     if not backend_proc:
         log_line("FAILED to start backend")
         return 1
-    
+
     # Verify server health
     if verify_server_health():
         log_line("SUCCESS: Backend server is running and healthy")

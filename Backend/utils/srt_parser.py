@@ -1,7 +1,6 @@
 """SRT subtitle parser using pysrt library"""
-from pathlib import Path
-from typing import List, Optional
 from dataclasses import dataclass
+from pathlib import Path
 
 import pysrt
 from pysrt import SubRipFile, SubRipItem
@@ -22,16 +21,16 @@ class SRTSegment:
 
 class SRTParser:
     """SRT subtitle parser using pysrt library"""
-    
+
     def __init__(self):
-        self.segments: List[SRTSegment] = []
-    
-    def parse_file(self, file_path: Path) -> List[SRTSegment]:
+        self.segments: list[SRTSegment] = []
+
+    def parse_file(self, file_path: Path) -> list[SRTSegment]:
         """Parse SRT file and return list of segments"""
         try:
             # pysrt handles encoding detection automatically
             subs = pysrt.open(str(file_path))
-            
+
             segments = []
             for sub in subs:
                 segment = SRTSegment(
@@ -41,18 +40,18 @@ class SRTParser:
                     index=sub.index
                 )
                 segments.append(segment)
-            
+
             self.segments = segments
             return segments
-            
+
         except Exception as e:
-            raise ValueError(f"Error parsing SRT file {file_path}: {str(e)}")
-    
-    def parse_content(self, content: str) -> List[SRTSegment]:
+            raise ValueError(f"Error parsing SRT file {file_path}: {e!s}")
+
+    def parse_content(self, content: str) -> list[SRTSegment]:
         """Parse SRT content from string"""
         try:
             subs = pysrt.from_string(content)
-            
+
             segments = []
             for sub in subs:
                 segment = SRTSegment(
@@ -62,13 +61,13 @@ class SRTParser:
                     index=sub.index
                 )
                 segments.append(segment)
-            
+
             self.segments = segments
             return segments
-            
+
         except Exception as e:
-            raise ValueError(f"Error parsing SRT content: {str(e)}")
-    
+            raise ValueError(f"Error parsing SRT content: {e!s}")
+
     def _time_to_seconds(self, time_obj) -> float:
         """Convert pysrt time object to seconds"""
         return (
@@ -77,26 +76,26 @@ class SRTParser:
             time_obj.seconds +
             time_obj.milliseconds / 1000.0
         )
-    
-    def get_text_at_time(self, time_seconds: float) -> Optional[str]:
+
+    def get_text_at_time(self, time_seconds: float) -> str | None:
         """Get subtitle text at specific time"""
         for segment in self.segments:
             if segment.start_time <= time_seconds <= segment.end_time:
                 return segment.text
         return None
-    
-    def get_segments_in_range(self, start_time: float, end_time: float) -> List[SRTSegment]:
+
+    def get_segments_in_range(self, start_time: float, end_time: float) -> list[SRTSegment]:
         """Get all segments within time range"""
         return [
             segment for segment in self.segments
             if not (segment.end_time < start_time or segment.start_time > end_time)
         ]
-    
-    def save_to_file(self, file_path: Path, segments: Optional[List[SRTSegment]] = None):
+
+    def save_to_file(self, file_path: Path, segments: list[SRTSegment] | None = None):
         """Save segments to SRT file"""
         if segments is None:
             segments = self.segments
-        
+
         subs = SubRipFile()
         for segment in segments:
             item = SubRipItem(
@@ -106,29 +105,29 @@ class SRTParser:
                 text=segment.text
             )
             subs.append(item)
-        
+
         subs.save(str(file_path), encoding='utf-8')
-    
+
     def _seconds_to_time(self, seconds: float):
         """Convert seconds to pysrt time object"""
         hours = int(seconds // 3600)
         minutes = int((seconds % 3600) // 60)
         secs = int(seconds % 60)
         milliseconds = int((seconds % 1) * 1000)
-        
+
         return pysrt.SubRipTime(hours, minutes, secs, milliseconds)
-    
+
     def split_dual_language_text(self, text: str, separator: str = "\n") -> tuple[str, str]:
         """Split dual-language subtitle text"""
         parts = text.split(separator, 1)
         if len(parts) == 2:
             return parts[0].strip(), parts[1].strip()
         return text.strip(), ""
-    
-    def extract_language_segments(self, language_index: int = 0) -> List[SRTSegment]:
+
+    def extract_language_segments(self, language_index: int = 0) -> list[SRTSegment]:
         """Extract segments for specific language from dual-language subtitles"""
         extracted_segments = []
-        
+
         for segment in self.segments:
             lines = segment.text.split('\n')
             if language_index < len(lines):
@@ -140,17 +139,17 @@ class SRTParser:
                         text=text,
                         index=segment.index
                     ))
-        
+
         return extracted_segments
 
 
-def parse_srt_file(file_path: Path) -> List[SRTSegment]:
+def parse_srt_file(file_path: Path) -> list[SRTSegment]:
     """Convenience function to parse SRT file"""
     parser = SRTParser()
     return parser.parse_file(file_path)
 
 
-def parse_srt_content(content: str) -> List[SRTSegment]:
+def parse_srt_content(content: str) -> list[SRTSegment]:
     """Convenience function to parse SRT content"""
     parser = SRTParser()
     return parser.parse_content(content)
