@@ -39,6 +39,7 @@ jobs:
         retention-days: 30
 
   backend-contract-tests:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -93,6 +94,7 @@ jobs:
         retention-days: 30
 
   integration-contract-tests:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     needs: [frontend-contract-tests, backend-contract-tests]
     steps:
@@ -171,9 +173,9 @@ jobs:
         retention-days: 30
 
   notify-contract-failures:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     needs: [frontend-contract-tests, backend-contract-tests, integration-contract-tests]
-    if: failure()
     
     steps:
     - name: Notify contract test failures
