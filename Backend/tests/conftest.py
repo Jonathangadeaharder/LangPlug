@@ -44,7 +44,7 @@ class SimpleURLBuilder:
         # Profile
         "profile_get": "/api/profile",
         "profile_update_languages": "/api/profile/languages",
-        "profile_get_supported_languages": "/api/profile/supported-languages",
+        "profile_get_supported_languages": "/api/profile/languages",
         # Vocabulary
         "get_vocabulary_stats": "/api/vocabulary/stats",
         "get_blocking_words": "/api/vocabulary/blocking-words",

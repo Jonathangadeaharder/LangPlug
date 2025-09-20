@@ -356,16 +356,15 @@ class AuthTestHelperAsync:
     @staticmethod
     async def get_current_user_async(client: httpx.AsyncClient, token: str) -> tuple[int, dict[str, Any]]:
         """Get current user information asynchronously."""
-        helper = AsyncHTTPAuthHelper(client)
         headers = {"Authorization": f"Bearer {token}"}
-        return await helper.client.get("/api/auth/me", headers=headers).status_code, await helper.client.get("/api/auth/me", headers=headers).json()
+        response = await client.get("/api/auth/me", headers=headers)
+        return response.status_code, response.json() if response.content else {}
     
     @staticmethod
     async def logout_user_async(client: httpx.AsyncClient, token: str) -> tuple[int, dict[str, Any]]:
         """Logout user asynchronously."""
-        helper = AsyncHTTPAuthHelper(client)
         headers = {"Authorization": f"Bearer {token}"}
-        response = await helper.client.post("/api/auth/logout", headers=headers)
+        response = await client.post("/api/auth/logout", headers=headers)
         return response.status_code, response.json() if response.content else {}
 
 
