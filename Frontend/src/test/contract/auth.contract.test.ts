@@ -4,8 +4,8 @@ import type { RegisterRequest, LoginRequest, UserResponse, AuthResponse } from '
 
 // Mock the SDK functions
 vi.mock('../../client/sdk.gen', () => ({
-  registerAuthRegisterPost: vi.fn(),
-  loginAuthLoginPost: vi.fn(),
+  registerApiAuthRegisterPost: vi.fn(),
+  loginApiAuthLoginPost: vi.fn(),
 }));
 
 describe('Auth API Contract Tests', () => {
@@ -24,23 +24,24 @@ describe('Auth API Contract Tests', () => {
       const mockUserResponse: UserResponse = {
         id: 1,
         username: 'testuser',
-        is_superuser: false,
+        is_admin: false,
         is_active: true,
         created_at: '2024-01-01T00:00:00Z',
         last_login: null,
       };
 
-      vi.mocked(clientSdk.registerAuthRegisterPost).mockResolvedValueOnce({
+      vi.mocked(clientSdk.registerApiAuthRegisterPost).mockResolvedValueOnce({
         data: mockUserResponse,
-        response: { status: 200 },
+        request: new Request('http://test.com'),
+        response: new Response('', { status: 200 }),
       });
 
-      const result = await clientSdk.registerAuthRegisterPost({
+      const result = await clientSdk.registerApiAuthRegisterPost({
         body: registerRequest,
       });
 
       // Verify request structure
-      expect(clientSdk.registerAuthRegisterPost).toHaveBeenCalledWith({
+      expect(clientSdk.registerApiAuthRegisterPost).toHaveBeenCalledWith({
         body: registerRequest,
       });
 
@@ -48,7 +49,7 @@ describe('Auth API Contract Tests', () => {
       expect(result.data).toMatchObject({
         id: expect.any(Number),
         username: expect.any(String),
-        is_superuser: expect.any(Boolean),
+        is_admin: expect.any(Boolean),
         is_active: expect.any(Boolean),
         created_at: expect.any(String),
       });
@@ -80,7 +81,7 @@ describe('Auth API Contract Tests', () => {
         user: {
           id: 1,
           username: 'testuser',
-          is_superuser: false,
+          is_admin: false,
           is_active: true,
           created_at: '2024-01-01T00:00:00Z',
           last_login: '2024-01-01T12:00:00Z',
@@ -88,17 +89,18 @@ describe('Auth API Contract Tests', () => {
         expires_at: '2024-01-02T00:00:00Z',
       };
 
-      vi.mocked(clientSdk.loginAuthLoginPost).mockResolvedValueOnce({
+      vi.mocked(clientSdk.loginApiAuthLoginPost).mockResolvedValueOnce({
         data: mockAuthResponse,
-        response: { status: 200 },
+        request: new Request('http://test.com'),
+        response: new Response('', { status: 200 }),
       });
 
-      const result = await clientSdk.loginAuthLoginPost({
+      const result = await clientSdk.loginApiAuthLoginPost({
         body: loginRequest,
       });
 
       // Verify request structure
-      expect(clientSdk.loginAuthLoginPost).toHaveBeenCalledWith({
+      expect(clientSdk.loginApiAuthLoginPost).toHaveBeenCalledWith({
         body: loginRequest,
       });
 
@@ -108,7 +110,7 @@ describe('Auth API Contract Tests', () => {
         user: expect.objectContaining({
           id: expect.any(Number),
           username: expect.any(String),
-          is_superuser: expect.any(Boolean),
+          is_admin: expect.any(Boolean),
           is_active: expect.any(Boolean),
           created_at: expect.any(String),
         }),
@@ -133,7 +135,7 @@ describe('Auth API Contract Tests', () => {
       const userResponse: UserResponse = {
         id: 1,
         username: 'testuser',
-        is_superuser: false,
+        is_admin: false,
         is_active: true,
         created_at: '2024-01-01T00:00:00Z',
         last_login: null,
@@ -142,7 +144,7 @@ describe('Auth API Contract Tests', () => {
       // Verify all required fields are present
       expect(userResponse.id).toBeTypeOf('number');
       expect(userResponse.username).toBeTypeOf('string');
-      expect(userResponse.is_superuser).toBeTypeOf('boolean');
+      expect(userResponse.is_admin).toBeTypeOf('boolean');
       expect(userResponse.is_active).toBeTypeOf('boolean');
       expect(userResponse.created_at).toBeTypeOf('string');
       
@@ -156,7 +158,7 @@ describe('Auth API Contract Tests', () => {
         user: {
           id: 1,
           username: 'testuser',
-          is_superuser: false,
+          is_admin: false,
           is_active: true,
           created_at: '2024-01-01T00:00:00Z',
           last_login: null,

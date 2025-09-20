@@ -1,4 +1,12 @@
-# Qwen Code CLI Configuration Guide
+# DEPRECATED: Qwen Code CLI Configuration Guide
+
+**⚠️ DEPRECATION NOTICE**: This file has been consolidated into the unified AI Development Guide.
+
+**👉 Use instead**: `AI_DEVELOPMENT_GUIDE.md` - Comprehensive guide for all AI coding assistants
+
+---
+
+# Original: Qwen Code CLI Configuration Guide
 
 This document explains the directory exclusion configuration for Qwen Code CLI in the LangPlug project.
 

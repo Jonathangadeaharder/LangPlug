@@ -1,3 +1,11 @@
+# DEPRECATED: Claude AI Assistant Instructions for LangPlug
+
+**⚠️ DEPRECATION NOTICE**: This file has been consolidated into the unified AI Development Guide.
+
+**👉 Use instead**: `AI_DEVELOPMENT_GUIDE.md` - Comprehensive guide for all AI coding assistants
+
+---
+
 - always execute python with api_venv
 - on WSL, run .bat files using: cmd.exe /c filename.bat (not ./filename.bat)
 - to properly clean up hanging CMD processes: cmd.exe /c "taskkill /F /IM cmd.exe && taskkill /F /IM python.exe && taskkill /F /IM node.exe"
@@ -21,6 +29,11 @@
 - Modern test infrastructure: Use transaction rollback for test isolation, standardized auth helpers, and proper fixture patterns
 - Test infrastructure problems can be prevented by following patterns in TESTING_BEST_PRACTICES.md and tests/conftest.py
 - FastAPI-Users UserManager requires parse_id() method implementation for UUID handling
+
+# lessons-learned-2025-09-19
+- PowerShell 7 at '/mnt/c/Program Files/PowerShell/7/pwsh.exe' successfully executes start-dev.ps1 script
+- Whisper model configuration: Use "tiny" for testing/debugging, "large-v3-turbo" for production (configured in Backend/core/constants.py)
+- Tiny model loads much faster than base/small models, ideal for development workflow
 
 # lessons-learned-2025-09-06
 - API endpoint paths must match exactly - use /process/* not /processing/*

@@ -13,11 +13,11 @@ async def _auth(async_client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenmark_known_AcceptsValid_payloadCalled_ThenSucceeds(async_client):
+async def test_Whenmark_known_AcceptsValid_payloadCalled_ThenSucceeds(async_http_client):
     """Happy path: mark-known stores the flag and returns success metadata."""
-    headers = await _auth(async_client)
+    headers = await _auth(async_http_client)
 
-    response = await async_client.post(
+    response = await async_http_client.post(
         "/api/vocabulary/mark-known",
         json={"word": "sein", "known": True},
         headers=headers,
@@ -30,26 +30,24 @@ async def test_Whenmark_known_AcceptsValid_payloadCalled_ThenSucceeds(async_clie
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenmark_knownWithoutword_ThenReturnsError(async_client):
+async def test_Whenmark_knownWithoutword_ThenReturnsError(async_http_client):
     """Invalid input: missing word raises FastAPI validation error."""
-    headers = await _auth(async_client)
+    headers = await _auth(async_http_client)
 
-    response = await async_client.post(
+    response = await async_http_client.post(
         "/api/vocabulary/mark-known",
         json={"known": True},
         headers=headers,
     )
 
     assert response.status_code == 422
-
-
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenlibrary_statsCalled_ThenReturnsexpected_fields(async_client):
+async def test_Whenlibrary_statsCalled_ThenReturnsexpected_fields(async_http_client):
     """Happy path: library stats returns aggregate fields."""
-    headers = await _auth(async_client)
+    headers = await _auth(async_http_client)
 
-    response = await async_client.get(
+    response = await async_http_client.get(
         "/api/vocabulary/library/stats", headers=headers
     )
 
@@ -61,12 +59,14 @@ async def test_Whenlibrary_statsCalled_ThenReturnsexpected_fields(async_client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenlibrary_levelWithoutvalid_code_ThenReturnsError(async_client):
+async def test_Whenlibrary_levelWithoutvalid_code_ThenReturnsError(async_http_client):
     """Boundary: requesting unknown level surfaces a 404 or 422 error."""
-    headers = await _auth(async_client)
+    headers = await _auth(async_http_client)
 
-    response = await async_client.get(
+    response = await async_http_client.get(
         "/api/vocabulary/library/invalid", headers=headers
     )
 
     assert response.status_code in {404, 422}
+
+

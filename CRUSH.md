@@ -1,4 +1,12 @@
-# LangPlug CRUSH Development Guide
+# DEPRECATED: LangPlug CRUSH Development Guide
+
+**⚠️ DEPRECATION NOTICE**: This file has been consolidated into the unified AI Development Guide.
+
+**👉 Use instead**: `AI_DEVELOPMENT_GUIDE.md` - Comprehensive guide for all AI coding assistants
+
+---
+
+# Original: LangPlug CRUSH Development Guide
 
 ## Build Commands
 

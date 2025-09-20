@@ -6,6 +6,7 @@ This package contains utility modules for robust testing:
 - convert_hardcoded_urls.py: Tool to identify and convert hardcoded URLs
 """
 
-from .url_builder import APIUrlBuilder, get_url_builder
+from .url_builder import HTTPAPIUrlBuilder, get_http_url_builder
+from .server_manager import ServerManager, get_server_manager
 
-__all__ = ["APIUrlBuilder", "get_url_builder"]
+__all__ = ["HTTPAPIUrlBuilder", "get_http_url_builder", "ServerManager", "get_server_manager"]

@@ -4,6 +4,14 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
+# Import unified exceptions from core module
+from core.exceptions import (
+    AuthenticationError,
+    InvalidCredentialsError, 
+    UserAlreadyExistsError,
+    SessionExpiredError
+)
+
 if TYPE_CHECKING:
     from database.models import User
 
@@ -30,21 +38,6 @@ class AuthSession:
     created_at: datetime
 
 
-class AuthenticationError(Exception):
-    """Base exception for authentication errors"""
-    pass
-
-
-class InvalidCredentialsError(AuthenticationError):
-    """Raised when login credentials are invalid"""
-    pass
-
-
-class UserAlreadyExistsError(AuthenticationError):
-    """Raised when trying to register a user that already exists"""
-    pass
-
-
-class SessionExpiredError(AuthenticationError):
-    """Raised when a session token has expired"""
-    pass
+# Note: Exception classes have been moved to core.exceptions for unified error handling.
+# Import them from core.exceptions instead of defining them here.
+# This eliminates duplication and provides consistent error responses across the application.

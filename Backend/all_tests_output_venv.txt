@@ -1,0 +1,4 @@
+ImportError while loading conftest 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\conftest.py'.
+tests\conftest.py:11: in <module>
+    import httpx
+E   ModuleNotFoundError: No module named 'httpx'

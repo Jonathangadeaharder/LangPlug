@@ -12,8 +12,8 @@ from tests.auth_helpers import AuthTestHelperAsync
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whentranscribe_endpointCalled_ThenReturnstask(async_client, monkeypatch, tmp_path):
-    flow = await AuthTestHelperAsync.register_and_login_async(async_client)
+async def test_Whentranscribe_endpointCalled_ThenReturnstask(async_http_client, monkeypatch, tmp_path):
+    flow = await AuthTestHelperAsync.register_and_login_async(async_http_client)
 
     with patch.object(type(settings), "get_videos_path", return_value=tmp_path):
         video = tmp_path / "episode.mp4"
@@ -30,7 +30,7 @@ async def test_Whentranscribe_endpointCalled_ThenReturnstask(async_client, monke
             "api.routes.processing.get_transcription_service", lambda: transcriber
         )
 
-        response = await async_client.post(
+        response = await async_http_client.post(
             "/api/process/transcribe",
             json={"video_path": "episode.mp4"},
             headers=flow["headers"],
@@ -42,10 +42,10 @@ async def test_Whentranscribe_endpointCalled_ThenReturnstask(async_client, monke
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenprepare_episodeWithoutexisting_video_ThenReturnsError(async_client):
-    flow = await AuthTestHelperAsync.register_and_login_async(async_client)
+async def test_Whenprepare_episodeWithoutexisting_video_ThenReturnsError(async_http_client):
+    flow = await AuthTestHelperAsync.register_and_login_async(async_http_client)
 
-    response = await async_client.post(
+    response = await async_http_client.post(
         "/api/process/prepare-episode",
         json={"video_path": "missing.mp4"},
         headers=flow["headers"],

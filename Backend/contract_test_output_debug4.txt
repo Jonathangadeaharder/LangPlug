@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\run_contract_tests.py", line 14, in <module>
+    import httpx
+ModuleNotFoundError: No module named 'httpx'

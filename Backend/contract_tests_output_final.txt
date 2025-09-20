@@ -1,0 +1,27 @@
+============================================================
+Traceback (most recent call last):
+CONTRACT-DRIVEN DEVELOPMENT DEMONSTRATION
+============================================================
+This demonstrates testing with real HTTP requests
+instead of FastAPI TestClient direct calls.
+
+[RUN] Starting backend server...
+
+[ERROR] Error during testing: Server failed to start within 60 seconds
+STDOUT: 
+STDERR: 
+
+[CLEANUP] Cleaning up...
+[OK] Server stopped
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\run_contract_tests.py", line 34, in main
+    base_url = server_manager.start_server(timeout=60)
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\utils\server_manager.py", line 83, in start_server
+    self._wait_for_server_ready(timeout)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\utils\server_manager.py", line 121, in _wait_for_server_ready
+    raise RuntimeError(
+    ...<2 lines>...
+    )
+RuntimeError: Server failed to start within 60 seconds
+STDOUT: 
+STDERR: 

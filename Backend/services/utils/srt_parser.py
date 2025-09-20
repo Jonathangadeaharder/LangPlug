@@ -140,7 +140,7 @@ class SRTParser:
                     parts = full_text.split('|', 1)
                     original_text = parts[0].strip()
                     translation = parts[1].strip() if len(parts) > 1 else ""
-                    text = original_text  # Use original as main text
+                    text = original_text # Use original as main text
                 else:
                     text = full_text.strip()
                     original_text = text

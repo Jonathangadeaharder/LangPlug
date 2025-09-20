@@ -13,7 +13,7 @@ class LangPlugException(Exception):
 
 
 class AuthenticationError(LangPlugException):
-    """Authentication related errors"""
+    """Base authentication related errors"""
     def __init__(self, message: str = "Authentication failed"):
         super().__init__(message, status.HTTP_401_UNAUTHORIZED)
 
@@ -28,6 +28,24 @@ class ValidationError(LangPlugException):
     """Validation related errors"""
     def __init__(self, message: str = "Validation failed"):
         super().__init__(message, status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+
+class InvalidCredentialsError(AuthenticationError):
+    """Raised when login credentials are invalid"""
+    def __init__(self, message: str = "Invalid credentials provided"):
+        super().__init__(message)
+
+
+class UserAlreadyExistsError(ValidationError):
+    """Raised when trying to register a user that already exists"""
+    def __init__(self, message: str = "User already exists"):
+        super().__init__(message)
+
+
+class SessionExpiredError(AuthenticationError):
+    """Raised when a session token has expired"""
+    def __init__(self, message: str = "Session has expired"):
+        super().__init__(message)
 
 
 class NotFoundError(LangPlugException):

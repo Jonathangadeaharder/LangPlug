@@ -1,0 +1,46 @@
+Traceback (most recent call last):
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\run_contract_tests.py", line 34, in main
+    base_url = server_manager.start_server(timeout=60)
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\utils\server_manager.py", line 173, in start_server
+    self._wait_for_server_ready(timeout)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\utils\server_manager.py", line 222, in _wait_for_server_ready
+    raise RuntimeError(
+    ...<2 lines>...
+    )
+RuntimeError: Server failed to start within 60 seconds
+STDOUT: 
+STDERR: Timeout while trying to get process output
+============================================================
+CONTRACT-DRIVEN DEVELOPMENT DEMONSTRATION
+============================================================
+This demonstrates testing with real HTTP requests
+instead of FastAPI TestClient direct calls.
+
+[RUN] Starting backend server...
+[DEBUG] Starting server with command: E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api_venv\Scripts\python.exe run_backend.py
+[DEBUG] Working directory: E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend
+[DEBUG] Python command: ['E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\Backend\\api_venv\\Scripts\\python.exe']
+[DEBUG] Health check failed for http://localhost:58735/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/api/debug/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/api/debug/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/api/debug/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/api/debug/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/api/debug/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/api/debug/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/health: timed out
+[DEBUG] Health check failed for http://localhost:58735/api/debug/health: timed out
+[DEBUG] Server startup timeout. STDOUT: 
+STDERR: Timeout while trying to get process output
+
+[ERROR] Error during testing: Server failed to start within 60 seconds
+STDOUT: 
+STDERR: Timeout while trying to get process output
+
+[CLEANUP] Cleaning up...
+[OK] Server stopped

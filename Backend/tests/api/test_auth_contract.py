@@ -21,16 +21,16 @@ def _assert_user_payload(payload: dict[str, str], expected_username: str, expect
     assert payload["email"] == expected_email
     uuid.UUID(payload["id"])  # raises if not UUID formatted
 
-
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenRegisterCalledWithValidData_ThenReturnsUserResponse(async_client):
+async def test_WhenRegisterCalledWithValidData_ThenReturnsUserResponse(async_http_client):
     user_data = AuthTestHelper.generate_unique_user_data()
 
-    status_code, payload = await AuthTestHelper.register_user_async(async_client, user_data)
+    status_code, payload = await AuthTestHelper.register_user_async(async_http_client, user_data)
 
     assert status_code == 201
     _assert_user_payload(payload, user_data["username"], user_data["email"])
+
 
 
 @pytest.mark.anyio
@@ -43,8 +43,8 @@ async def test_WhenRegisterCalledWithValidData_ThenReturnsUserResponse(async_cli
         ({"username": "", "email": "bad@example.com", "password": "SecurePass123!"}, "username"),
     ],
 )
-async def test_WhenRegisterCalledWithInvalidPayload_ThenReturnsValidationError(async_client, payload, expected_missing_field):
-    response = await async_client.post("/api/auth/register", json=payload)
+async def test_WhenRegisterCalledWithInvalidPayload_ThenReturnsValidationError(async_http_client, payload, expected_missing_field):
+    response = await async_http_client.post("/api/auth/register", json=payload)
 
     assert response.status_code == 422
     response_data = response.json()
@@ -59,23 +59,23 @@ async def test_WhenRegisterCalledWithInvalidPayload_ThenReturnsValidationError(a
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenRegisterCalledWithDuplicateUser_ThenRejectsDuplication(async_client):
+async def test_WhenRegisterCalledWithDuplicateUser_ThenRejectsDuplication(async_http_client):
     user_data = AuthTestHelper.generate_unique_user_data()
-    status_code, _ = await AuthTestHelper.register_user_async(async_client, user_data)
+    status_code, _ = await AuthTestHelper.register_user_async(async_http_client, user_data)
     assert status_code == 201
 
-    duplicate_response = await async_client.post("/api/auth/register", json=user_data)
+    duplicate_response = await async_http_client.post("/api/auth/register", json=user_data)
     assert duplicate_response.status_code == 400
 
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenLoginCalledWithValidCredentials_ThenReturnsBearerToken(async_client):
+async def test_WhenLoginCalledWithValidCredentials_ThenReturnsBearerToken(async_http_client):
     user_data = AuthTestHelper.generate_unique_user_data()
-    await AuthTestHelper.register_user_async(async_client, user_data)
+    await AuthTestHelper.register_user_async(async_http_client, user_data)
 
     status_code, payload = await AuthTestHelper.login_user_async(
-        async_client, user_data["email"], user_data["password"]
+        async_http_client, user_data["email"], user_data["password"]
     )
 
     assert status_code == 200
@@ -84,21 +84,19 @@ async def test_WhenLoginCalledWithValidCredentials_ThenReturnsBearerToken(async_
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenLoginCalledWithBadCredentials_ThenRejectsWithError(async_client):
+async def test_WhenLoginCalledWithBadCredentials_ThenRejectsWithError(async_http_client):
     status_code, payload = await AuthTestHelper.login_user_async(
-        async_client, "no_user@example.com", "SuperSecret123!"
+        async_http_client, "no_user@example.com", "SuperSecret123!"
     )
 
     assert status_code == 400
     assert "detail" in payload  # FastAPI-Users returns 'detail' instead of 'error'
-
-
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenLogoutCalledWithValidToken_ThenReturnsNoContent(async_client):
-    flow = await AuthTestHelper.register_and_login_async(async_client)
+async def test_WhenLogoutCalledWithValidToken_ThenReturnsNoContent(async_http_client):
+    flow = await AuthTestHelper.register_and_login_async(async_http_client)
 
-    status_code, body = await AuthTestHelper.logout_user_async(async_client, flow["token"])
+    status_code, body = await AuthTestHelper.logout_user_async(async_http_client, flow["token"])
 
     assert status_code == 204
     assert body == {}
@@ -106,19 +104,20 @@ async def test_WhenLogoutCalledWithValidToken_ThenReturnsNoContent(async_client)
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenMeCalledWithoutAuth_ThenReturnsUnauthorized(async_client):
-    response = await async_client.get("/api/auth/me")
+async def test_WhenMeCalledWithoutAuth_ThenReturnsUnauthorized(async_http_client):
+    response = await async_http_client.get("/api/auth/me")
 
     assert response.status_code == AuthResponseStructures.UNAUTHORIZED["status_code"]
 
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenMeCalledWithValidToken_ThenReturnsUserProfile(async_client):
-    flow = await AuthTestHelper.register_and_login_async(async_client)
+async def test_WhenMeCalledWithValidToken_ThenReturnsUserProfile(async_http_client):
+    flow = await AuthTestHelper.register_and_login_async(async_http_client)
 
-    status_code, payload = await AuthTestHelper.get_current_user_async(async_client, flow["token"])
+    status_code, payload = await AuthTestHelper.get_current_user_async(async_http_client, flow["token"])
 
     assert status_code == AuthResponseStructures.USER_INFO_SUCCESS["status_code"]
     validate_auth_response(payload, AuthResponseStructures.USER_INFO_SUCCESS)
     assert payload["username"] == flow["user_data"]["username"]
+

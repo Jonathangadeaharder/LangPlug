@@ -13,6 +13,7 @@ from api.routes import (
     logs,
     processing,
     progress,
+    srt_utilities,
     user_profile,
     videos,
     vocabulary,
@@ -124,6 +125,7 @@ def create_app() -> FastAPI:
     app.include_router(logs.router, prefix="/api/logs")
     app.include_router(progress.router, prefix="/api/progress")
     app.include_router(game.router, prefix="/api/game")
+    app.include_router(srt_utilities.router)  # Already includes /api/srt prefix
 
     # Only include debug routes in debug mode
     if settings.debug:

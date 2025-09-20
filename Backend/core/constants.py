@@ -16,7 +16,7 @@ SESSION_TIMEOUT = timedelta(minutes=30)
 MAX_LOGIN_ATTEMPTS = 5
 
 # Transcription
-DEFAULT_WHISPER_MODEL = "base"
+DEFAULT_WHISPER_MODEL = "tiny"  # Use "tiny" for testing/debugging, "large-v3-turbo" for production
 AVAILABLE_WHISPER_MODELS = ["tiny", "base", "small", "medium", "large", "large-v2", "large-v3", "large-v3-turbo"]
 DEFAULT_LANGUAGE = "de"
 MAX_AUDIO_LENGTH = 600  # seconds (10 minutes)

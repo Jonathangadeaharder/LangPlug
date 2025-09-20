@@ -1,155 +1,231 @@
-"""SRT subtitle parser using pysrt library"""
+"""SRT Subtitle Parser Utility
+
+Parser for SRT subtitle files that handles both single-language and dual-language formats. Supports Windows and Unix line endings.
+"""
+
+import re
 from dataclasses import dataclass
 from pathlib import Path
-
-import pysrt
-from pysrt import SubRipFile, SubRipItem
 
 
 @dataclass
 class SRTSegment:
-    """Represents a subtitle segment"""
+    """Represents a single subtitle segment from an SRT file"""
+    index: int
     start_time: float  # in seconds
     end_time: float    # in seconds
     text: str
-    index: int
-
-    def __post_init__(self):
-        """Clean up text after initialization"""
-        self.text = self.text.strip()
+    original_text: str = ""  # For dual-language subtitles
+    translation: str = ""    # For dual-language subtitles
 
 
 class SRTParser:
-    """SRT subtitle parser using pysrt library"""
+    """Parser for SRT subtitle files"""
 
-    def __init__(self):
-        self.segments: list[SRTSegment] = []
+    # SRT timestamp pattern: HH:MM:SS,mmm --> HH:MM:SS,mmm
+    TIMESTAMP_PATTERN = re.compile(
+        r'(\d{2}):(\d{2}):(\d{2}),(\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2}),(\d{3})'
+    )
 
-    def parse_file(self, file_path: Path) -> list[SRTSegment]:
-        """Parse SRT file and return list of segments"""
-        try:
-            # pysrt handles encoding detection automatically
-            subs = pysrt.open(str(file_path))
+    @staticmethod
+    def parse_timestamp(timestamp_str: str) -> float:
+        """Convert SRT timestamp to seconds
+        
+        Args:
+            timestamp_str: Timestamp in format HH:MM:SS,mmm
+            
+        Returns:
+            Time in seconds as float
+        """
+        match = re.match(r'(\d{2}):(\d{2}):(\d{2}),(\d{3})', timestamp_str)
+        if not match:
+            raise ValueError(f"Invalid timestamp format: {timestamp_str}")
 
-            segments = []
-            for sub in subs:
-                segment = SRTSegment(
-                    start_time=self._time_to_seconds(sub.start),
-                    end_time=self._time_to_seconds(sub.end),
-                    text=sub.text,
-                    index=sub.index
-                )
-                segments.append(segment)
+        hours, minutes, seconds, milliseconds = map(int, match.groups())
+        return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000
 
-            self.segments = segments
-            return segments
-
-        except Exception as e:
-            raise ValueError(f"Error parsing SRT file {file_path}: {e!s}")
-
-    def parse_content(self, content: str) -> list[SRTSegment]:
-        """Parse SRT content from string"""
-        try:
-            subs = pysrt.from_string(content)
-
-            segments = []
-            for sub in subs:
-                segment = SRTSegment(
-                    start_time=self._time_to_seconds(sub.start),
-                    end_time=self._time_to_seconds(sub.end),
-                    text=sub.text,
-                    index=sub.index
-                )
-                segments.append(segment)
-
-            self.segments = segments
-            return segments
-
-        except Exception as e:
-            raise ValueError(f"Error parsing SRT content: {e!s}")
-
-    def _time_to_seconds(self, time_obj) -> float:
-        """Convert pysrt time object to seconds"""
-        return (
-            time_obj.hours * 3600 +
-            time_obj.minutes * 60 +
-            time_obj.seconds +
-            time_obj.milliseconds / 1000.0
-        )
-
-    def get_text_at_time(self, time_seconds: float) -> str | None:
-        """Get subtitle text at specific time"""
-        for segment in self.segments:
-            if segment.start_time <= time_seconds <= segment.end_time:
-                return segment.text
-        return None
-
-    def get_segments_in_range(self, start_time: float, end_time: float) -> list[SRTSegment]:
-        """Get all segments within time range"""
-        return [
-            segment for segment in self.segments
-            if not (segment.end_time < start_time or segment.start_time > end_time)
-        ]
-
-    def save_to_file(self, file_path: Path, segments: list[SRTSegment] | None = None):
-        """Save segments to SRT file"""
-        if segments is None:
-            segments = self.segments
-
-        subs = SubRipFile()
-        for segment in segments:
-            item = SubRipItem(
-                index=segment.index,
-                start=self._seconds_to_time(segment.start_time),
-                end=self._seconds_to_time(segment.end_time),
-                text=segment.text
-            )
-            subs.append(item)
-
-        subs.save(str(file_path), encoding='utf-8')
-
-    def _seconds_to_time(self, seconds: float):
-        """Convert seconds to pysrt time object"""
+    @staticmethod
+    def format_timestamp(seconds: float) -> str:
+        """Convert seconds to SRT timestamp format
+        
+        Args:
+            seconds: Time in seconds
+            
+        Returns:
+            Timestamp in SRT format HH:MM:SS,mmm
+        """
         hours = int(seconds // 3600)
         minutes = int((seconds % 3600) // 60)
         secs = int(seconds % 60)
         milliseconds = int((seconds % 1) * 1000)
 
-        return pysrt.SubRipTime(hours, minutes, secs, milliseconds)
+        return f"{hours:02d}:{minutes:02d}:{secs:02d},{milliseconds:03d}"
 
-    def split_dual_language_text(self, text: str, separator: str = "\n") -> tuple[str, str]:
-        """Split dual-language subtitle text"""
-        parts = text.split(separator, 1)
-        if len(parts) == 2:
-            return parts[0].strip(), parts[1].strip()
-        return text.strip(), ""
+    @classmethod
+    def parse_file(cls, file_path: str) -> list[SRTSegment]:
+        """Parse an SRT file into a list of segments
+        
+        Args:
+            file_path: Path to the SRT file
+            
+        Returns:
+            List of SRTSegment objects
+            
+        Raises:
+            FileNotFoundError: If the file doesn't exist
+            ValueError: If the file format is invalid
+        """
+        path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"SRT file not found: {file_path}")
 
-    def extract_language_segments(self, language_index: int = 0) -> list[SRTSegment]:
-        """Extract segments for specific language from dual-language subtitles"""
-        extracted_segments = []
+        try:
+            with open(path, encoding='utf-8') as f:
+                content = f.read()
+        except UnicodeDecodeError:
+            # Try with different encoding
+            with open(path, encoding='latin-1') as f:
+                content = f.read()
 
-        for segment in self.segments:
-            lines = segment.text.split('\n')
-            if language_index < len(lines):
-                text = lines[language_index].strip()
-                if text:  # Only include non-empty text
-                    extracted_segments.append(SRTSegment(
-                        start_time=segment.start_time,
-                        end_time=segment.end_time,
-                        text=text,
-                        index=segment.index
-                    ))
+        return cls.parse_content(content)
 
-        return extracted_segments
+    @classmethod
+    def parse_content(cls, content: str) -> list[SRTSegment]:
+        """Parse SRT content string into segments
+        
+        Args:
+            content: SRT file content as string
+            
+        Returns:
+            List of SRTSegment objects
+        """
+        segments = []
+        # Support both LF and CRLF newlines when splitting blocks
+        # This ensures Windows-formatted SRT files are parsed correctly
+        blocks = re.split(r'\r?\n\r?\n', content.strip())
 
+        for block in blocks:
+            if not block.strip():
+                continue
 
-def parse_srt_file(file_path: Path) -> list[SRTSegment]:
-    """Convenience function to parse SRT file"""
-    parser = SRTParser()
-    return parser.parse_file(file_path)
+            lines = block.strip().split('\n')
+            if len(lines) < 3:
+                continue
 
+            try:
+                # Parse index
+                index = int(lines[0].strip())
 
-def parse_srt_content(content: str) -> list[SRTSegment]:
-    """Convenience function to parse SRT content"""
-    parser = SRTParser()
-    return parser.parse_content(content)
+                # Parse timestamps
+                timestamp_match = cls.TIMESTAMP_PATTERN.match(lines[1])
+                if not timestamp_match:
+                    continue
+
+                start_h, start_m, start_s, start_ms, end_h, end_m, end_s, end_ms = map(
+                    int, timestamp_match.groups()
+                )
+
+                start_time = start_h * 3600 + start_m * 60 + start_s + start_ms / 1000
+                end_time = end_h * 3600 + end_m * 60 + end_s + end_ms / 1000
+
+                # Parse text (join remaining lines)
+                text_lines = lines[2:]
+                full_text = '\n'.join(text_lines)
+
+                # Check for dual-language format (original | translation)
+                original_text = ""
+                translation = ""
+
+                if '|' in full_text:
+                    parts = full_text.split('|', 1)
+                    original_text = parts[0].strip()
+                    translation = parts[1].strip() if len(parts) > 1 else ""
+                    text = original_text  # Use original as main text
+                else:
+                    text = full_text.strip()
+                    original_text = text
+
+                segment = SRTSegment(
+                    index=index,
+                    start_time=start_time,
+                    end_time=end_time,
+                    text=text,
+                    original_text=original_text,
+                    translation=translation
+                )
+
+                segments.append(segment)
+
+            except (ValueError, IndexError):
+                # Skip malformed blocks
+                continue
+
+        return segments
+
+    @staticmethod
+    def segments_to_srt(segments: list[SRTSegment]) -> str:
+        """Convert segments back to SRT format
+        
+        Args:
+            segments: List of SRTSegment objects
+            
+        Returns:
+            SRT formatted string
+        """
+        srt_content = []
+
+        for segment in segments:
+            srt_content.append(str(segment.index))
+
+            start_ts = SRTParser.format_timestamp(segment.start_time)
+            end_ts = SRTParser.format_timestamp(segment.end_time)
+            srt_content.append(f"{start_ts} --> {end_ts}")
+
+            # Handle dual-language format
+            if segment.translation:
+                srt_content.append(f"{segment.original_text} | {segment.translation}")
+            elif segment.text:
+                srt_content.append(segment.text)
+            else:
+                # Ensure we have some text
+                srt_content.append(segment.original_text or "")
+
+            srt_content.append("")  # Empty line between segments
+
+        return '\n'.join(srt_content)
+
+    @staticmethod
+    def save_segments(segments: list[SRTSegment], file_path: str) -> None:
+        """Save segments to an SRT file
+        
+        Args:
+            segments: List of SRTSegment objects
+            file_path: Output file path
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+
+        srt_content = SRTParser.segments_to_srt(segments)
+        logger.debug(f"[SRT SAVE] Writing {len(srt_content)} chars to {file_path}")
+
+        # Ensure parent directory exists
+        from pathlib import Path
+        Path(file_path).parent.mkdir(parents=True, exist_ok=True)
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(srt_content)
+            f.flush()  # Force write to disk
+
+        # Verify file was written
+        if Path(file_path).exists():
+            actual_size = Path(file_path).stat().st_size
+            logger.debug(f"[SRT SAVE] File written successfully, size: {actual_size} bytes")
+            if actual_size == 0 and len(srt_content) > 0:
+                logger.error(f"[SRT SAVE] ERROR: File is empty but content was {len(srt_content)} chars!")
+                # Try writing again with explicit UTF-8 BOM
+                with open(file_path, 'w', encoding='utf-8-sig') as f:
+                    f.write(srt_content)
+                    f.flush()
+                logger.debug("[SRT SAVE] Retried with UTF-8 BOM")
+        else:
+            logger.error(f"[SRT SAVE] ERROR: File was not created at {file_path}")

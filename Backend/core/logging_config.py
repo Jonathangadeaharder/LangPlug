@@ -19,10 +19,23 @@ def configure_logging():
     """Configure structlog for the application"""
 
     # Configure standard library logging
+    logs_path = settings.get_logs_path()
+    log_file = logs_path / "backend.log"
+    log_handlers: list[logging.Handler] = [
+        logging.FileHandler(log_file, encoding="utf-8")
+    ]
+
+    # In debug mode keep warnings/errors on console, otherwise stay silent.
+    if settings.debug:
+        console_handler = logging.StreamHandler(sys.stderr)
+        console_handler.setLevel(logging.WARNING)
+        log_handlers.append(console_handler)
+
     logging.basicConfig(
         format="%(message)s",
-        stream=sys.stdout,
         level=getattr(logging, settings.log_level.upper()),
+        handlers=log_handlers,
+        force=True,
     )
 
     # Configure structlog

@@ -12,9 +12,9 @@ from tests.auth_helpers import AuthTestHelperAsync
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenchunk_processing_accepts_requestCalled_ThenSucceeds(async_client, monkeypatch, tmp_path):
+async def test_Whenchunk_processing_accepts_requestCalled_ThenSucceeds(async_http_client, monkeypatch, tmp_path):
     """Happy path: chunk processing request is accepted when dependencies succeed."""
-    auth = await AuthTestHelperAsync.register_and_login_async(async_client)
+    auth = await AuthTestHelperAsync.register_and_login_async(async_http_client)
 
     with patch.object(type(settings), "get_videos_path", return_value=tmp_path):
         video_path = tmp_path / "episode.mp4"
@@ -40,7 +40,7 @@ async def test_Whenchunk_processing_accepts_requestCalled_ThenSucceeds(async_cli
             "core.dependencies.get_user_filter_chain", lambda *a, **k: filter_chain
         )
 
-        response = await async_client.post(
+        response = await async_http_client.post(
             "/api/process/chunk",
             json={"video_path": video_path.name, "start_time": 0, "end_time": 5},
             headers=auth["headers"],
@@ -51,15 +51,15 @@ async def test_Whenchunk_processing_accepts_requestCalled_ThenSucceeds(async_cli
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenchunk_processingWithoutexisting_subtitle_ThenReturnsError(async_client, monkeypatch, tmp_path):
+async def test_Whenchunk_processingWithoutexisting_subtitle_ThenReturnsError(async_http_client, monkeypatch, tmp_path):
     """Invalid input: request is accepted but processing fails when no matching subtitle file exists."""
-    auth = await AuthTestHelperAsync.register_and_login_async(async_client)
+    auth = await AuthTestHelperAsync.register_and_login_async(async_http_client)
 
     with patch.object(type(settings), "get_videos_path", return_value=tmp_path):
         video_path = tmp_path / "episode.mp4"
         video_path.write_bytes(b"fake")
 
-        response = await async_client.post(
+        response = await async_http_client.post(
             "/api/process/chunk",
             json={"video_path": video_path.name, "start_time": 0, "end_time": 5},
             headers=auth["headers"]

@@ -1,0 +1,39 @@
+============================================================
+CONTRACT-DRIVEN DEVELOPMENT DEMONSTRATION
+============================================================
+This demonstrates testing with real HTTP requests
+instead of FastAPI TestClient direct calls.
+
+Traceback (most recent call last):
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\run_contract_tests.py", line 30, in main
+    print("\U0001f680 Starting backend server...")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f680' in position 0: character maps to <undefined>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\run_contract_tests.py", line 173, in main
+    print(f"\n\u274c Error during testing: {e}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u274c' in position 2: character maps to <undefined>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\run_contract_tests.py", line 189, in <module>
+    exit(main())
+         ~~~~^^
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\run_contract_tests.py", line 180, in main
+    print("\n\U0001f9f9 Cleaning up...")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f9f9' in position 2: character maps to <undefined>

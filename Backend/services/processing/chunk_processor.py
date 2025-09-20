@@ -16,7 +16,7 @@ from core.auth import jwt_authentication
 from core.config import settings
 from core.dependencies import get_subtitle_processor, get_transcription_service
 from database.models import User
-from services.utils.srt_parser import SRTParser
+from utils.srt_parser import SRTParser, SRTSegment
 
 logger = logging.getLogger(__name__)
 
@@ -330,8 +330,8 @@ class ChunkProcessingService:
                 adj_end = segment.end_time - start_time
 
                 # Format timestamps in SRT format
-                start_ts = self._format_srt_timestamp(adj_start)
-                end_ts = self._format_srt_timestamp(adj_end)
+                start_ts = SRTParser.format_timestamp(adj_start)
+                end_ts = SRTParser.format_timestamp(adj_end)
 
                 srt_content.append(f"{i}")
                 srt_content.append(f"{start_ts} --> {end_ts}")
@@ -356,13 +356,8 @@ class ChunkProcessingService:
 
 
 
-    def _format_srt_timestamp(self, seconds: float) -> str:
-        """Format seconds as SRT timestamp (HH:MM:SS,mmm)"""
-        hours = int(seconds // 3600)
-        minutes = int((seconds % 3600) // 60)
-        secs = int(seconds % 60)
-        millisecs = int((seconds % 1) * 1000)
-        return f"{hours:02d}:{minutes:02d}:{secs:02d},{millisecs:03d}"
+    # Note: _format_srt_timestamp method removed - using SRTParser.format_timestamp instead
+    # to eliminate code duplication and maintain consistency
 
     def _cleanup_old_chunk_files(self, video_file: Path, start_time: float, end_time: float) -> None:
         """Remove old chunk files before generating new ones"""

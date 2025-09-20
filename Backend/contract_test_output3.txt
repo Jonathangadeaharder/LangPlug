@@ -1,0 +1,49 @@
+Traceback (most recent call last):
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\run_contract_tests.py", line 34, in main
+============================================================
+CONTRACT-DRIVEN DEVELOPMENT DEMONSTRATION
+============================================================
+This demonstrates testing with real HTTP requests
+instead of FastAPI TestClient direct calls.
+
+[RUN] Starting backend server...
+
+[ERROR] Error during testing: Server process exited early (code 1)
+STDOUT: Starting LangPlug Backend...
+Testing imports...
+Basic imports successful
+Setting up logging...
+Logging configured
+Initializing services...
+Services initialized
+Creating FastAPI application...
+Import Error: No module named 'utils.media_validator'
+Make sure all dependencies are installed:
+   pip install -r requirements.txt
+
+STDERR: 
+
+[CLEANUP] Cleaning up...
+[OK] Server stopped
+    base_url = server_manager.start_server(timeout=60)
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\utils\server_manager.py", line 83, in start_server
+    self._wait_for_server_ready(timeout)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\utils\server_manager.py", line 100, in _wait_for_server_ready
+    raise RuntimeError(
+    ...<2 lines>...
+    )
+RuntimeError: Server process exited early (code 1)
+STDOUT: Starting LangPlug Backend...
+Testing imports...
+Basic imports successful
+Setting up logging...
+Logging configured
+Initializing services...
+Services initialized
+Creating FastAPI application...
+Import Error: No module named 'utils.media_validator'
+Make sure all dependencies are installed:
+   pip install -r requirements.txt
+
+STDERR: 

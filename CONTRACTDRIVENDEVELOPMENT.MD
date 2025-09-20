@@ -1,4 +1,13 @@
-# AI Agent Rule File for Contract Driven Development (CDD)
+# DEPRECATED: AI Agent Rule File for Contract Driven Development (CDD)
+
+**⚠️ DEPRECATION NOTICE**: This file is deprecated. Use the comprehensive testing strategy documentation instead:
+- **Primary Reference**: `docs/TESTING_STRATEGY.md` - Complete testing strategy and CDD implementation
+- **Technical Details**: `Backend/tests/CONTRACT_DRIVEN_DEVELOPMENT.md` - Implementation specifics
+- **Tooling Reference**: `docs/tooling/contract_and_test_tooling.md` - Updated tooling commands
+
+---
+
+# Original AI Agent Rule File for Contract Driven Development (CDD)
 
 rules:
   - name: "Define Clear Interface Contracts Upfront"

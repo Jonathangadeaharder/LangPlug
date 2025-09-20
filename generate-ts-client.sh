@@ -1,4 +1,6 @@
 #!/bin/bash
+# DEPRECATED: Use `python scripts/generate_typescript_client.py` instead
+# This script will be removed in a future release
 # Generate TypeScript client from OpenAPI spec
 
 # Export OpenAPI spec from backend

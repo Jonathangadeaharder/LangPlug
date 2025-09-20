@@ -72,12 +72,30 @@ def activate_venv():
             break
 
     if not venv_path and os.environ.get('AUTO_CREATE_VENV') == '1':
-        # Create a minimal venv for this platform
+        # Create a minimal venv for this platform using system Python
         try:
             import subprocess
-            env_to_create = candidates[0]
-            subprocess.check_call([str(current_python), '-m', 'venv', str(env_to_create)])
-            venv_path = env_to_create
+            # Use Python 3.11 instead of current_python which might be broken
+            python_exe = r"C:\Users\jogah\AppData\Local\Programs\Python311\python.exe"
+            if not Path(python_exe).exists():
+                # Try to find Python in common locations
+                common_python_paths = [
+                    r"C:\Python311\python.exe",
+                    r"C:\Program Files\Python311\python.exe",
+                    r"C:\Program Files (x86)\Python311\python.exe",
+                    r"C:\Users\Jonandrop\AppData\Local\Programs\Python\Python311\python.exe"
+                ]
+                for path in common_python_paths:
+                    if Path(path).exists():
+                        python_exe = path
+                        break
+                else:
+                    # If we can't find a specific Python 3.11, try using the current Python
+                    python_exe = sys.executable
+            if Path(python_exe).exists():
+                env_to_create = candidates[0]
+                subprocess.check_call([python_exe, '-m', 'venv', str(env_to_create)])
+                venv_path = env_to_create
         except Exception:
             venv_path = None
 

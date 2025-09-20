@@ -17,10 +17,10 @@ from tests.auth_helpers import AuthTestHelperAsync
         ("/api/process/filter-subtitles", {}),
     ],
 )
-async def test_WhenEndpointsRequireMandatoryFields_ThenValidates(async_client, endpoint: str, payload: dict):
+async def test_WhenEndpointsRequireMandatoryFields_ThenValidates(async_http_client, endpoint: str, payload: dict):
     """Invalid input: missing mandatory fields results in 422 validation errors."""
-    auth = await AuthTestHelperAsync.register_and_login_async(async_client)
+    auth = await AuthTestHelperAsync.register_and_login_async(async_http_client)
 
-    response = await async_client.post(endpoint, json=payload, headers=auth["headers"])
+    response = await async_http_client.post(endpoint, json=payload, headers=auth["headers"])
 
     assert response.status_code == 422

@@ -1,4 +1,12 @@
-# LangPlug Development Guide for Agentic Coding Agents
+# DEPRECATED: LangPlug Development Guide for Agentic Coding Agents
+
+**⚠️ DEPRECATION NOTICE**: This file has been consolidated into the unified AI Development Guide.
+
+**👉 Use instead**: `AI_DEVELOPMENT_GUIDE.md` - Comprehensive guide for all AI coding assistants
+
+---
+
+# Original: LangPlug Development Guide for Agentic Coding Agents
 
 ## Build/Lint/Test Commands
 

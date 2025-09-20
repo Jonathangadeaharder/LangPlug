@@ -8,7 +8,10 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
-
+from utils.media_validator import is_valid_video_file
+from utils.transcription import WhisperTranscription
+from utils.video_downloader import download_video
+from utils.srt_parser import SRTParser
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from core.config import settings
@@ -35,13 +38,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["processing"])
 
 
-def _format_srt_timestamp(seconds: float) -> str:
-    """Format seconds to SRT timestamp format (HH:MM:SS,mmm)"""
-    hours = int(seconds // 3600)
-    minutes = int((seconds % 3600) // 60)
-    secs = int(seconds % 60)
-    milliseconds = round((seconds % 1) * 1000)  # Use round instead of int for proper rounding
-    return f"{hours:02d}:{minutes:02d}:{secs:02d},{milliseconds:03d}"
+# Note: _format_srt_timestamp function removed - using SRTParser.format_timestamp instead
+# to eliminate code duplication (DRY principle)
 
 
 async def run_transcription(
@@ -110,8 +108,8 @@ async def run_transcription(
         srt_content = []
         for i, segment in enumerate(result.segments, 1):
             # Format timestamps in SRT format (HH:MM:SS,mmm)
-            start_time = _format_srt_timestamp(segment.start_time)
-            end_time = _format_srt_timestamp(segment.end_time)
+            start_time = SRTParser.format_timestamp(segment.start_time)
+            end_time = SRTParser.format_timestamp(segment.end_time)
 
             # Build SRT entry
             srt_content.append(f"{i}")
@@ -261,7 +259,7 @@ async def run_translation(
         )
 
         # Read and parse the SRT file
-        from services.utils.srt_parser import SRTParser
+        from utils.srt_parser import SRTParser
 
         srt_parser = SRTParser()
         segments = srt_parser.parse_file(str(srt_file))

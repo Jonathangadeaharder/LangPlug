@@ -261,7 +261,7 @@ class DirectSubtitleProcessor:
         try:
             from api.models.processing import VocabularyWord
 
-            from ..utils.srt_parser import SRTParser
+            from utils.srt_parser import SRTParser
 
             logger.info(f"Processing SRT file: {srt_file_path}")
 

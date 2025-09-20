@@ -15,7 +15,7 @@ def _auth_headers(client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenlist_videosCalled_ThenReturnscontract_payload(async_client, client):
+async def test_Whenlist_videosCalled_ThenReturnscontract_payload(async_http_client, client):
     """Happy path: /videos returns a list of VideoInfo-like dictionaries."""
     headers = _auth_headers(client)
     with (
@@ -24,7 +24,7 @@ async def test_Whenlist_videosCalled_ThenReturnscontract_payload(async_client, c
         patch("os.path.isdir", return_value=True),
         patch("glob.glob", return_value=["series/S01E01.mp4"]),
     ):
-        response = await async_client.get("/api/videos", headers=headers)
+        response = await async_http_client.get("/api/videos", headers=headers)
 
     assert response.status_code == 200
     payload = response.json()
@@ -37,12 +37,12 @@ async def test_Whenlist_videosCalled_ThenReturnscontract_payload(async_client, c
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenStreamVideoMissingFile_ThenReturns404(async_client, client):
+async def test_WhenStreamVideoMissingFile_ThenReturns404(async_http_client, client):
     """Invalid input: streaming a missing video yields 404."""
     headers = _auth_headers(client)
 
     with patch("os.path.exists", return_value=False):
-        response = await async_client.get(
+        response = await async_http_client.get(
             "/api/videos/missing/S01E01", headers=headers
         )
 
@@ -51,20 +51,18 @@ async def test_WhenStreamVideoMissingFile_ThenReturns404(async_client, client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenupload_videoWithoutfile_ThenReturnsError(async_client, client):
+async def test_Whenupload_videoWithoutfile_ThenReturnsError(async_http_client, client):
     """Boundary: upload endpoint rejects requests without a file."""
     headers = _auth_headers(client)
 
-    response = await async_client.post(
+    response = await async_http_client.post(
         "/api/videos/upload/test_series", headers=headers
     )
 
     assert response.status_code == 422
-
-
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenUploadSubtitleAcceptsValidFile_ThenSucceeds(async_client, client):
+async def test_WhenUploadSubtitleAcceptsValidFile_ThenSucceeds(async_http_client, client):
     """Happy path: subtitle upload stores file when prerequisites satisfied."""
     headers = _auth_headers(client)
     subtitle_content = "1\n00:00:01,000 --> 00:00:02,000\nTest subtitle\n"
@@ -74,7 +72,7 @@ async def test_WhenUploadSubtitleAcceptsValidFile_ThenSucceeds(async_client, cli
         patch("builtins.open", mock_open()),
         patch("os.makedirs"),
     ):
-        response = await async_client.post(
+        response = await async_http_client.post(
             "/api/videos/subtitle/upload",
             headers=headers,
             params={"video_path": "series/S01E01.mp4"},
@@ -82,3 +80,5 @@ async def test_WhenUploadSubtitleAcceptsValidFile_ThenSucceeds(async_client, cli
         )
 
     assert response.status_code in {200, 202}
+
+

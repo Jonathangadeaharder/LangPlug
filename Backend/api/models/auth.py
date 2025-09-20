@@ -59,7 +59,7 @@ class UserResponse(BaseModel):
     last_login: str | None = Field(None, description="Last login timestamp (ISO format)")
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "id": "550e8400-e29b-41d4-a716-446655440000",
                 "username": "john_doe",
@@ -77,7 +77,7 @@ class AuthResponse(BaseModel):
     expires_at: str = Field(..., description="Token expiration timestamp (ISO format)")
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                 "user": {

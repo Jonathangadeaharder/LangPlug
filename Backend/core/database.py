@@ -21,7 +21,7 @@ if settings.db_type == "postgresql":
         pool_size=settings.postgres_pool_size,
         max_overflow=settings.postgres_max_overflow,
         pool_pre_ping=True,
-        echo=settings.debug,
+        echo=settings.sqlalchemy_echo,
     )
 else:
     # SQLite with aiosqlite
@@ -30,7 +30,7 @@ else:
         database_url,
         poolclass=StaticPool,
         connect_args={"check_same_thread": False},
-        echo=settings.debug,
+        echo=settings.sqlalchemy_echo,
     )
 
 # Create async session factory

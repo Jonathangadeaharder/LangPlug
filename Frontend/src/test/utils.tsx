@@ -1,68 +1,94 @@
 /**
- * Test utility to verify SRT parsing functionality
+ * DEPRECATED: Legacy SRT parsing utility
+ * 
+ * This file contained duplicate SRT parsing logic that has been replaced
+ * with a proper API-based approach. The frontend no longer parses SRT files
+ * directly - instead, it uses the backend API as the single source of truth.
+ * 
+ * Migration Guide:
+ * ================
+ * 
+ * OLD APPROACH (deprecated):
+ * ```ts
+ * import { parseSRT } from './utils'
+ * const parsed = parseSRT(srtContent)
+ * ```
+ * 
+ * NEW APPROACH (recommended):
+ * ```ts
+ * import { srtApi } from '../utils/srtApi'
+ * const result = await srtApi.parseSRTContent(srtContent)
+ * const segments = result.segments
+ * ```
+ * 
+ * Benefits of the new approach:
+ * - Single source of truth for SRT parsing logic (backend)
+ * - Better error handling and validation
+ * - Consistent parsing behavior across the application
+ * - Proper testing with mocked API responses
+ * - No code duplication between frontend and backend
+ * 
+ * For proper tests, see: subtitle-parsing.test.ts
  */
 
-// Sample SRT content for testing
-const sampleSRT = `1
-00:00:01,000 --> 00:00:04,000
-This is a test subtitle
+// Re-export the API client for migration compatibility
+export { srtApi as SRTApi, srtUtils } from '../utils/srtApi'
 
-2
-00:00:05,000 --> 00:00:08,000
-This is another test subtitle | This is the translation
+console.warn(
+  'DEPRECATION WARNING: This test utility file is deprecated. ' +
+  'Use the new SRT API client from ../utils/srtApi instead. ' +
+  'See subtitle-parsing.test.ts for proper test examples.'
+)
 
-3
-00:00:10,000 --> 00:00:13,000
-Single language subtitle
-`;
+/**
+ * DEPRECATED: Legacy synchronous SRT parser for backward compatibility
+ * Only used in deprecated tests. New code should use srtApi.parseSRTContent()
+ */
+export function parseSRT(content: string): Array<{ start: number; end: number; text: string; translation: string }> {
+  if (!content.trim()) return []
 
-function parseSRT(srtContent: string) {
-  const entries: any[] = [];
-  const blocks = srtContent.trim().split(/\n\s*\n/);
-  
+  const blocks = content.split(/\n\s*\n/).filter(block => block.trim())
+  const result: Array<{ start: number; end: number; text: string; translation: string }> = []
+
   for (const block of blocks) {
-    const lines = block.split('\n');
-    if (lines.length >= 3) {
-      const timeMatch = lines[1].match(/(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})/);
-      if (timeMatch) {
-        const start = parseInt(timeMatch[1]) * 3600 + parseInt(timeMatch[2]) * 60 + parseInt(timeMatch[3]) + parseInt(timeMatch[4]) / 1000;
-        const end = parseInt(timeMatch[5]) * 3600 + parseInt(timeMatch[6]) * 60 + parseInt(timeMatch[7]) + parseInt(timeMatch[8]) / 1000;
-        
-        // Join remaining lines as subtitle text
-        const textLines = lines.slice(2);
-        let originalText = '';
-        let translation = '';
-        
-        // Check if this is a dual-language subtitle (original | translation)
-        if (textLines.length > 0 && textLines[0].includes('|')) {
-          const parts = textLines[0].split('|');
-          originalText = parts[0].trim();
-          translation = parts[1]?.trim() || '';
-        } else {
-          originalText = textLines.join(' ');
-        }
-        
-        entries.push({ start, end, text: originalText, translation });
+    const lines = block.split('\n').filter(line => line.trim())
+    if (lines.length < 3) continue // Need at least index, timestamp, text
+
+    const timestampLine = lines[1]
+    const timestampMatch = timestampLine.match(/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/)
+    if (!timestampMatch) continue
+
+    const [, startStr, endStr] = timestampMatch
+
+    // Parse timestamps to seconds
+    const start = parseTimestamp(startStr)
+    const end = parseTimestamp(endStr)
+
+    // Get text lines
+    const textLines = lines.slice(2)
+    let text = ''
+    let translation = ''
+
+    for (const line of textLines) {
+      if (line.includes('|')) {
+        const parts = line.split('|').map(p => p.trim())
+        text = parts[0] || ''
+        translation = parts[1] || ''
+      } else {
+        text += (text ? '\n' : '') + line
       }
     }
+
+    result.push({ start, end, text, translation })
   }
-  
-  return entries;
+
+  return result
 }
 
-// Test the parsing function
-console.log('Testing SRT parsing...');
-const parsed = parseSRT(sampleSRT);
-console.log('Parsed entries:', parsed);
+function parseTimestamp(timestamp: string): number {
+  const match = timestamp.match(/(\d{2}):(\d{2}):(\d{2}),(\d{3})/)
+  if (!match) return 0
 
-if (parsed.length === 3) {
-  console.log('✅ SRT parsing test passed');
-  console.log(`   Found ${parsed.length} entries`);
-  console.log(`   First entry: ${parsed[0].text}`);
-  console.log(`   Second entry has translation: ${!!parsed[1].translation}`);
-  console.log(`   Third entry: ${parsed[2].text}`);
-} else {
-  console.log('❌ SRT parsing test failed');
+  const [, hours, minutes, seconds, milliseconds] = match.map(Number)
+  return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000
 }
-
-export { parseSRT };

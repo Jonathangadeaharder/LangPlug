@@ -11,7 +11,7 @@ from core.config import settings
 from core.database import get_async_session
 from core.dependencies import current_active_user
 from database.models import User
-from services.utils.srt_parser import SRTParser
+from utils.srt_parser import SRTParser
 from services.vocabulary_preload_service import VocabularyPreloadService
 
 from ..models.vocabulary import (

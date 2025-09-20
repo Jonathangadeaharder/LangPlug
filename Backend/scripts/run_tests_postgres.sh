@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# DEPRECATED: Use `python scripts/run_postgres_tests.py` instead
+# This script will be removed in a future release
 set -euo pipefail
 
 # Run backend tests against a local Postgres instance.

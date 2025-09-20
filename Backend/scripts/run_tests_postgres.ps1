@@ -1,4 +1,6 @@
 #!/usr/bin/env pwsh
+# DEPRECATED: Use `python scripts/run_postgres_tests.py` instead
+# This script will be removed in a future release
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 

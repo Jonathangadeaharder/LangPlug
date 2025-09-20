@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     port: int = Field(default=8000, env="LANGPLUG_PORT")
     reload: bool = Field(default=True, env="LANGPLUG_RELOAD")
     debug: bool = Field(default=True, env="LANGPLUG_DEBUG")
+    sqlalchemy_echo: bool = Field(default=False, env="LANGPLUG_SQLALCHEMY_ECHO")
 
     # Database settings
     database_url: str | None = Field(default=None, env="LANGPLUG_DATABASE_URL")

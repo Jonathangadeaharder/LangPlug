@@ -51,7 +51,7 @@ describe('useAuthStore', () => {
         user: {
           id: 1,
           username: 'testuser',
-          is_superuser: false,
+          is_admin: false,
           is_active: true,
           created_at: '2025-01-01T00:00:00Z',
         },
@@ -114,7 +114,7 @@ describe('useAuthStore', () => {
           user: {
             id: 1,
             username: 'testuser',
-            is_superuser: false,
+            is_admin: false,
             is_active: true,
             created_at: '2025-01-01T00:00:00Z',
           },
@@ -134,7 +134,7 @@ describe('useAuthStore', () => {
         user: {
           id: 2,
           username: 'newuser',
-          is_superuser: false,
+          is_admin: false,
           is_active: true,
           created_at: '2025-01-02T00:00:00Z',
         },
@@ -181,7 +181,7 @@ describe('useAuthStore', () => {
           user: {
             id: 1,
             username: 'testuser',
-            is_superuser: false,
+            is_admin: false,
             is_active: true,
             created_at: '2025-01-01T00:00:00Z',
           },
@@ -207,7 +207,7 @@ describe('useAuthStore', () => {
       const mockProfile = {
         id: 1,
         username: 'testuser',
-        is_superuser: false,
+        is_admin: false,
         is_active: true,
         created_at: '2025-01-01T00:00:00Z',
       };

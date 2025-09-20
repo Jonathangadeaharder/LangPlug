@@ -1,0 +1,896 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.0, pytest-8.4.2, pluggy-1.6.0 -- E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api_venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend
+configfile: pytest.ini
+plugins: anyio-3.7.1, asyncio-1.1.0, cov-7.0.0, timeout-2.4.0
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 223 items / 32 errors
+
+=================================== ERRORS ====================================
+______________ ERROR collecting tests/api/test_auth_contract.py _______________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_auth_contract.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_auth_contract.py:14: in <module>
+    from tests.auth_helpers import AuthResponseStructures, AuthTestHelper, validate_auth_response
+E   ImportError: cannot import name 'AuthResponseStructures' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+__________ ERROR collecting tests/api/test_auth_contract_improved.py __________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_auth_contract_improved.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_auth_contract_improved.py:8: in <module>
+    from tests.auth_helpers import AuthResponseStructures, AuthTestHelper, validate_auth_response
+E   ImportError: cannot import name 'AuthResponseStructures' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+_____________ ERROR collecting tests/api/test_auth_error_paths.py _____________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_auth_error_paths.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_auth_error_paths.py:6: in <module>
+    from tests.auth_helpers import AuthResponseStructures, AuthTestHelper
+E   ImportError: cannot import name 'AuthResponseStructures' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+_______ ERROR collecting tests/api/test_processing_contract_improved.py _______
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_processing_contract_improved.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_processing_contract_improved.py:9: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+______ ERROR collecting tests/api/test_processing_full_pipeline_fast.py _______
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_processing_full_pipeline_fast.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_processing_full_pipeline_fast.py:10: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+___________ ERROR collecting tests/api/test_processing_negative.py ____________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_processing_negative.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_processing_negative.py:10: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+____________ ERROR collecting tests/api/test_processing_routes.py _____________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_processing_routes.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_processing_routes.py:10: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+___________ ERROR collecting tests/api/test_user_profile_routes.py ____________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_user_profile_routes.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_user_profile_routes.py:6: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+____________ ERROR collecting tests/api/test_validation_errors.py _____________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_validation_errors.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_validation_errors.py:6: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+_________ ERROR collecting tests/api/test_video_contract_improved.py __________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_video_contract_improved.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_video_contract_improved.py:9: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+______________ ERROR collecting tests/api/test_videos_errors.py _______________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_videos_errors.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_videos_errors.py:9: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+______________ ERROR collecting tests/api/test_videos_routes.py _______________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_videos_routes.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_videos_routes.py:9: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+________ ERROR collecting tests/api/test_videos_routes_windows_path.py ________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_videos_routes_windows_path.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_videos_routes_windows_path.py:8: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+___________ ERROR collecting tests/api/test_vocabulary_contract.py ____________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_vocabulary_contract.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_vocabulary_contract.py:6: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+____________ ERROR collecting tests/api/test_vocabulary_routes.py _____________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_vocabulary_routes.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_vocabulary_routes.py:9: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+________ ERROR collecting tests/api/test_vocabulary_routes_details.py _________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\api\test_vocabulary_routes_details.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\api\test_vocabulary_routes_details.py:6: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+_______ ERROR collecting tests/integration/test_backend_integration.py ________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_backend_integration.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_backend_integration.py:6: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+___ ERROR collecting tests/integration/test_chunk_generation_integration.py ___
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_chunk_generation_integration.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_chunk_generation_integration.py:10: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+_______ ERROR collecting tests/integration/test_comprehensive_suite.py ________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_comprehensive_suite.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_comprehensive_suite.py:6: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+___________ ERROR collecting tests/integration/test_file_uploads.py ___________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_file_uploads.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_file_uploads.py:8: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+__________ ERROR collecting tests/integration/test_inprocess_api.py ___________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_inprocess_api.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_inprocess_api.py:6: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+__ ERROR collecting tests/integration/test_inprocess_files_and_processing.py __
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_inprocess_files_and_processing.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_inprocess_files_and_processing.py:10: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+_____ ERROR collecting tests/integration/test_inprocess_negative_cases.py _____
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_inprocess_negative_cases.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_inprocess_negative_cases.py:6: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+_______ ERROR collecting tests/integration/test_inprocess_vocabulary.py _______
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_inprocess_vocabulary.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_inprocess_vocabulary.py:8: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+_______ ERROR collecting tests/integration/test_processing_endpoints.py _______
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_processing_endpoints.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_processing_endpoints.py:10: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+________ ERROR collecting tests/integration/test_transcription_srt.py _________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_transcription_srt.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_transcription_srt.py:6: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+_________ ERROR collecting tests/integration/test_video_processing.py _________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_video_processing.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_video_processing.py:10: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+_______ ERROR collecting tests/integration/test_vocabulary_endpoints.py _______
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_vocabulary_endpoints.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_vocabulary_endpoints.py:6: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+_____________ ERROR collecting tests/integration/test_workflow.py _____________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\integration\test_workflow.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\integration\test_workflow.py:6: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+_________ ERROR collecting tests/performance/test_api_performance.py __________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\performance\test_api_performance.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\performance\test_api_performance.py:12: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+____________ ERROR collecting tests/performance/test_auth_speed.py ____________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\performance\test_auth_speed.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\performance\test_auth_speed.py:9: in <module>
+    from tests.auth_helpers import AuthTestHelper, AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+____________ ERROR collecting tests/security/test_api_security.py _____________
+ImportError while importing test module 'E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\security\test_api_security.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+api_venv\Lib\site-packages\_pytest\python.py:498: in importtestmodule
+    mod = import_path(
+api_venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+api_venv\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\security\test_api_security.py:7: in <module>
+    from tests.auth_helpers import AuthTestHelperAsync
+E   ImportError: cannot import name 'AuthTestHelperAsync' from 'tests.auth_helpers' (E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\tests\auth_helpers.py)
+============================== warnings summary ===============================
+api_venv\Lib\site-packages\pydantic\fields.py:1093: 32 warnings
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api_venv\Lib\site-packages\pydantic\fields.py:1093: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'env'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    warn(
+
+api\models\vocabulary.py:30
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\vocabulary.py:30: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('word')
+
+api\models\vocabulary.py:49
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\vocabulary.py:49: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('word')
+
+api\models\vocabulary.py:111
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\vocabulary.py:111: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('known_count')
+
+api\models\vocabulary.py:146
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\vocabulary.py:146: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('total_known')
+
+api_venv\Lib\site-packages\pydantic\_internal\_config.py:323
+api_venv\Lib\site-packages\pydantic\_internal\_config.py:323
+api_venv\Lib\site-packages\pydantic\_internal\_config.py:323
+api_venv\Lib\site-packages\pydantic\_internal\_config.py:323
+api_venv\Lib\site-packages\pydantic\_internal\_config.py:323
+api_venv\Lib\site-packages\pydantic\_internal\_config.py:323
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api_venv\Lib\site-packages\pydantic\_internal\_config.py:323: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+api\models\processing.py:18
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\processing.py:18: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('video_path')
+
+api\models\processing.py:94
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\processing.py:94: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('video_path')
+
+api\models\processing.py:122
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\processing.py:122: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('video_path')
+
+api\models\processing.py:128
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\processing.py:128: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('target_lang')
+
+api\models\processing.py:156
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\processing.py:156: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('video_path')
+
+api\models\processing.py:162
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\processing.py:162: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('source_lang', 'target_lang')
+
+api\models\processing.py:171
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\processing.py:171: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('target_lang')
+
+api\models\processing.py:195
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\processing.py:195: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('video_path')
+
+api\models\processing.py:201
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\processing.py:201: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('end_time')
+
+api\models\auth.py:27
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\auth.py:27: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('password')
+
+api\models\video.py:48
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api\models\video.py:48: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator('path')
+
+api_venv\Lib\site-packages\_pytest\cacheprovider.py:475
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api_venv\Lib\site-packages\_pytest\cacheprovider.py:475: PytestCacheWarning: could not create cache path E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\.pytest_cache\v\cache\nodeids: [WinError 5] Zugriff verweigert: 'E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\Backend\\.pytest_cache\\v\\cache'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+api_venv\Lib\site-packages\_pytest\cacheprovider.py:429
+  E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\api_venv\Lib\site-packages\_pytest\cacheprovider.py:429: PytestCacheWarning: could not create cache path E:\Users\Jonandrop\IdeaProjects\LangPlug\Backend\.pytest_cache\v\cache\lastfailed: [WinError 5] Zugriff verweigert: 'E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\Backend\\.pytest_cache\\v\\cache'
+    config.cache.set("cache/lastfailed", self.lastfailed)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR tests/api/test_auth_contract.py
+ERROR tests/api/test_auth_contract_improved.py
+ERROR tests/api/test_auth_error_paths.py
+ERROR tests/api/test_processing_contract_improved.py
+ERROR tests/api/test_processing_full_pipeline_fast.py
+ERROR tests/api/test_processing_negative.py
+ERROR tests/api/test_processing_routes.py
+ERROR tests/api/test_user_profile_routes.py
+ERROR tests/api/test_validation_errors.py
+ERROR tests/api/test_video_contract_improved.py
+ERROR tests/api/test_videos_errors.py
+ERROR tests/api/test_videos_routes.py
+ERROR tests/api/test_videos_routes_windows_path.py
+ERROR tests/api/test_vocabulary_contract.py
+ERROR tests/api/test_vocabulary_routes.py
+ERROR tests/api/test_vocabulary_routes_details.py
+ERROR tests/integration/test_backend_integration.py
+ERROR tests/integration/test_chunk_generation_integration.py
+ERROR tests/integration/test_comprehensive_suite.py
+ERROR tests/integration/test_file_uploads.py
+ERROR tests/integration/test_inprocess_api.py
+ERROR tests/integration/test_inprocess_files_and_processing.py
+ERROR tests/integration/test_inprocess_negative_cases.py
+ERROR tests/integration/test_inprocess_vocabulary.py
+ERROR tests/integration/test_processing_endpoints.py
+ERROR tests/integration/test_transcription_srt.py
+ERROR tests/integration/test_video_processing.py
+ERROR tests/integration/test_vocabulary_endpoints.py
+ERROR tests/integration/test_workflow.py
+ERROR tests/performance/test_api_performance.py
+ERROR tests/performance/test_auth_speed.py
+ERROR tests/security/test_api_security.py
+!!!!!!!!!!!!!!!!!! Interrupted: 32 errors during collection !!!!!!!!!!!!!!!!!!!
+======================= 55 warnings, 32 errors in 5.38s =======================

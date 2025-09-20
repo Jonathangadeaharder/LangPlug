@@ -18,12 +18,12 @@ def _route(url_builder, name: str, fallback: str) -> str:
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenRegisterRouteViaContractName_ThenSucceeds(async_client, url_builder):
+async def test_WhenRegisterRouteViaContractName_ThenSucceeds(async_http_client, url_builder):
     """Happy path: registering through the named route yields a contract-compliant payload."""
     register_url = _route(url_builder, "register:register", "/api/auth/register")
     user_data = AuthTestHelper.generate_unique_user_data()
 
-    response = await async_client.post(register_url, json=user_data)
+    response = await async_http_client.post(register_url, json=user_data)
 
     assert response.status_code == 201
     validate_auth_response(response.json(), AuthResponseStructures.REGISTRATION_SUCCESS)
@@ -31,12 +31,12 @@ async def test_WhenRegisterRouteViaContractName_ThenSucceeds(async_client, url_b
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenRegisterRouteEnforcesUuidIds_ThenValidates(async_client, url_builder):
+async def test_WhenRegisterRouteEnforcesUuidIds_ThenValidates(async_http_client, url_builder):
     """Boundary: returned identifier must be a UUID per contract spec."""
     register_url = _route(url_builder, "register:register", "/api/auth/register")
     user_data = AuthTestHelper.generate_unique_user_data()
 
-    response = await async_client.post(register_url, json=user_data)
+    response = await async_http_client.post(register_url, json=user_data)
     assert response.status_code == 201
 
     payload = response.json()
@@ -45,30 +45,28 @@ async def test_WhenRegisterRouteEnforcesUuidIds_ThenValidates(async_client, url_
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenlogin_routeWithoutform_encoding_ThenReturnsError(async_client, url_builder):
+async def test_Whenlogin_routeWithoutform_encoding_ThenReturnsError(async_http_client, url_builder):
     """Invalid input: JSON payload fails because contract requires form-urlencoded data."""
     login_url = _route(url_builder, "auth:jwt-bearer.login", "/api/auth/login")
     user_data = AuthTestHelper.generate_unique_user_data()
-    await AuthTestHelper.register_user_async(async_client, user_data)
+    await AuthTestHelper.register_user_async(async_http_client, user_data)
 
-    response = await async_client.post(login_url, json={
+    response = await async_http_client.post(login_url, json={
         "username": user_data["email"],
         "password": user_data["password"],
     })
 
     assert response.status_code in {415, 422}
-
-
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenLoginroute_ThenReturnsbearer_contract(async_client, url_builder):
+async def test_WhenLoginroute_ThenReturnsbearer_contract(async_http_client, url_builder):
     """Happy path login using named route returns the documented bearer fields."""
     login_url = _route(url_builder, "auth:jwt-bearer.login", "/api/auth/login")
     user_data = AuthTestHelper.generate_unique_user_data()
-    await AuthTestHelper.register_user_async(async_client, user_data)
+    await AuthTestHelper.register_user_async(async_http_client, user_data)
 
     status_code, payload = await AuthTestHelper.login_user_async(
-        async_client, user_data["email"], user_data["password"]
+        async_http_client, user_data["email"], user_data["password"]
     )
 
     assert status_code == 200
@@ -78,10 +76,12 @@ async def test_WhenLoginroute_ThenReturnsbearer_contract(async_client, url_build
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenlogout_routeWithouttoken_ThenReturnsError(async_client, url_builder):
+async def test_Whenlogout_routeWithouttoken_ThenReturnsError(async_http_client, url_builder):
     """Invalid input: logout via named route without a token is unauthorized."""
     logout_url = _route(url_builder, "auth:jwt-bearer.logout", "/api/auth/logout")
 
-    response = await async_client.post(logout_url)
+    response = await async_http_client.post(logout_url)
 
     assert response.status_code == AuthResponseStructures.UNAUTHORIZED["status_code"]
+
+

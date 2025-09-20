@@ -5,7 +5,6 @@ export const UserResponseSchema = z.object({
   id: z.number(),
   username: z.string(),
   is_admin: z.boolean(),
-  is_superuser: z.boolean(),
   is_active: z.boolean(),
   created_at: z.string(),
   last_login: z.string().nullable().optional(),

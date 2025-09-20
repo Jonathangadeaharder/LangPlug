@@ -1,4 +1,6 @@
 @echo off
+REM DEPRECATED: Use `python scripts/generate_typescript_client.py` instead
+REM This script will be removed in a future release
 REM Generate TypeScript client from OpenAPI spec
 
 REM Export OpenAPI spec from backend

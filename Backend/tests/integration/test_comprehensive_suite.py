@@ -8,11 +8,11 @@ from tests.auth_helpers import AuthTestHelperAsync
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenvideo_listingWithoutauth_ThenReturnsError(async_client):
+async def test_Whenvideo_listingWithoutauth_ThenReturnsError(async_http_client):
     """Happy path: authenticated user can list videos even if directory empty."""
-    flow = await AuthTestHelperAsync.register_and_login_async(async_client)
+    flow = await AuthTestHelperAsync.register_and_login_async(async_http_client)
 
-    response = await async_client.get(
+    response = await async_http_client.get(
         "/api/videos", headers=flow["headers"]
     )
 
@@ -22,11 +22,11 @@ async def test_Whenvideo_listingWithoutauth_ThenReturnsError(async_client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenvocabulary_stats_allows_authenticated_accessCalled_ThenSucceeds(async_client):
+async def test_Whenvocabulary_stats_allows_authenticated_accessCalled_ThenSucceeds(async_http_client):
     """Boundary: vocabulary stats endpoint returns JSON with totals."""
-    flow = await AuthTestHelperAsync.register_and_login_async(async_client)
+    flow = await AuthTestHelperAsync.register_and_login_async(async_http_client)
 
-    response = await async_client.get(
+    response = await async_http_client.get(
         "/api/vocabulary/library/stats", headers=flow["headers"]
     )
 

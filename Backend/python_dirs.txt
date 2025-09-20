@@ -1,0 +1,1 @@
+Get-ChildItem: Second path fragment must not be a drive or UNC name. (Parameter 'expression')

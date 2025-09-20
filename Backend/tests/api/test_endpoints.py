@@ -9,9 +9,9 @@ from tests.assertion_helpers import assert_json_error_response
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenHealthEndpointCalled_ThenReportsstatus(async_client):
+async def test_WhenHealthEndpointCalled_ThenReportsstatus(async_http_client):
     """Happy path: /health reports overall status and metadata."""
-    response = await async_client.get("/health")
+    response = await async_http_client.get("/health")
 
     assert response.status_code == 200
     payload = response.json()
@@ -22,9 +22,9 @@ async def test_WhenHealthEndpointCalled_ThenReportsstatus(async_client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenunknown_routeCalled_ThenReturnscontract_404(async_client):
+async def test_Whenunknown_routeCalled_ThenReturnscontract_404(async_http_client):
     """Invalid input: unknown route returns consistent 404 response."""
-    response = await async_client.get("/api/does-not-exist")
+    response = await async_http_client.get("/api/does-not-exist")
 
     assert_json_error_response(response, 404)
     payload = response.json()
@@ -33,13 +33,11 @@ async def test_Whenunknown_routeCalled_ThenReturnscontract_404(async_client):
         assert payload["error"]["message"] == "Not Found"
     else:
         assert payload.get("detail") == "Not Found"
-
-
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenHealthEndpoint_Thenread_only(async_client):
+async def test_WhenHealthEndpoint_Thenread_only(async_http_client):
     """Boundary: POSTing to /health is not allowed and surfaces 405."""
-    response = await async_client.post("/health")
+    response = await async_http_client.post("/health")
 
     assert_json_error_response(response, 405)
     payload = response.json()
@@ -48,3 +46,5 @@ async def test_WhenHealthEndpoint_Thenread_only(async_client):
         assert payload["error"]["message"] == "Method Not Allowed"
     else:
         assert payload.get("detail") == "Method Not Allowed"
+
+

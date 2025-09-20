@@ -18,7 +18,7 @@ def _auth_headers(client) -> dict[str, str]:
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenTranscribeCalledWithValidPath_ThenReturnsTaskIdentifier(async_client, client):
+async def test_WhenTranscribeCalledWithValidPath_ThenReturnsTaskIdentifier(async_http_client, client):
     """Happy path: /process/transcribe yields a task identifier for async work."""
     headers = _auth_headers(client)
     payload = {"video_path": "series/S01E01.mp4"}
@@ -36,43 +36,43 @@ async def test_WhenTranscribeCalledWithValidPath_ThenReturnsTaskIdentifier(async
         mock_service.transcribe.return_value = "task_123"
         get_transcription.return_value = mock_service
 
-        response = await async_client.post(
+        response = await async_http_client.post(
             "/api/process/transcribe", json=payload, headers=headers
         )
 
     assert_task_response(response)
-
-
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenTranscribeCalledWithoutVideoPath_ThenReturnsValidationError(async_client, client):
+async def test_WhenTranscribeCalledWithoutVideoPath_ThenReturnsValidationError(async_http_client, client):
     """Invalid input: missing video_path fails FastAPI validation."""
     headers = _auth_headers(client)
 
-    response = await async_client.post(
+    response = await async_http_client.post(
         "/api/process/transcribe", json={}, headers=headers
     )
 
     assert_validation_error_response(response, "video_path")
 
 
+
+
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenChunkCalledWithInvertedTimeRange_ThenRejectsWithValidationError(async_client, client):
+async def test_WhenChunkCalledWithInvertedTimeRange_ThenRejectsWithValidationError(async_http_client, client):
     """Boundary: start_time greater than end_time is rejected with validation error."""
     headers = _auth_headers(client)
     payload = {"video_path": "series/S01E01.mp4", "start_time": 30.0, "end_time": 10.0}
 
-    response = await async_client.post("/api/process/chunk", json=payload, headers=headers)
+    response = await async_http_client.post("/api/process/chunk", json=payload, headers=headers)
 
     assert_validation_error_response(response)
-
-
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenProcessingCalledWithoutAuth_ThenReturns401(async_client):
+async def test_WhenProcessingCalledWithoutAuth_ThenReturns401(async_http_client):
     """Invalid input: calling processing endpoints without auth returns 401."""
-    response = await async_client.post("/api/process/transcribe",
+    response = await async_http_client.post("/api/process/transcribe",
                                       json={"video_path": "series/S01E01.mp4"})
 
     assert_auth_error_response(response)
+
+

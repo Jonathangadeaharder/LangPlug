@@ -3,31 +3,52 @@
 These tools enforce the CDD and TDD policies. Keep installations up to date and integrate them into
 your workflows.
 
+**Note**: This document has been updated to reference the new unified cross-platform scripts. See `docs/TESTING_STRATEGY.md` for comprehensive guidance.
+
 ## Contract Authoring
-- **OpenAPI export (`Backend/export_openapi.py`)**: Generates the canonical API spec. Run after
-  changing backend routes.
+- **OpenAPI export and client generation**: Use the unified cross-platform script that handles both OpenAPI export and TypeScript client generation.
   ```bash
+  # Cross-platform unified script (recommended)
+  python scripts/generate_typescript_client.py
+  ```
+  
+  **Legacy alternatives** (deprecated, will be removed):
+  ```bash
+  # Manual OpenAPI export (if needed)
   cd Backend
   python export_openapi.py --output ../openapi_spec.json
+  
+  # Manual client generation (if needed)
+  cd Frontend
+  npm run generate-client
   ```
-- **Client generation (`generate-ts-client.sh` or `.bat`)**: Produces typed clients for the frontend.
-  ```bash
-  ./generate-ts-client.sh  # WSL/Linux
-  generate-ts-client.bat   # Windows PowerShell
-  ```
+
 - **Schema validation (Zod/Datamodel code)**: Frontend schemas live under `Frontend/src/utils/`. Use
   the generated types to keep schemas aligned with contracts.
 
 ## Contract Testing
-- **Backend contract tests**: Located under `Backend/tests/contract/` (or tagged `contract`).
+- **Professional test management**: Use the new test management script for comprehensive testing.
+  ```bash
+  # Run all tests with professional reporting
+  python scripts/test_management.py
+  
+  # Run contract tests specifically
+  python scripts/test_management.py --category contract
+  
+  # Run failed tests only
+  python scripts/test_management.py --failed-only
+  ```
+
+- **Backend contract tests**: Located under `Backend/tests/` (marked with `@pytest.mark.contract`).
   ```bash
   cd Backend
-  pytest -k contract
+  python -m pytest -m contract
   ```
+  
 - **Frontend contract suites**: See `Frontend/src/test/contract/`.
   ```bash
   cd Frontend
-  npm run test-contract
+  npm run test
   ```
 - **Integration smoke tests**: Run full stack verification for high-impact changes.
   ```bash

@@ -150,7 +150,7 @@ class VocabularyStats(BaseModel):
         return v
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "levels": {
                     "A1": {"total": 100, "known": 80},

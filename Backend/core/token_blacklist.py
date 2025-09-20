@@ -16,7 +16,7 @@ class TokenBlacklist:
     """Service for managing blacklisted JWT tokens"""
     
     def __init__(self):
-        self._use_redis = REDIS_AVAILABLE and False  # Disable Redis for now, use memory
+        self._use_redis = REDIS_AVAILABLE  # Use Redis if available, fallback to memory
         self._memory_blacklist: Set[str] = set()
         self._memory_expiry: Dict[str, datetime] = {}
         self._redis_client = None

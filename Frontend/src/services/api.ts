@@ -12,7 +12,7 @@ import type {
 
 // Import the generated client and SDK
 import { client } from '@/client/client.gen'
-import { createConfig } from '@/client/client'
+import { createConfig } from '@/client/client/index'
 import * as sdk from '@/client/sdk.gen'
 
 // Get API base URL from environment variables
@@ -152,7 +152,7 @@ export const register = async (email: string, password: string, name: string): P
 
 export const logout = async (): Promise<void> => {
   try {
-    await sdk.logoutApiAuthLogoutPost()
+    await sdk.logoutApiAuthLogoutPost({})
   } catch (error) {
     logger.warn('Logout API call failed:', error)
   } finally {
@@ -163,7 +163,7 @@ export const logout = async (): Promise<void> => {
 
 export const getProfile = async (): Promise<User> => {
   try {
-    const response = await sdk.getCurrentUserInfoApiAuthMeGet()
+    const response = await sdk.getCurrentUserInfoApiAuthMeGet({})
     return {
       id: response.data?.id || '',
       email: response.data?.email || '',
@@ -177,7 +177,7 @@ export const getProfile = async (): Promise<User> => {
 // Video API
 export const getVideos = async (): Promise<VideoInfo[]> => {
   try {
-    const response = await sdk.getAvailableVideosApiVideosGet()
+    const response = await sdk.getAvailableVideosApiVideosGet({})
     return response.data || []
   } catch (error) {
     return handleApiError(error, 'getVideos')
@@ -271,7 +271,7 @@ export const translateSubtitles = async (data: any): Promise<any> => {
 // Vocabulary API
 export const getVocabularyStats = async (): Promise<VocabularyStats> => {
   try {
-    const response = await sdk.getVocabularyStatsEndpointApiVocabularyStatsGet()
+    const response = await sdk.getVocabularyStatsEndpointApiVocabularyStatsGet({})
     return response.data as VocabularyStats
   } catch (error) {
     return handleApiError(error, 'getVocabularyStats')
@@ -280,7 +280,7 @@ export const getVocabularyStats = async (): Promise<VocabularyStats> => {
 
 export const getBlockingWords = async (): Promise<VocabularyWord[]> => {
   try {
-    const response = await sdk.getBlockingWordsApiVocabularyBlockingWordsGet()
+    const response = await sdk.getBlockingWordsApiVocabularyBlockingWordsGet({})
     return response.data || []
   } catch (error) {
     return handleApiError(error, 'getBlockingWords')
@@ -299,15 +299,17 @@ export const markWordAsKnown = async (word: string): Promise<void> => {
 
 export const preloadVocabulary = async (): Promise<void> => {
   try {
-    await sdk.preloadVocabularyApiVocabularyPreloadPost()
+    await sdk.preloadVocabularyApiVocabularyPreloadPost({})
   } catch (error) {
     return handleApiError(error, 'preloadVocabulary')
   }
 }
 
-export const getVocabularyLevel = async (): Promise<VocabularyLevel> => {
+export const getVocabularyLevel = async (level: string): Promise<VocabularyLevel> => {
   try {
-    const response = await sdk.getVocabularyLevelApiVocabularyLibraryLevelGet()
+    const response = await sdk.getVocabularyLevelApiVocabularyLibraryLevelGet({
+      path: { level }
+    })
     return response.data as VocabularyLevel
   } catch (error) {
     return handleApiError(error, 'getVocabularyLevel')
@@ -322,6 +324,16 @@ export const bulkMarkLevelKnown = async (level: string): Promise<void> => {
   } catch (error) {
     return handleApiError(error, 'bulkMarkLevelKnown')
   }
+}
+
+// Vocabulary service object for organized access
+export const vocabularyService = {
+  getVocabularyStats,
+  getBlockingWords,
+  markWordAsKnown,
+  preloadVocabulary,
+  getVocabularyLevel,
+  bulkMarkLevelKnown
 }
 
 // Video service object for organized access
