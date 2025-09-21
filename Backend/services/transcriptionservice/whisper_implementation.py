@@ -155,8 +155,9 @@ class WhisperTranscriptionService(ITranscriptionService):
     ) -> str:
         """Extract audio from video file"""
         try:
-            from moviepy import VideoFileClip
+            from moviepy.editor import VideoFileClip
         except ImportError:
+            # Fallback for older moviepy versions
             from moviepy import VideoFileClip
 
         if output_path is None:

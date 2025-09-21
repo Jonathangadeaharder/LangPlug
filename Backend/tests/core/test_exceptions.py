@@ -21,7 +21,7 @@ from core.exceptions import (
 def test_Whenexception_status_codesCalled_ThenSucceeds():
     assert AuthenticationError().status_code == status.HTTP_401_UNAUTHORIZED
     assert AuthorizationError().status_code == status.HTTP_403_FORBIDDEN
-    assert ValidationError().status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert ValidationError().status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
     assert NotFoundError("X").status_code == status.HTTP_404_NOT_FOUND
     assert ServiceUnavailableError().status_code == status.HTTP_503_SERVICE_UNAVAILABLE
     assert ProcessingError().status_code == status.HTTP_500_INTERNAL_SERVER_ERROR

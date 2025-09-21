@@ -79,12 +79,12 @@ async def test_Whenprocess_chunk_happy_pathCalled_ThenSucceeds(service, task_pro
     
     # Mock the subtitle processor instead of get_user_filter_chain
     subtitle_processor = Mock()
-    subtitle_processor.process_file = AsyncMock(return_value={
+    subtitle_processor.process_srt_file = AsyncMock(return_value={
         "blocking_words": [Mock(word="schwer")],
         "learning_subtitles": [],
         "statistics": {"segments_parsed": 1},
     })
-    monkeypatch.setattr("services.processing.chunk_processor.get_subtitle_processor", lambda: subtitle_processor)
+    monkeypatch.setattr("services.processing.chunk_processor.get_subtitle_processor", lambda db_session: subtitle_processor)
     mock_parser = Mock(parse_file=Mock(return_value=[]), save_segments=Mock())
     monkeypatch.setattr("services.processing.chunk_processor.SRTParser", lambda *args, **kwargs: mock_parser)
 
@@ -107,7 +107,7 @@ async def test_Whenprocess_chunk_happy_pathCalled_ThenSucceeds(service, task_pro
     assert status.status == "completed"
     assert status.progress == 100.0
     assert status.vocabulary[0].word == "schwer"
-    subtitle_processor.process_file.assert_called_once()
+    subtitle_processor.process_srt_file.assert_called_once()
 
 
 @pytest.mark.anyio
@@ -128,7 +128,7 @@ async def test_Whenprocess_chunk_missing_srt_sets_errorCalled_ThenSucceeds(servi
     # Mock the subtitle processor
     subtitle_processor = Mock()
     subtitle_processor.process_file = AsyncMock(return_value={})
-    monkeypatch.setattr("services.processing.chunk_processor.get_subtitle_processor", lambda: subtitle_processor)
+    monkeypatch.setattr("services.processing.chunk_processor.get_subtitle_processor", lambda db_session: subtitle_processor)
 
     path_patch = patch("services.processing.chunk_processor.Path")
     _mock_video_path(path_patch, srt_files=[])

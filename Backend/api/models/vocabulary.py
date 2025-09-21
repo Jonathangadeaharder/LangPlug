@@ -2,7 +2,7 @@
 Vocabulary API models
 """
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class VocabularyWord(BaseModel):
@@ -27,7 +27,8 @@ class VocabularyWord(BaseModel):
         description="Whether the user knows this word"
     )
 
-    @validator('word')
+    @field_validator('word')
+    @classmethod
     def validate_word(cls, v):
         if not v.strip():
             raise ValueError('Word cannot be empty or whitespace')
@@ -46,7 +47,8 @@ class MarkKnownRequest(BaseModel):
         description="Whether to mark the word as known (true) or unknown (false)"
     )
 
-    @validator('word')
+    @field_validator('word')
+    @classmethod
     def validate_word(cls, v):
         if not v.strip():
             raise ValueError('Word cannot be empty or whitespace')
@@ -108,9 +110,10 @@ class VocabularyLevel(BaseModel):
         description="Number of known words at this level"
     )
 
-    @validator('known_count')
-    def validate_known_count(cls, v, values):
-        if 'total_count' in values and v > values['total_count']:
+    @field_validator('known_count')
+    @classmethod
+    def validate_known_count(cls, v, info):
+        if 'total_count' in info.data and v > info.data['total_count']:
             raise ValueError('Known count cannot exceed total count')
         return v
 
@@ -143,14 +146,15 @@ class VocabularyStats(BaseModel):
         description="Total number of known words across all levels"
     )
 
-    @validator('total_known')
-    def validate_total_known(cls, v, values):
-        if 'total_words' in values and v > values['total_words']:
+    @field_validator('total_known')
+    @classmethod
+    def validate_total_known(cls, v, info):
+        if 'total_words' in info.data and v > info.data['total_words']:
             raise ValueError('Total known cannot exceed total words')
         return v
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "levels": {
                     "A1": {"total": 100, "known": 80},
@@ -161,3 +165,4 @@ class VocabularyStats(BaseModel):
                 "total_known": 180
             }
         }
+    )

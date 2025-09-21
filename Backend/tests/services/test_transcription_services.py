@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 # Path to test audio file
 TEST_AUDIO_FILE = Path(__file__).parent.parent / "data" / "hallo_welt.wav"
 
-
 class TestTranscriptionServices:
     """Test transcription services with real audio"""
 

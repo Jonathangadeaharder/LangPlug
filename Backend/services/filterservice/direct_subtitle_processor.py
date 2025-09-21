@@ -10,8 +10,8 @@ from typing import Any
 
 from sqlalchemy import select
 
-from core.database import get_async_session
-from database.models import Vocabulary
+from core.database import AsyncSessionLocal
+from database.models import Vocabulary, UserLearningProgress
 
 from .interface import FilteredSubtitle, FilteredWord, FilteringResult, WordStatus
 
@@ -144,7 +144,7 @@ class DirectSubtitleProcessor:
 
         # 1. Basic vocabulary filter - filter out non-learning words
         if self._is_non_vocabulary_word(word_text, language):
-            word.status = WordStatus.FILTERED_NON_VOCABULARY
+            word.status = WordStatus.FILTERED_INVALID
             word.filter_reason = "Non-vocabulary word (interjection, proper name, etc.)"
             return word
 
@@ -161,7 +161,7 @@ class DirectSubtitleProcessor:
 
         if word_level_rank <= user_level_rank:
             # Word is at or below user level - should be known
-            word.status = WordStatus.FILTERED_TOO_EASY
+            word.status = WordStatus.FILTERED_OTHER
             word.filter_reason = f"Word level ({word_difficulty}) at or below user level ({user_level})"
             return word
 
@@ -204,11 +204,15 @@ class DirectSubtitleProcessor:
 
         if cache_key not in self._user_known_words_cache:
             try:
-                async with get_async_session() as session:
-                    query = select(UserVocabulary.word).where(
-                        UserVocabulary.user_id == user_id,
-                        UserVocabulary.language == language,
-                        UserVocabulary.known == True
+                async with AsyncSessionLocal() as session:
+                    # Join UserLearningProgress with Vocabulary to get learned words
+                    query = select(Vocabulary.word).join(
+                        UserLearningProgress, 
+                        UserLearningProgress.word_id == Vocabulary.id
+                    ).where(
+                        UserLearningProgress.user_id == str(user_id),
+                        Vocabulary.language == language,
+                        UserLearningProgress.confidence_level >= 1  # Consider learned if confidence >= 1
                     ).distinct()
 
                     result = await session.execute(query)
@@ -225,7 +229,7 @@ class DirectSubtitleProcessor:
     async def _load_word_difficulties(self, language: str):
         """Pre-load word difficulty levels for efficiency"""
         try:
-            async with get_async_session() as session:
+            async with AsyncSessionLocal() as session:
                 query = select(Vocabulary.word, Vocabulary.difficulty_level).where(
                     Vocabulary.language == language
                 ).distinct()

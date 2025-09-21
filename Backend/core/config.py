@@ -18,22 +18,22 @@ class Settings(BaseSettings):
     }
 
     # Server settings
-    host: str = Field(default="0.0.0.0", env="LANGPLUG_HOST")
-    port: int = Field(default=8000, env="LANGPLUG_PORT")
-    reload: bool = Field(default=True, env="LANGPLUG_RELOAD")
-    debug: bool = Field(default=True, env="LANGPLUG_DEBUG")
-    sqlalchemy_echo: bool = Field(default=False, env="LANGPLUG_SQLALCHEMY_ECHO")
+    host: str = Field(default="0.0.0.0", alias="LANGPLUG_HOST")
+    port: int = Field(default=8000, alias="LANGPLUG_PORT")
+    reload: bool = Field(default=True, alias="LANGPLUG_RELOAD")
+    debug: bool = Field(default=True, alias="LANGPLUG_DEBUG")
+    sqlalchemy_echo: bool = Field(default=False, alias="LANGPLUG_SQLALCHEMY_ECHO")
 
     # Database settings
-    database_url: str | None = Field(default=None, env="LANGPLUG_DATABASE_URL")
-    db_type: str = Field(default="sqlite", env="LANGPLUG_DB_TYPE")  # sqlite or postgresql
-    postgres_host: str = Field(default="localhost", env="LANGPLUG_POSTGRES_HOST")
-    postgres_port: int = Field(default=5432, env="LANGPLUG_POSTGRES_PORT")
-    postgres_db: str = Field(default="langplug", env="LANGPLUG_POSTGRES_DB")
-    postgres_user: str = Field(default="langplug_user", env="LANGPLUG_POSTGRES_USER")
-    postgres_password: str = Field(default="langplug_password", env="LANGPLUG_POSTGRES_PASSWORD")
-    postgres_pool_size: int = Field(default=10, env="LANGPLUG_POSTGRES_POOL_SIZE")
-    postgres_max_overflow: int = Field(default=20, env="LANGPLUG_POSTGRES_MAX_OVERFLOW")
+    database_url: str | None = Field(default=None, alias="LANGPLUG_DATABASE_URL")
+    db_type: str = Field(default="sqlite", alias="LANGPLUG_DB_TYPE")  # sqlite or postgresql
+    postgres_host: str = Field(default="localhost", alias="LANGPLUG_POSTGRES_HOST")
+    postgres_port: int = Field(default=5432, alias="LANGPLUG_POSTGRES_PORT")
+    postgres_db: str = Field(default="langplug", alias="LANGPLUG_POSTGRES_DB")
+    postgres_user: str = Field(default="langplug_user", alias="LANGPLUG_POSTGRES_USER")
+    postgres_password: str = Field(default="langplug_password", alias="LANGPLUG_POSTGRES_PASSWORD")
+    postgres_pool_size: int = Field(default=10, alias="LANGPLUG_POSTGRES_POOL_SIZE")
+    postgres_max_overflow: int = Field(default=20, alias="LANGPLUG_POSTGRES_MAX_OVERFLOW")
 
     # CORS settings
     cors_origins: list[str] = Field(
@@ -45,47 +45,47 @@ class Settings(BaseSettings):
             "http://localhost:5173",
             "http://127.0.0.1:5173"
         ],
-        env="LANGPLUG_CORS_ORIGINS"
+        alias="LANGPLUG_CORS_ORIGINS"
     )
-    cors_credentials: bool = Field(default=True, env="LANGPLUG_CORS_CREDENTIALS")
+    cors_credentials: bool = Field(default=True, alias="LANGPLUG_CORS_CREDENTIALS")
 
     # File paths
-    videos_path: str | None = Field(default=None, env="LANGPLUG_VIDEOS_PATH")
-    data_path: str | None = Field(default=None, env="LANGPLUG_DATA_PATH")
-    logs_path: str | None = Field(default=None, env="LANGPLUG_LOGS_PATH")
+    videos_path: str | None = Field(default=None, alias="LANGPLUG_VIDEOS_PATH")
+    data_path: str | None = Field(default=None, alias="LANGPLUG_DATA_PATH")
+    logs_path: str | None = Field(default=None, alias="LANGPLUG_LOGS_PATH")
 
     # Service settings
-    transcription_service: str = Field(default="whisper-tiny", env="LANGPLUG_TRANSCRIPTION_SERVICE")
-    translation_service: str = Field(default="opus-de-es", env="LANGPLUG_TRANSLATION_SERVICE")  # Fast for testing
-    default_language: str = Field(default="de", env="LANGPLUG_DEFAULT_LANGUAGE")
+    transcription_service: str = Field(default="whisper-tiny", alias="LANGPLUG_TRANSCRIPTION_SERVICE")
+    translation_service: str = Field(default="opus-de-es", alias="LANGPLUG_TRANSLATION_SERVICE")  # Fast for testing
+    default_language: str = Field(default="de", alias="LANGPLUG_DEFAULT_LANGUAGE")
 
     # SpaCy model settings
-    spacy_model_de: str = Field(default="de_core_news_sm", env="LANGPLUG_SPACY_MODEL_DE")
-    spacy_model_en: str = Field(default="en_core_web_sm", env="LANGPLUG_SPACY_MODEL_EN")
+    spacy_model_de: str = Field(default="de_core_news_sm", alias="LANGPLUG_SPACY_MODEL_DE")
+    spacy_model_en: str = Field(default="en_core_web_sm", alias="LANGPLUG_SPACY_MODEL_EN")
 
     # Security settings
-    secret_key: str = Field(default="your-secret-key-change-in-production", env="LANGPLUG_SECRET_KEY")
-    session_timeout_hours: int = Field(default=24, env="LANGPLUG_SESSION_TIMEOUT_HOURS")
+    secret_key: str = Field(default="your-secret-key-change-in-production", alias="LANGPLUG_SECRET_KEY")
+    session_timeout_hours: int = Field(default=24, alias="LANGPLUG_SESSION_TIMEOUT_HOURS")
 
     # Sentry settings
     sentry_dsn: str = Field(
         default="",
-        env="SENTRY_DSN",
+        alias="SENTRY_DSN",
         description="Sentry DSN for error tracking"
     )
     environment: str = Field(
         default="development",
-        env="ENVIRONMENT",
+        alias="ENVIRONMENT",
         description="Environment name (development, staging, production)"
     )
 
     # Performance settings
-    max_upload_size: int = Field(default=100 * 1024 * 1024, env="LANGPLUG_MAX_UPLOAD_SIZE")  # 100MB
-    task_cleanup_interval: int = Field(default=3600, env="LANGPLUG_TASK_CLEANUP_INTERVAL")  # 1 hour
+    max_upload_size: int = Field(default=100 * 1024 * 1024, alias="LANGPLUG_MAX_UPLOAD_SIZE")  # 100MB
+    task_cleanup_interval: int = Field(default=3600, alias="LANGPLUG_TASK_CLEANUP_INTERVAL")  # 1 hour
 
     # Logging settings
-    log_level: str = Field(default="INFO", env="LANGPLUG_LOG_LEVEL")
-    log_format: str = Field(default="json", env="LANGPLUG_LOG_FORMAT")  # json or text
+    log_level: str = Field(default="INFO", alias="LANGPLUG_LOG_LEVEL")
+    log_format: str = Field(default="json", alias="LANGPLUG_LOG_FORMAT")  # json or text
 
     model_config = {
         "env_file": ".env",

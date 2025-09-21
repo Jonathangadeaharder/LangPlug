@@ -1,6 +1,0 @@
-# This file represents where a sample video fixture would be placed
-# For actual E2E tests, you would put a small test video file here
-# 
-# Example: cypress/fixtures/sample-video.mp4 (actual video file)
-#
-# For now, this placeholder indicates where test video fixtures should go

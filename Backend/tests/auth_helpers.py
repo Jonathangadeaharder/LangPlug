@@ -210,6 +210,51 @@ class HTTPAuthTestHelper:
         """DEPRECATED: Use AsyncHTTPAuthHelper.register_and_login() instead."""
         helper = AsyncHTTPAuthHelper(client)
         return await helper.register_and_login(user_data)
+    
+    # Alias methods for backward compatibility
+    @staticmethod
+    async def register_user_async(client: httpx.AsyncClient, user_data: dict[str, str]) -> tuple[int, dict[str, Any]]:
+        """Alias for register_user_http_async for backward compatibility."""
+        return await HTTPAuthTestHelper.register_user_http_async(client, user_data)
+    
+    @staticmethod
+    async def login_user_async(client: httpx.AsyncClient, email: str, password: str) -> tuple[int, dict[str, Any]]:
+        """Alias for login_user_http_async for backward compatibility."""
+        return await HTTPAuthTestHelper.login_user_http_async(client, email, password)
+    
+    @staticmethod  
+    async def register_and_login_async(client: httpx.AsyncClient, user_data: dict[str, str] = None) -> dict[str, Any]:
+        """Alias for register_and_login_http_async for backward compatibility."""
+        return await HTTPAuthTestHelper.register_and_login_http_async(client, user_data)
+    
+    @staticmethod
+    def register_user(client: httpx.Client, user_data: dict[str, str]) -> tuple[int, dict[str, Any]]:
+        """Alias for register_user_http for backward compatibility."""
+        return HTTPAuthTestHelper.register_user_http(client, user_data)
+    
+    @staticmethod
+    def login_user(client: httpx.Client, email: str, password: str) -> tuple[int, dict[str, Any]]:
+        """Alias for login_user_http for backward compatibility."""
+        return HTTPAuthTestHelper.login_user_http(client, email, password)
+    
+    @staticmethod
+    def register_and_login(client: httpx.Client, user_data: dict[str, str] = None) -> dict[str, Any]:
+        """Alias for register_and_login_http for backward compatibility."""
+        return HTTPAuthTestHelper.register_and_login_http(client, user_data)
+
+    @staticmethod
+    async def get_current_user_async(client: httpx.AsyncClient, token: str) -> tuple[int, dict[str, Any]]:
+        """Get current user information asynchronously."""
+        headers = {"Authorization": f"Bearer {token}"}
+        response = await client.get("/api/auth/me", headers=headers)
+        return response.status_code, response.json() if response.content else {}
+
+    @staticmethod
+    async def logout_user_async(client: httpx.AsyncClient, token: str) -> tuple[int, dict[str, Any]]:
+        """Logout user asynchronously."""
+        headers = {"Authorization": f"Bearer {token}"}
+        response = await client.post("/api/auth/logout", headers=headers)
+        return response.status_code, response.json() if response.content else {}
 
     @staticmethod
     def verify_auth_endpoint_http(
@@ -421,6 +466,14 @@ class AuthResponseStructures:
         "field_types": {
             "access_token": str,
             "token_type": str
+        }
+    }
+    
+    LOGIN_BAD_CREDENTIALS = {
+        "status_code": 400,
+        "required_fields": ["detail"],
+        "field_types": {
+            "detail": str
         }
     }
     

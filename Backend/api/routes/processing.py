@@ -361,7 +361,7 @@ async def run_processing_pipeline(
         task_progress[task_id].current_step = "Step 2: Filtering Subtitles"
         task_progress[task_id].message = "Analyzing vocabulary..."
 
-        subtitle_processor = get_subtitle_processor()
+        subtitle_processor = DirectSubtitleProcessor()
         # Process subtitles with simplified processor
         user_level = "A1"  # Default level - should be configurable per user
         filtered_subtitles = subtitle_processor.process_srt_file(str(srt_path), user_id, user_level, "de")

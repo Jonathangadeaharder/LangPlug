@@ -1,0 +1,21 @@
+{
+  "name": "langplug-unified-tests",
+  "version": "1.0.0",
+  "description": "Unified test orchestration for LangPlug application",
+ "main": "index.js",
+  "scripts": {
+    "test:all": "npx ts-node scripts/run-all-tests.ts",
+    "test:ci": "npx ts-node scripts/ci-test-runner.ts",
+    "test:backend": "cd ../Backend && python -m pytest --tb=short",
+    "test:frontend": "cd ../Frontend && npm run test",
+    "test:e2e": "cd e2e && npm run test:e2e"
+  },
+  "dependencies": {
+    "puppeteer": "^24.22.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0"
+  }
+}

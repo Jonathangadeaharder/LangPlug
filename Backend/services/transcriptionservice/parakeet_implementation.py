@@ -192,7 +192,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
     ) -> str:
         """Extract audio from video file"""
         try:
-            from moviepy import VideoFileClip
+            from moviepy.editor import VideoFileClip
         except ImportError:
             from moviepy import VideoFileClip
 
@@ -274,7 +274,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
     def _get_audio_duration(self, audio_path: str) -> float:
         """Get duration of audio file"""
         try:
-            from moviepy import AudioFileClip
+            from moviepy.editor import AudioFileClip
             with AudioFileClip(audio_path) as audio:
                 return audio.duration
         except (ImportError, OSError, Exception) as e:

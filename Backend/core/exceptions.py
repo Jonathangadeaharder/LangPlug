@@ -27,7 +27,7 @@ class AuthorizationError(LangPlugException):
 class ValidationError(LangPlugException):
     """Validation related errors"""
     def __init__(self, message: str = "Validation failed"):
-        super().__init__(message, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        super().__init__(message, status.HTTP_422_UNPROCESSABLE_CONTENT)
 
 
 class InvalidCredentialsError(AuthenticationError):
@@ -36,10 +36,10 @@ class InvalidCredentialsError(AuthenticationError):
         super().__init__(message)
 
 
-class UserAlreadyExistsError(ValidationError):
+class UserAlreadyExistsError(LangPlugException):
     """Raised when trying to register a user that already exists"""
     def __init__(self, message: str = "User already exists"):
-        super().__init__(message)
+        super().__init__(message, status.HTTP_400_BAD_REQUEST)
 
 
 class SessionExpiredError(AuthenticationError):

@@ -207,7 +207,7 @@ We welcome contributions! Here's how to get started:
 3. **Make your changes** and test thoroughly
 4. **Commit your changes**: `git commit -m 'Add amazing feature'`
 5. **Push to your branch**: `git push origin feature/amazing-feature`
-6. **Open a Pull Request**
+6. **Open a Pull Request`
 
 ### Development Guidelines
 - Follow existing code style and patterns
@@ -223,6 +223,15 @@ We welcome contributions! Here's how to get started:
 
 These wrap `Backend/scripts/run_tests_postgres.(sh|ps1)` to start Postgres via docker-compose and run
 the backend pytest suite with a 60s per-test timeout.
+
+### Unified Test Suite
+The project now includes a unified test suite that combines backend, frontend unit, and E2E tests:
+
+- Run all tests: `cd tests && npm run test:all`
+- Run E2E tests: `cd tests && npm run test:e2e`
+- Run CI tests: `cd tests && npm run test:ci`
+
+The test suite uses Puppeteer for E2E testing and includes automatic server management.
 
 ## 📄 License
 

@@ -83,7 +83,7 @@ def test_Whenextract_audio_without_track_raisesCalled_ThenSucceeds(monkeypatch, 
 
     # Mock the VideoFileClip import within the method
     monkeypatch.setattr(
-        "moviepy.VideoFileClip",
+        "moviepy.editor.VideoFileClip",
         FakeVideo,
     )
 

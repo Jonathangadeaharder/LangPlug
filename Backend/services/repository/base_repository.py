@@ -39,18 +39,19 @@ class BaseRepository(ABC, Generic[T]):
     @asynccontextmanager
     async def get_session(self):
         """Get async database session with proper error handling"""
-        async with get_async_session() as session:
+        async for session in get_async_session():
             try:
                 yield session
             except Exception as e:
                 self.logger.error(f"Database session error: {e}")
                 await session.rollback()
                 raise
+            break
 
     @asynccontextmanager
     async def transaction(self):
         """Execute operations within a transaction"""
-        async with get_async_session() as session:
+        async for session in get_async_session():
             try:
                 yield session
                 await session.commit()
@@ -58,6 +59,7 @@ class BaseRepository(ABC, Generic[T]):
                 self.logger.error(f"Transaction error: {e}")
                 await session.rollback()
                 raise
+            break
 
     async def find_by_id(self, id_value: int | str) -> T | None:
         """Find entity by primary key"""

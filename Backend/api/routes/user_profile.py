@@ -47,7 +47,7 @@ class UserProfile(BaseModel):
     username: str
     is_admin: bool
     created_at: str
-    last_login: str = None
+    last_login: str | None = None  # Make it properly optional
     native_language: dict[str, str]
     target_language: dict[str, str]
 

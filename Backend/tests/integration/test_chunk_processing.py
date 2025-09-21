@@ -37,15 +37,15 @@ async def test_Whenrun_chunk_processing_successCalled_ThenSucceeds(monkeypatch, 
         transcription = Mock(is_initialized=True)
         transcription.transcribe.return_value = Mock(segments=[])
         monkeypatch.setattr(
-            "api.routes.processing.get_transcription_service", lambda: transcription
+            "services.processing.chunk_processor.get_transcription_service", lambda: transcription
         )
         # Mock subtitle processor
         from unittest.mock import AsyncMock
         subtitle_processor = Mock()
-        subtitle_processor.process_file = AsyncMock(return_value={"blocking_words": [], "learning_subtitles": [], "statistics": {}})
+        subtitle_processor.process_srt_file = AsyncMock(return_value={"blocking_words": [], "learning_subtitles": [], "statistics": {}})
         monkeypatch.setattr(
             "core.dependencies.get_subtitle_processor",
-            lambda: subtitle_processor
+            lambda db_session: subtitle_processor
         )
 
         # Mock JWT authentication

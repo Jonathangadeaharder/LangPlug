@@ -2,7 +2,7 @@
 Video API models
 """
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class VideoInfo(BaseModel):
@@ -45,7 +45,8 @@ class VideoInfo(BaseModel):
         description="Video duration in seconds"
     )
 
-    @validator('path')
+    @field_validator('path')
+    @classmethod
     def validate_path_format(cls, v):
         if not v.strip():
             raise ValueError('Path cannot be empty or whitespace')
@@ -55,8 +56,8 @@ class VideoInfo(BaseModel):
             raise ValueError(f'Path must end with a valid video extension: {", ".join(valid_extensions)}')
         return v
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "series": "Superstore",
                 "season": "S01",
@@ -67,3 +68,4 @@ class VideoInfo(BaseModel):
                 "duration": 1320.5
             }
         }
+    )

@@ -172,13 +172,13 @@ class ChunkProcessingService:
         current_user = await self._get_authenticated_user(user_id, session_token)
 
         # Get subtitle processor
-        subtitle_processor = get_subtitle_processor()
+        subtitle_processor = get_subtitle_processor(self.db_session)
 
         logger.info(f"[CHUNK DEBUG] Subtitle processor created for user {current_user.username}")
         logger.info(f"[CHUNK DEBUG] Processing SRT file: {srt_file_path}")
 
         # Process the SRT file through the subtitle processor
-        filter_result = await subtitle_processor.process_file(srt_file_path, user_id)
+        filter_result = await subtitle_processor.process_srt_file(srt_file_path, user_id)
 
         logger.info(f"[CHUNK DEBUG] Filter result keys: {list(filter_result.keys())}")
         logger.info(f"[CHUNK DEBUG] Filter result statistics: {filter_result.get('statistics', {})}")
