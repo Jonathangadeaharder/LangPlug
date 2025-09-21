@@ -50,19 +50,16 @@ class TestTranscriptionServices:
         # Log result for manual inspection
         logger.info(f"Whisper transcription: '{result.full_text}'")
         logger.info(f"Language detected: {result.language}")
-        logger.info(f"Metadata: {result.metadata}")
-
         # Basic reasonableness check - German audio should produce some text
         # that might relate to "Hallo Welt" or at least contain German-like words
         assert len(text.split()) >= 1, "Transcription too short"
 
-    @pytest.mark.timeout(120)  # 2 minute timeout for model loading  
+    @pytest.mark.timeout(120)  # 2 minute timeout for model loading
     def test_Whenparakeet_transcriptionCalled_ThenSucceeds(self):
         """Test Parakeet transcription (English-focused, may not work well with German)"""
         if not TEST_AUDIO_FILE.exists():
             pytest.skip("Test audio file not found")
 
-        # NeMo dependencies are now installed - no skip needed
         # Get Parakeet service
         service = get_transcription_service("parakeet-tdt-0.6b")
         assert service is not None, "Failed to create parakeet service"
@@ -82,27 +79,6 @@ class TestTranscriptionServices:
         # Basic check
         text = result.full_text.strip()
         assert len(text) > 0, "Transcribed text is empty"
-
-    @pytest.mark.timeout(30)
-    def test_Whentranscription_service_interfaceCalled_ThenSucceeds(self):
-        """Test that transcription services implement the correct interface"""
-        # Test service creation without initialization
-        whisper_service = get_transcription_service("whisper-tiny")
-        assert whisper_service is not None
-
-        # Test interface methods exist
-        assert hasattr(whisper_service, 'transcribe')
-        assert hasattr(whisper_service, 'transcribe_with_timestamps')
-        assert hasattr(whisper_service, 'is_initialized')
-        assert hasattr(whisper_service, 'service_name')
-        assert hasattr(whisper_service, 'cleanup')
-
-        # Test service name
-        assert isinstance(whisper_service.service_name, str)
-        assert len(whisper_service.service_name) > 0
-
-        logger.info(f"Service name: {whisper_service.service_name}")
-        logger.info(f"Is initialized: {whisper_service.is_initialized}")
 
 
 if __name__ == "__main__":

@@ -40,20 +40,96 @@
         }
       }
     },
-    "/api/auth/test-prefix": {
-      "get": {
+    "/api/auth/logout": {
+      "post": {
         "tags": [
-          "authentication"
+          "auth"
         ],
-        "summary": "Test Prefix Endpoint",
-        "description": "Test endpoint to verify router prefix configuration",
-        "operationId": "test_prefix_endpoint_api_auth_test_prefix_get",
+        "summary": "Auth:Jwt-Bearer.Logout",
+        "operationId": "auth_jwt_bearer_logout_api_auth_logout_post",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing token or inactive user."
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Auth:Jwt-Bearer.Login",
+        "operationId": "auth_jwt_bearer_login_api_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_auth_jwt_bearer_login_api_auth_login_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BearerResponse"
+                },
+                "example": {
+                  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiOTIyMWZmYzktNjQwZi00MzcyLTg2ZDMtY2U2NDJjYmE1NjAzIiwiYXVkIjoiZmFzdGFwaS11c2VyczphdXRoIiwiZXhwIjoxNTcxNTA0MTkzfQ.M10bjOe45I5Ncu_uXvOmVV8QxnL-nZfcH96U90JaocI",
+                  "token_type": "bearer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                },
+                "examples": {
+                  "LOGIN_BAD_CREDENTIALS": {
+                    "summary": "Bad credentials or the user is inactive.",
+                    "value": {
+                      "detail": "LOGIN_BAD_CREDENTIALS"
+                    }
+                  },
+                  "LOGIN_USER_NOT_VERIFIED": {
+                    "summary": "The user is not verified.",
+                    "value": {
+                      "detail": "LOGIN_USER_NOT_VERIFIED"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -63,28 +139,54 @@
     "/api/auth/register": {
       "post": {
         "tags": [
-          "authentication"
+          "auth"
         ],
-        "summary": "Register",
-        "description": "Register a new user",
-        "operationId": "register_api_auth_register_post",
+        "summary": "Register:Register",
+        "operationId": "register_register_api_auth_register_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
+                "$ref": "#/components/schemas/UserCreate"
               }
             }
           },
           "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserResponse"
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                },
+                "examples": {
+                  "REGISTER_USER_ALREADY_EXISTS": {
+                    "summary": "A user with this email already exists.",
+                    "value": {
+                      "detail": "REGISTER_USER_ALREADY_EXISTS"
+                    }
+                  },
+                  "REGISTER_INVALID_PASSWORD": {
+                    "summary": "Password validation failed.",
+                    "value": {
+                      "detail": {
+                        "code": "REGISTER_INVALID_PASSWORD",
+                        "reason": "Password should beat least 3 characters"
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -102,56 +204,14 @@
         }
       }
     },
-    "/api/auth/login": {
-      "post": {
+    "/api/auth/test-prefix": {
+      "get": {
         "tags": [
           "authentication"
         ],
-        "summary": "Login",
-        "description": "Login user and create session",
-        "operationId": "login_api_auth_login_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/logout": {
-      "post": {
-        "tags": [
-          "authentication"
-        ],
-        "summary": "Logout",
-        "description": "Logout current user",
-        "operationId": "logout_api_auth_logout_post",
+        "summary": "Auth Test Prefix",
+        "description": "Test endpoint to verify router prefix configuration",
+        "operationId": "auth_test_prefix_api_auth_test_prefix_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -161,12 +221,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/auth/me": {
@@ -174,9 +229,9 @@
         "tags": [
           "authentication"
         ],
-        "summary": "Get Current User Info",
+        "summary": "Auth Get Current User",
         "description": "Get current user information",
-        "operationId": "get_current_user_info_api_auth_me_get",
+        "operationId": "auth_get_current_user_api_auth_me_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -191,7 +246,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -201,9 +256,9 @@
         "tags": [
           "videos"
         ],
-        "summary": "Get Available Videos",
+        "summary": "Get Videos",
         "description": "Get list of available videos/series",
-        "operationId": "get_available_videos_api_videos_get",
+        "operationId": "get_videos_api_videos_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -211,11 +266,10 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "additionalProperties": true,
-                    "type": "object"
+                    "$ref": "#/components/schemas/VideoInfo"
                   },
                   "type": "array",
-                  "title": "Response Get Available Videos Api Videos Get"
+                  "title": "Response Get Videos Api Videos Get"
                 }
               }
             }
@@ -223,7 +277,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -238,7 +292,7 @@
         "operationId": "get_subtitles_api_videos_subtitles__subtitle_path__get",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -284,7 +338,7 @@
         "operationId": "stream_video_api_videos__series___episode__get",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -339,7 +393,7 @@
         "operationId": "upload_subtitle_api_videos_subtitle_upload_post",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -405,7 +459,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -437,7 +491,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -452,7 +506,7 @@
         "operationId": "get_video_vocabulary_api_videos__video_id__vocabulary_get",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -504,7 +558,7 @@
         "operationId": "get_video_status_api_videos__video_id__status_get",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -552,7 +606,7 @@
         "operationId": "upload_video_generic_api_videos_upload_post",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -604,12 +658,12 @@
         "tags": [
           "videos"
         ],
-        "summary": "Upload Video",
+        "summary": "Upload Video To Series",
         "description": "Upload a new video file to a series - Requires authentication",
-        "operationId": "upload_video_api_videos_upload__series__post",
+        "operationId": "upload_video_to_series_api_videos_upload__series__post",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -628,7 +682,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_upload_video_api_videos_upload__series__post"
+                "$ref": "#/components/schemas/Body_upload_video_to_series_api_videos_upload__series__post"
               }
             }
           }
@@ -695,7 +749,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -740,7 +794,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -785,7 +839,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -830,7 +884,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -840,9 +894,9 @@
         "tags": [
           "processing"
         ],
-        "summary": "Prepare Episode For Learning",
+        "summary": "Prepare Episode",
         "description": "Starts the full pipeline to prepare an episode for learning.",
-        "operationId": "prepare_episode_for_learning_api_process_prepare_episode_post",
+        "operationId": "prepare_episode_api_process_prepare_episode_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -875,7 +929,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -888,42 +942,16 @@
         "summary": "Full Pipeline",
         "description": "Run a full processing pipeline: Transcribe -> Filter -> Translate",
         "operationId": "full_pipeline_api_process_full_pipeline_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "video_path",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Video Path"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FullPipelineRequest"
+              }
             }
           },
-          {
-            "name": "source_lang",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "de",
-              "title": "Source Lang"
-            }
-          },
-          {
-            "name": "target_lang",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "en",
-              "title": "Target Lang"
-            }
-          }
-        ],
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -943,7 +971,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/api/process/progress/{task_id}": {
@@ -956,7 +989,7 @@
         "operationId": "get_task_progress_api_process_progress__task_id__get",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -997,9 +1030,9 @@
         "tags": [
           "vocabulary"
         ],
-        "summary": "Get Vocabulary Stats Endpoint",
+        "summary": "Get Vocabulary Stats",
         "description": "Get vocabulary statistics for the current user",
-        "operationId": "get_vocabulary_stats_endpoint_api_vocabulary_stats_get",
+        "operationId": "get_vocabulary_stats_api_vocabulary_stats_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1014,7 +1047,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -1029,7 +1062,7 @@
         "operationId": "get_blocking_words_api_vocabulary_blocking_words_get",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -1090,9 +1123,9 @@
         "tags": [
           "vocabulary"
         ],
-        "summary": "Mark Word As Known",
+        "summary": "Mark Word Known",
         "description": "Mark a word as known or unknown",
-        "operationId": "mark_word_as_known_api_vocabulary_mark_known_post",
+        "operationId": "mark_word_known_api_vocabulary_mark_known_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1125,7 +1158,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -1150,7 +1183,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -1160,9 +1193,9 @@
         "tags": [
           "vocabulary"
         ],
-        "summary": "Get Vocabulary Stats",
+        "summary": "Get Library Stats",
         "description": "Get vocabulary statistics for all levels",
-        "operationId": "get_vocabulary_stats_api_vocabulary_library_stats_get",
+        "operationId": "get_library_stats_api_vocabulary_library_stats_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1175,7 +1208,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -1190,7 +1223,7 @@
         "operationId": "get_vocabulary_level_api_vocabulary_library__level__get",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -1231,9 +1264,9 @@
         "tags": [
           "vocabulary"
         ],
-        "summary": "Bulk Mark Level Known",
+        "summary": "Bulk Mark Level",
         "description": "Mark all words in a level as known or unknown",
-        "operationId": "bulk_mark_level_known_api_vocabulary_library_bulk_mark_post",
+        "operationId": "bulk_mark_level_api_vocabulary_library_bulk_mark_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1266,7 +1299,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -1276,9 +1309,9 @@
         "tags": [
           "profile"
         ],
-        "summary": "Get Profile",
+        "summary": "Profile Get",
         "description": "Get current user's profile",
-        "operationId": "get_profile_api_profile_get",
+        "operationId": "profile_get_api_profile_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1293,7 +1326,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -1303,9 +1336,9 @@
         "tags": [
           "profile"
         ],
-        "summary": "Get Supported Languages",
+        "summary": "Profile Get Supported Languages",
         "description": "Get list of supported languages",
-        "operationId": "get_supported_languages_api_profile_languages_get",
+        "operationId": "profile_get_supported_languages_api_profile_languages_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1319,7 +1352,7 @@
                     "type": "object"
                   },
                   "type": "object",
-                  "title": "Response Get Supported Languages Api Profile Languages Get"
+                  "title": "Response Profile Get Supported Languages Api Profile Languages Get"
                 }
               }
             }
@@ -1330,9 +1363,9 @@
         "tags": [
           "profile"
         ],
-        "summary": "Update Language Preferences",
+        "summary": "Profile Update Languages",
         "description": "Update user's language preferences",
-        "operationId": "update_language_preferences_api_profile_languages_put",
+        "operationId": "profile_update_languages_api_profile_languages_put",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1351,7 +1384,7 @@
                 "schema": {
                   "additionalProperties": true,
                   "type": "object",
-                  "title": "Response Update Language Preferences Api Profile Languages Put"
+                  "title": "Response Profile Update Languages Api Profile Languages Put"
                 }
               }
             }
@@ -1369,7 +1402,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -1379,9 +1412,9 @@
         "tags": [
           "profile"
         ],
-        "summary": "Get User Settings",
+        "summary": "Profile Get Settings",
         "description": "Get user settings",
-        "operationId": "get_user_settings_api_profile_settings_get",
+        "operationId": "profile_get_settings_api_profile_settings_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1396,7 +1429,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       },
@@ -1404,9 +1437,9 @@
         "tags": [
           "profile"
         ],
-        "summary": "Update User Settings",
+        "summary": "Profile Update Settings",
         "description": "Update user settings",
-        "operationId": "update_user_settings_api_profile_settings_put",
+        "operationId": "profile_update_settings_api_profile_settings_put",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1441,7 +1474,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -1451,9 +1484,9 @@
         "tags": [
           "logs"
         ],
-        "summary": "Receive Frontend Logs",
+        "summary": "Logs Receive Frontend",
         "description": "Receive and save frontend logs to file",
-        "operationId": "receive_frontend_logs_api_logs_frontend_post",
+        "operationId": "logs_receive_frontend_api_logs_frontend_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1491,9 +1524,9 @@
         "tags": [
           "logs"
         ],
-        "summary": "List Log Files",
+        "summary": "Logs List Files",
         "description": "List available log files",
-        "operationId": "list_log_files_api_logs_list_get",
+        "operationId": "logs_list_files_api_logs_list_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1511,9 +1544,9 @@
         "tags": [
           "logs"
         ],
-        "summary": "Download Log File",
+        "summary": "Logs Download File",
         "description": "Download a specific log file",
-        "operationId": "download_log_file_api_logs_download__filename__get",
+        "operationId": "logs_download_file_api_logs_download__filename__get",
         "parameters": [
           {
             "name": "filename",
@@ -1552,9 +1585,9 @@
         "tags": [
           "progress"
         ],
-        "summary": "Get User Progress",
+        "summary": "Progress Get User",
         "description": "Get progress data for the current user",
-        "operationId": "get_user_progress_api_progress_user_get",
+        "operationId": "progress_get_user_api_progress_user_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1569,7 +1602,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -1579,9 +1612,9 @@
         "tags": [
           "progress"
         ],
-        "summary": "Update User Progress",
+        "summary": "Progress Update User",
         "description": "Update user progress data",
-        "operationId": "update_user_progress_api_progress_update_post",
+        "operationId": "progress_update_user_api_progress_update_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1616,7 +1649,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -1626,12 +1659,12 @@
         "tags": [
           "progress"
         ],
-        "summary": "Get Daily Progress",
+        "summary": "Progress Get Daily",
         "description": "Get daily progress for the last N days",
-        "operationId": "get_daily_progress_api_progress_daily_get",
+        "operationId": "progress_get_daily_api_progress_daily_get",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -1656,7 +1689,7 @@
                   "items": {
                     "$ref": "#/components/schemas/DailyProgress"
                   },
-                  "title": "Response Get Daily Progress Api Progress Daily Get"
+                  "title": "Response Progress Get Daily Api Progress Daily Get"
                 }
               }
             }
@@ -1679,9 +1712,9 @@
         "tags": [
           "game"
         ],
-        "summary": "Start Game Session",
+        "summary": "Game Start Session",
         "description": "Start a new game session",
-        "operationId": "start_game_session_api_game_start_post",
+        "operationId": "game_start_session_api_game_start_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1716,7 +1749,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -1726,12 +1759,12 @@
         "tags": [
           "game"
         ],
-        "summary": "Get Game Session",
+        "summary": "Game Get Session",
         "description": "Get a specific game session",
-        "operationId": "get_game_session_api_game_session__session_id__get",
+        "operationId": "game_get_session_api_game_session__session_id__get",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -1774,9 +1807,9 @@
         "tags": [
           "game"
         ],
-        "summary": "Submit Answer",
+        "summary": "Game Submit Answer",
         "description": "Submit an answer for a game question",
-        "operationId": "submit_answer_api_game_answer_post",
+        "operationId": "game_submit_answer_api_game_answer_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1809,7 +1842,7 @@
         },
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -1819,12 +1852,12 @@
         "tags": [
           "game"
         ],
-        "summary": "Get User Game Sessions",
+        "summary": "Game Get User Sessions",
         "description": "Get user's game sessions",
-        "operationId": "get_user_game_sessions_api_game_sessions_get",
+        "operationId": "game_get_user_sessions_api_game_sessions_get",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -1849,7 +1882,7 @@
                   "items": {
                     "$ref": "#/components/schemas/GameSession"
                   },
-                  "title": "Response Get User Game Sessions Api Game Sessions Get"
+                  "title": "Response Game Get User Sessions Api Game Sessions Get"
                 }
               }
             }
@@ -1867,19 +1900,19 @@
         }
       }
     },
-    "/api/debug/frontend-logs": {
+    "/api/srt/parse": {
       "post": {
         "tags": [
-          "debug"
+          "SRT Utilities"
         ],
-        "summary": "Receive Frontend Log",
-        "description": "Receive and store frontend log entries",
-        "operationId": "receive_frontend_log_api_debug_frontend_logs_post",
+        "summary": "Parse Srt Content",
+        "description": "Parse SRT content and return structured data.\n\nThis endpoint replaces frontend SRT parsing logic, ensuring\nthe backend is the single source of truth for SRT processing.\n\nArgs:\n    request: SRT content to parse\n    \nReturns:\n    Parsed SRT segments with metadata\n    \nRaises:\n    HTTPException: If parsing fails",
+        "operationId": "parse_srt_content_api_srt_parse_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FrontendLogEntry"
+                "$ref": "#/components/schemas/ParseSRTRequest"
               }
             }
           },
@@ -1891,9 +1924,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "type": "object",
-                  "title": "Response Receive Frontend Log Api Debug Frontend Logs Post"
+                  "$ref": "#/components/schemas/ParseSRTResponse"
                 }
               }
             }
@@ -1911,94 +1942,111 @@
         }
       }
     },
-    "/api/debug/health": {
-      "get": {
-        "tags": [
-          "debug"
-        ],
-        "summary": "Debug Health",
-        "description": "Debug health check endpoint",
-        "operationId": "debug_health_api_debug_health_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object",
-                  "title": "Response Debug Health Api Debug Health Get"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/debug/test-minimal": {
+    "/api/srt/parse-file": {
       "post": {
         "tags": [
-          "debug"
+          "SRT Utilities"
         ],
-        "summary": "Test Minimal Post",
-        "description": "Minimal POST endpoint without dependencies",
-        "operationId": "test_minimal_post_api_debug_test_minimal_post",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object",
-                  "title": "Response Test Minimal Post Api Debug Test Minimal Post"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/debug/test-with-data": {
-      "post": {
-        "tags": [
-          "debug"
-        ],
-        "summary": "Test Post With Data",
-        "description": "POST endpoint with data",
-        "operationId": "test_post_with_data_api_debug_test_with_data_post",
+        "summary": "Parse Srt File",
+        "description": "Parse an uploaded SRT file and return structured data.\n\nArgs:\n    file: Uploaded SRT file\n    \nReturns:\n    Parsed SRT segments with metadata\n    \nRaises:\n    HTTPException: If file processing fails",
+        "operationId": "parse_srt_file_api_srt_parse_file_post",
         "requestBody": {
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "anyOf": [
-                  {
-                    "additionalProperties": true,
-                    "type": "object"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "title": "Data"
+                "$ref": "#/components/schemas/Body_parse_srt_file_api_srt_parse_file_post"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "type": "object",
-                  "title": "Response Test Post With Data Api Debug Test With Data Post"
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/srt/convert-to-srt": {
+      "post": {
+        "tags": [
+          "SRT Utilities"
+        ],
+        "summary": "Convert To Srt",
+        "description": "Convert structured segment data back to SRT format.\n\nArgs:\n    request: Segments to convert\n    \nReturns:\n    SRT formatted content\n    \nRaises:\n    HTTPException: If conversion fails",
+        "operationId": "convert_to_srt_api_srt_convert_to_srt_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConvertToSRTRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/srt/validate": {
+      "get": {
+        "tags": [
+          "SRT Utilities"
+        ],
+        "summary": "Validate Srt Content",
+        "description": "Validate SRT content without full parsing.\n\nArgs:\n    content: SRT content to validate\n    \nReturns:\n    Validation result with issues found",
+        "operationId": "validate_srt_content_api_srt_validate_get",
+        "parameters": [
+          {
+            "name": "content",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Content"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -2042,31 +2090,96 @@
         "title": "AnswerRequest",
         "description": "Request model for submitting an answer"
       },
-      "AuthResponse": {
+      "BearerResponse": {
         "properties": {
-          "token": {
+          "access_token": {
             "type": "string",
-            "minLength": 1,
-            "title": "Token",
-            "description": "JWT authentication token"
+            "title": "Access Token"
           },
-          "user": {
-            "$ref": "#/components/schemas/UserResponse",
-            "description": "User information"
-          },
-          "expires_at": {
+          "token_type": {
             "type": "string",
-            "title": "Expires At",
-            "description": "Token expiration timestamp (ISO format)"
+            "title": "Token Type"
           }
         },
         "type": "object",
         "required": [
-          "token",
-          "user",
-          "expires_at"
+          "access_token",
+          "token_type"
         ],
-        "title": "AuthResponse"
+        "title": "BearerResponse"
+      },
+      "Body_auth_jwt_bearer_login_api_auth_login_post": {
+        "properties": {
+          "grant_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^password$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Type"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "title": "Password"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "default": ""
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "format": "password",
+            "title": "Client Secret"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Body_auth_jwt_bearer_login_api_auth_login_post"
+      },
+      "Body_parse_srt_file_api_srt_parse_file_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_parse_srt_file_api_srt_parse_file_post"
       },
       "Body_upload_subtitle_api_videos_subtitle_upload_post": {
         "properties": {
@@ -2082,20 +2195,6 @@
         ],
         "title": "Body_upload_subtitle_api_videos_subtitle_upload_post"
       },
-      "Body_upload_video_api_videos_upload__series__post": {
-        "properties": {
-          "video_file": {
-            "type": "string",
-            "format": "binary",
-            "title": "Video File"
-          }
-        },
-        "type": "object",
-        "required": [
-          "video_file"
-        ],
-        "title": "Body_upload_video_api_videos_upload__series__post"
-      },
       "Body_upload_video_generic_api_videos_upload_post": {
         "properties": {
           "video_file": {
@@ -2109,6 +2208,20 @@
           "video_file"
         ],
         "title": "Body_upload_video_generic_api_videos_upload_post"
+      },
+      "Body_upload_video_to_series_api_videos_upload__series__post": {
+        "properties": {
+          "video_file": {
+            "type": "string",
+            "format": "binary",
+            "title": "Video File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "video_file"
+        ],
+        "title": "Body_upload_video_to_series_api_videos_upload__series__post"
       },
       "BulkMarkRequest": {
         "properties": {
@@ -2158,7 +2271,29 @@
           "start_time",
           "end_time"
         ],
-        "title": "ChunkProcessingRequest"
+        "title": "ChunkProcessingRequest",
+        "example": {
+          "end_time": 180.0,
+          "start_time": 120.5,
+          "video_path": "/videos/Superstore/S01/E01.mp4"
+        }
+      },
+      "ConvertToSRTRequest": {
+        "properties": {
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/SRTSegmentResponse"
+            },
+            "type": "array",
+            "title": "Segments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "segments"
+        ],
+        "title": "ConvertToSRTRequest",
+        "description": "Request model for converting segments to SRT format."
       },
       "DailyProgress": {
         "properties": {
@@ -2199,6 +2334,29 @@
         "title": "DailyProgress",
         "description": "Daily progress model"
       },
+      "ErrorModel": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              }
+            ],
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorModel"
+      },
       "FilterRequest": {
         "properties": {
           "video_path": {
@@ -2214,56 +2372,38 @@
         ],
         "title": "FilterRequest"
       },
-      "FrontendLogEntry": {
+      "FullPipelineRequest": {
         "properties": {
-          "timestamp": {
+          "video_path": {
             "type": "string",
-            "title": "Timestamp"
+            "minLength": 1,
+            "title": "Video Path",
+            "description": "Path to the video file to process"
           },
-          "level": {
+          "source_lang": {
             "type": "string",
-            "title": "Level"
+            "maxLength": 5,
+            "minLength": 2,
+            "pattern": "^[a-z]{2}(-[A-Z]{2})?$",
+            "title": "Source Lang",
+            "description": "Source language code (e.g., 'de', 'en-US')",
+            "default": "de"
           },
-          "category": {
+          "target_lang": {
             "type": "string",
-            "title": "Category"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message"
-          },
-          "data": {
-            "title": "Data"
-          },
-          "error": {
-            "type": "string",
-            "title": "Error"
-          },
-          "stack": {
-            "type": "string",
-            "title": "Stack"
-          },
-          "url": {
-            "type": "string",
-            "title": "Url"
-          },
-          "userAgent": {
-            "type": "string",
-            "title": "Useragent"
-          },
-          "userId": {
-            "type": "string",
-            "title": "Userid"
+            "maxLength": 5,
+            "minLength": 2,
+            "pattern": "^[a-z]{2}(-[A-Z]{2})?$",
+            "title": "Target Lang",
+            "description": "Target language code (e.g., 'en', 'de-DE')",
+            "default": "en"
           }
         },
         "type": "object",
         "required": [
-          "timestamp",
-          "level",
-          "category",
-          "message"
+          "video_path"
         ],
-        "title": "FrontendLogEntry"
+        "title": "FullPipelineRequest"
       },
       "GameSession": {
         "properties": {
@@ -2449,30 +2589,6 @@
         ],
         "title": "LogEntry"
       },
-      "LoginRequest": {
-        "properties": {
-          "username": {
-            "type": "string",
-            "maxLength": 50,
-            "minLength": 1,
-            "title": "Username",
-            "description": "Username for authentication"
-          },
-          "password": {
-            "type": "string",
-            "maxLength": 128,
-            "minLength": 1,
-            "title": "Password",
-            "description": "Password for authentication"
-          }
-        },
-        "type": "object",
-        "required": [
-          "username",
-          "password"
-        ],
-        "title": "LoginRequest"
-      },
       "MarkKnownRequest": {
         "properties": {
           "word": {
@@ -2494,6 +2610,47 @@
           "known"
         ],
         "title": "MarkKnownRequest"
+      },
+      "ParseSRTRequest": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "ParseSRTRequest",
+        "description": "Request model for parsing SRT content."
+      },
+      "ParseSRTResponse": {
+        "properties": {
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/SRTSegmentResponse"
+            },
+            "type": "array",
+            "title": "Segments"
+          },
+          "total_segments": {
+            "type": "integer",
+            "title": "Total Segments"
+          },
+          "duration": {
+            "type": "number",
+            "title": "Duration"
+          }
+        },
+        "type": "object",
+        "required": [
+          "segments",
+          "total_segments",
+          "duration"
+        ],
+        "title": "ParseSRTResponse",
+        "description": "Response model for parsed SRT data."
       },
       "ProcessingStatus": {
         "properties": {
@@ -2528,30 +2685,44 @@
         ],
         "title": "ProcessingStatus"
       },
-      "RegisterRequest": {
+      "SRTSegmentResponse": {
         "properties": {
-          "username": {
-            "type": "string",
-            "maxLength": 50,
-            "minLength": 3,
-            "pattern": "^[a-zA-Z0-9_-]+$",
-            "title": "Username",
-            "description": "Username must be 3-50 characters, alphanumeric with underscores and hyphens only"
+          "index": {
+            "type": "integer",
+            "title": "Index"
           },
-          "password": {
+          "start_time": {
+            "type": "number",
+            "title": "Start Time"
+          },
+          "end_time": {
+            "type": "number",
+            "title": "End Time"
+          },
+          "text": {
             "type": "string",
-            "maxLength": 128,
-            "minLength": 8,
-            "title": "Password",
-            "description": "Password must be at least 8 characters long"
+            "title": "Text"
+          },
+          "original_text": {
+            "type": "string",
+            "title": "Original Text",
+            "default": ""
+          },
+          "translation": {
+            "type": "string",
+            "title": "Translation",
+            "default": ""
           }
         },
         "type": "object",
         "required": [
-          "username",
-          "password"
+          "index",
+          "start_time",
+          "end_time",
+          "text"
         ],
-        "title": "RegisterRequest"
+        "title": "SRTSegmentResponse",
+        "description": "Response model for SRT segment data."
       },
       "StartGameRequest": {
         "properties": {
@@ -2636,10 +2807,70 @@
         ],
         "title": "TranslateRequest"
       },
+      "UserCreate": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active",
+            "default": true
+          },
+          "is_superuser": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Superuser",
+            "default": false
+          },
+          "is_verified": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Verified",
+            "default": false
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password",
+          "username"
+        ],
+        "title": "UserCreate"
+      },
       "UserProfile": {
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "title": "Id"
           },
           "username": {
@@ -2655,7 +2886,14 @@
             "title": "Created At"
           },
           "last_login": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Last Login"
           },
           "native_language": {
@@ -2770,13 +3008,71 @@
         "title": "UserProgress",
         "description": "User progress model"
       },
+      "UserRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "is_superuser": {
+            "type": "boolean",
+            "title": "Is Superuser"
+          },
+          "is_verified": {
+            "type": "boolean",
+            "title": "Is Verified"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_login": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Login"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "is_active",
+          "is_superuser",
+          "is_verified",
+          "username",
+          "created_at",
+          "last_login"
+        ],
+        "title": "UserRead"
+      },
       "UserResponse": {
         "properties": {
           "id": {
-            "type": "integer",
-            "exclusiveMinimum": 0.0,
+            "type": "string",
+            "format": "uuid",
             "title": "Id",
-            "description": "Unique user identifier"
+            "description": "Unique user identifier (UUID)"
           },
           "username": {
             "type": "string",
@@ -2785,10 +3081,15 @@
             "title": "Username",
             "description": "Username"
           },
-          "is_admin": {
+          "email": {
+            "type": "string",
+            "title": "Email",
+            "description": "User email address"
+          },
+          "is_superuser": {
             "type": "boolean",
-            "title": "Is Admin",
-            "description": "Whether user has admin privileges"
+            "title": "Is Superuser",
+            "description": "Whether user has superuser privileges"
           },
           "is_active": {
             "type": "boolean",
@@ -2817,11 +3118,21 @@
         "required": [
           "id",
           "username",
-          "is_admin",
+          "email",
+          "is_superuser",
           "is_active",
           "created_at"
         ],
-        "title": "UserResponse"
+        "title": "UserResponse",
+        "example": {
+          "created_at": "2024-01-15T10:30:00Z",
+          "email": "john_doe@example.com",
+          "id": "550e8400-e29b-41d4-a716-446655440000",
+          "is_active": true,
+          "is_superuser": false,
+          "last_login": "2024-01-20T14:45:00Z",
+          "username": "john_doe"
+        }
       },
       "UserSettings": {
         "properties": {
@@ -2957,6 +3268,81 @@
         ],
         "title": "ValidationError"
       },
+      "VideoInfo": {
+        "properties": {
+          "series": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Series",
+            "description": "Name of the TV series"
+          },
+          "season": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Season",
+            "description": "Season identifier (e.g., 'S01', 'Season 1')"
+          },
+          "episode": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Episode",
+            "description": "Episode identifier (e.g., 'E01', 'Episode 1')"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "description": "Episode title"
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Path",
+            "description": "File system path to the video file"
+          },
+          "has_subtitles": {
+            "type": "boolean",
+            "title": "Has Subtitles",
+            "description": "Whether subtitles are available for this video"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration",
+            "description": "Video duration in seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "series",
+          "season",
+          "episode",
+          "title",
+          "path",
+          "has_subtitles"
+        ],
+        "title": "VideoInfo",
+        "example": {
+          "duration": 1320.5,
+          "episode": "E01",
+          "has_subtitles": true,
+          "path": "/videos/Superstore/S01/E01.mp4",
+          "season": "S01",
+          "series": "Superstore",
+          "title": "Pilot"
+        }
+      },
       "VocabularyStats": {
         "properties": {
           "levels": {
@@ -2989,7 +3375,25 @@
           "total_words",
           "total_known"
         ],
-        "title": "VocabularyStats"
+        "title": "VocabularyStats",
+        "example": {
+          "levels": {
+            "A1": {
+              "known": 80,
+              "total": 100
+            },
+            "A2": {
+              "known": 60,
+              "total": 150
+            },
+            "B1": {
+              "known": 40,
+              "total": 200
+            }
+          },
+          "total_known": 180,
+          "total_words": 450
+        }
       },
       "VocabularyWord": {
         "properties": {
@@ -3035,6 +3439,15 @@
       }
     },
     "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "type": "oauth2",
+        "flows": {
+          "password": {
+            "scopes": {},
+            "tokenUrl": "auth/login"
+          }
+        }
+      },
       "HTTPBearer": {
         "type": "http",
         "scheme": "bearer"

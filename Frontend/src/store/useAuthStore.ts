@@ -27,37 +27,41 @@ export const useAuthStore = create<AuthState>()(
       error: null,
 
       login: async (email: string, password: string) => {
-        set({ isLoading: true });
+        set({ isLoading: true, error: null });
         try {
           const response = await api.login(email, password)
           set({
             user: response.user,
             token: response.token,
-            isAuthenticated: true,
+            isAuthenticated: !!response.token, // Only authenticated if we have a token
             isLoading: false,
             error: null,
           });
-          localStorage.setItem('auth_token', response.token)
+          if (response.token) {
+            localStorage.setItem('auth_token', response.token)
+          }
         } catch (error: any) {
-          const errorMessage = error.response?.data?.detail || error.message;
+          const errorMessage = error.response?.data?.detail || error.message || 'Login failed';
           set({ isLoading: false, error: errorMessage });
         }
       },
 
       register: async (email: string, password: string, name?: string) => {
-        set({ isLoading: true });
+        set({ isLoading: true, error: null });
         try {
           const response = await api.register(email, password, name ?? '')
           set({
             user: response.user,
             token: response.token,
-            isAuthenticated: true,
+            isAuthenticated: !!response.token, // Only authenticated if we have a token
             isLoading: false,
             error: null,
           })
-          localStorage.setItem('auth_token', response.token)
+          if (response.token) {
+            localStorage.setItem('auth_token', response.token)
+          }
         } catch (error: any) {
-          const errorMessage = error.response?.data?.detail || error.message;
+          const errorMessage = error.response?.data?.detail || error.message || 'Registration failed';
           set({ isLoading: false, error: errorMessage });
         }
       },

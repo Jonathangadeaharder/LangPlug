@@ -67,7 +67,8 @@ async def extract_blocking_words_for_segment(
         subtitle_processor = get_subtitle_processor(db)
 
         # Process segments through subtitle processor to get blocking words
-        result = await subtitle_processor.process_srt_file(srt_path, user_id)
+        # Use A1 level as default for blocking words detection
+        result = await subtitle_processor.process_srt_file(srt_path, user_id, "A1", "de")
 
         # Check for processing errors first
         if "error" in result.get("statistics", {}):

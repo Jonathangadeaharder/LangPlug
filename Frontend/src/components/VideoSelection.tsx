@@ -298,7 +298,7 @@ export const VideoSelection: React.FC = () => {
             </NavLinks>
             <UserSection>
               <UserName>Welcome, {user?.username}</UserName>
-              <LogoutButton variant="secondary" onClick={handleLogout}>
+              <LogoutButton variant="secondary" onClick={handleLogout} data-testid="logout-button">
                 Logout
               </LogoutButton>
             </UserSection>
@@ -331,7 +331,7 @@ export const VideoSelection: React.FC = () => {
             <EmptyState>
               <h3>No Series Available</h3>
               <p>No video content has been added yet. Please check back later.</p>
-              <NetflixButton onClick={loadVideos}>Refresh</NetflixButton>
+              <NetflixButton onClick={loadVideos} data-testid="refresh-videos-button">Refresh</NetflixButton>
             </EmptyState>
           )}
           
@@ -341,6 +341,7 @@ export const VideoSelection: React.FC = () => {
                 <SeriesCard
                   key={series.name}
                   onClick={() => handleSeriesSelect(series.name)}
+                  data-testid={`series-card-${series.name.toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   <CardImage>
                     <PlayButton>

@@ -361,10 +361,24 @@ async def run_processing_pipeline(
         task_progress[task_id].current_step = "Step 2: Filtering Subtitles"
         task_progress[task_id].message = "Analyzing vocabulary..."
 
-        subtitle_processor = DirectSubtitleProcessor()
-        # Process subtitles with simplified processor
-        user_level = "A1"  # Default level - should be configurable per user
-        filtered_subtitles = subtitle_processor.process_srt_file(str(srt_path), user_id, user_level, "de")
+        # Get user's current level from database - fallback to A1
+        user_level = "A1"  # TODO: Get from user profile when available
+        
+        # Use dependency injection to get the subtitle processor
+        from core.database import get_async_session
+        
+        async for db_session in get_async_session():
+            # Get the subtitle processor with proper dependency injection
+            subtitle_processor = get_subtitle_processor(db_session)
+            
+            # Use the proper service method
+            filtered_subtitles = subtitle_processor.process_srt_file(
+                str(srt_path), 
+                user_id, 
+                user_level, 
+                "de"
+            )
+            break  # Only use the first session
 
         task_progress[task_id].progress = 80.0
         task_progress[task_id].message = (
@@ -376,11 +390,46 @@ async def run_processing_pipeline(
         task_progress[task_id].current_step = "Step 3: Translating Vocabulary"
         task_progress[task_id].message = "Generating definitions for new words..."
 
-        # (This part is a placeholder for actual translation logic if you add it)
-        # For now, we'll just simulate the work
-        await asyncio.sleep(2)  # Simulate translation API calls
+        # Get translation service and translate blocking words
+        translation_service = get_translation_service()
+        if translation_service and filtered_subtitles.get('blocking_words'):
+            blocking_words = filtered_subtitles.get('blocking_words', [])
+            total_words = len(blocking_words)
+            
+            for i, word_data in enumerate(blocking_words):
+                try:
+                    # Extract word from word_data (could be string or dict)
+                    word = word_data if isinstance(word_data, str) else word_data.get('word', '')
+                    
+                    if word:
+                        # Translate the word
+                        translation_result = translation_service.translate_word(
+                            word=word,
+                            source_language="de",  # German
+                            target_language="en"   # English
+                        )
+                        
+                        # Update word_data with translation if it's a dict
+                        if isinstance(word_data, dict) and translation_result:
+                            word_data['translation'] = translation_result.get('translation', '')
+                            word_data['definition'] = translation_result.get('definition', '')
+                    
+                    # Update progress
+                    translation_progress = 80.0 + (20.0 * (i + 1) / total_words)
+                    task_progress[task_id].progress = translation_progress
+                    
+                except Exception as e:
+                    logger.warning(f"Failed to translate word '{word}': {e}")
+                    continue
+        else:
+            # No translation service or no words to translate
+            if not translation_service:
+                logger.warning("Translation service not available - skipping translation step")
+            
+            # Just mark as complete
+            await asyncio.sleep(1)  # Brief pause for user experience
+            task_progress[task_id].progress = 100.0
 
-        task_progress[task_id].progress = 100.0
         logger.info(f"Task {task_id}: Translation complete.")
 
         # === 4. Completion ===

@@ -9,6 +9,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     testTimeout: 30000, // 30 second timeout for all tests
+    watch: false, // Disable watch mode by default
     coverage: {
       reporter: ['text', 'json', 'html'],
     },

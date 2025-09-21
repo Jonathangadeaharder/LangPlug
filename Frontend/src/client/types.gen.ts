@@ -20,23 +20,57 @@ export type AnswerRequest = {
 };
 
 /**
- * AuthResponse
+ * BearerResponse
  */
-export type AuthResponse = {
+export type BearerResponse = {
     /**
-     * Token
-     * JWT authentication token
+     * Access Token
      */
-    token: string;
+    access_token: string;
     /**
-     * User information
+     * Token Type
      */
-    user: UserResponse;
+    token_type: string;
+};
+
+/**
+ * Body_auth_jwt_bearer_login_api_auth_login_post
+ */
+export type BodyAuthJwtBearerLoginApiAuthLoginPost = {
     /**
-     * Expires At
-     * Token expiration timestamp (ISO format)
+     * Grant Type
      */
-    expires_at: string;
+    grant_type?: string | null;
+    /**
+     * Username
+     */
+    username: string;
+    /**
+     * Password
+     */
+    password: string;
+    /**
+     * Scope
+     */
+    scope?: string;
+    /**
+     * Client Id
+     */
+    client_id?: string | null;
+    /**
+     * Client Secret
+     */
+    client_secret?: string | null;
+};
+
+/**
+ * Body_parse_srt_file_api_srt_parse_file_post
+ */
+export type BodyParseSrtFileApiSrtParseFilePost = {
+    /**
+     * File
+     */
+    file: Blob | File;
 };
 
 /**
@@ -50,9 +84,9 @@ export type BodyUploadSubtitleApiVideosSubtitleUploadPost = {
 };
 
 /**
- * Body_upload_video_api_videos_upload__series__post
+ * Body_upload_video_generic_api_videos_upload_post
  */
-export type BodyUploadVideoApiVideosUploadSeriesPost = {
+export type BodyUploadVideoGenericApiVideosUploadPost = {
     /**
      * Video File
      */
@@ -60,9 +94,9 @@ export type BodyUploadVideoApiVideosUploadSeriesPost = {
 };
 
 /**
- * Body_upload_video_generic_api_videos_upload_post
+ * Body_upload_video_to_series_api_videos_upload__series__post
  */
-export type BodyUploadVideoGenericApiVideosUploadPost = {
+export type BodyUploadVideoToSeriesApiVideosUploadSeriesPost = {
     /**
      * Video File
      */
@@ -107,6 +141,17 @@ export type ChunkProcessingRequest = {
 };
 
 /**
+ * ConvertToSRTRequest
+ * Request model for converting segments to SRT format.
+ */
+export type ConvertToSrtRequest = {
+    /**
+     * Segments
+     */
+    segments: Array<SrtSegmentResponse>;
+};
+
+/**
  * DailyProgress
  * Daily progress model
  */
@@ -138,6 +183,18 @@ export type DailyProgress = {
 };
 
 /**
+ * ErrorModel
+ */
+export type ErrorModel = {
+    /**
+     * Detail
+     */
+    detail: string | {
+        [key: string]: string;
+    };
+};
+
+/**
  * FilterRequest
  */
 export type FilterRequest = {
@@ -146,52 +203,6 @@ export type FilterRequest = {
      * Path to the video file to filter subtitles for
      */
     video_path: string;
-};
-
-/**
- * FrontendLogEntry
- */
-export type FrontendLogEntry = {
-    /**
-     * Timestamp
-     */
-    timestamp: string;
-    /**
-     * Level
-     */
-    level: string;
-    /**
-     * Category
-     */
-    category: string;
-    /**
-     * Message
-     */
-    message: string;
-    /**
-     * Data
-     */
-    data?: unknown;
-    /**
-     * Error
-     */
-    error?: string;
-    /**
-     * Stack
-     */
-    stack?: string;
-    /**
-     * Url
-     */
-    url?: string;
-    /**
-     * Useragent
-     */
-    userAgent?: string;
-    /**
-     * Userid
-     */
-    userId?: string;
 };
 
 /**
@@ -350,22 +361,6 @@ export type LogEntry = {
 };
 
 /**
- * LoginRequest
- */
-export type LoginRequest = {
-    /**
-     * Username
-     * Username for authentication
-     */
-    username: string;
-    /**
-     * Password
-     * Password for authentication
-     */
-    password: string;
-};
-
-/**
  * MarkKnownRequest
  */
 export type MarkKnownRequest = {
@@ -379,6 +374,36 @@ export type MarkKnownRequest = {
      * Whether to mark the word as known (true) or unknown (false)
      */
     known: boolean;
+};
+
+/**
+ * ParseSRTRequest
+ * Request model for parsing SRT content.
+ */
+export type ParseSrtRequest = {
+    /**
+     * Content
+     */
+    content: string;
+};
+
+/**
+ * ParseSRTResponse
+ * Response model for parsed SRT data.
+ */
+export type ParseSrtResponse = {
+    /**
+     * Segments
+     */
+    segments: Array<SrtSegmentResponse>;
+    /**
+     * Total Segments
+     */
+    total_segments: number;
+    /**
+     * Duration
+     */
+    duration: number;
 };
 
 /**
@@ -408,19 +433,34 @@ export type ProcessingStatus = {
 };
 
 /**
- * RegisterRequest
+ * SRTSegmentResponse
+ * Response model for SRT segment data.
  */
-export type RegisterRequest = {
+export type SrtSegmentResponse = {
     /**
-     * Username
-     * Username must be 3-50 characters, alphanumeric with underscores and hyphens only
+     * Index
      */
-    username: string;
+    index: number;
     /**
-     * Password
-     * Password must be at least 8 characters long
+     * Start Time
      */
-    password: string;
+    start_time: number;
+    /**
+     * End Time
+     */
+    end_time: number;
+    /**
+     * Text
+     */
+    text: string;
+    /**
+     * Original Text
+     */
+    original_text?: string;
+    /**
+     * Translation
+     */
+    translation?: string;
 };
 
 /**
@@ -479,6 +519,36 @@ export type TranslateRequest = {
 };
 
 /**
+ * UserCreate
+ */
+export type UserCreate = {
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Password
+     */
+    password: string;
+    /**
+     * Is Active
+     */
+    is_active?: boolean | null;
+    /**
+     * Is Superuser
+     */
+    is_superuser?: boolean | null;
+    /**
+     * Is Verified
+     */
+    is_verified?: boolean | null;
+    /**
+     * Username
+     */
+    username: string;
+};
+
+/**
  * UserProfile
  * User profile response model
  */
@@ -486,7 +556,7 @@ export type UserProfile = {
     /**
      * Id
      */
-    id: number;
+    id: string;
     /**
      * Username
      */
@@ -502,7 +572,7 @@ export type UserProfile = {
     /**
      * Last Login
      */
-    last_login?: string;
+    last_login?: string | null;
     /**
      * Native Language
      */
@@ -579,24 +649,67 @@ export type UserProgress = {
 };
 
 /**
+ * UserRead
+ */
+export type UserRead = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Is Active
+     */
+    is_active: boolean;
+    /**
+     * Is Superuser
+     */
+    is_superuser: boolean;
+    /**
+     * Is Verified
+     */
+    is_verified: boolean;
+    /**
+     * Username
+     */
+    username: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Last Login
+     */
+    last_login: string | null;
+};
+
+/**
  * UserResponse
  */
 export type UserResponse = {
     /**
      * Id
-     * Unique user identifier
+     * Unique user identifier (UUID)
      */
-    id: number;
+    id: string;
     /**
      * Username
      * Username
      */
     username: string;
     /**
-     * Is Admin
-     * Whether user has admin privileges
+     * Email
+     * User email address
      */
-    is_admin: boolean;
+    email: string;
+    /**
+     * Is Superuser
+     * Whether user has superuser privileges
+     */
+    is_superuser: boolean;
     /**
      * Is Active
      * Whether user account is active
@@ -666,6 +779,47 @@ export type ValidationError = {
      * Error Type
      */
     type: string;
+};
+
+/**
+ * VideoInfo
+ */
+export type VideoInfo = {
+    /**
+     * Series
+     * Name of the TV series
+     */
+    series: string;
+    /**
+     * Season
+     * Season identifier (e.g., 'S01', 'Season 1')
+     */
+    season: string;
+    /**
+     * Episode
+     * Episode identifier (e.g., 'E01', 'Episode 1')
+     */
+    episode: string;
+    /**
+     * Title
+     * Episode title
+     */
+    title: string;
+    /**
+     * Path
+     * File system path to the video file
+     */
+    path: string;
+    /**
+     * Has Subtitles
+     * Whether subtitles are available for this video
+     */
+    has_subtitles: boolean;
+    /**
+     * Duration
+     * Video duration in seconds
+     */
+    duration?: number | null;
 };
 
 /**
@@ -747,118 +901,131 @@ export type TestEndpointTestGetResponses = {
     200: unknown;
 };
 
-export type TestPrefixEndpointApiAuthTestPrefixGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/auth/test-prefix';
-};
-
-export type TestPrefixEndpointApiAuthTestPrefixGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
-
-export type RegisterApiAuthRegisterPostData = {
-    body: RegisterRequest;
-    path?: never;
-    query?: never;
-    url: '/api/auth/register';
-};
-
-export type RegisterApiAuthRegisterPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type RegisterApiAuthRegisterPostError = RegisterApiAuthRegisterPostErrors[keyof RegisterApiAuthRegisterPostErrors];
-
-export type RegisterApiAuthRegisterPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: UserResponse;
-};
-
-export type RegisterApiAuthRegisterPostResponse = RegisterApiAuthRegisterPostResponses[keyof RegisterApiAuthRegisterPostResponses];
-
-export type LoginApiAuthLoginPostData = {
-    body: LoginRequest;
-    path?: never;
-    query?: never;
-    url: '/api/auth/login';
-};
-
-export type LoginApiAuthLoginPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type LoginApiAuthLoginPostError = LoginApiAuthLoginPostErrors[keyof LoginApiAuthLoginPostErrors];
-
-export type LoginApiAuthLoginPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: AuthResponse;
-};
-
-export type LoginApiAuthLoginPostResponse = LoginApiAuthLoginPostResponses[keyof LoginApiAuthLoginPostResponses];
-
-export type LogoutApiAuthLogoutPostData = {
+export type AuthJwtBearerLogoutApiAuthLogoutPostData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/auth/logout';
 };
 
-export type LogoutApiAuthLogoutPostResponses = {
+export type AuthJwtBearerLogoutApiAuthLogoutPostErrors = {
+    /**
+     * Missing token or inactive user.
+     */
+    401: unknown;
+};
+
+export type AuthJwtBearerLogoutApiAuthLogoutPostResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type GetCurrentUserInfoApiAuthMeGetData = {
+export type AuthJwtBearerLoginApiAuthLoginPostData = {
+    body: BodyAuthJwtBearerLoginApiAuthLoginPost;
+    path?: never;
+    query?: never;
+    url: '/api/auth/login';
+};
+
+export type AuthJwtBearerLoginApiAuthLoginPostErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorModel;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AuthJwtBearerLoginApiAuthLoginPostError = AuthJwtBearerLoginApiAuthLoginPostErrors[keyof AuthJwtBearerLoginApiAuthLoginPostErrors];
+
+export type AuthJwtBearerLoginApiAuthLoginPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: BearerResponse;
+};
+
+export type AuthJwtBearerLoginApiAuthLoginPostResponse = AuthJwtBearerLoginApiAuthLoginPostResponses[keyof AuthJwtBearerLoginApiAuthLoginPostResponses];
+
+export type RegisterRegisterApiAuthRegisterPostData = {
+    body: UserCreate;
+    path?: never;
+    query?: never;
+    url: '/api/auth/register';
+};
+
+export type RegisterRegisterApiAuthRegisterPostErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorModel;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RegisterRegisterApiAuthRegisterPostError = RegisterRegisterApiAuthRegisterPostErrors[keyof RegisterRegisterApiAuthRegisterPostErrors];
+
+export type RegisterRegisterApiAuthRegisterPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: UserRead;
+};
+
+export type RegisterRegisterApiAuthRegisterPostResponse = RegisterRegisterApiAuthRegisterPostResponses[keyof RegisterRegisterApiAuthRegisterPostResponses];
+
+export type AuthTestPrefixApiAuthTestPrefixGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/test-prefix';
+};
+
+export type AuthTestPrefixApiAuthTestPrefixGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type AuthGetCurrentUserApiAuthMeGetData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/auth/me';
 };
 
-export type GetCurrentUserInfoApiAuthMeGetResponses = {
+export type AuthGetCurrentUserApiAuthMeGetResponses = {
     /**
      * Successful Response
      */
     200: UserResponse;
 };
 
-export type GetCurrentUserInfoApiAuthMeGetResponse = GetCurrentUserInfoApiAuthMeGetResponses[keyof GetCurrentUserInfoApiAuthMeGetResponses];
+export type AuthGetCurrentUserApiAuthMeGetResponse = AuthGetCurrentUserApiAuthMeGetResponses[keyof AuthGetCurrentUserApiAuthMeGetResponses];
 
-export type GetAvailableVideosApiVideosGetData = {
+export type GetVideosApiVideosGetData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/videos';
 };
 
-export type GetAvailableVideosApiVideosGetResponses = {
+export type GetVideosApiVideosGetResponses = {
     /**
-     * Response Get Available Videos Api Videos Get
+     * Response Get Videos Api Videos Get
      * Successful Response
      */
-    200: Array<{
-        [key: string]: unknown;
-    }>;
+    200: Array<VideoInfo>;
 };
 
-export type GetAvailableVideosApiVideosGetResponse = GetAvailableVideosApiVideosGetResponses[keyof GetAvailableVideosApiVideosGetResponses];
+export type GetVideosApiVideosGetResponse = GetVideosApiVideosGetResponses[keyof GetVideosApiVideosGetResponses];
 
 export type GetSubtitlesApiVideosSubtitlesSubtitlePathGetData = {
     body?: never;
@@ -1070,8 +1237,8 @@ export type UploadVideoGenericApiVideosUploadPostResponses = {
     200: unknown;
 };
 
-export type UploadVideoApiVideosUploadSeriesPostData = {
-    body: BodyUploadVideoApiVideosUploadSeriesPost;
+export type UploadVideoToSeriesApiVideosUploadSeriesPostData = {
+    body: BodyUploadVideoToSeriesApiVideosUploadSeriesPost;
     path: {
         /**
          * Series
@@ -1082,16 +1249,16 @@ export type UploadVideoApiVideosUploadSeriesPostData = {
     url: '/api/videos/upload/{series}';
 };
 
-export type UploadVideoApiVideosUploadSeriesPostErrors = {
+export type UploadVideoToSeriesApiVideosUploadSeriesPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type UploadVideoApiVideosUploadSeriesPostError = UploadVideoApiVideosUploadSeriesPostErrors[keyof UploadVideoApiVideosUploadSeriesPostErrors];
+export type UploadVideoToSeriesApiVideosUploadSeriesPostError = UploadVideoToSeriesApiVideosUploadSeriesPostErrors[keyof UploadVideoToSeriesApiVideosUploadSeriesPostErrors];
 
-export type UploadVideoApiVideosUploadSeriesPostResponses = {
+export type UploadVideoToSeriesApiVideosUploadSeriesPostResponses = {
     /**
      * Successful Response
      */
@@ -1190,23 +1357,23 @@ export type TranslateSubtitlesApiProcessTranslateSubtitlesPostResponses = {
     200: unknown;
 };
 
-export type PrepareEpisodeForLearningApiProcessPrepareEpisodePostData = {
+export type PrepareEpisodeApiProcessPrepareEpisodePostData = {
     body: TranscribeRequest;
     path?: never;
     query?: never;
     url: '/api/process/prepare-episode';
 };
 
-export type PrepareEpisodeForLearningApiProcessPrepareEpisodePostErrors = {
+export type PrepareEpisodeApiProcessPrepareEpisodePostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type PrepareEpisodeForLearningApiProcessPrepareEpisodePostError = PrepareEpisodeForLearningApiProcessPrepareEpisodePostErrors[keyof PrepareEpisodeForLearningApiProcessPrepareEpisodePostErrors];
+export type PrepareEpisodeApiProcessPrepareEpisodePostError = PrepareEpisodeApiProcessPrepareEpisodePostErrors[keyof PrepareEpisodeApiProcessPrepareEpisodePostErrors];
 
-export type PrepareEpisodeForLearningApiProcessPrepareEpisodePostResponses = {
+export type PrepareEpisodeApiProcessPrepareEpisodePostResponses = {
     /**
      * Successful Response
      */
@@ -1264,21 +1431,21 @@ export type GetTaskProgressApiProcessProgressTaskIdGetResponses = {
     200: unknown;
 };
 
-export type GetVocabularyStatsEndpointApiVocabularyStatsGetData = {
+export type GetVocabularyStatsApiVocabularyStatsGetData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/vocabulary/stats';
 };
 
-export type GetVocabularyStatsEndpointApiVocabularyStatsGetResponses = {
+export type GetVocabularyStatsApiVocabularyStatsGetResponses = {
     /**
      * Successful Response
      */
     200: VocabularyStats;
 };
 
-export type GetVocabularyStatsEndpointApiVocabularyStatsGetResponse = GetVocabularyStatsEndpointApiVocabularyStatsGetResponses[keyof GetVocabularyStatsEndpointApiVocabularyStatsGetResponses];
+export type GetVocabularyStatsApiVocabularyStatsGetResponse = GetVocabularyStatsApiVocabularyStatsGetResponses[keyof GetVocabularyStatsApiVocabularyStatsGetResponses];
 
 export type GetBlockingWordsApiVocabularyBlockingWordsGetData = {
     body?: never;
@@ -1316,23 +1483,23 @@ export type GetBlockingWordsApiVocabularyBlockingWordsGetResponses = {
     200: unknown;
 };
 
-export type MarkWordAsKnownApiVocabularyMarkKnownPostData = {
+export type MarkWordKnownApiVocabularyMarkKnownPostData = {
     body: MarkKnownRequest;
     path?: never;
     query?: never;
     url: '/api/vocabulary/mark-known';
 };
 
-export type MarkWordAsKnownApiVocabularyMarkKnownPostErrors = {
+export type MarkWordKnownApiVocabularyMarkKnownPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type MarkWordAsKnownApiVocabularyMarkKnownPostError = MarkWordAsKnownApiVocabularyMarkKnownPostErrors[keyof MarkWordAsKnownApiVocabularyMarkKnownPostErrors];
+export type MarkWordKnownApiVocabularyMarkKnownPostError = MarkWordKnownApiVocabularyMarkKnownPostErrors[keyof MarkWordKnownApiVocabularyMarkKnownPostErrors];
 
-export type MarkWordAsKnownApiVocabularyMarkKnownPostResponses = {
+export type MarkWordKnownApiVocabularyMarkKnownPostResponses = {
     /**
      * Successful Response
      */
@@ -1353,14 +1520,14 @@ export type PreloadVocabularyApiVocabularyPreloadPostResponses = {
     200: unknown;
 };
 
-export type GetVocabularyStatsApiVocabularyLibraryStatsGetData = {
+export type GetLibraryStatsApiVocabularyLibraryStatsGetData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/vocabulary/library/stats';
 };
 
-export type GetVocabularyStatsApiVocabularyLibraryStatsGetResponses = {
+export type GetLibraryStatsApiVocabularyLibraryStatsGetResponses = {
     /**
      * Successful Response
      */
@@ -1395,55 +1562,55 @@ export type GetVocabularyLevelApiVocabularyLibraryLevelGetResponses = {
     200: unknown;
 };
 
-export type BulkMarkLevelKnownApiVocabularyLibraryBulkMarkPostData = {
+export type BulkMarkLevelApiVocabularyLibraryBulkMarkPostData = {
     body: BulkMarkRequest;
     path?: never;
     query?: never;
     url: '/api/vocabulary/library/bulk-mark';
 };
 
-export type BulkMarkLevelKnownApiVocabularyLibraryBulkMarkPostErrors = {
+export type BulkMarkLevelApiVocabularyLibraryBulkMarkPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type BulkMarkLevelKnownApiVocabularyLibraryBulkMarkPostError = BulkMarkLevelKnownApiVocabularyLibraryBulkMarkPostErrors[keyof BulkMarkLevelKnownApiVocabularyLibraryBulkMarkPostErrors];
+export type BulkMarkLevelApiVocabularyLibraryBulkMarkPostError = BulkMarkLevelApiVocabularyLibraryBulkMarkPostErrors[keyof BulkMarkLevelApiVocabularyLibraryBulkMarkPostErrors];
 
-export type BulkMarkLevelKnownApiVocabularyLibraryBulkMarkPostResponses = {
+export type BulkMarkLevelApiVocabularyLibraryBulkMarkPostResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type GetProfileApiProfileGetData = {
+export type ProfileGetApiProfileGetData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/profile';
 };
 
-export type GetProfileApiProfileGetResponses = {
+export type ProfileGetApiProfileGetResponses = {
     /**
      * Successful Response
      */
     200: UserProfile;
 };
 
-export type GetProfileApiProfileGetResponse = GetProfileApiProfileGetResponses[keyof GetProfileApiProfileGetResponses];
+export type ProfileGetApiProfileGetResponse = ProfileGetApiProfileGetResponses[keyof ProfileGetApiProfileGetResponses];
 
-export type GetSupportedLanguagesApiProfileLanguagesGetData = {
+export type ProfileGetSupportedLanguagesApiProfileLanguagesGetData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/profile/languages';
 };
 
-export type GetSupportedLanguagesApiProfileLanguagesGetResponses = {
+export type ProfileGetSupportedLanguagesApiProfileLanguagesGetResponses = {
     /**
-     * Response Get Supported Languages Api Profile Languages Get
+     * Response Profile Get Supported Languages Api Profile Languages Get
      * Successful Response
      */
     200: {
@@ -1453,27 +1620,27 @@ export type GetSupportedLanguagesApiProfileLanguagesGetResponses = {
     };
 };
 
-export type GetSupportedLanguagesApiProfileLanguagesGetResponse = GetSupportedLanguagesApiProfileLanguagesGetResponses[keyof GetSupportedLanguagesApiProfileLanguagesGetResponses];
+export type ProfileGetSupportedLanguagesApiProfileLanguagesGetResponse = ProfileGetSupportedLanguagesApiProfileLanguagesGetResponses[keyof ProfileGetSupportedLanguagesApiProfileLanguagesGetResponses];
 
-export type UpdateLanguagePreferencesApiProfileLanguagesPutData = {
+export type ProfileUpdateLanguagesApiProfileLanguagesPutData = {
     body: LanguagePreferences;
     path?: never;
     query?: never;
     url: '/api/profile/languages';
 };
 
-export type UpdateLanguagePreferencesApiProfileLanguagesPutErrors = {
+export type ProfileUpdateLanguagesApiProfileLanguagesPutErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type UpdateLanguagePreferencesApiProfileLanguagesPutError = UpdateLanguagePreferencesApiProfileLanguagesPutErrors[keyof UpdateLanguagePreferencesApiProfileLanguagesPutErrors];
+export type ProfileUpdateLanguagesApiProfileLanguagesPutError = ProfileUpdateLanguagesApiProfileLanguagesPutErrors[keyof ProfileUpdateLanguagesApiProfileLanguagesPutErrors];
 
-export type UpdateLanguagePreferencesApiProfileLanguagesPutResponses = {
+export type ProfileUpdateLanguagesApiProfileLanguagesPutResponses = {
     /**
-     * Response Update Language Preferences Api Profile Languages Put
+     * Response Profile Update Languages Api Profile Languages Put
      * Successful Response
      */
     200: {
@@ -1481,87 +1648,87 @@ export type UpdateLanguagePreferencesApiProfileLanguagesPutResponses = {
     };
 };
 
-export type UpdateLanguagePreferencesApiProfileLanguagesPutResponse = UpdateLanguagePreferencesApiProfileLanguagesPutResponses[keyof UpdateLanguagePreferencesApiProfileLanguagesPutResponses];
+export type ProfileUpdateLanguagesApiProfileLanguagesPutResponse = ProfileUpdateLanguagesApiProfileLanguagesPutResponses[keyof ProfileUpdateLanguagesApiProfileLanguagesPutResponses];
 
-export type GetUserSettingsApiProfileSettingsGetData = {
+export type ProfileGetSettingsApiProfileSettingsGetData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/profile/settings';
 };
 
-export type GetUserSettingsApiProfileSettingsGetResponses = {
+export type ProfileGetSettingsApiProfileSettingsGetResponses = {
     /**
      * Successful Response
      */
     200: UserSettings;
 };
 
-export type GetUserSettingsApiProfileSettingsGetResponse = GetUserSettingsApiProfileSettingsGetResponses[keyof GetUserSettingsApiProfileSettingsGetResponses];
+export type ProfileGetSettingsApiProfileSettingsGetResponse = ProfileGetSettingsApiProfileSettingsGetResponses[keyof ProfileGetSettingsApiProfileSettingsGetResponses];
 
-export type UpdateUserSettingsApiProfileSettingsPutData = {
+export type ProfileUpdateSettingsApiProfileSettingsPutData = {
     body: UserSettings;
     path?: never;
     query?: never;
     url: '/api/profile/settings';
 };
 
-export type UpdateUserSettingsApiProfileSettingsPutErrors = {
+export type ProfileUpdateSettingsApiProfileSettingsPutErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type UpdateUserSettingsApiProfileSettingsPutError = UpdateUserSettingsApiProfileSettingsPutErrors[keyof UpdateUserSettingsApiProfileSettingsPutErrors];
+export type ProfileUpdateSettingsApiProfileSettingsPutError = ProfileUpdateSettingsApiProfileSettingsPutErrors[keyof ProfileUpdateSettingsApiProfileSettingsPutErrors];
 
-export type UpdateUserSettingsApiProfileSettingsPutResponses = {
+export type ProfileUpdateSettingsApiProfileSettingsPutResponses = {
     /**
      * Successful Response
      */
     200: UserSettings;
 };
 
-export type UpdateUserSettingsApiProfileSettingsPutResponse = UpdateUserSettingsApiProfileSettingsPutResponses[keyof UpdateUserSettingsApiProfileSettingsPutResponses];
+export type ProfileUpdateSettingsApiProfileSettingsPutResponse = ProfileUpdateSettingsApiProfileSettingsPutResponses[keyof ProfileUpdateSettingsApiProfileSettingsPutResponses];
 
-export type ReceiveFrontendLogsApiLogsFrontendPostData = {
+export type LogsReceiveFrontendApiLogsFrontendPostData = {
     body: LogBatch;
     path?: never;
     query?: never;
     url: '/api/logs/frontend';
 };
 
-export type ReceiveFrontendLogsApiLogsFrontendPostErrors = {
+export type LogsReceiveFrontendApiLogsFrontendPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type ReceiveFrontendLogsApiLogsFrontendPostError = ReceiveFrontendLogsApiLogsFrontendPostErrors[keyof ReceiveFrontendLogsApiLogsFrontendPostErrors];
+export type LogsReceiveFrontendApiLogsFrontendPostError = LogsReceiveFrontendApiLogsFrontendPostErrors[keyof LogsReceiveFrontendApiLogsFrontendPostErrors];
 
-export type ReceiveFrontendLogsApiLogsFrontendPostResponses = {
+export type LogsReceiveFrontendApiLogsFrontendPostResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type ListLogFilesApiLogsListGetData = {
+export type LogsListFilesApiLogsListGetData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/logs/list';
 };
 
-export type ListLogFilesApiLogsListGetResponses = {
+export type LogsListFilesApiLogsListGetResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type DownloadLogFileApiLogsDownloadFilenameGetData = {
+export type LogsDownloadFileApiLogsDownloadFilenameGetData = {
     body?: never;
     path: {
         /**
@@ -1573,39 +1740,39 @@ export type DownloadLogFileApiLogsDownloadFilenameGetData = {
     url: '/api/logs/download/{filename}';
 };
 
-export type DownloadLogFileApiLogsDownloadFilenameGetErrors = {
+export type LogsDownloadFileApiLogsDownloadFilenameGetErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type DownloadLogFileApiLogsDownloadFilenameGetError = DownloadLogFileApiLogsDownloadFilenameGetErrors[keyof DownloadLogFileApiLogsDownloadFilenameGetErrors];
+export type LogsDownloadFileApiLogsDownloadFilenameGetError = LogsDownloadFileApiLogsDownloadFilenameGetErrors[keyof LogsDownloadFileApiLogsDownloadFilenameGetErrors];
 
-export type DownloadLogFileApiLogsDownloadFilenameGetResponses = {
+export type LogsDownloadFileApiLogsDownloadFilenameGetResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type GetUserProgressApiProgressUserGetData = {
+export type ProgressGetUserApiProgressUserGetData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/progress/user';
 };
 
-export type GetUserProgressApiProgressUserGetResponses = {
+export type ProgressGetUserApiProgressUserGetResponses = {
     /**
      * Successful Response
      */
     200: UserProgress;
 };
 
-export type GetUserProgressApiProgressUserGetResponse = GetUserProgressApiProgressUserGetResponses[keyof GetUserProgressApiProgressUserGetResponses];
+export type ProgressGetUserApiProgressUserGetResponse = ProgressGetUserApiProgressUserGetResponses[keyof ProgressGetUserApiProgressUserGetResponses];
 
-export type UpdateUserProgressApiProgressUpdatePostData = {
+export type ProgressUpdateUserApiProgressUpdatePostData = {
     /**
      * Progress Update
      */
@@ -1617,23 +1784,23 @@ export type UpdateUserProgressApiProgressUpdatePostData = {
     url: '/api/progress/update';
 };
 
-export type UpdateUserProgressApiProgressUpdatePostErrors = {
+export type ProgressUpdateUserApiProgressUpdatePostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type UpdateUserProgressApiProgressUpdatePostError = UpdateUserProgressApiProgressUpdatePostErrors[keyof UpdateUserProgressApiProgressUpdatePostErrors];
+export type ProgressUpdateUserApiProgressUpdatePostError = ProgressUpdateUserApiProgressUpdatePostErrors[keyof ProgressUpdateUserApiProgressUpdatePostErrors];
 
-export type UpdateUserProgressApiProgressUpdatePostResponses = {
+export type ProgressUpdateUserApiProgressUpdatePostResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type GetDailyProgressApiProgressDailyGetData = {
+export type ProgressGetDailyApiProgressDailyGetData = {
     body?: never;
     path?: never;
     query?: {
@@ -1645,51 +1812,51 @@ export type GetDailyProgressApiProgressDailyGetData = {
     url: '/api/progress/daily';
 };
 
-export type GetDailyProgressApiProgressDailyGetErrors = {
+export type ProgressGetDailyApiProgressDailyGetErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type GetDailyProgressApiProgressDailyGetError = GetDailyProgressApiProgressDailyGetErrors[keyof GetDailyProgressApiProgressDailyGetErrors];
+export type ProgressGetDailyApiProgressDailyGetError = ProgressGetDailyApiProgressDailyGetErrors[keyof ProgressGetDailyApiProgressDailyGetErrors];
 
-export type GetDailyProgressApiProgressDailyGetResponses = {
+export type ProgressGetDailyApiProgressDailyGetResponses = {
     /**
-     * Response Get Daily Progress Api Progress Daily Get
+     * Response Progress Get Daily Api Progress Daily Get
      * Successful Response
      */
     200: Array<DailyProgress>;
 };
 
-export type GetDailyProgressApiProgressDailyGetResponse = GetDailyProgressApiProgressDailyGetResponses[keyof GetDailyProgressApiProgressDailyGetResponses];
+export type ProgressGetDailyApiProgressDailyGetResponse = ProgressGetDailyApiProgressDailyGetResponses[keyof ProgressGetDailyApiProgressDailyGetResponses];
 
-export type StartGameSessionApiGameStartPostData = {
+export type GameStartSessionApiGameStartPostData = {
     body: StartGameRequest;
     path?: never;
     query?: never;
     url: '/api/game/start';
 };
 
-export type StartGameSessionApiGameStartPostErrors = {
+export type GameStartSessionApiGameStartPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type StartGameSessionApiGameStartPostError = StartGameSessionApiGameStartPostErrors[keyof StartGameSessionApiGameStartPostErrors];
+export type GameStartSessionApiGameStartPostError = GameStartSessionApiGameStartPostErrors[keyof GameStartSessionApiGameStartPostErrors];
 
-export type StartGameSessionApiGameStartPostResponses = {
+export type GameStartSessionApiGameStartPostResponses = {
     /**
      * Successful Response
      */
     200: GameSession;
 };
 
-export type StartGameSessionApiGameStartPostResponse = StartGameSessionApiGameStartPostResponses[keyof StartGameSessionApiGameStartPostResponses];
+export type GameStartSessionApiGameStartPostResponse = GameStartSessionApiGameStartPostResponses[keyof GameStartSessionApiGameStartPostResponses];
 
-export type GetGameSessionApiGameSessionSessionIdGetData = {
+export type GameGetSessionApiGameSessionSessionIdGetData = {
     body?: never;
     path: {
         /**
@@ -1701,48 +1868,48 @@ export type GetGameSessionApiGameSessionSessionIdGetData = {
     url: '/api/game/session/{session_id}';
 };
 
-export type GetGameSessionApiGameSessionSessionIdGetErrors = {
+export type GameGetSessionApiGameSessionSessionIdGetErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type GetGameSessionApiGameSessionSessionIdGetError = GetGameSessionApiGameSessionSessionIdGetErrors[keyof GetGameSessionApiGameSessionSessionIdGetErrors];
+export type GameGetSessionApiGameSessionSessionIdGetError = GameGetSessionApiGameSessionSessionIdGetErrors[keyof GameGetSessionApiGameSessionSessionIdGetErrors];
 
-export type GetGameSessionApiGameSessionSessionIdGetResponses = {
+export type GameGetSessionApiGameSessionSessionIdGetResponses = {
     /**
      * Successful Response
      */
     200: GameSession;
 };
 
-export type GetGameSessionApiGameSessionSessionIdGetResponse = GetGameSessionApiGameSessionSessionIdGetResponses[keyof GetGameSessionApiGameSessionSessionIdGetResponses];
+export type GameGetSessionApiGameSessionSessionIdGetResponse = GameGetSessionApiGameSessionSessionIdGetResponses[keyof GameGetSessionApiGameSessionSessionIdGetResponses];
 
-export type SubmitAnswerApiGameAnswerPostData = {
+export type GameSubmitAnswerApiGameAnswerPostData = {
     body: AnswerRequest;
     path?: never;
     query?: never;
     url: '/api/game/answer';
 };
 
-export type SubmitAnswerApiGameAnswerPostErrors = {
+export type GameSubmitAnswerApiGameAnswerPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type SubmitAnswerApiGameAnswerPostError = SubmitAnswerApiGameAnswerPostErrors[keyof SubmitAnswerApiGameAnswerPostErrors];
+export type GameSubmitAnswerApiGameAnswerPostError = GameSubmitAnswerApiGameAnswerPostErrors[keyof GameSubmitAnswerApiGameAnswerPostErrors];
 
-export type SubmitAnswerApiGameAnswerPostResponses = {
+export type GameSubmitAnswerApiGameAnswerPostResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type GetUserGameSessionsApiGameSessionsGetData = {
+export type GameGetUserSessionsApiGameSessionsGetData = {
     body?: never;
     path?: never;
     query?: {
@@ -1754,124 +1921,124 @@ export type GetUserGameSessionsApiGameSessionsGetData = {
     url: '/api/game/sessions';
 };
 
-export type GetUserGameSessionsApiGameSessionsGetErrors = {
+export type GameGetUserSessionsApiGameSessionsGetErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type GetUserGameSessionsApiGameSessionsGetError = GetUserGameSessionsApiGameSessionsGetErrors[keyof GetUserGameSessionsApiGameSessionsGetErrors];
+export type GameGetUserSessionsApiGameSessionsGetError = GameGetUserSessionsApiGameSessionsGetErrors[keyof GameGetUserSessionsApiGameSessionsGetErrors];
 
-export type GetUserGameSessionsApiGameSessionsGetResponses = {
+export type GameGetUserSessionsApiGameSessionsGetResponses = {
     /**
-     * Response Get User Game Sessions Api Game Sessions Get
+     * Response Game Get User Sessions Api Game Sessions Get
      * Successful Response
      */
     200: Array<GameSession>;
 };
 
-export type GetUserGameSessionsApiGameSessionsGetResponse = GetUserGameSessionsApiGameSessionsGetResponses[keyof GetUserGameSessionsApiGameSessionsGetResponses];
+export type GameGetUserSessionsApiGameSessionsGetResponse = GameGetUserSessionsApiGameSessionsGetResponses[keyof GameGetUserSessionsApiGameSessionsGetResponses];
 
-export type ReceiveFrontendLogApiDebugFrontendLogsPostData = {
-    body: FrontendLogEntry;
+export type ParseSrtContentApiSrtParsePostData = {
+    body: ParseSrtRequest;
     path?: never;
     query?: never;
-    url: '/api/debug/frontend-logs';
+    url: '/api/srt/parse';
 };
 
-export type ReceiveFrontendLogApiDebugFrontendLogsPostErrors = {
+export type ParseSrtContentApiSrtParsePostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type ReceiveFrontendLogApiDebugFrontendLogsPostError = ReceiveFrontendLogApiDebugFrontendLogsPostErrors[keyof ReceiveFrontendLogApiDebugFrontendLogsPostErrors];
+export type ParseSrtContentApiSrtParsePostError = ParseSrtContentApiSrtParsePostErrors[keyof ParseSrtContentApiSrtParsePostErrors];
 
-export type ReceiveFrontendLogApiDebugFrontendLogsPostResponses = {
+export type ParseSrtContentApiSrtParsePostResponses = {
     /**
-     * Response Receive Frontend Log Api Debug Frontend Logs Post
      * Successful Response
      */
-    200: {
-        [key: string]: unknown;
-    };
+    200: ParseSrtResponse;
 };
 
-export type ReceiveFrontendLogApiDebugFrontendLogsPostResponse = ReceiveFrontendLogApiDebugFrontendLogsPostResponses[keyof ReceiveFrontendLogApiDebugFrontendLogsPostResponses];
+export type ParseSrtContentApiSrtParsePostResponse = ParseSrtContentApiSrtParsePostResponses[keyof ParseSrtContentApiSrtParsePostResponses];
 
-export type DebugHealthApiDebugHealthGetData = {
-    body?: never;
+export type ParseSrtFileApiSrtParseFilePostData = {
+    body: BodyParseSrtFileApiSrtParseFilePost;
     path?: never;
     query?: never;
-    url: '/api/debug/health';
+    url: '/api/srt/parse-file';
 };
 
-export type DebugHealthApiDebugHealthGetResponses = {
-    /**
-     * Response Debug Health Api Debug Health Get
-     * Successful Response
-     */
-    200: {
-        [key: string]: string;
-    };
-};
-
-export type DebugHealthApiDebugHealthGetResponse = DebugHealthApiDebugHealthGetResponses[keyof DebugHealthApiDebugHealthGetResponses];
-
-export type TestMinimalPostApiDebugTestMinimalPostData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/debug/test-minimal';
-};
-
-export type TestMinimalPostApiDebugTestMinimalPostResponses = {
-    /**
-     * Response Test Minimal Post Api Debug Test Minimal Post
-     * Successful Response
-     */
-    200: {
-        [key: string]: string;
-    };
-};
-
-export type TestMinimalPostApiDebugTestMinimalPostResponse = TestMinimalPostApiDebugTestMinimalPostResponses[keyof TestMinimalPostApiDebugTestMinimalPostResponses];
-
-export type TestPostWithDataApiDebugTestWithDataPostData = {
-    /**
-     * Data
-     */
-    body?: {
-        [key: string]: unknown;
-    } | null;
-    path?: never;
-    query?: never;
-    url: '/api/debug/test-with-data';
-};
-
-export type TestPostWithDataApiDebugTestWithDataPostErrors = {
+export type ParseSrtFileApiSrtParseFilePostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type TestPostWithDataApiDebugTestWithDataPostError = TestPostWithDataApiDebugTestWithDataPostErrors[keyof TestPostWithDataApiDebugTestWithDataPostErrors];
+export type ParseSrtFileApiSrtParseFilePostError = ParseSrtFileApiSrtParseFilePostErrors[keyof ParseSrtFileApiSrtParseFilePostErrors];
 
-export type TestPostWithDataApiDebugTestWithDataPostResponses = {
+export type ParseSrtFileApiSrtParseFilePostResponses = {
     /**
-     * Response Test Post With Data Api Debug Test With Data Post
      * Successful Response
      */
-    200: {
-        [key: string]: unknown;
-    };
+    200: unknown;
 };
 
-export type TestPostWithDataApiDebugTestWithDataPostResponse = TestPostWithDataApiDebugTestWithDataPostResponses[keyof TestPostWithDataApiDebugTestWithDataPostResponses];
+export type ConvertToSrtApiSrtConvertToSrtPostData = {
+    body: ConvertToSrtRequest;
+    path?: never;
+    query?: never;
+    url: '/api/srt/convert-to-srt';
+};
+
+export type ConvertToSrtApiSrtConvertToSrtPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ConvertToSrtApiSrtConvertToSrtPostError = ConvertToSrtApiSrtConvertToSrtPostErrors[keyof ConvertToSrtApiSrtConvertToSrtPostErrors];
+
+export type ConvertToSrtApiSrtConvertToSrtPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type ValidateSrtContentApiSrtValidateGetData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Content
+         */
+        content: string;
+    };
+    url: '/api/srt/validate';
+};
+
+export type ValidateSrtContentApiSrtValidateGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ValidateSrtContentApiSrtValidateGetError = ValidateSrtContentApiSrtValidateGetErrors[keyof ValidateSrtContentApiSrtValidateGetErrors];
+
+export type ValidateSrtContentApiSrtValidateGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type ClientOptions = {
-    baseUrl: 'http://localhost:8000' | (string & {});
+    baseUrl: `${string}://${string}` | (string & {});
 };

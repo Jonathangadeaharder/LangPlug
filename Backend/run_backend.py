@@ -47,7 +47,6 @@ def main():
         # Enable debug logging for watchfiles to see which files are changing
         if settings.reload:
             import logging
-            import os
             from typing import Iterable
 
             class _WatchfilesSelectiveFilter(logging.Filter):

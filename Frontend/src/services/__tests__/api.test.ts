@@ -13,15 +13,26 @@ import { assertApiCallMade, assertMockResolvedValue, assertMockRejectedValue } f
 
 // Mock the generated SDK
 vi.mock('@/client/sdk.gen', () => ({
-  getAvailableVideosApiVideosGet: vi.fn(),
+  getVideosApiVideosGet: vi.fn(),
   getVideoStatusApiVideosVideoIdStatusGet: vi.fn(),
-  uploadVideoApiVideosUploadSeriesPost: vi.fn(),
+  uploadVideoToSeriesApiVideosUploadSeriesPost: vi.fn(),
   uploadVideoGenericApiVideosUploadPost: vi.fn(),
   fullPipelineApiProcessFullPipelinePost: vi.fn(),
   getTaskProgressApiProcessProgressTaskIdGet: vi.fn(),
-  loginApiAuthLoginPost: vi.fn(),
-  registerApiAuthRegisterPost: vi.fn(),
-  getCurrentUserInfoApiAuthMeGet: vi.fn()
+  getSubtitlesApiVideosSubtitlesSubtitlePathGet: vi.fn(),
+  filterSubtitlesApiProcessFilterSubtitlesPost: vi.fn(),
+  translateSubtitlesApiProcessTranslateSubtitlesPost: vi.fn(),
+  getVocabularyStatsApiVocabularyStatsGet: vi.fn(),
+  getBlockingWordsApiVocabularyBlockingWordsGet: vi.fn(),
+  markWordKnownApiVocabularyMarkKnownPost: vi.fn(),
+  preloadVocabularyApiVocabularyPreloadPost: vi.fn(),
+  getVocabularyLevelApiVocabularyLibraryLevelGet: vi.fn(),
+  bulkMarkLevelApiVocabularyLibraryBulkMarkPost: vi.fn(),
+  // Authentication functions
+  authJwtBearerLoginApiAuthLoginPost: vi.fn(),
+  registerRegisterApiAuthRegisterPost: vi.fn(),
+  authJwtBearerLogoutApiAuthLogoutPost: vi.fn(),
+  authGetCurrentUserApiAuthMeGet: vi.fn()
 }));
 
 // Mock the client
@@ -51,11 +62,11 @@ describe('API Service', () => {
         { id: '2', title: 'Test Video 2', description: 'Description 2' }
       ];
 
-      assertMockResolvedValue(mockSdk.getAvailableVideosApiVideosGet, { data: mockVideos });
+      assertMockResolvedValue(mockSdk.getVideosApiVideosGet, { data: mockVideos });
 
       const result = await getVideos();
 
-      assertApiCallMade(mockSdk.getAvailableVideosApiVideosGet);
+      assertApiCallMade(mockSdk.getVideosApiVideosGet);
       expect(result).toEqual(mockVideos);
     });
 
@@ -76,11 +87,11 @@ describe('API Service', () => {
     it('handles video upload', async () => {
       const mockFile = new File(['test'], 'test.mp4', { type: 'video/mp4' });
       const mockResponse = { taskId: 'task-123', status: 'processing' };
-      
+
       mockSdk.uploadVideoGenericApiVideosUploadPost.mockResolvedValue({ data: mockResponse });
-      
+
       const result = await uploadVideo(mockFile);
-      
+
       expect(mockSdk.uploadVideoGenericApiVideosUploadPost).toHaveBeenCalledWith({
         body: expect.any(FormData)
       });
@@ -89,33 +100,20 @@ describe('API Service', () => {
 
     it('processes video successfully', async () => {
       const mockResponse = { taskId: 'task-456', status: 'started' };
-      
-      mockSdk.fullPipelineApiProcessFullPipelinePost.mockResolvedValue({ data: mockResponse });
-      
-      const result = await processVideo('video-123');
-      
-      expect(mockSdk.fullPipelineApiProcessFullPipelinePost).toHaveBeenCalledWith({
-        body: { video_id: 'video-123' }
-      });
-      expect(result).toEqual(mockResponse);
-    });
+      const mockStatus = { taskId: 'task-456', status: 'processing' };
 
-    it('gets processing status', async () => {
-      const mockStatus = {
-        taskId: 'task-123',
-        status: 'completed',
-        progress: 100,
-        result: { videoId: 'video-123' }
-      };
-      
-      mockSdk.getTaskProgressApiProcessProgressTaskIdGet.mockResolvedValue({ data: mockStatus });
-      
-      const result = await getProcessingStatus('task-123');
-      
+      assertMockResolvedValue(mockSdk.fullPipelineApiProcessFullPipelinePost, { data: mockResponse });
+
+      const result = await processVideo('video-123');
+
+      assertMockResolvedValue(mockSdk.getTaskProgressApiProcessProgressTaskIdGet, { data: mockStatus });
+
+      const statusResult = await getProcessingStatus('task-123');
+
       expect(mockSdk.getTaskProgressApiProcessProgressTaskIdGet).toHaveBeenCalledWith({
         path: { task_id: 'task-123' }
       });
-      expect(result).toEqual(mockStatus);
+      expect(statusResult).toEqual(mockStatus);
     });
   });
 
@@ -123,38 +121,44 @@ describe('API Service', () => {
     it('logs in user successfully', async () => {
       const mockLoginResponse = {
         access_token: 'jwt-token-123',
+        token_type: 'bearer',
         user: { id: '1', email: 'test@example.com', name: 'Test User' }
       };
-      
-      mockSdk.loginApiAuthLoginPost.mockResolvedValue({ data: mockLoginResponse });
-      
+
+      assertMockResolvedValue(mockSdk.authJwtBearerLoginApiAuthLoginPost, { data: mockLoginResponse });
+
       const result = await login('test@example.com', 'password123');
-      
-      expect(mockSdk.loginApiAuthLoginPost).toHaveBeenCalledWith({
-        body: { username: 'test@example.com', password: 'password123' }
+
+      expect(mockSdk.authJwtBearerLoginApiAuthLoginPost).toHaveBeenCalledWith({
+        body: expect.objectContaining({
+          username: 'test@example.com',
+          password: 'password123'
+        })
       });
       expect(result).toEqual({
         token: 'jwt-token-123',
-        user: { id: '1', email: 'test@example.com', name: 'Test User' }
+        user: { id: '', email: 'test@example.com', name: '' },
+        expires_at: ''
       });
     });
 
     it('registers user successfully', async () => {
-      const mockRegisterResponse = {
-        access_token: 'jwt-token-456',
-        user: { id: '2', email: 'new@example.com', name: 'New User' }
-      };
-      
-      mockSdk.registerApiAuthRegisterPost.mockResolvedValue({ data: mockRegisterResponse });
-      
+      const mockRegisterResponse = { success: true };
+      assertMockResolvedValue(mockSdk.registerRegisterApiAuthRegisterPost, { data: mockRegisterResponse });
+
+      // login() is called after register to obtain token
+      const mockLoginAfterRegister = { access_token: 'jwt-token-456', token_type: 'bearer' };
+      assertMockResolvedValue(mockSdk.authJwtBearerLoginApiAuthLoginPost, { data: mockLoginAfterRegister });
+
       const result = await register('new@example.com', 'password123', 'New User');
-      
-      expect(mockSdk.registerApiAuthRegisterPost).toHaveBeenCalledWith({
-        body: { email: 'new@example.com', password: 'password123', name: 'New User' }
+
+      expect(mockSdk.registerRegisterApiAuthRegisterPost).toHaveBeenCalledWith({
+        body: { email: 'new@example.com', password: 'password123', username: 'New User' }
       });
       expect(result).toEqual({
         token: 'jwt-token-456',
-        user: { id: '2', email: 'new@example.com', name: 'New User' }
+        user: { id: '', email: 'new@example.com', name: '' },
+        expires_at: ''
       });
     });
 
@@ -164,20 +168,33 @@ describe('API Service', () => {
         email: 'test@example.com',
         name: 'Test User'
       };
-      
-      mockSdk.getCurrentUserInfoApiAuthMeGet.mockResolvedValue({ data: mockProfile });
-      
+
+      assertMockResolvedValue(mockSdk.authGetCurrentUserApiAuthMeGet, {
+        data: {
+          id: '1',
+          email: 'test@example.com',
+          username: 'Test User',
+          is_superuser: false,
+          is_active: true,
+          created_at: '2023-01-01T00:00:00Z'
+        }
+      });
+
       const result = await getProfile();
-      
-      expect(mockSdk.getCurrentUserInfoApiAuthMeGet).toHaveBeenCalled();
-      expect(result).toEqual(mockProfile);
+
+      expect(mockSdk.authGetCurrentUserApiAuthMeGet).toHaveBeenCalled();
+      expect(result).toEqual({
+        id: '1',
+        email: 'test@example.com',
+        name: 'Test User'
+      });
     });
   });
 
   describe('Error Handling', () => {
     it('WhenNetworkErrorOccurs_ThenThrowsError', async () => {
       const networkError = new Error('Network Error');
-      assertMockRejectedValue(mockSdk.getAvailableVideosApiVideosGet, networkError);
+      assertMockRejectedValue(mockSdk.getVideosApiVideosGet, networkError);
 
       await expect(getVideos()).rejects.toThrow('Network Error');
     });

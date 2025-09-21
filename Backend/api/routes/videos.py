@@ -275,8 +275,8 @@ async def get_video_status(
 @router.post("/upload", name="upload_video_generic")
 async def upload_video_generic(
     video_file: UploadFile = File(...),
-    series: str = "Default",
-    current_user: User = Depends(current_active_user)
+    current_user: User = Depends(current_active_user),
+    series: str = "Default"
 ):
     """Upload a new video file (generic endpoint) - Requires authentication"""
     return await upload_video(series, video_file, current_user)

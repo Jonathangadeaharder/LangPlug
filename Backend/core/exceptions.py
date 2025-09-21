@@ -27,7 +27,7 @@ class AuthorizationError(LangPlugException):
 class ValidationError(LangPlugException):
     """Validation related errors"""
     def __init__(self, message: str = "Validation failed"):
-        super().__init__(message, status.HTTP_422_UNPROCESSABLE_CONTENT)
+        super().__init__(message, status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class InvalidCredentialsError(AuthenticationError):

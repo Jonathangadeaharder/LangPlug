@@ -123,7 +123,7 @@ describe('Authentication Flow', () => {
       { timeout: 5000 },
       text, selector
     );
-    await page.evaluate((t, s) => {
+    await page.evaluate((t: string, s: string) => {
       const elements = Array.from(document.querySelectorAll(s));
       const element = elements.find(el => el.textContent?.includes(t));
       if (element && 'click' in element) {
@@ -136,11 +136,7 @@ describe('Authentication Flow', () => {
     await page.goto(`${BASE_URL}/login`);
 
     // Should see login form elements
-    await waitForText('Sign In');
-    await page.waitForSelector('input[placeholder="Username"]', { visible: true });
-    await page.waitForSelector('input[placeholder="Password"]', { visible: true });
-    await waitForText('Sign In'); // For button
-
+    await page.waitForSelector('[data-testid="login-password-input"]', { visible: true });
     // Should be able to navigate to register
     await Promise.all([
       page.waitForNavigation({ waitUntil: 'load' }),
@@ -151,10 +147,9 @@ describe('Authentication Flow', () => {
 
   test('should handle invalid login credentials', async () => {
     await page.goto(`${BASE_URL}/login`);
-
-    await page.type('input[placeholder="Username"]', 'invaliduser');
-    await page.type('input[placeholder="Password"]', 'wrongpassword');
-    await clickByText('Sign In');
+    await page.type('[data-testid="login-email-input"]', 'invaliduser');
+    await page.type('[data-testid="login-password-input"]', 'wrongpassword');
+    await page.click('[data-testid="login-submit-button"]');
 
     // Wait for potential error handling (e.g., API call or validation)
     await new Promise(resolve => setTimeout(resolve, 2000));

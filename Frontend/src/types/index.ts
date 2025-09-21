@@ -1,10 +1,7 @@
 export interface User {
-  id: number
-  username: string
-  is_admin: boolean
-  is_active: boolean
- created_at: string
-  last_login?: string
+  id: string  // UUID format from FastAPI-Users
+  email: string
+  name: string  // Maps to username in FastAPI-Users
 }
 
 export interface LoginRequest {

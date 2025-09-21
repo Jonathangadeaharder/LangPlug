@@ -112,30 +112,42 @@ const RememberMe = styled.div`
 `
 
 export const LoginForm: React.FC = () => {
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState('')
   
-  const { login, isLoading } = useAuthStore()
+  const { login, isLoading, error: authError, isAuthenticated } = useAuthStore()
   const navigate = useNavigate()
+
+  // Navigate to dashboard if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/')
+    }
+  }, [isAuthenticated, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    if (!username.trim() || !password.trim()) {
-      setError('Please enter both username and password')
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email and password')
+      return
+    }
+
+    if (!email.includes('@')) {
+      setError('Please enter a valid email address')
       return
     }
 
     try {
-      await login(username, password)
+      await login(email, password)
       toast.success('Welcome to LangPlug!')
       navigate('/')
     } catch (error) {
-      handleApiError(error)
-      setError('Invalid username or password')
+      const errorMessage = authError || 'Invalid email or password'
+      setError(errorMessage)
     }
   }
 
@@ -147,11 +159,12 @@ export const LoginForm: React.FC = () => {
         
         <form onSubmit={handleSubmit}>
           <Input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading}
+            data-testid="login-email-input"
           />
           
           <Input
@@ -160,13 +173,15 @@ export const LoginForm: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={isLoading}
+            data-testid="login-password-input"
           />
           
-          {error && <ErrorMessage>{error}</ErrorMessage>}
+          {error && <ErrorMessage data-testid="login-error">{error}</ErrorMessage>}
           
           <LoginButton 
             type="submit" 
             disabled={isLoading}
+            data-testid="login-submit-button"
           >
             {isLoading ? 'Signing In...' : 'Sign In'}
           </LoginButton>

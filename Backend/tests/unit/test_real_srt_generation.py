@@ -74,6 +74,12 @@ def test_Whentranscribe_with_video_extracts_audioCalled_ThenSucceeds(monkeypatch
 def test_Whenextract_audio_without_track_raisesCalled_ThenSucceeds(monkeypatch, tmp_path, mock_whisper):
     from types import SimpleNamespace
 
+    # Check if moviepy is available
+    try:
+        from moviepy.editor import VideoFileClip
+    except ImportError:
+        pytest.skip("moviepy not installed. Install with: pip install moviepy")
+
     class FakeVideo:
         def __init__(self, path):
             self.audio = None

@@ -99,21 +99,28 @@ const PasswordRequirements = styled.div`
 `
 
 export const RegisterForm: React.FC = () => {
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [name, setName] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   
-  const { register, isLoading } = useAuthStore()
+  const { register, isLoading, error: authError } = useAuthStore()
   const navigate = useNavigate()
 
   const validateForm = () => {
-    if (!username.trim()) {
-      return 'Username is required'
+    if (!email.trim()) {
+      return 'Email is required'
     }
-    if (username.length < 3) {
-      return 'Username must be at least 3 characters long'
+    if (!email.includes('@')) {
+      return 'Please enter a valid email address'
+    }
+    if (!name.trim()) {
+      return 'Name is required'
+    }
+    if (name.length < 2) {
+      return 'Name must be at least 2 characters long'
     }
     if (!password) {
       return 'Password is required'
@@ -139,13 +146,13 @@ export const RegisterForm: React.FC = () => {
     }
 
     try {
-      await register(username, password)
+      await register(email, password, name)
       setSuccess(true)
-      toast.success('Account created successfully! Please sign in.')
-      setTimeout(() => navigate('/login'), 2000)
+      toast.success('Account created successfully! Redirecting to dashboard...')
+      setTimeout(() => navigate('/'), 2000)
     } catch (error) {
-      handleApiError(error)
-      setError('Failed to create account. Please try again.')
+      const errorMessage = authError || 'Failed to create account. Please try again.'
+      setError(errorMessage)
     }
   }
 
@@ -160,11 +167,21 @@ export const RegisterForm: React.FC = () => {
         
         <form onSubmit={handleSubmit}>
           <Input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading}
+            data-testid="register-email-input"
+          />
+          
+          <Input
+            type="text"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={isLoading}
+            data-testid="register-name-input"
           />
           
           <Input
@@ -173,6 +190,7 @@ export const RegisterForm: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={isLoading}
+            data-testid="register-password-input"
           />
           
           <Input
@@ -181,6 +199,7 @@ export const RegisterForm: React.FC = () => {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             disabled={isLoading}
+            data-testid="register-confirm-password-input"
           />
           
           <PasswordRequirements>
@@ -201,6 +220,7 @@ export const RegisterForm: React.FC = () => {
           <RegisterButton 
             type="submit" 
             disabled={isLoading || success}
+            data-testid="register-submit-button"
           >
             {isLoading ? 'Creating Account...' : 'Sign Up'}
           </RegisterButton>
