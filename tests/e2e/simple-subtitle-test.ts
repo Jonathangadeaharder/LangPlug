@@ -28,7 +28,7 @@ async function runSubtitleTest() {
     await PuppeteerHelpers.seedTestData();
     
     // Navigate to videos page
-    const BASE_URL = 'http://localhost:3000';
+    const BASE_URL = 'http://localhost:3001';
     await page.goto(`${BASE_URL}/videos`);
     
     // Wait for video cards to load

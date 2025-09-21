@@ -71,7 +71,7 @@ export class PuppeteerHelpers {
   }
 
   static async login(page: Page, email: string, password: string): Promise<void> {
-    await page.goto('http://localhost:3000/login');
+    await page.goto('http://localhost:3001/login');
     await this.fillForm(page, {
       'input[placeholder="Username"]': email,
       'input[placeholder="Password"]': password
@@ -81,7 +81,7 @@ export class PuppeteerHelpers {
   }
 
   static async registerUser(page: Page, userData: { username: string; email: string; password: string }): Promise<void> {
-    await page.goto('http://localhost:3000/register');
+    await page.goto('http://localhost:3001/register');
     await this.fillForm(page, {
       'input[placeholder="Username"]': userData.username,
       'input[placeholder="Email"]': userData.email,

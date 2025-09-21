@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export class DatabaseHelpers {
-  private static readonly API_BASE_URL = 'http://localhost:8000/api';
+  private static readonly API_BASE_URL = 'http://127.0.0.1:8000/api';
   private static readonly TEST_USER_EMAIL = 'test@example.com';
   private static readonly TEST_USER_PASSWORD = 'TestPassword123!';
   private static readonly TEST_USER_USERNAME = 'testuser';

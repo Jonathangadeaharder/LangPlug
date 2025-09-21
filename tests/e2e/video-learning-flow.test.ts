@@ -9,7 +9,7 @@ describe('Video Learning Flow', () => {
   let browser: Browser | undefined;
   let page: Page;
 
-  const BASE_URL = 'http://localhost:3000';
+  const BASE_URL = 'http://localhost:3001';
 
   beforeAll(async () => {
     // Launch Puppeteer browser

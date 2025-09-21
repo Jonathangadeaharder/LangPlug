@@ -28,7 +28,7 @@ async function runVocabularyTest() {
     await PuppeteerHelpers.seedTestData();
     
     // Navigate to vocabulary game
-    const BASE_URL = 'http://localhost:3000';
+    const BASE_URL = 'http://localhost:3001';
     await page.goto(`${BASE_URL}/vocabulary/game`);
     
     // Start vocabulary game

@@ -9,7 +9,7 @@ describe('Authentication Flow', () => {
   let browser: Browser | undefined;
   let page: Page;
 
-  const BASE_URL = 'http://localhost:3000';
+  const BASE_URL = 'http://localhost:3001';
   const TEST_USER_EMAIL = 'test@example.com';
   const TEST_USER_PASSWORD = 'TestPassword123!';
 

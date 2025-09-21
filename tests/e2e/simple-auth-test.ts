@@ -25,7 +25,7 @@ async function runAuthTest() {
     await PuppeteerHelpers.clearAllStorage(page);
     
     // Navigate to login page
-    await page.goto('http://localhost:3000/login');
+    await page.goto('http://localhost:3001/login');
     
     // Check if login form is visible
     await page.waitForSelector('input[placeholder="Username"]', { visible: true });

@@ -75,7 +75,7 @@ async function runAuthTests(page: Page): Promise<boolean> {
   
   try {
     // Navigate to login page
-    await page.goto('http://localhost:3000/login');
+    await page.goto('http://localhost:3001/login');
     
     // Check if login form is visible
     await page.waitForSelector('input[placeholder="Username"]', { visible: true });
@@ -90,7 +90,7 @@ async function runAuthTests(page: Page): Promise<boolean> {
     console.log('  ✓ Navigation to register page works');
     
     // Go back to login
-    await page.goto('http://localhost:3000/login');
+    await page.goto('http://localhost:3001/login');
     
     // Test invalid login
     await page.type('input[placeholder="Username"]', 'invaliduser');
@@ -122,7 +122,7 @@ async function runVideoLearningTests(page: Page): Promise<boolean> {
   try {
     // This would require authentication first
     // For now, we'll just test that the page loads
-    await page.goto('http://localhost:3000/videos');
+    await page.goto('http://localhost:3001/videos');
     
     // Wait for page to load
     await wait(2000);
@@ -140,7 +140,7 @@ async function runVocabularyGameTests(page: Page): Promise<boolean> {
   
   try {
     // Navigate to vocabulary game
-    await page.goto('http://localhost:3000/vocabulary/game');
+    await page.goto('http://localhost:3001/vocabulary/game');
     
     // Wait for page to load
     await wait(2000);
@@ -158,7 +158,7 @@ async function runSubtitleFilteringTests(page: Page): Promise<boolean> {
   
   try {
     // Navigate to videos page
-    await page.goto('http://localhost:3000/videos');
+    await page.goto('http://localhost:3001/videos');
     
     // Wait for video cards to load
     await page.waitForSelector('[data-testid="video-card"]', { visible: true });

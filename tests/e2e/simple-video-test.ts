@@ -28,7 +28,7 @@ async function runVideoTest() {
     await PuppeteerHelpers.seedTestData();
     
     // Navigate to video library
-    const BASE_URL = 'http://localhost:3000';
+    const BASE_URL = 'http://localhost:3001';
     await page.goto(`${BASE_URL}/videos`);
     await page.waitForSelector('[data-testid="video-library"]', { visible: true });
     
