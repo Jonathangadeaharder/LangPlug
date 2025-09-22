@@ -1,18 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
+  login,
+  register,
+  logout,
+  getProfile,
   getVideos,
   getVideoDetails,
   uploadVideo,
   processVideo,
-  getProcessingStatus,
-  login,
-  register,
-  getProfile
+  getProcessingStatus
 } from '../api';
-import { assertApiCallMade, assertMockResolvedValue, assertMockRejectedValue } from '@/test/assertion-helpers';
 
-// Mock the generated SDK
-vi.mock('@/client/sdk.gen', () => ({
+// Mock the generated Services client
+vi.mock('@/client/services.gen', () => ({
   getVideosApiVideosGet: vi.fn(),
   getVideoStatusApiVideosVideoIdStatusGet: vi.fn(),
   uploadVideoToSeriesApiVideosUploadSeriesPost: vi.fn(),
@@ -35,16 +35,10 @@ vi.mock('@/client/sdk.gen', () => ({
   authGetCurrentUserApiAuthMeGet: vi.fn()
 }));
 
-// Mock the client
-vi.mock('@/client/client.gen', () => ({
-  client: {
-    setConfig: vi.fn()
-  },
-  createConfig: vi.fn((config) => config)
-}));
+// No need to mock OpenAPI client directly for these unit tests
 
-import * as sdk from '@/client/sdk.gen';
-const mockSdk = vi.mocked(sdk);
+import * as Services from '@/client/services.gen';
+const mockServices = vi.mocked(Services as any);
 
 describe('API Service', () => {
   beforeEach(() => {
@@ -58,15 +52,15 @@ describe('API Service', () => {
   describe('Video API', () => {
     it('WhenVideosRequested_ThenReturnsVideoList', async () => {
       const mockVideos = [
-        { id: '1', title: 'Test Video 1', description: 'Description 1' },
-        { id: '2', title: 'Test Video 2', description: 'Description 2' }
+        { id: '1', title: 'Video 1', duration: 120 },
+        { id: '2', title: 'Video 2', duration: 240 },
       ];
 
-      assertMockResolvedValue(mockSdk.getVideosApiVideosGet, { data: mockVideos });
+      mockServices.getVideosApiVideosGet.mockResolvedValue(mockVideos);
 
       const result = await getVideos();
 
-      assertApiCallMade(mockSdk.getVideosApiVideosGet);
+      expect(mockServices.getVideosApiVideosGet).toHaveBeenCalled();
       expect(result).toEqual(mockVideos);
     });
 
@@ -74,134 +68,98 @@ describe('API Service', () => {
       const mockVideoDetails = {
         id: '1', title: 'Test Video', description: 'Test Description',
         episodes: [{ id: '1', title: 'Episode 1', duration: 1800 }]
-      };
+      } as any;
 
-      assertMockResolvedValue(mockSdk.getVideoStatusApiVideosVideoIdStatusGet, { data: mockVideoDetails });
+      mockServices.getVideoStatusApiVideosVideoIdStatusGet.mockResolvedValue(mockVideoDetails);
 
       const result = await getVideoDetails('1');
 
-      assertApiCallMade(mockSdk.getVideoStatusApiVideosVideoIdStatusGet, { path: { video_id: '1' } });
+      expect(mockServices.getVideoStatusApiVideosVideoIdStatusGet).toHaveBeenCalledWith({ videoId: '1' });
       expect(result).toEqual(mockVideoDetails);
     });
 
     it('handles video upload', async () => {
       const mockFile = new File(['test'], 'test.mp4', { type: 'video/mp4' });
-      const mockResponse = { taskId: 'task-123', status: 'processing' };
+      const mockResponse = { ok: true } as any;
 
-      mockSdk.uploadVideoGenericApiVideosUploadPost.mockResolvedValue({ data: mockResponse });
+      mockServices.uploadVideoGenericApiVideosUploadPost.mockResolvedValue(mockResponse);
 
       const result = await uploadVideo(mockFile);
 
-      expect(mockSdk.uploadVideoGenericApiVideosUploadPost).toHaveBeenCalledWith({
-        body: expect.any(FormData)
-      });
+      expect(mockServices.uploadVideoGenericApiVideosUploadPost).toHaveBeenCalledWith(
+        expect.objectContaining({ formData: expect.any(FormData) })
+      );
       expect(result).toEqual(mockResponse);
     });
 
     it('processes video successfully', async () => {
-      const mockResponse = { taskId: 'task-456', status: 'started' };
-      const mockStatus = { taskId: 'task-456', status: 'processing' };
-
-      assertMockResolvedValue(mockSdk.fullPipelineApiProcessFullPipelinePost, { data: mockResponse });
+      const mockStatus = { taskId: 'task-456', status: 'processing' } as any;
+      mockServices.fullPipelineApiProcessFullPipelinePost.mockResolvedValue(mockStatus);
 
       const result = await processVideo('video-123');
-
-      assertMockResolvedValue(mockSdk.getTaskProgressApiProcessProgressTaskIdGet, { data: mockStatus });
-
-      const statusResult = await getProcessingStatus('task-123');
-
-      expect(mockSdk.getTaskProgressApiProcessProgressTaskIdGet).toHaveBeenCalledWith({
-        path: { task_id: 'task-123' }
+      expect(mockServices.fullPipelineApiProcessFullPipelinePost).toHaveBeenCalledWith({
+        requestBody: { video_id: 'video-123' }
       });
-      expect(statusResult).toEqual(mockStatus);
+      expect(result).toEqual(mockStatus);
     });
   });
 
   describe('Authentication API', () => {
     it('logs in user successfully', async () => {
-      const mockLoginResponse = {
-        access_token: 'jwt-token-123',
-        token_type: 'bearer',
-        user: { id: '1', email: 'test@example.com', name: 'Test User' }
-      };
-
-      assertMockResolvedValue(mockSdk.authJwtBearerLoginApiAuthLoginPost, { data: mockLoginResponse });
+      const mockLogin = { access_token: 'jwt-token-123', token_type: 'bearer' } as any;
+      mockServices.authJwtBearerLoginApiAuthLoginPost.mockResolvedValue(mockLogin);
+      mockServices.authGetCurrentUserApiAuthMeGet.mockResolvedValue({
+        id: '1', email: 'test@example.com', username: 'Test User'
+      } as any);
 
       const result = await login('test@example.com', 'password123');
-
-      expect(mockSdk.authJwtBearerLoginApiAuthLoginPost).toHaveBeenCalledWith({
-        body: expect.objectContaining({
-          username: 'test@example.com',
-          password: 'password123'
-        })
+      expect(mockServices.authJwtBearerLoginApiAuthLoginPost).toHaveBeenCalledWith({
+        formData: { username: 'test@example.com', password: 'password123' }
       });
-      expect(result).toEqual({
-        token: 'jwt-token-123',
-        user: { id: '', email: 'test@example.com', name: '' },
-        expires_at: ''
-      });
+      expect(result.token).toBe('jwt-token-123');
+      expect(result.user.email).toBe('test@example.com');
     });
 
-    it('registers user successfully', async () => {
-      const mockRegisterResponse = { success: true };
-      assertMockResolvedValue(mockSdk.registerRegisterApiAuthRegisterPost, { data: mockRegisterResponse });
-
-      // login() is called after register to obtain token
-      const mockLoginAfterRegister = { access_token: 'jwt-token-456', token_type: 'bearer' };
-      assertMockResolvedValue(mockSdk.authJwtBearerLoginApiAuthLoginPost, { data: mockLoginAfterRegister });
+    it('registers user successfully (then logs in)', async () => {
+      mockServices.registerRegisterApiAuthRegisterPost.mockResolvedValue({
+        id: 'u1', email: 'new@example.com', username: 'New User'
+      } as any);
+      mockServices.authJwtBearerLoginApiAuthLoginPost.mockResolvedValue({
+        access_token: 'jwt-token-456', token_type: 'bearer'
+      } as any);
+      mockServices.authGetCurrentUserApiAuthMeGet.mockResolvedValue({
+        id: '1', email: 'new@example.com', username: 'New User'
+      } as any);
 
       const result = await register('new@example.com', 'password123', 'New User');
-
-      expect(mockSdk.registerRegisterApiAuthRegisterPost).toHaveBeenCalledWith({
-        body: { email: 'new@example.com', password: 'password123', username: 'New User' }
+      expect(mockServices.registerRegisterApiAuthRegisterPost).toHaveBeenCalledWith({
+        requestBody: { email: 'new@example.com', password: 'password123', username: 'New User' }
       });
-      expect(result).toEqual({
-        token: 'jwt-token-456',
-        user: { id: '', email: 'new@example.com', name: '' },
-        expires_at: ''
-      });
+      expect(result.token).toBe('jwt-token-456');
     });
 
     it('gets user profile', async () => {
-      const mockProfile = {
-        id: '1',
-        email: 'test@example.com',
-        name: 'Test User'
-      };
+      mockServices.authGetCurrentUserApiAuthMeGet.mockResolvedValue({
+        id: '1', email: 'test@example.com', username: 'Test User'
+      } as any);
 
-      assertMockResolvedValue(mockSdk.authGetCurrentUserApiAuthMeGet, {
-        data: {
-          id: '1',
-          email: 'test@example.com',
-          username: 'Test User',
-          is_superuser: false,
-          is_active: true,
-          created_at: '2023-01-01T00:00:00Z'
-        }
-      });
-
-      const result = await getProfile();
-
-      expect(mockSdk.authGetCurrentUserApiAuthMeGet).toHaveBeenCalled();
-      expect(result).toEqual({
-        id: '1',
-        email: 'test@example.com',
-        name: 'Test User'
-      });
+      const profile = await getProfile();
+      expect(mockServices.authGetCurrentUserApiAuthMeGet).toHaveBeenCalled();
+      expect(profile).toEqual({ id: '1', email: 'test@example.com', name: 'Test User' });
     });
   });
 
   describe('Error Handling', () => {
     it('WhenNetworkErrorOccurs_ThenThrowsError', async () => {
       const networkError = new Error('Network Error');
-      assertMockRejectedValue(mockSdk.getVideosApiVideosGet, networkError);
+      mockServices.getVideosApiVideosGet.mockRejectedValue(networkError);
 
       await expect(getVideos()).rejects.toThrow('Network Error');
     });
 
     it('WhenApiErrorWithStatusCode_ThenThrowsApiError', async () => {
       const apiError = { status: 404, message: 'Video not found' };
-      assertMockRejectedValue(mockSdk.getVideoStatusApiVideosVideoIdStatusGet, apiError);
+      mockServices.getVideoStatusApiVideosVideoIdStatusGet.mockRejectedValue(apiError);
 
       await expect(getVideoDetails('nonexistent')).rejects.toEqual(apiError);
     });

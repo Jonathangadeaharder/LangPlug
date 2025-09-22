@@ -9,12 +9,16 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
+  redirectPath?: string | null
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, name?: string) => Promise<void>
   logout: () => Promise<void>
   initializeAuth: () => Promise<void>
   checkAuth: () => Promise<void>
   clearError: () => void
+  setUser: (user: User | null) => void
+  setAuthenticated: (val: boolean) => void
+  setRedirectPath: (path: string | null) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -25,6 +29,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      redirectPath: null,
 
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
@@ -75,6 +80,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           isLoading: false,
           error: null,
+          redirectPath: '/login',
         });
         try {
           await api.logout();
@@ -118,6 +124,10 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => {
         set({ error: null });
       },
+
+      setUser: (user: User | null) => set({ user }),
+      setAuthenticated: (val: boolean) => set({ isAuthenticated: val }),
+      setRedirectPath: (path: string | null) => set({ redirectPath: path }),
     }),
     {
       name: 'auth-storage',
@@ -125,6 +135,7 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
         token: state.token,
+        redirectPath: state.redirectPath,
       }),
     }
   )

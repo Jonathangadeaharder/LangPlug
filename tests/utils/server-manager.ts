@@ -188,7 +188,7 @@ export class ServerManager {
     }
 
     for (let i = 0; i < maxRetries; i++) {
-      // If Vite has logged the Local URL, try it first
+      // If Vite has logged the Local URL, accept it immediately
       if (this.detectedFrontendUrl) {
         console.log(`Frontend presumed ready at ${this.detectedFrontendUrl} (detected)`);
         return;
@@ -196,9 +196,16 @@ export class ServerManager {
       for (const host of hosts) {
         for (const port of ports) {
           try {
-            await axios.get(`http://${host}:${port}`, { proxy: false });
-            console.log(`Frontend is responsive at http://${host}:${port}`);
-            return;
+            const url = `http://${host}:${port}`;
+            const resp = await axios.get(url, { timeout: 1500, validateStatus: () => true, proxy: false });
+            if (resp.status >= 200 && resp.status < 500) {
+              // Any HTTP response indicates server is up
+              this.detectedFrontendUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+              this.frontendReady = true;
+              process.env.E2E_FRONTEND_URL = this.detectedFrontendUrl ?? undefined;
+              console.log(`Frontend is responsive at ${this.detectedFrontendUrl}`);
+              return;
+            }
           } catch {
             // try next
           }
@@ -216,17 +223,14 @@ export class ServerManager {
    */
   async stopAll(): Promise<void> {
     console.log('Stopping all servers...');
-    
     if (this.backendProcess) {
       this.backendProcess.kill();
       this.backendProcess = null;
     }
-    
     if (this.frontendProcess) {
       this.frontendProcess.kill();
       this.frontendProcess = null;
     }
-    
     // Give processes time to shut down
     await wait(2000);
     console.log('All servers stopped');

@@ -96,7 +96,7 @@ async function runAuthTests(page: Page, baseUrl: string): Promise<boolean> {
     
     // Check if login form is visible
     // Prefer placeholder selectors for robustness across UI changes
-    await page.waitForSelector('input[placeholder="Username"]', { visible: true });
+    await page.waitForSelector('input[placeholder="Email"]', { visible: true });
     await page.waitForSelector('input[placeholder="Password"]', { visible: true });
     
     console.log(' ✓ Login form is visible');
@@ -110,7 +110,7 @@ async function runAuthTests(page: Page, baseUrl: string): Promise<boolean> {
     await page.goto(`${baseUrl}/login`);
     
     // Test invalid login
-    await page.type('input[placeholder="Username"]', 'invaliduser');
+    await page.type('input[placeholder="Email"]', 'invaliduser');
     await page.type('input[placeholder="Password"]', 'wrongpassword');
     await PuppeteerHelpers.clickByText(page, 'Sign In');
     

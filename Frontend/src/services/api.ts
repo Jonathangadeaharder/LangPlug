@@ -15,9 +15,8 @@ import type {
 } from '@/client/types.gen'
 
 // Import the generated client and SDK
-import { client } from '@/client/client.gen'
-import { createConfig } from '@/client/client/index'
-import * as sdk from '@/client/sdk.gen'
+import { OpenAPI } from '@/client/core/OpenAPI'
+import * as Services from '@/client/services.gen'
 
 // Get API base URL from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -25,13 +24,13 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 // Token management
 let authToken: string | null = localStorage.getItem('authToken')
 
-// Configure the client with proper setup
-client.setConfig(createConfig({
-  baseUrl: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-}))
+// Configure the OpenAPI client
+OpenAPI.BASE = API_BASE_URL;
+OpenAPI.HEADERS = {
+  'Content-Type': 'application/json'
+};
+// Ensure Authorization header is set automatically when authToken is present
+OpenAPI.TOKEN = async () => (authToken ?? '');
 
 // Helper function to add auth header to requests
 const getAuthHeaders = () => {
@@ -62,13 +61,12 @@ export const login = async (email: string, password: string): Promise<AuthRespon
   try {
     // FastAPI-Users login expects form data with username and password fields
     // For email-based login, username field should contain the email
-    const response = await sdk.authJwtBearerLoginApiAuthLoginPost({
-      body: { username: email, password }
+    const response = await Services.authJwtBearerLoginApiAuthLoginPost({
+      formData: { username: email, password }
     })
 
     // FastAPI-Users Bearer transport returns BearerResponse schema
-    // Cast to unknown first to avoid type conflicts with generated SDK
-    const bearerData = response.data as unknown as BearerResponse
+    const bearerData = response as BearerResponse
     const accessToken = bearerData?.access_token;
 
     if (!accessToken) {
@@ -113,12 +111,12 @@ export const login = async (email: string, password: string): Promise<AuthRespon
 export const register = async (email: string, password: string, name: string): Promise<AuthResponse> => {
   try {
     // FastAPI-Users registration expects username, email, and password
-    const response = await sdk.registerRegisterApiAuthRegisterPost({
-      body: { 
+    await Services.registerRegisterApiAuthRegisterPost({
+      requestBody: {
         username: name,
-        email: email, 
-        password: password 
-      } as any // Bypass SDK type issues temporarily
+        email: email,
+        password: password,
+      } as any
     })
 
     // FastAPI-Users register returns UserRead directly (no token)
@@ -139,7 +137,7 @@ export const register = async (email: string, password: string, name: string): P
 
 export const logout = async (): Promise<void> => {
   try {
-    await sdk.authJwtBearerLogoutApiAuthLogoutPost({})
+    await Services.authJwtBearerLogoutApiAuthLogoutPost()
   } catch (error) {
     logger.warn('Logout API call failed:', error)
   } finally {
@@ -150,9 +148,7 @@ export const logout = async (): Promise<void> => {
 
 export const getProfile = async (): Promise<User> => {
   try {
-    const response = await sdk.authGetCurrentUserApiAuthMeGet({})
-    // FastAPI-Users returns UserRead schema
-    const userData = response.data as unknown as UserRead
+    const userData = await Services.authGetCurrentUserApiAuthMeGet()
     return {
       id: userData?.id || '',
       email: userData?.email || '',
@@ -166,8 +162,8 @@ export const getProfile = async (): Promise<User> => {
 // Video API
 export const getVideos = async (): Promise<VideoInfo[]> => {
   try {
-    const response = await sdk.getVideosApiVideosGet({})
-    return (response.data as any) || []
+    const data = await Services.getVideosApiVideosGet()
+    return (data as any) || []
   } catch (error) {
     return handleApiError(error, 'getVideos')
   }
@@ -175,10 +171,10 @@ export const getVideos = async (): Promise<VideoInfo[]> => {
 
 export const getVideoDetails = async (videoId: string): Promise<VideoInfo> => {
   try {
-    const response = await sdk.getVideoStatusApiVideosVideoIdStatusGet({
-      path: { video_id: videoId }
+    const data = await Services.getVideoStatusApiVideosVideoIdStatusGet({
+      videoId: videoId,
     })
-    return response.data as VideoInfo
+    return data as any
   } catch (error) {
     return handleApiError(error, 'getVideoDetails')
   }
@@ -191,11 +187,11 @@ export const uploadVideo = async (file: File, series?: string, episode?: string)
     if (series) formData.append('series', series)
     if (episode) formData.append('episode', episode)
     
-    const response = series 
-      ? await sdk.uploadVideoToSeriesApiVideosUploadSeriesPost({ body: formData })
-      : await sdk.uploadVideoGenericApiVideosUploadPost({ body: formData })
+    const response = series
+      ? await Services.uploadVideoToSeriesApiVideosUploadSeriesPost({ series, formData })
+      : await Services.uploadVideoGenericApiVideosUploadPost({ formData, series })
     
-    return response.data
+    return response
   } catch (error) {
     return handleApiError(error, 'uploadVideo')
   }
@@ -203,10 +199,10 @@ export const uploadVideo = async (file: File, series?: string, episode?: string)
 
 export const processVideo = async (videoId: string): Promise<any> => {
   try {
-    const response = await sdk.fullPipelineApiProcessFullPipelinePost({
-      body: { video_id: videoId }
+    const response = await Services.fullPipelineApiProcessFullPipelinePost({
+      requestBody: { video_id: videoId }
     })
-    return response.data
+    return response
   } catch (error) {
     return handleApiError(error, 'processVideo')
   }
@@ -214,10 +210,10 @@ export const processVideo = async (videoId: string): Promise<any> => {
 
 export const getProcessingStatus = async (taskId: string): Promise<ProcessingStatus> => {
   try {
-    const response = await sdk.getTaskProgressApiProcessProgressTaskIdGet({
-      path: { task_id: taskId }
+    const data = await Services.getTaskProgressApiProcessProgressTaskIdGet({
+      taskId: taskId,
     })
-    return response.data as ProcessingStatus
+    return data as any
   } catch (error) {
     return handleApiError(error, 'getProcessingStatus')
   }
@@ -226,10 +222,10 @@ export const getProcessingStatus = async (taskId: string): Promise<ProcessingSta
 // Subtitle API
 export const getSubtitles = async (subtitlePath: string): Promise<any> => {
   try {
-    const response = await sdk.getSubtitlesApiVideosSubtitlesSubtitlePathGet({
-      path: { subtitle_path: subtitlePath }
+    const response = await Services.getSubtitlesApiVideosSubtitlesSubtitlePathGet({
+      subtitlePath,
     })
-    return response.data
+    return response
   } catch (error) {
     return handleApiError(error, 'getSubtitles')
   }
@@ -237,10 +233,10 @@ export const getSubtitles = async (subtitlePath: string): Promise<any> => {
 
 export const filterSubtitles = async (data: any): Promise<any> => {
   try {
-    const response = await sdk.filterSubtitlesApiProcessFilterSubtitlesPost({
-      body: data
+    const response = await Services.filterSubtitlesApiProcessFilterSubtitlesPost({
+      requestBody: data,
     })
-    return response.data
+    return response
   } catch (error) {
     return handleApiError(error, 'filterSubtitles')
   }
@@ -248,10 +244,10 @@ export const filterSubtitles = async (data: any): Promise<any> => {
 
 export const translateSubtitles = async (data: any): Promise<any> => {
   try {
-    const response = await sdk.translateSubtitlesApiProcessTranslateSubtitlesPost({
-      body: data
+    const response = await Services.translateSubtitlesApiProcessTranslateSubtitlesPost({
+      requestBody: data,
     })
-    return response.data
+    return response
   } catch (error) {
     return handleApiError(error, 'translateSubtitles')
   }
@@ -260,8 +256,8 @@ export const translateSubtitles = async (data: any): Promise<any> => {
 // Vocabulary API
 export const getVocabularyStats = async (): Promise<VocabularyStats> => {
   try {
-    const response = await sdk.getVocabularyStatsApiVocabularyStatsGet({})
-    return response.data as VocabularyStats
+    const data = await Services.getVocabularyStatsApiVocabularyStatsGet()
+    return data as any
   } catch (error) {
     return handleApiError(error, 'getVocabularyStats')
   }
@@ -269,14 +265,12 @@ export const getVocabularyStats = async (): Promise<VocabularyStats> => {
 
 export const getBlockingWords = async (videoPath: string, segmentStart?: number, segmentDuration?: number): Promise<VocabularyWord[]> => {
   try {
-    const response = await sdk.getBlockingWordsApiVocabularyBlockingWordsGet({
-      query: {
-        video_path: videoPath,
-        segment_start: segmentStart,
-        segment_duration: segmentDuration
-      }
-    })
-    return (response.data as any) || []
+    const data = await Services.getBlockingWordsApiVocabularyBlockingWordsGet({
+      videoPath,
+      segmentStart,
+      segmentDuration,
+    } as any)
+    return (data as any) || []
   } catch (error) {
     return handleApiError(error, 'getBlockingWords')
   }
@@ -284,8 +278,8 @@ export const getBlockingWords = async (videoPath: string, segmentStart?: number,
 
 export const markWordAsKnown = async (word: string): Promise<void> => {
   try {
-    await sdk.markWordKnownApiVocabularyMarkKnownPost({
-      body: { word }
+    await Services.markWordKnownApiVocabularyMarkKnownPost({
+      requestBody: { word },
     })
   } catch (error) {
     return handleApiError(error, 'markWordAsKnown')
@@ -294,7 +288,7 @@ export const markWordAsKnown = async (word: string): Promise<void> => {
 
 export const preloadVocabulary = async (): Promise<void> => {
   try {
-    await sdk.preloadVocabularyApiVocabularyPreloadPost({})
+    await Services.preloadVocabularyApiVocabularyPreloadPost()
   } catch (error) {
     return handleApiError(error, 'preloadVocabulary')
   }
@@ -302,10 +296,10 @@ export const preloadVocabulary = async (): Promise<void> => {
 
 export const getVocabularyLevel = async (level: string): Promise<VocabularyLevel> => {
   try {
-    const response = await sdk.getVocabularyLevelApiVocabularyLibraryLevelGet({
-      path: { level }
-    })
-    return response.data as VocabularyLevel
+    const data = await Services.getVocabularyLevelApiVocabularyLibraryLevelGet({
+      level,
+    } as any)
+    return data as any
   } catch (error) {
     return handleApiError(error, 'getVocabularyLevel')
   }
@@ -313,8 +307,8 @@ export const getVocabularyLevel = async (level: string): Promise<VocabularyLevel
 
 export const bulkMarkLevelKnown = async (level: string): Promise<void> => {
   try {
-    await sdk.bulkMarkLevelApiVocabularyLibraryBulkMarkPost({
-      body: { level }
+    await Services.bulkMarkLevelApiVocabularyLibraryBulkMarkPost({
+      requestBody: { level },
     })
   } catch (error) {
     return handleApiError(error, 'bulkMarkLevelKnown')
@@ -345,4 +339,4 @@ export const videoService = {
 }
 
 // Export the configured client and utilities
-export { client as apiClient, handleApiError }
+export { OpenAPI as apiClient, handleApiError }
