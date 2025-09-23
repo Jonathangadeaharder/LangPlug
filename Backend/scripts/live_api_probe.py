@@ -142,7 +142,8 @@ def main():
             if size:
                 try:
                     snippet = disk_path.read_text(encoding="utf-8", errors="replace")[:200]
-                    write_line(f, f"Disk first 200 chars: {snippet.replace('\n','\\n')}")
+                    escaped_snippet = snippet.replace('\n', '\\n')
+                    write_line(f, f"Disk first 200 chars: {escaped_snippet}")
                 except Exception as e:
                     write_line(f, f"Disk read error: {e}")
         else:
