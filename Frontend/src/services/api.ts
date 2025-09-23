@@ -276,10 +276,10 @@ export const getBlockingWords = async (videoPath: string, segmentStart?: number,
   }
 }
 
-export const markWordAsKnown = async (word: string): Promise<void> => {
+export const markWordAsKnown = async (word: string, known: boolean): Promise<void> => {
   try {
     await Services.markWordKnownApiVocabularyMarkKnownPost({
-      requestBody: { word },
+      requestBody: { word, known },
     })
   } catch (error) {
     return handleApiError(error, 'markWordAsKnown')
@@ -305,11 +305,12 @@ export const getVocabularyLevel = async (level: string): Promise<VocabularyLevel
   }
 }
 
-export const bulkMarkLevelKnown = async (level: string): Promise<void> => {
+export const bulkMarkLevelKnown = async (level: string, known: boolean): Promise<any> => {
   try {
-    await Services.bulkMarkLevelApiVocabularyLibraryBulkMarkPost({
-      requestBody: { level },
+    const response = await Services.bulkMarkLevelApiVocabularyLibraryBulkMarkPost({
+      requestBody: { level, known },
     })
+    return response
   } catch (error) {
     return handleApiError(error, 'bulkMarkLevelKnown')
   }
@@ -322,7 +323,8 @@ export const vocabularyService = {
   markWordAsKnown,
   preloadVocabulary,
   getVocabularyLevel,
-  bulkMarkLevelKnown
+  bulkMarkLevelKnown,
+  bulkMarkLevel: bulkMarkLevelKnown  // Alias for convenience
 }
 
 // Video service object for organized access

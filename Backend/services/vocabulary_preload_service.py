@@ -10,7 +10,7 @@ from pathlib import Path
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import get_async_session
+from core.database import AsyncSessionLocal
 from database.models import Vocabulary
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class VocabularyPreloadService:
             "B2": self.data_path / "b2.txt",
         }
 
-        async with get_async_session() as session:
+        async with AsyncSessionLocal() as session:
             for level, file_path in vocabulary_files.items():
                 if file_path.exists():
                     count = await self._load_level_vocabulary(session, level, file_path)
@@ -132,8 +132,8 @@ class VocabularyPreloadService:
                 "word": vocab.word,
                 "difficulty_level": vocab.difficulty_level,
                 "word_type": vocab.word_type or "noun",
-                "part_of_speech": vocab.part_of_speech or vocab.word_type or "noun",
-                "definition": vocab.definition or "",
+                "part_of_speech": vocab.word_type or "noun",
+                "definition": "",
             })
         return words
 
@@ -183,7 +183,7 @@ class VocabularyPreloadService:
     async def mark_user_word_known(self, user_id: int, word: str, known: bool = True) -> bool:
         """Mark a word as known/unknown for a specific user"""
         try:
-            async with get_async_session() as session:
+            async with AsyncSessionLocal() as session:
                 from sqlalchemy import delete, select
 
                 from database.models import UserLearningProgress
@@ -295,9 +295,9 @@ class VocabularyPreloadService:
                 return stats
             else:
                 # Fallback to original behavior for backward compatibility
-                async for session in get_async_session():
+                async with AsyncSessionLocal() as session:
                     query = text("""
-                        SELECT 
+                        SELECT
                             v.difficulty_level,
                             COUNT(*) as total_words,
                             0 as has_definition,
@@ -320,7 +320,6 @@ class VocabularyPreloadService:
                             "has_definition": row.has_definition,
                             "user_known": row.user_known,
                         }
-                    break  # Only use the first (and only) session
                 return stats
         except Exception as e:
             logger.error(f"Error getting vocabulary stats: {e}")

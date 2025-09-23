@@ -100,56 +100,52 @@ async def extract_blocking_words_for_segment(
 @router.get("/stats", response_model=VocabularyStats, name="get_vocabulary_stats")
 async def get_vocabulary_stats_endpoint(
     current_user: User = Depends(current_active_user),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_session),
+    service: VocabularyPreloadService = Depends(get_vocabulary_preload_service)
 ):
     """Get vocabulary statistics for the current user"""
     try:
+        # Get basic stats from database
+        db_stats = await service.get_vocabulary_stats(db)
 
-        # Get user's vocabulary data from database or file system
-        user_vocab_path = settings.get_user_data_path() / str(current_user.id) / "vocabulary"
-
-        # Initialize default stats
+        # Initialize default stats with CEFR levels
         stats = VocabularyStats(
+            levels={
+                "A1": {"total_words": 0, "user_known": 0},
+                "A2": {"total_words": 0, "user_known": 0},
+                "B1": {"total_words": 0, "user_known": 0},
+                "B2": {"total_words": 0, "user_known": 0},
+                "C1": {"total_words": 0, "user_known": 0},
+                "C2": {"total_words": 0, "user_known": 0}
+            },
             total_words=0,
-            known_words=0,
-            learning_words=0,
-            mastered_words=0,
-            words_today=0,
-            streak_days=0,
-            level_progress=0.0
+            total_known=0
         )
 
-        if user_vocab_path.exists():
-            # Count vocabulary files or database entries
-            vocab_files = list(user_vocab_path.glob("*.json"))
-            stats.total_words = len(vocab_files)
+        # Process each level
+        total_words = 0
+        total_known = 0
 
-            # Calculate known/learning/mastered based on file contents
-            known_count = 0
-            learning_count = 0
-            mastered_count = 0
+        for level in ["A1", "A2", "B1", "B2", "C1", "C2"]:
+            # Get known words for this user and level
+            known_words = await service.get_user_known_words(current_user.id, level, db)
 
-            for vocab_file in vocab_files:
-                try:
-                    with open(vocab_file, encoding='utf-8') as f:
-                        vocab_data = json.load(f)
-                        status = vocab_data.get('status', 'learning')
-                        if status == 'known':
-                            known_count += 1
-                        elif status == 'mastered':
-                            mastered_count += 1
-                        else:
-                            learning_count += 1
-                except Exception:
-                    learning_count += 1  # Default to learning if file is corrupted
+            # Get total words for this level from database stats
+            level_total = 0
+            if level in db_stats:
+                level_total = db_stats[level].get("total_words", 0)
 
-            stats.known_words = known_count
-            stats.learning_words = learning_count
-            stats.mastered_words = mastered_count
+            # Update level stats
+            stats.levels[level] = {
+                "total_words": level_total,
+                "user_known": len(known_words)
+            }
 
-            # Calculate level progress (percentage of known + mastered words)
-            if stats.total_words > 0:
-                stats.level_progress = ((known_count + mastered_count) / stats.total_words) * 100
+            total_words += level_total
+            total_known += len(known_words)
+
+        stats.total_words = total_words
+        stats.total_known = total_known
 
         logger.info(f"Retrieved vocabulary stats for user {current_user.id}: {stats}")
         return stats
@@ -237,7 +233,7 @@ async def preload_vocabulary(
 
     try:
         service = VocabularyPreloadService()
-        results = service.load_vocabulary_files()
+        results = await service.load_vocabulary_files()
 
         total_loaded = sum(results.values())
         logger.info(f"Preloaded vocabulary: {results}")

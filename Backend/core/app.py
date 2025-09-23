@@ -10,7 +10,6 @@ from api.routes import (
     auth,
     debug,
     game,
-    logs,
     processing,
     progress,
     srt_utilities,
@@ -100,9 +99,6 @@ def create_app() -> FastAPI:
         """Simple test endpoint"""
         return {"message": "Test endpoint is working!", "timestamp": datetime.now().isoformat()}
 
-    # Include custom logout route that handles token blacklisting FIRST
-    from api.routes import logout
-    app.include_router(logout.router, prefix="/api/auth")
 
     # Include FastAPI-Users authentication routes
     from .auth import UserCreate, UserRead, auth_backend, fastapi_users
@@ -122,7 +118,6 @@ def create_app() -> FastAPI:
     app.include_router(vocabulary.router, prefix="/api/vocabulary")
     app.include_router(user_profile.router, prefix="/api/profile")
     app.include_router(websocket.router, prefix="/api/ws")
-    app.include_router(logs.router, prefix="/api/logs")
     app.include_router(progress.router, prefix="/api/progress")
     app.include_router(game.router, prefix="/api/game")
     app.include_router(srt_utilities.router)  # Already includes /api/srt prefix

@@ -145,7 +145,7 @@ async def get_user_settings(
     """Get user settings"""
     try:
         # Get user settings from database or file system
-        user_settings_path = settings.get_user_data_path() / str(current_user.id) / "settings.json"
+        user_settings_path = settings.get_data_path() / str(current_user.id) / "settings.json"
 
         # Default settings
         default_settings = UserSettings()
@@ -178,7 +178,7 @@ async def update_user_settings(
     """Update user settings"""
     try:
         # Ensure user data directory exists
-        user_data_path = settings.get_user_data_path() / str(current_user.id)
+        user_data_path = settings.get_data_path() / str(current_user.id)
         user_data_path.mkdir(parents=True, exist_ok=True)
 
         user_settings_path = user_data_path / "settings.json"

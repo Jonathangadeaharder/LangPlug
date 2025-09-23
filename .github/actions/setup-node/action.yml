@@ -1,0 +1,147 @@
+name: 'Setup Node.js Environment'
+description: 'Configure Node.js environment with intelligent package manager detection and caching'
+inputs:
+  node-version:
+    description: 'Node.js version to setup'
+    required: false
+    default: '18'
+  working-directory:
+    description: 'Working directory for Node.js operations'
+    required: false
+    default: './Frontend'
+  package-manager:
+    description: 'Package manager to use (auto, npm, yarn, pnpm)'
+    required: false
+    default: 'auto'
+  cache-key:
+    description: 'Additional cache key suffix'
+    required: false
+    default: ''
+  frozen-lockfile:
+    description: 'Use frozen lockfile for installation'
+    required: false
+    default: 'true'
+
+outputs:
+  cache-hit:
+    description: 'Whether cache was hit'
+    value: ${{ steps.cache.outputs.cache-hit }}
+  package-manager:
+    description: 'Detected package manager'
+    value: ${{ steps.detect-pm.outputs.manager }}
+  lockfile-path:
+    description: 'Path to lockfile'
+    value: ${{ steps.detect-pm.outputs.lockfile }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Detect package manager
+      id: detect-pm
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        if [ "${{ inputs.package-manager }}" != "auto" ]; then
+          echo "manager=${{ inputs.package-manager }}" >> $GITHUB_OUTPUT
+          case "${{ inputs.package-manager }}" in
+            yarn) echo "lockfile=yarn.lock" >> $GITHUB_OUTPUT ;;
+            pnpm) echo "lockfile=pnpm-lock.yaml" >> $GITHUB_OUTPUT ;;
+            *) echo "lockfile=package-lock.json" >> $GITHUB_OUTPUT ;;
+          esac
+        elif [ -f "yarn.lock" ]; then
+          echo "manager=yarn" >> $GITHUB_OUTPUT
+          echo "lockfile=yarn.lock" >> $GITHUB_OUTPUT
+        elif [ -f "pnpm-lock.yaml" ]; then
+          echo "manager=pnpm" >> $GITHUB_OUTPUT
+          echo "lockfile=pnpm-lock.yaml" >> $GITHUB_OUTPUT
+        else
+          echo "manager=npm" >> $GITHUB_OUTPUT
+          echo "lockfile=package-lock.json" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ steps.detect-pm.outputs.manager }}
+        cache-dependency-path: ${{ inputs.working-directory }}/${{ steps.detect-pm.outputs.lockfile }}
+
+    - name: Enable Corepack (for Yarn/PNPM)
+      if: steps.detect-pm.outputs.manager != 'npm'
+      shell: bash
+      run: corepack enable
+
+    - name: Get package manager cache directory
+      id: cache-dir
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        case "${{ steps.detect-pm.outputs.manager }}" in
+          yarn)
+            echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+            ;;
+          pnpm)
+            echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+            ;;
+          npm)
+            echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+            ;;
+        esac
+
+    - name: Cache dependencies
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ steps.cache-dir.outputs.dir }}
+          ${{ inputs.working-directory }}/node_modules
+        key: ${{ runner.os }}-${{ steps.detect-pm.outputs.manager }}-${{ inputs.node-version }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, steps.detect-pm.outputs.lockfile)) }}-${{ inputs.cache-key }}
+        restore-keys: |
+          ${{ runner.os }}-${{ steps.detect-pm.outputs.manager }}-${{ inputs.node-version }}-
+          ${{ runner.os }}-${{ steps.detect-pm.outputs.manager }}-
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        case "${{ steps.detect-pm.outputs.manager }}" in
+          yarn)
+            if [ "${{ inputs.frozen-lockfile }}" = "true" ]; then
+              yarn install --frozen-lockfile
+            else
+              yarn install
+            fi
+            ;;
+          pnpm)
+            if [ "${{ inputs.frozen-lockfile }}" = "true" ]; then
+              pnpm install --frozen-lockfile
+            else
+              pnpm install
+            fi
+            ;;
+          npm)
+            if [ "${{ inputs.frozen-lockfile }}" = "true" ]; then
+              npm ci
+            else
+              npm install
+            fi
+            ;;
+        esac
+
+    - name: Display environment info
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        echo "Node.js version: $(node --version)"
+        echo "NPM version: $(npm --version)"
+        echo "Package manager: ${{ steps.detect-pm.outputs.manager }}"
+        case "${{ steps.detect-pm.outputs.manager }}" in
+          yarn) echo "Yarn version: $(yarn --version)" ;;
+          pnpm) echo "PNPM version: $(pnpm --version)" ;;
+        esac
+        echo "Package.json scripts:"
+        if command -v jq >/dev/null 2>&1; then
+          cat package.json | jq -r '.scripts | keys[]' | head -10
+        else
+          echo "jq not available, skipping script list"
+        fi

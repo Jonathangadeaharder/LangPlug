@@ -1,0 +1,205 @@
+name: 'Generate Coverage Report'
+description: 'Generate and upload comprehensive coverage reports with diff analysis'
+inputs:
+  coverage-file:
+    description: 'Path to coverage XML file'
+    required: true
+  working-directory:
+    description: 'Working directory'
+    required: false
+    default: '.'
+  diff-coverage-threshold:
+    description: 'Minimum diff coverage percentage'
+    required: false
+    default: '90'
+  branch-coverage-threshold:
+    description: 'Minimum branch coverage percentage'
+    required: false
+    default: '80'
+  artifact-name:
+    description: 'Name for coverage artifacts'
+    required: false
+    default: 'coverage-report'
+  comment-header:
+    description: 'Header for PR comment'
+    required: false
+    default: 'coverage'
+  packages:
+    description: 'Comma-separated list of packages to analyze'
+    required: false
+    default: 'api,core,management'
+
+outputs:
+  overall-coverage:
+    description: 'Overall line coverage percentage'
+    value: ${{ steps.parse-coverage.outputs.overall-coverage }}
+  diff-coverage-passed:
+    description: 'Whether diff coverage meets threshold'
+    value: ${{ steps.diff-coverage.outputs.passed }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install diff-cover
+      shell: bash
+      run: pip install diff-cover
+
+    - name: Parse coverage XML
+      id: parse-coverage
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        python - << 'PY'
+        import xml.etree.ElementTree as ET
+        import sys
+        import os
+
+        coverage_file = "${{ inputs.coverage-file }}"
+        if not os.path.exists(coverage_file):
+            print(f"Coverage file {coverage_file} not found")
+            sys.exit(1)
+
+        try:
+            root = ET.parse(coverage_file).getroot()
+        except Exception as e:
+            print(f"Cannot parse {coverage_file}: {e}")
+            sys.exit(1)
+
+        def pct(x):
+            try:
+                return f"{float(x)*100:.1f}%"
+            except Exception:
+                return 'N/A'
+
+        overall_line = pct(root.get('line-rate', 0))
+        overall_branch = pct(root.get('branch-rate', 0))
+
+        # Output for GitHub Actions
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"overall-coverage={overall_line}\n")
+            f.write(f"overall-branch-coverage={overall_branch}\n")
+
+        # Collect package coverage
+        packages = []
+        for pkg in root.findall('.//packages/package'):
+            name = pkg.get('name', '')
+            lr = pkg.get('line-rate', '')
+            br = pkg.get('branch-rate', '')
+            packages.append((name, pct(lr), pct(br)))
+
+        def pick(name):
+            for n, lv, bv in packages:
+                if n == name:
+                    return lv, bv
+                if n.startswith(name + '/'):
+                    return lv, bv
+            return 'N/A', 'N/A'
+
+        # Generate coverage summary
+        with open('coverage_summary.md', 'w', encoding='utf-8') as f:
+            f.write('# Coverage Summary\n\n')
+            f.write(f'- **Overall**: Lines {overall_line}, Branches {overall_branch}\n')
+
+            for package in "${{ inputs.packages }}".split(','):
+                package = package.strip()
+                if package:
+                    ln, bn = pick(package)
+                    f.write(f'- **{package}**: Lines {ln}, Branches {bn}\n')
+        PY
+
+    - name: Generate diff coverage (PRs only)
+      if: github.event_name == 'pull_request'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        git fetch origin ${{ github.base_ref }} --depth=1 || true
+        diff-cover ${{ inputs.coverage-file }} \
+          --compare-branch=origin/${{ github.base_ref }} \
+          --markdown-report diff_coverage.md || true
+
+    - name: Generate branch diff coverage (PRs only)
+      if: github.event_name == 'pull_request'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        git fetch origin ${{ github.base_ref }} --depth=1 || true
+        diff-cover ${{ inputs.coverage-file }} \
+          --compare-branch=origin/${{ github.base_ref }} \
+          --branch-coverage \
+          --markdown-report branch_diff_coverage.md || true
+
+    - name: Combine coverage reports
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        cat coverage_summary.md > final_coverage_report.md
+
+        if [ -f diff_coverage.md ]; then
+          echo "" >> final_coverage_report.md
+          echo "## Diff Coverage" >> final_coverage_report.md
+          cat diff_coverage.md >> final_coverage_report.md
+        fi
+
+        if [ -f branch_diff_coverage.md ]; then
+          echo "" >> final_coverage_report.md
+          echo "## Diff Branch Coverage" >> final_coverage_report.md
+          cat branch_diff_coverage.md >> final_coverage_report.md
+        fi
+
+    - name: Post coverage comment (PRs only)
+      if: github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: ${{ inputs.comment-header }}
+        path: ${{ inputs.working-directory }}/final_coverage_report.md
+
+    - name: Check diff coverage threshold
+      id: diff-coverage
+      if: github.event_name == 'pull_request'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        git fetch origin ${{ github.base_ref }} --depth=1 || true
+        if diff-cover ${{ inputs.coverage-file }} \
+           --compare-branch=origin/${{ github.base_ref }} \
+           --fail-under=${{ inputs.diff-coverage-threshold }}; then
+          echo "passed=true" >> $GITHUB_OUTPUT
+        else
+          echo "passed=false" >> $GITHUB_OUTPUT
+          echo "::warning::Diff coverage below ${{ inputs.diff-coverage-threshold }}%"
+        fi
+
+    - name: Check branch diff coverage threshold
+      if: github.event_name == 'pull_request'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        git fetch origin ${{ github.base_ref }} --depth=1 || true
+        diff-cover ${{ inputs.coverage-file }} \
+          --compare-branch=origin/${{ github.base_ref }} \
+          --branch-coverage \
+          --fail-under=${{ inputs.branch-coverage-threshold }} || \
+          echo "::warning::Branch diff coverage below ${{ inputs.branch-coverage-threshold }}%"
+
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: |
+          ${{ inputs.working-directory }}/coverage_summary.md
+          ${{ inputs.working-directory }}/diff_coverage.md
+          ${{ inputs.working-directory }}/branch_diff_coverage.md
+          ${{ inputs.working-directory }}/final_coverage_report.md
+          ${{ inputs.working-directory }}/${{ inputs.coverage-file }}
+        retention-days: 30
+
+    - name: Add to job summary
+      if: always()
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        if [ -f final_coverage_report.md ]; then
+          echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          cat final_coverage_report.md >> $GITHUB_STEP_SUMMARY
+        fi

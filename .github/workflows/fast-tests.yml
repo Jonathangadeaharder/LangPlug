@@ -1,0 +1,152 @@
+name: Fast Tests
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths:
+      - 'Backend/**/*.py'
+      - 'Frontend/**/*.ts'
+      - 'Frontend/**/*.tsx'
+      - 'Frontend/**/*.js'
+      - 'Frontend/**/*.jsx'
+      - '**/package.json'
+      - '**/requirements*.txt'
+  pull_request:
+    branches: [ main, master, develop ]
+    paths:
+      - 'Backend/**/*.py'
+      - 'Frontend/**/*.ts'
+      - 'Frontend/**/*.tsx'
+      - 'Frontend/**/*.js'
+      - 'Frontend/**/*.jsx'
+      - '**/package.json'
+      - '**/requirements*.txt'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+      frontend: ${{ steps.changes.outputs.frontend }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'Backend/**/*.py'
+              - 'Backend/**/requirements*.txt'
+            frontend:
+              - 'Frontend/**/*.ts'
+              - 'Frontend/**/*.tsx'
+              - 'Frontend/**/*.js'
+              - 'Frontend/**/*.jsx'
+              - 'Frontend/package.json'
+              - 'Frontend/yarn.lock'
+
+  backend-fast:
+    name: Backend Fast Unit Tests
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: Backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python Environment
+        uses: ./.github/actions/setup-python
+        with:
+          python-version: '3.11'
+          working-directory: Backend
+          requirements-file: requirements.txt
+          cache-key: fast-tests
+
+      - name: Run fast unit tests
+        run: |
+          # Run only unit tests, skip integration and e2e
+          pytest -q tests/ -m "not integration and not e2e" \
+            --maxfail=5 \
+            --tb=short \
+            --disable-warnings \
+            --durations=10
+
+      - name: Lint with ruff (if available)
+        run: |
+          if command -v ruff >/dev/null 2>&1; then
+            ruff check . --select=E,W,F --ignore=E501
+          else
+            echo "Ruff not available, skipping lint"
+          fi
+
+  frontend-fast:
+    name: Frontend Fast Unit Tests
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true'
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: Frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: ./.github/actions/setup-node
+        with:
+          node-version: '18'
+          working-directory: Frontend
+          cache-key: fast-tests
+
+      - name: Type check
+        run: |
+          if command -v tsc >/dev/null 2>&1; then
+            npx tsc --noEmit --skipLibCheck
+          else
+            echo "TypeScript not available, skipping type check"
+          fi
+
+      - name: Run fast unit tests
+        run: |
+          # Run tests without coverage for speed
+          yarn test --run --reporter=basic --bail=5
+
+      - name: Lint
+        run: |
+          yarn lint --max-warnings=10 || echo "Linting failed but continuing..."
+
+  status-check:
+    name: Status Check
+    runs-on: ubuntu-latest
+    needs: [detect-changes, backend-fast, frontend-fast]
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          echo "Backend changes: ${{ needs.detect-changes.outputs.backend }}"
+          echo "Frontend changes: ${{ needs.detect-changes.outputs.frontend }}"
+          echo "Backend tests: ${{ needs.backend-fast.result }}"
+          echo "Frontend tests: ${{ needs.frontend-fast.result }}"
+
+          # Fail if any required job failed
+          if [[ "${{ needs.detect-changes.outputs.backend }}" == "true" && "${{ needs.backend-fast.result }}" == "failure" ]]; then
+            echo "Backend fast tests failed"
+            exit 1
+          fi
+          if [[ "${{ needs.detect-changes.outputs.frontend }}" == "true" && "${{ needs.frontend-fast.result }}" == "failure" ]]; then
+            echo "Frontend fast tests failed"
+            exit 1
+          fi
+          echo "All fast tests passed!"

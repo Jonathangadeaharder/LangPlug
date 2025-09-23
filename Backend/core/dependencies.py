@@ -54,7 +54,17 @@ def get_transcription_service() -> ITranscriptionService | None:
     """Get transcription service instance (singleton)"""
     try:
         from .config import settings
-        return _get_transcription_service(settings.transcription_service)
+        logger.info(f"Initializing transcription service: {settings.transcription_service}")
+        service = _get_transcription_service(settings.transcription_service)
+        logger.info("Transcription service initialized successfully")
+        return service
+    except ImportError as e:
+        if "whisper" in str(e).lower() or "torch" in str(e).lower():
+            logger.warning(f"ML dependencies not available for transcription service: {e}")
+            logger.info("Install ML dependencies with: pip install -r requirements-ml.txt")
+        else:
+            logger.error(f"Failed to create transcription service: {e}")
+        return None
     except Exception as e:
         logger.error(f"Failed to create transcription service: {e}")
         return None
@@ -65,7 +75,17 @@ def get_translation_service() -> ITranslationService | None:
     """Get translation service instance (singleton)"""
     try:
         from .config import settings
-        return _get_translation_service(settings.translation_service)
+        logger.info(f"Initializing translation service: {settings.translation_service}")
+        service = _get_translation_service(settings.translation_service)
+        logger.info("Translation service initialized successfully")
+        return service
+    except ImportError as e:
+        if "torch" in str(e).lower() or "transformers" in str(e).lower():
+            logger.warning(f"ML dependencies not available for translation service: {e}")
+            logger.info("Install ML dependencies with: pip install -r requirements-ml.txt")
+        else:
+            logger.error(f"Failed to create translation service: {e}")
+        return None
     except Exception as e:
         logger.error(f"Failed to create translation service: {e}")
         return None

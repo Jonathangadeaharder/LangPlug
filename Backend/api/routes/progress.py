@@ -50,7 +50,7 @@ async def get_user_progress(
     """Get progress data for the current user"""
     try:
         # Get user progress from database or file system
-        user_progress_path = settings.get_user_data_path() / str(current_user.id) / "progress.json"
+        user_progress_path = settings.get_data_path() / str(current_user.id) / "progress.json"
 
         # Default progress
         default_progress = UserProgress(
@@ -108,7 +108,7 @@ async def update_user_progress(
         current_progress.last_activity = datetime.now()
 
         # Ensure user data directory exists
-        user_data_path = settings.get_user_data_path() / str(current_user.id)
+        user_data_path = settings.get_data_path() / str(current_user.id)
         user_data_path.mkdir(parents=True, exist_ok=True)
 
         user_progress_path = user_data_path / "progress.json"
@@ -138,7 +138,7 @@ async def get_daily_progress(
     """Get daily progress for the last N days"""
     try:
         # Get daily progress from database or file system
-        user_daily_path = settings.get_user_data_path() / str(current_user.id) / "daily_progress.json"
+        user_daily_path = settings.get_data_path() / str(current_user.id) / "daily_progress.json"
 
         daily_progress = []
 

@@ -145,5 +145,3 @@ async def test_WhenmeWithoutauthentication_ThenReturnsError(async_http_client):
     response = await async_http_client.get("/api/auth/me")
 
     assert response.status_code == 401
-
-

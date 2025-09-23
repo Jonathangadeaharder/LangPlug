@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
+import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { vocabularyService } from '@/services/api'
 import { logger } from '@/services/logger'
@@ -9,6 +10,30 @@ const Container = styled.div`
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+`
+
+const BackButton = styled.button`
+  background: #34495e;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: #2c3e50;
+  }
+
+  &:before {
+    content: '←';
+    font-size: 1.2rem;
+  }
 `
 
 const Header = styled.div`
@@ -247,6 +272,7 @@ const LoadingSpinner = styled.div`
 const LEVELS = ['A1', 'A2', 'B1', 'B2']
 
 export const VocabularyLibrary: React.FC = () => {
+  const navigate = useNavigate()
   const [activeLevel, setActiveLevel] = useState<string>('A1')
   const [levelData, setLevelData] = useState<VocabularyLevel | null>(null)
   const [stats, setStats] = useState<VocabularyStats | null>(null)
@@ -372,6 +398,10 @@ export const VocabularyLibrary: React.FC = () => {
 
   return (
     <Container>
+      <BackButton onClick={() => navigate('/')}>
+        Back to Videos
+      </BackButton>
+
       <Header>
         <h1>📚 Vocabulary Library</h1>
         <p>Manage your German vocabulary knowledge from A1 to B2 level</p>
@@ -470,7 +500,6 @@ export const VocabularyLibrary: React.FC = () => {
               </div>
               
               <div className="word-details">
-                <div className="part-of-speech">{word.part_of_speech}</div>
                 {word.definition && (
                   <div className="definition">{word.definition}</div>
                 )}

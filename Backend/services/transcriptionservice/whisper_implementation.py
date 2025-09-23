@@ -62,13 +62,36 @@ class WhisperTranscriptionService(ITranscriptionService):
     def initialize(self) -> None:
         """Initialize the Whisper model"""
         if self._model is None:
-            logger.info(f"Loading Whisper model: {self.model_size}")
+            import os
+
+            # Check if model is already downloaded
+            model_cache_dir = self.download_root or os.path.expanduser("~/.cache/whisper")
+            model_files = {
+                "tiny": "tiny.pt",
+                "base": "base.pt",
+                "small": "small.pt",
+                "medium": "medium.pt",
+                "large": "large.pt",
+                "large-v2": "large-v2.pt",
+                "large-v3": "large-v3.pt",
+                "large-v3-turbo": "large-v3-turbo.pt"
+            }
+
+            model_file = model_files.get(self.model_size, f"{self.model_size}.pt")
+            model_path = Path(model_cache_dir) / model_file
+
+            if not model_path.exists():
+                logger.info(f"Downloading Whisper model '{self.model_size}' (this may take 5-10 minutes)...")
+                logger.info("Model will be cached for future use")
+            else:
+                logger.info(f"Loading cached Whisper model: {self.model_size}")
+
             self._model = whisper.load_model(
                 self.model_size,
                 device=self.device,
                 download_root=self.download_root
             )
-            logger.info(f"Whisper model loaded: {self.model_size}")
+            logger.info(f"Whisper model '{self.model_size}' ready for transcription")
 
     def transcribe(
         self,

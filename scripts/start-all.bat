@@ -13,7 +13,7 @@ set REPO_ROOT=%CD%
 popd >nul
 
 REM Start backend in a new window
-start "LangPlug Backend" cmd /k "cd /d "%REPO_ROOT%\Backend" && echo Starting Backend... && python run_backend.py"
+start "LangPlug Backend" cmd /k "cd /d "%REPO_ROOT%\Backend" && echo Starting Backend... && api_venv\Scripts\python.exe run_backend.py"
 
 REM Start frontend in a new window
 start "LangPlug Frontend" cmd /k "cd /d "%REPO_ROOT%\Frontend" && echo Starting Frontend... && npm run dev"

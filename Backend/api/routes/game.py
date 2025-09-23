@@ -101,7 +101,7 @@ async def start_game_session(
         }
 
         # Ensure user data directory exists
-        user_data_path = settings.get_user_data_path() / str(current_user.id) / "game_sessions"
+        user_data_path = settings.get_data_path() / str(current_user.id) / "game_sessions"
         user_data_path.mkdir(parents=True, exist_ok=True)
 
         # Save session to file
@@ -127,7 +127,7 @@ async def get_game_session(
 ):
     """Get a specific game session"""
     try:
-        session_path = settings.get_user_data_path() / str(current_user.id) / "game_sessions" / f"{session_id}.json"
+        session_path = settings.get_data_path() / str(current_user.id) / "game_sessions" / f"{session_id}.json"
 
         if not session_path.exists():
             raise HTTPException(status_code=404, detail="Game session not found")
@@ -203,7 +203,7 @@ async def submit_answer(
             game_session.end_time = datetime.now()
 
         # Save updated session
-        session_path = settings.get_user_data_path() / str(current_user.id) / "game_sessions" / f"{answer_request.session_id}.json"
+        session_path = settings.get_data_path() / str(current_user.id) / "game_sessions" / f"{answer_request.session_id}.json"
         session_dict = game_session.dict()
         session_dict['start_time'] = session_dict['start_time'].isoformat()
         if session_dict.get('end_time'):
@@ -237,7 +237,7 @@ async def get_user_game_sessions(
 ):
     """Get user's game sessions"""
     try:
-        sessions_path = settings.get_user_data_path() / str(current_user.id) / "game_sessions"
+        sessions_path = settings.get_data_path() / str(current_user.id) / "game_sessions"
 
         if not sessions_path.exists():
             return []
