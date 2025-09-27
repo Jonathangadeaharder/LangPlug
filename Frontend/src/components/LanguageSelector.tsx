@@ -24,6 +24,25 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
 }) => {
   const helperLabel = disabled ? 'Changes disabled' : 'Tap to choose your language';
 
+  const renderFlag = (flag: string, name: string) => {
+    if (flag && /^[a-z]{2}$/i.test(flag)) {
+      const code = flag.toLowerCase();
+      return (
+        <FlagImage
+          src={`https://flagcdn.com/w40/${code}.png`}
+          alt={`${name} flag`}
+          loading="lazy"
+        />
+      );
+    }
+
+    if (flag && flag.trim().length > 0) {
+      return <span>{flag}</span>;
+    }
+
+    return <FallbackFlag aria-hidden="true">{name.slice(0, 2).toUpperCase()}</FallbackFlag>;
+  };
+
   return (
     <Container>
       <LabelRow>
@@ -44,7 +63,9 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
               aria-pressed={isSelected}
             >
               {isSelected && <SelectionIndicator aria-hidden="true" />}
-              <FlagBadge $selected={isSelected} aria-hidden="true">{lang.flag}</FlagBadge>
+              <FlagBadge $selected={isSelected} aria-hidden="true">
+                {renderFlag(lang.flag, lang.name)}
+              </FlagBadge>
               <LanguageLabel>
                 <LanguageCode $selected={isSelected}>{lang.code.toUpperCase()}</LanguageCode>
                 <LanguageName $selected={isSelected}>{lang.name}</LanguageName>
@@ -117,8 +138,32 @@ const LanguageOption = styled.button<{ $selected: boolean; $disabled: boolean }>
 `;
 
 const FlagBadge = styled.div<{ $selected: boolean }>`
-  font-size: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
   filter: ${props => props.$selected ? 'none' : 'grayscale(15%)'};
+`;
+
+const FlagImage = styled.img`
+  width: 40px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+`;
+
+const FallbackFlag = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.12);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
 `;
 
 const LanguageLabel = styled.div`

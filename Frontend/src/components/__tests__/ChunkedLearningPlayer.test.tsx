@@ -83,7 +83,8 @@ describe('ChunkedLearningPlayer', () => {
   test('invokes onSkipChunk when next button is clicked', () => {
     const onSkipChunk = vi.fn();
     render(<ChunkedLearningPlayer {...createProps({ onSkipChunk })} />);
-    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    const skipButtons = screen.getAllByRole('button', { name: /skip chunk/i });
+    fireEvent.click(skipButtons[0]);
     expect(onSkipChunk).toHaveBeenCalled();
   });
 

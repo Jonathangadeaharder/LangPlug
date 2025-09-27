@@ -7,7 +7,10 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from api.models.processing import ProcessingStatus
+from core.language_preferences import resolve_language_runtime_settings
 from services.processing.chunk_processor import ChunkProcessingError, ChunkProcessingService
+from services.translationservice.interface import TranslationResult
+from utils.srt_parser import SRTSegment
 
 
 @pytest.fixture
@@ -90,8 +93,21 @@ async def test_Whenprocess_chunk_happy_pathCalled_ThenSucceeds(service, task_pro
         "statistics": {"segments_parsed": 1},
     })
     monkeypatch.setattr("services.processing.chunk_processor.get_subtitle_processor", lambda db_session: subtitle_processor)
-    mock_parser = Mock(parse_file=Mock(return_value=[]), save_segments=Mock())
-    monkeypatch.setattr("services.processing.chunk_processor.SRTParser", lambda *args, **kwargs: mock_parser)
+
+    # Create mock SRT segments for testing
+    mock_segments = [
+        SRTSegment(index=1, start_time=1.0, end_time=4.0, text="Test segment", original_text="Test segment")
+    ]
+
+    # Create a Mock class that returns a mock parser instance
+    mock_parser_instance = Mock()
+    mock_parser_instance.parse_file = Mock(return_value=mock_segments)
+
+    mock_parser_class = Mock()
+    mock_parser_class.return_value = mock_parser_instance
+    mock_parser_class.save_segments = Mock()  # For static method calls
+
+    monkeypatch.setattr("services.processing.chunk_processor.SRTParser", mock_parser_class)
 
     # Set up mock video file structure
     video_file = _setup_mock_video_path(srt_files=["episode"])
@@ -154,7 +170,7 @@ async def test_Whenprocess_chunk_missing_srt_sets_errorCalled_ThenSucceeds(servi
                 start_time=0.0,
                 end_time=10.0,
                 user_id=1,
-                session_token="test_token"
+                session_token=None
             )
 
 
@@ -186,5 +202,54 @@ async def test_Whenprocess_chunk_transcription_unavailable_records_errorCalled_T
                 start_time=0,
                 end_time=5,
                 user_id=1,
-                session_token="test_token"
+                session_token=None
             )
+
+
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+@patch("services.processing.chunk_processor.TranslationServiceFactory.create_service")
+async def test_Whentranslation_required_ThenUsesSentenceTranslator(create_service, service):
+    """Happy path: sentence translations are produced via translation service."""
+
+    translator_calls: list[tuple[list[str], str, str]] = []
+
+    class DummyTranslator:
+        service_name = "OPUS-MT"
+        is_initialized = True
+
+        def translate_batch(self, texts, source_language, target_language):
+            translator_calls.append((list(texts), source_language, target_language))
+            return [
+                TranslationResult(
+                    original_text=text,
+                    translated_text=f"{text}::{target_language}",
+                    source_language=source_language,
+                    target_language=target_language,
+                )
+                for text in texts
+            ]
+
+    create_service.return_value = DummyTranslator()
+
+    segments = [
+        SRTSegment(index=1, start_time=0.0, end_time=1.0, text="Hallo zusammen", original_text="Hallo zusammen", translation=""),
+        SRTSegment(index=2, start_time=1.1, end_time=2.0, text="Weiter geht's", original_text="Weiter geht's", translation=""),
+    ]
+
+    active_words = [
+        [Mock(text="zusammen")],
+        [],
+    ]
+
+    language_preferences = {
+        "native": "es",
+        "target": "de",
+        "runtime": resolve_language_runtime_settings("es", "de"),
+    }
+
+    translations = await service._build_translation_texts(segments, active_words, language_preferences)
+
+    assert translations[0] == "Hallo zusammen::es"
+    assert translations[1] == ""
+    assert translator_calls == [(["Hallo zusammen"], "de", "es")]

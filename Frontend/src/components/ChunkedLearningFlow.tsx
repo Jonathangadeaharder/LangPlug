@@ -8,6 +8,7 @@ import { handleApiError } from '@/services/api'
 import {
   getTaskProgressApiProcessProgressTaskIdGet,
   processChunkApiProcessChunkPost,
+  profileGetApiProfileGet,
 } from '@/client/services.gen'
 import { logger } from '@/services/logger'
 import type { VideoInfo, ProcessingStatus, VocabularyWord } from '@/types'
@@ -20,6 +21,22 @@ interface ChunkData {
   subtitlePath?: string
   translationPath?: string
   isProcessed: boolean
+}
+
+interface ProfileLanguageSummary {
+  code: string
+  name: string
+}
+
+interface UserProfileResponse {
+  native_language: ProfileLanguageSummary
+  target_language: ProfileLanguageSummary
+  language_runtime?: {
+    native: string
+    target: string
+    translation_service?: string
+    translation_model?: string
+  }
 }
 
 interface ChunkedLearningFlowProps {
@@ -49,6 +66,11 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
   const [taskId, setTaskId] = useState<string | null>(null)
   const [gameWords, setGameWords] = useState<VocabularyWord[]>([])
   const [learnedWords, setLearnedWords] = useState<Set<string>>(new Set())
+  const [activeLanguages, setActiveLanguages] = useState<{
+    native: ProfileLanguageSummary
+    target: ProfileLanguageSummary
+  } | null>(null)
+  const [profileLoaded, setProfileLoaded] = useState(false)
 
   // Calculate total chunks based on video duration
   useEffect(() => {
@@ -71,6 +93,41 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
     console.log(`[ChunkedLearningFlow] Created ${newChunks.length} chunks`)
     setChunks(newChunks)
   }, [videoInfo.duration, chunkDurationMinutes])
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadProfileLanguages = async () => {
+      try {
+        const profile = await profileGetApiProfileGet() as UserProfileResponse
+        if (!isMounted || !profile) {
+          return
+        }
+
+        logger.info('ChunkedLearningFlow', 'Loaded user profile with languages', {
+          native: profile.native_language?.name,
+          target: profile.target_language?.name,
+        })
+        console.log('[ChunkedLearningFlow] Profile loaded:', {
+          native: profile.native_language,
+          target: profile.target_language,
+        })
+        setActiveLanguages({
+          native: profile.native_language,
+          target: profile.target_language,
+        })
+        setProfileLoaded(true)
+      } catch (error) {
+        logger.warn('ChunkedLearningFlow', 'Failed to load user language preferences', error)
+      }
+    }
+
+    loadProfileLanguages()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   // Format time for display
   const formatTime = (seconds: number): string => {
@@ -370,14 +427,13 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
     }
   }
 
-  // Start processing first chunk on mount
+  // Start processing first chunk on mount (after profile is loaded)
   useEffect(() => {
-    console.log(`[ChunkedLearningFlow] useEffect triggered - chunks.length: ${chunks.length}, currentChunk: ${currentChunk}, currentPhase: ${currentPhase}`)
-    if (chunks.length > 0 && currentChunk === 0 && currentPhase === 'processing') {
-      console.log(`[ChunkedLearningFlow] 🚀 Starting processing of first chunk`)
+    if (chunks.length > 0 && currentChunk === 0 && currentPhase === 'processing' && profileLoaded) {
+      logger.info('ChunkedLearningFlow', '🚀 Starting processing of first chunk')
       processChunk(0)
     }
-  }, [chunks])
+  }, [chunks, profileLoaded])
 
   // Render based on current phase
   const renderPhase = () => {
@@ -414,7 +470,9 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
         logger.info('ChunkedLearningFlow', 'Rendering video player', {
           subtitlePath: chunk.subtitlePath,
           translationPath: chunk.translationPath,
-          chunkIndex: currentChunk
+          chunkIndex: currentChunk,
+          targetLanguage: activeLanguages?.target?.name,
+          nativeLanguage: activeLanguages?.native?.name,
         })
         return (
           <ChunkedLearningPlayer
@@ -434,6 +492,8 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
               total: chunks.length,
               duration: `${formatTime(chunk.startTime)} - ${formatTime(chunk.endTime)}`
             }}
+            targetLanguage={activeLanguages?.target}
+            nativeLanguage={activeLanguages?.native}
           />
         )
       

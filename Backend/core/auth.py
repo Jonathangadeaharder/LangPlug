@@ -16,14 +16,10 @@ from fastapi_users.schemas import BaseUser, BaseUserCreate, BaseUserUpdate
 from pydantic import EmailStr, field_validator
 from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
 from core.config import settings
-from core.database import get_async_session
-
-
-class Base(DeclarativeBase):
-    pass
+from core.database import Base, get_async_session
 
 
 class User(Base):

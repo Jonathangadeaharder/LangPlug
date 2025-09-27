@@ -780,25 +780,27 @@ async def get_task_progress(
     task_progress: dict[str, Any] = Depends(get_task_progress_registry),
 ):
     """Get progress of a background task"""
-    logger.info(f"[PROGRESS CHECK] Task ID: {task_id}")
-    logger.info(f"[PROGRESS CHECK] Available tasks: {list(task_progress.keys())}")
+    logger.debug(f"[PROGRESS CHECK] Task ID: {task_id}")
+    logger.debug(f"[PROGRESS CHECK] Available tasks: {list(task_progress.keys())}")
 
     if task_id not in task_progress:
         logger.warning(f"[PROGRESS CHECK] ❌ Task {task_id} NOT FOUND in registry")
         raise HTTPException(status_code=404, detail="Task not found")
 
     progress_data = task_progress[task_id]
-    logger.info(f"[PROGRESS CHECK] ✅ Task {task_id} found - Status: {progress_data.status}, Progress: {progress_data.progress}%")
-    logger.info(f"[PROGRESS CHECK] Current step: {progress_data.current_step}")
-    logger.info(f"[PROGRESS CHECK] Message: {progress_data.message}")
+    # Only log important status changes
+    if progress_data.status == "error" or progress_data.status == "completed":
+        logger.info(f"[PROGRESS CHECK] Task {task_id} - Status: {progress_data.status}, Progress: {progress_data.progress}%")
+    else:
+        logger.debug(f"[PROGRESS CHECK] Task {task_id} - Status: {progress_data.status}, Progress: {progress_data.progress}%")
 
     if progress_data.status == "completed":
         logger.info(f"[PROGRESS CHECK] 🎉 Task {task_id} is COMPLETED!")
         if hasattr(progress_data, 'vocabulary'):
-            logger.info(f"[PROGRESS CHECK] Vocabulary items: {len(progress_data.vocabulary) if progress_data.vocabulary else 0}")
+            logger.debug(f"[PROGRESS CHECK] Vocabulary items: {len(progress_data.vocabulary) if progress_data.vocabulary else 0}")
         if hasattr(progress_data, 'subtitle_path'):
-            logger.info(f"[PROGRESS CHECK] Subtitle path: {progress_data.subtitle_path}")
+            logger.debug(f"[PROGRESS CHECK] Subtitle path: {progress_data.subtitle_path}")
         if hasattr(progress_data, 'translation_path'):
-            logger.info(f"[PROGRESS CHECK] Translation path: {getattr(progress_data, 'translation_path', None)}")
+            logger.debug(f"[PROGRESS CHECK] Translation path: {getattr(progress_data, 'translation_path', None)}")
 
     return progress_data

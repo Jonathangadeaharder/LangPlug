@@ -8,19 +8,25 @@ import * as Services from '@/client/services.gen'
 import { useAuthStore } from '@/store/useAuthStore'
 
 const LANGUAGE_LIBRARY: Language[] = [
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'de', name: 'German', flag: '🇩🇪' },
-  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
-  { code: 'fr', name: 'French', flag: '🇫🇷' },
-  { code: 'it', name: 'Italian', flag: '🇮🇹' },
-  { code: 'pt', name: 'Portuguese', flag: '🇵🇹' },
-  { code: 'pl', name: 'Polish', flag: '🇵🇱' },
-  { code: 'nl', name: 'Dutch', flag: '🇳🇱' },
-  { code: 'sv', name: 'Swedish', flag: '🇸🇪' },
-  { code: 'no', name: 'Norwegian', flag: '🇳🇴' },
-  { code: 'da', name: 'Danish', flag: '🇩🇰' },
-  { code: 'fi', name: 'Finnish', flag: '🇫🇮' },
+  { code: 'en', name: 'English', flag: 'us' },
+  { code: 'de', name: 'German', flag: 'de' },
+  { code: 'es', name: 'Spanish', flag: 'es' },
+  { code: 'fr', name: 'French', flag: 'fr' },
+  { code: 'zh', name: 'Chinese', flag: 'cn' },
 ]
+
+// Supported translation pairs (native -> target)
+const SUPPORTED_TRANSLATION_PAIRS: [string, string][] = [
+  ['es', 'de'], // Spanish native learning German
+  ['es', 'en'], // Spanish native learning English
+  ['en', 'zh'], // English native learning Chinese
+  ['de', 'es'], // German native learning Spanish
+  ['de', 'fr'], // German native learning French
+]
+
+const isTranslationPairSupported = (native: string, target: string): boolean => {
+  return SUPPORTED_TRANSLATION_PAIRS.some(([n, t]) => n === native && t === target)
+}
 
 interface ProfileLanguage {
   code: string
@@ -106,6 +112,13 @@ const ProfileScreen: React.FC = () => {
       toast.error('Native and learning language must be different.')
       return
     }
+
+    // Check if this pair is supported
+    if (!isTranslationPairSupported(language.code, targetLanguage.code)) {
+      toast.error(`Translation from ${language.name} to ${targetLanguage.name} is not supported yet.`)
+      return
+    }
+
     setNativeLanguage(language)
     setHasChanges(true)
   }
@@ -115,6 +128,13 @@ const ProfileScreen: React.FC = () => {
       toast.error('Native and learning language must be different.')
       return
     }
+
+    // Check if this pair is supported
+    if (!isTranslationPairSupported(nativeLanguage.code, language.code)) {
+      toast.error(`Translation from ${nativeLanguage.name} to ${language.name} is not supported yet.`)
+      return
+    }
+
     setTargetLanguage(language)
     setHasChanges(true)
   }

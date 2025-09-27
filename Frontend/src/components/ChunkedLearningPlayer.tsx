@@ -137,7 +137,7 @@ const PlayerControls = styled.div`
   }
 `
 
-const BackButton = styled.button`
+const StickyBackButton = styled.button`
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -163,6 +163,18 @@ const BackButton = styled.button`
   @media (max-width: 768px) {
     padding: 8px 12px;
     font-size: 14px;
+  }
+`
+
+const StickyNavContainer = styled.div`
+  position: absolute;
+  top: 16px;
+  left: 24px;
+  z-index: 30;
+
+  @media (max-width: 768px) {
+    left: 16px;
+    top: 12px;
   }
 `
 
@@ -398,6 +410,21 @@ const SubtitleText = styled.div`
   }
 `
 
+// SubtitleLabel removed - labels are no longer shown as it's obvious which language is which
+// const SubtitleLabel = styled.span`
+//   display: block;
+//   font-size: 12px;
+//   letter-spacing: 0.12em;
+//   text-transform: uppercase;
+//   margin-bottom: 4px;
+//   color: rgba(248, 250, 252, 0.65);
+//
+//   @media (max-width: 768px) {
+//     font-size: 10px;
+//     margin-bottom: 2px;
+//   }
+// `
+
 const OriginalSubtitle = styled.div`
   color: #ffd700;
   font-size: 20px;
@@ -580,10 +607,12 @@ interface ChunkedLearningPlayerProps {
     total: number
     duration: string
   }
+  targetLanguage?: { code: string; name: string }
+  nativeLanguage?: { code: string; name: string }
 }
 
 type PlaybackSpeed = 0.5 | 0.75 | 1 | 1.25 | 1.5 | 2
-type SubtitleMode = 'off' | 'german' | 'english' | 'both'
+type SubtitleMode = 'off' | 'original' | 'translation' | 'both'
 
 export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
   videoPath,
@@ -597,7 +626,9 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
   onSkipChunk,
   onBack,
   learnedWords = [],
-  chunkInfo
+  chunkInfo,
+  targetLanguage,
+  nativeLanguage,
 }) => {
   // Refs
   const playerRef = useRef<ReactPlayer>(null)
@@ -619,13 +650,51 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
   const [isMobile, setIsMobile] = useState(false)
 
   // Subtitle state
-  const [subtitleMode, setSubtitleMode] = useState<SubtitleMode>('german')
+  const [subtitleMode, setSubtitleMode] = useState<SubtitleMode>('original')
   const [currentSubtitle, setCurrentSubtitle] = useState<{ original: string; translation: string }>({
     original: '',
     translation: ''
   })
   const [subtitles, setSubtitles] = useState<SubtitleEntry[]>([])
   const [translations, setTranslations] = useState<SubtitleEntry[]>([])
+
+  // Log to check what languages are being passed
+  useEffect(() => {
+    if (targetLanguage || nativeLanguage) {
+      console.log('ChunkedLearningPlayer languages:', {
+        targetLanguage,
+        nativeLanguage,
+      })
+    }
+  }, [targetLanguage, nativeLanguage])
+
+  // Debug language preferences
+  console.log('[ChunkedLearningPlayer] Language props:', {
+    targetLanguage,
+    nativeLanguage,
+  })
+
+  const targetLanguageName = targetLanguage?.name || 'German'
+  const nativeLanguageName = nativeLanguage?.name || 'Spanish'
+
+  console.log('[ChunkedLearningPlayer] Language names:', {
+    targetLanguageName,
+    nativeLanguageName,
+  })
+  const subtitleModeLabels: Record<SubtitleMode, string> = {
+    off: 'Off',
+    original: `${targetLanguageName} Only`,
+    translation: `${nativeLanguageName} Only`,
+    both: 'Both Languages',
+  }
+  const isLastChunk = chunkInfo ? chunkInfo.current >= chunkInfo.total : false
+  const skipButtonLabel = isLastChunk ? 'Finish Episode' : 'Skip Chunk'
+  const subtitleOptions: Array<{ value: SubtitleMode; label: string }> = [
+    { value: 'off', label: subtitleModeLabels.off },
+    { value: 'original', label: subtitleModeLabels.original },
+    { value: 'translation', label: subtitleModeLabels.translation },
+    { value: 'both', label: subtitleModeLabels.both },
+  ]
 
   // Calculate progress and duration
   const chunkDuration = endTime - startTime
@@ -746,7 +815,7 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
       case 'KeyS':
         e.preventDefault()
         setSubtitleMode(prev => {
-          const modes: SubtitleMode[] = ['off', 'german', 'english', 'both']
+          const modes: SubtitleMode[] = ['off', 'original', 'translation', 'both']
           const currentIndex = modes.indexOf(prev)
           return modes[(currentIndex + 1) % modes.length]
         })
@@ -823,7 +892,25 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
 
     const token = localStorage.getItem('authToken')
 
-    // Load German subtitles
+    const normalizeEntries = (entries: SubtitleEntry[]): SubtitleEntry[] => {
+      const duration = endTime - startTime
+
+      return entries
+        .map(entry => {
+          const isAbsolute = entry.start >= startTime && startTime > 0
+          const relativeStart = isAbsolute ? entry.start - startTime : entry.start
+          const relativeEnd = isAbsolute ? entry.end - startTime : entry.end
+
+          return {
+            ...entry,
+            start: Math.max(0, relativeStart),
+            end: Math.max(0, relativeEnd),
+          }
+        })
+        .filter(entry => entry.start <= duration && entry.end >= 0)
+    }
+
+    // Load target-language subtitles
     if (subtitlePath) {
       const fullSubtitleUrl = buildSubtitleUrl(subtitlePath)
 
@@ -841,11 +928,9 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
       })
         .then(response => {
           const parsedSubs = parseSRT(response.data)
-          const chunkSubs = parsedSubs.filter(sub =>
-            sub.start >= startTime && sub.end <= endTime
-          )
-          setSubtitles(chunkSubs)
-          logger.info('ChunkedLearningPlayer', `Loaded German subtitles: ${chunkSubs.length} entries`)
+          const normalizedSubs = normalizeEntries(parsedSubs)
+          setSubtitles(normalizedSubs)
+          logger.info('ChunkedLearningPlayer', `Loaded ${targetLanguageName} subtitles: ${normalizedSubs.length} entries`)
         })
         .catch(error => {
           logger.error('ChunkedLearningPlayer', 'Failed to load subtitles', error)
@@ -854,7 +939,7 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
       logger.warn('ChunkedLearningPlayer', 'No subtitle path provided')
     }
 
-    // Load English translations
+    // Load native-language translations
     if (translationPath) {
       const fullTranslationUrl = buildSubtitleUrl(translationPath)
 
@@ -872,11 +957,9 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
       })
         .then(response => {
           const parsedTranslations = parseSRT(response.data)
-          const chunkTranslations = parsedTranslations.filter(trans =>
-            trans.start >= startTime && trans.end <= endTime
-          )
-          setTranslations(chunkTranslations)
-          logger.info('ChunkedLearningPlayer', `Loaded English translations: ${chunkTranslations.length} entries`)
+          const normalizedTranslations = normalizeEntries(parsedTranslations)
+          setTranslations(normalizedTranslations)
+          logger.info('ChunkedLearningPlayer', `Loaded ${nativeLanguageName} translations: ${normalizedTranslations.length} entries`)
         })
         .catch(error => {
           logger.warn('ChunkedLearningPlayer', 'Failed to load translations', error)
@@ -896,18 +979,27 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
   const handleProgress = useCallback((state: { playedSeconds: number }) => {
     setCurrentTime(state.playedSeconds)
 
+    const relativeTime = Math.max(0, state.playedSeconds - startTime)
+    const clampedTime = Math.min(relativeTime, chunkDuration)
+
     // Update current subtitles
     const currentSub = subtitles.find(sub =>
-      state.playedSeconds >= sub.start && state.playedSeconds <= sub.end
+      clampedTime >= sub.start && clampedTime <= sub.end
     )
 
     const currentTranslation = translations.find(trans =>
-      state.playedSeconds >= trans.start && state.playedSeconds <= trans.end
+      clampedTime >= trans.start && clampedTime <= trans.end
     )
+
+    const translationText = currentTranslation
+      ? (currentTranslation.translation && currentTranslation.translation.trim().length > 0
+        ? currentTranslation.translation
+        : currentTranslation.text || '')
+      : ''
 
     setCurrentSubtitle({
       original: currentSub?.text || '',
-      translation: currentTranslation?.text || ''
+      translation: translationText
     })
 
     // Check if chunk is complete
@@ -934,8 +1026,8 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
   const renderSubtitles = () => {
     if (subtitleMode === 'off') return null
 
-    const showOriginal = subtitleMode === 'german' || subtitleMode === 'both'
-    const showTranslation = subtitleMode === 'english' || subtitleMode === 'both'
+    const showOriginal = subtitleMode === 'original' || subtitleMode === 'both'
+    const showTranslation = subtitleMode === 'translation' || subtitleMode === 'both'
 
     if (!showOriginal && !showTranslation) return null
     if (!currentSubtitle.original && !currentSubtitle.translation) return null
@@ -944,10 +1036,14 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
       <SubtitleDisplay>
         <SubtitleText>
           {showOriginal && currentSubtitle.original && (
-            <OriginalSubtitle>{currentSubtitle.original}</OriginalSubtitle>
+            <OriginalSubtitle>
+              {currentSubtitle.original}
+            </OriginalSubtitle>
           )}
           {showTranslation && currentSubtitle.translation && (
-            <TranslatedSubtitle>{currentSubtitle.translation}</TranslatedSubtitle>
+            <TranslatedSubtitle>
+              {currentSubtitle.translation}
+            </TranslatedSubtitle>
           )}
         </SubtitleText>
       </SubtitleDisplay>
@@ -990,16 +1086,18 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
           progressInterval={100}
         />
 
+        {onBack && (
+          <StickyNavContainer>
+            <StickyBackButton onClick={onBack}>
+              <ArrowLeftIcon className="w-5 h-5" />
+              <span>Back to Episodes</span>
+            </StickyBackButton>
+          </StickyNavContainer>
+        )}
+
         <ControlsOverlay $visible={showControls} $mobile={isMobile}>
           <TopControls>
             <TopLeftControls>
-              {onBack && (
-                <BackButton onClick={onBack}>
-                  <ArrowLeftIcon className="w-5 h-5" />
-                  <span>Back to Episodes</span>
-                </BackButton>
-              )}
-
               {chunkInfo && (
                 <ChunkInfo>
                   <ChunkLabel>Playing Chunk</ChunkLabel>
@@ -1071,19 +1169,19 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
               <RightControls>
                 <ControlButton
                   onClick={handleSkip}
-                  title={chunkInfo && chunkInfo.current < chunkInfo.total ? 'Skip to next chunk' : 'Finish episode'}
+                  title={skipButtonLabel}
                 >
                   <ForwardIcon className="w-5 h-5" />
-                  <span>Next</span>
+                  <span>{skipButtonLabel}</span>
                 </ControlButton>
 
                 <ControlButton
                   onClick={() => {
-                    const modes: SubtitleMode[] = ['off', 'german', 'english', 'both']
+                    const modes: SubtitleMode[] = ['off', 'original', 'translation', 'both']
                     const currentIndex = modes.indexOf(subtitleMode)
                     setSubtitleMode(modes[(currentIndex + 1) % modes.length])
                   }}
-                  title={`Subtitles: ${subtitleMode}`}
+                  title={`Subtitles: ${subtitleModeLabels[subtitleMode]}`}
                 >
                   {subtitleMode === 'off' ? (
                     <EyeSlashIcon className="w-5 h-5" />
@@ -1120,12 +1218,7 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
 
           <MenuSection>
             <MenuLabel>Subtitles</MenuLabel>
-            {([
-              { value: 'off' as SubtitleMode, label: 'Off' },
-              { value: 'german' as SubtitleMode, label: 'German Only' },
-              { value: 'english' as SubtitleMode, label: 'English Only' },
-              { value: 'both' as SubtitleMode, label: 'Both Languages' }
-            ]).map(option => (
+            {subtitleOptions.map(option => (
               <MenuButton
                 key={option.value}
                 $active={subtitleMode === option.value}

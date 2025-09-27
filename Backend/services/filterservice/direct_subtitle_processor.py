@@ -309,6 +309,7 @@ class DirectSubtitleProcessor:
                 "blocking_words": blocking_words,
                 "learning_subtitles": filtering_result.learning_subtitles,
                 "empty_subtitles": filtering_result.empty_subtitles,
+                "filtered_subtitles": filtered_subtitles,
                 "statistics": {
                     **filtering_result.statistics,
                     "file_processed": srt_file_path,

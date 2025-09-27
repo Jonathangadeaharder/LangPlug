@@ -7,19 +7,19 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, field_validator
 
-from core.config import settings
 from core.dependencies import current_active_user
+from core.language_preferences import (
+    SUPPORTED_LANGUAGES,
+    DEFAULT_NATIVE_LANGUAGE,
+    DEFAULT_TARGET_LANGUAGE,
+    load_language_preferences,
+    save_language_preferences,
+    resolve_language_runtime_settings,
+)
 from database.models import User
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["profile"])
-
-# Supported languages
-SUPPORTED_LANGUAGES = {
-    "en": {"name": "English", "flag": "🇬🇧"},
-    "de": {"name": "German", "flag": "🇩🇪"},
-    "es": {"name": "Spanish", "flag": "🇪🇸"}
-}
 
 class LanguagePreferences(BaseModel):
     """Language preference update model"""
@@ -50,28 +50,35 @@ class UserProfile(BaseModel):
     last_login: str | None = None  # Make it properly optional
     native_language: dict[str, str]
     target_language: dict[str, str]
+    language_runtime: dict[str, Any]
 
 
 @router.get("", response_model=UserProfile, name="profile_get")
 async def get_profile(current_user: User = Depends(current_active_user)):
     """Get current user's profile"""
     try:
+        user_id = str(current_user.id)
+        native_code, target_code = load_language_preferences(user_id)
+
+        runtime = resolve_language_runtime_settings(native_code, target_code)
+
         return UserProfile(
-            id=str(current_user.id),
+            id=user_id,
             username=current_user.username,
             is_admin=current_user.is_superuser,
             created_at=current_user.created_at.isoformat() if current_user.created_at else None,
             last_login=current_user.last_login.isoformat() if current_user.last_login else None,
             native_language={
-                "code": "en",  # Default values since these don't exist in User model yet
-                "name": SUPPORTED_LANGUAGES["en"]["name"],
-                "flag": SUPPORTED_LANGUAGES["en"]["flag"]
+                "code": native_code,
+                "name": SUPPORTED_LANGUAGES[native_code]["name"],
+                "flag": SUPPORTED_LANGUAGES[native_code]["flag"]
             },
             target_language={
-                "code": "de",  # Default values since these don't exist in User model yet
-                "name": SUPPORTED_LANGUAGES["de"]["name"],
-                "flag": SUPPORTED_LANGUAGES["de"]["flag"]
-            }
+                "code": target_code,
+                "name": SUPPORTED_LANGUAGES[target_code]["name"],
+                "flag": SUPPORTED_LANGUAGES[target_code]["flag"]
+            },
+            language_runtime=runtime,
         )
     except Exception as e:
         logger.error(f"Error getting profile: {e!s}", exc_info=True)
@@ -92,6 +99,10 @@ async def update_language_preferences(
         # For now, just return success with the requested preferences
         logger.info(f"Language preferences update requested for user {current_user.id}: {preferences.native_language} -> {preferences.target_language}")
 
+        user_id = str(current_user.id)
+        save_language_preferences(user_id, preferences.native_language, preferences.target_language)
+        runtime = resolve_language_runtime_settings(preferences.native_language, preferences.target_language)
+
         return {
             "success": True,
             "message": "Language preferences updated successfully",
@@ -104,7 +115,8 @@ async def update_language_preferences(
                 "code": preferences.target_language,
                 "name": SUPPORTED_LANGUAGES[preferences.target_language]["name"],
                 "flag": SUPPORTED_LANGUAGES[preferences.target_language]["flag"]
-            }
+            },
+            "language_runtime": runtime,
         }
 
     except ValueError as e:

@@ -19,6 +19,9 @@ async def test_Whenget_profileCalled_ThenReturnsauthenticated_user(async_http_cl
     data = response.json()
     assert data["username"] == flow["user_data"]["username"]
     assert "id" in data
+    assert data["language_runtime"]["native"] == "es"
+    assert data["language_runtime"]["target"] == "de"
+    assert data["language_runtime"]["translation_service"] in {"opus", "nllb"}
 
 
 @pytest.mark.asyncio
@@ -41,15 +44,18 @@ async def test_WhenUpdateLanguagesAcceptsValidPayload_ThenSucceeds(async_http_cl
 
     response = await async_http_client.put(
         languages_url,
-        json={"native_language": "en", "target_language": "de"},
+        json={"native_language": "es", "target_language": "de"},
         headers=flow["headers"],
     )
 
     assert response.status_code == 200
     body = response.json()
     assert body["success"] is True
-    assert body["native_language"]["code"] == "en"
+    assert body["native_language"]["code"] == "es"
     assert body["target_language"]["code"] == "de"
+    runtime = body["language_runtime"]
+    assert runtime["native"] == "es"
+    assert runtime["target"] == "de"
 
 
 @pytest.mark.asyncio
@@ -61,7 +67,7 @@ async def test_Whenupdate_languagesWithduplicate_codes_ThenRejects(async_http_cl
 
     response = await async_http_client.put(
         languages_url,
-        json={"native_language": "en", "target_language": "en"},
+        json={"native_language": "es", "target_language": "es"},
         headers=flow["headers"],
     )
 

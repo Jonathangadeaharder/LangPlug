@@ -4,6 +4,7 @@ Helsinki-NLP's OPUS-MT models for fast, efficient translation
 """
 
 import logging
+import torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 
 from .interface import ITranslationService, TranslationResult
@@ -20,7 +21,8 @@ class OpusTranslationService(ITranslationService):
     def __init__(
         self,
         model_name: str = "Helsinki-NLP/opus-mt-de-en",
-        max_length: int = 512
+        max_length: int = 512,
+        device: str | None = None
     ):
         """
         Initialize OPUS-MT translation service
@@ -28,6 +30,7 @@ class OpusTranslationService(ITranslationService):
         Args:
             model_name: HuggingFace model name (e.g., Helsinki-NLP/opus-mt-de-en)
             max_length: Maximum sequence length
+            device: Device to use ('cuda', 'cpu', or None for auto)
         """
         self.model_name = model_name
         self.max_length = max_length
@@ -35,20 +38,38 @@ class OpusTranslationService(ITranslationService):
         self._model = None
         self._tokenizer = None
 
+        # Auto-detect device if not specified
+        if device is None:
+            try:
+                self.device = "cuda" if torch.cuda.is_available() else "cpu"
+            except Exception:
+                self.device = "cpu"  # Fallback if torch is not available
+        else:
+            self.device = device
+
     def initialize(self) -> None:
         """Initialize the OPUS-MT model and tokenizer"""
         if self._translator is None:
             logger.info(f"Loading OPUS-MT model: {self.model_name}")
+            logger.info(f"Device set to use {self.device}")
 
             # Load tokenizer and model
             self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-            self._model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
+            self._model = AutoModelForSeq2SeqLM.from_pretrained(
+                self.model_name,
+                dtype=torch.float16 if self.device == "cuda" else torch.float32,
+            )
+
+            # Move model to device
+            if self.device == "cuda":
+                self._model = self._model.to("cuda")
 
             # Create pipeline
             self._translator = pipeline(
                 "translation",
                 model=self._model,
                 tokenizer=self._tokenizer,
+                device=0 if self.device == "cuda" else -1,
                 max_length=self.max_length
             )
 

@@ -43,6 +43,51 @@ export const AuthResponseSchema = z.object({
   user: UserSchema,
 })
 
+// Profile schemas
+export const ProfileLanguageSchema = z.object({
+  code: z.string(),
+  name: z.string(),
+  flag: z.string(),
+})
+
+export const LanguageRuntimeSchema = z.object({
+  native: z.string(),
+  target: z.string(),
+  translation_service: z.string(),
+  translation_model: z.string(),
+  translation_fallback_service: z.string(),
+  translation_fallback_model: z.string(),
+  transcription_service: z.string(),
+  spacy_models: z.object({
+    target: z.string(),
+    native: z.string(),
+  }),
+})
+
+export const ProfileResponseSchema = z.object({
+  id: z.string().uuid(),
+  username: z.string(),
+  is_admin: z.boolean(),
+  created_at: z.string().nullable(),
+  last_login: z.string().nullable(),
+  native_language: ProfileLanguageSchema,
+  target_language: ProfileLanguageSchema,
+  language_runtime: LanguageRuntimeSchema,
+})
+
+export const LanguagePreferencesRequestSchema = z.object({
+  native_language: z.string(),
+  target_language: z.string(),
+})
+
+export const LanguagePreferencesResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  native_language: ProfileLanguageSchema,
+  target_language: ProfileLanguageSchema,
+  language_runtime: LanguageRuntimeSchema,
+})
+
 // Video schemas
 export const VideoSchema = z.object({
   id: z.string().uuid(),
@@ -182,6 +227,11 @@ export type User = z.infer<typeof UserSchema>
 export type CreateUserRequest = z.infer<typeof CreateUserSchema>
 export type LoginRequest = z.infer<typeof LoginRequestSchema>
 export type AuthResponse = z.infer<typeof AuthResponseSchema>
+export type ProfileResponse = z.infer<typeof ProfileResponseSchema>
+export type ProfileLanguage = z.infer<typeof ProfileLanguageSchema>
+export type LanguageRuntime = z.infer<typeof LanguageRuntimeSchema>
+export type LanguagePreferencesRequest = z.infer<typeof LanguagePreferencesRequestSchema>
+export type LanguagePreferencesResponse = z.infer<typeof LanguagePreferencesResponseSchema>
 export type Video = z.infer<typeof VideoSchema>
 export type VideoListResponse = z.infer<typeof VideoListResponseSchema>
 export type ProcessingStatus = z.infer<typeof ProcessingStatusSchema>
