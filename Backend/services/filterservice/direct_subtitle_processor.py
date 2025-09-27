@@ -300,7 +300,7 @@ class DirectSubtitleProcessor:
                     concept_id=uuid.uuid4(),  # Generate unique ID for each word
                     word=word.text,
                     translation="",  # Changed from definition to translation
-                    difficulty_level=word.metadata.get("difficulty_level", "B1"),  # Default to B1 if unknown
+                    difficulty_level=word.metadata.get("difficulty_level", "C2"),  # New words not in A1-C1 are classified as C2
                     known=False
                 )
                 blocking_words.append(vocab_word)
