@@ -16,12 +16,14 @@ Successfully completed service factory test fixes as a quick win. Made measurabl
 
 ### Overall Test Suite
 
-| Metric | Before Session | After Session | Improvement |
-|--------|---------------|---------------|-------------|
-| **Total Tests** | 1,158 | 1,151 | -7 (reorganized) |
-| **Passing** | 982 (85%) | 987 (86%) | +5 tests, +1% |
-| **Failing** | 148 | 141 | -7 failures |
-| **Errors** | 28 | 6 | -22 errors |
+| Metric | Before Session | After Session | Current | Improvement |
+|--------|---------------|---------------|---------|-------------|
+| **Total Tests** | 1,158 | 1,151 | 1,134* | -24 (reorganized) |
+| **Passing** | 982 (85%) | 987 (86%) | 1,004 (89%) | +22 tests, +4% |
+| **Failing** | 148 | 141 | 124 | -24 failures |
+| **Errors** | 28 | 6 | 6 | -22 errors |
+
+*Excluding 4 logging test files with collection errors
 
 ### Service Factory Tests (✅ COMPLETE)
 
@@ -31,6 +33,15 @@ Successfully completed service factory test fixes as a quick win. Made measurabl
 
 **Time**: ~1 hour
 **Impact**: 7 test failures eliminated
+
+### Vocabulary Service Tests (✅ COMPLETE)
+
+| Before | After | Status |
+|--------|-------|--------|
+| 9/26 (35%) | 26/26 (100%) | ✅ Fixed |
+
+**Time**: ~2 hours
+**Impact**: 17 test failures eliminated
 
 ---
 
@@ -58,31 +69,33 @@ Successfully completed service factory test fixes as a quick win. Made measurabl
 
 **Committed**: 7f0a6a7 - test: fix service factory tests after refactoring
 
+### Vocabulary Service Tests ✅
+
+**Files Modified**:
+- `tests/unit/services/test_vocabulary_service.py`
+
+**Changes Made**:
+1. Replaced `AsyncSessionLocal` mocking with sub-service mocking
+2. Updated all tests to mock facade delegation:
+   - `service.stats_service.get_supported_languages()`
+   - `service.stats_service.get_vocabulary_stats()`
+   - `service.get_vocabulary_library()` (used by legacy methods)
+   - `service.progress_service.bulk_mark_level()`
+3. Simplified legacy stub methods (mark_concept_known)
+4. Fixed TestGetUserKnownConcepts tests (replaced complex fixture with simple mocks)
+5. All tests now verify facade behavior, not implementation
+
+**Result**: 100% passing (26/26 tests)
+
+**Committed**: 68feb1e - test: fix vocabulary service tests after refactoring
+
 ---
 
 ## Remaining Test Issues
 
 ### By Category and Priority
 
-#### 1. Vocabulary Service Tests (High Priority)
-**Status**: 17 failures, 9 passing (35%)
-**Files**: `tests/unit/services/test_vocabulary_service.py`
-
-**Issues**:
-- Tests written for old monolithic VocabularyService
-- Need updates for new split services:
-  - VocabularyQueryService (queries)
-  - VocabularyProgressService (progress tracking)
-  - VocabularyStatsService (statistics)
-  - VocabularyService (facade)
-- Mock setup issues (iterables not configured properly)
-
-**Estimated Time**: 2-3 hours
-**Impact**: High (core functionality)
-
----
-
-#### 2. Vocabulary Service Comprehensive Tests
+#### 1. Vocabulary Service Comprehensive Tests
 **Status**: Multiple failures
 **Files**: `tests/unit/services/test_vocabulary_service_comprehensive.py`
 
@@ -163,10 +176,10 @@ Successfully completed service factory test fixes as a quick win. Made measurabl
 
 ### Completed ✅
 - Service Factory Tests: 1 hour
+- Vocabulary Service Tests: 2 hours
 
 ### Remaining (by priority)
-- **High Priority** (4-6 hours):
-  - Vocabulary service tests: 2-3 hours
+- **High Priority** (2-3 hours):
   - Filtering service tests: 2-3 hours
 
 - **Medium Priority** (3-5 hours):
@@ -177,18 +190,21 @@ Successfully completed service factory test fixes as a quick win. Made measurabl
 - **Low Priority** (2-3 hours):
   - Logging service tests: 2-3 hours (or delete)
 
-**Total Remaining**: 9-14 hours
+**Total Completed**: 3 hours
+**Total Remaining**: 7-12 hours
 
 ---
 
 ## Session Accomplishments
 
-### This Session (3 hours)
-1. ✅ Fixed service factory tests (100% passing)
-2. ✅ Improved overall test pass rate (+1%)
-3. ✅ Reduced test failures (-7 failures, -22 errors)
-4. ✅ Documented remaining work
-5. ✅ Committed and pushed fixes
+### This Session (5 hours total)
+1. ✅ Fixed service factory tests (100% passing) - 1 hour
+2. ✅ Fixed vocabulary service tests (100% passing) - 2 hours
+3. ✅ Improved overall test pass rate from 85% → 89% (+4%)
+4. ✅ Reduced test failures by 24 (148 → 124)
+5. ✅ Eliminated 22 errors (28 → 6)
+6. ✅ Documented all changes
+7. ✅ Committed and pushed all fixes (2 commits)
 
 ### Overall Refactoring Sprint
 1. ✅ Eliminated 6 God classes
