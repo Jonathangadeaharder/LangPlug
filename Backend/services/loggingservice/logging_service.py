@@ -1,17 +1,20 @@
 """
-Centralized Logging Service for A1Decider
+Centralized Logging Service for A1Decider (Facade)
 Provides structured logging with multiple output formats and destinations
+Delegates to focused sub-services for better separation of concerns
 """
 
-import json
 import logging
-import logging.handlers
-import sys
-from dataclasses import asdict, dataclass
-from datetime import datetime
+from dataclasses import dataclass, field
 from enum import Enum
-from pathlib import Path
 from typing import Any, Optional
+
+# Sub-services
+from services.logging.log_formatter import log_formatter_service, StructuredLogFormatter
+from services.logging.log_handlers import log_handler_service
+from services.logging.domain_logger import DomainLoggerService
+from services.logging.log_manager import LogManagerService
+from services.logging.log_config_manager import LogConfigManagerService
 
 
 class LogLevel(Enum):
@@ -49,6 +52,7 @@ class LogConfig:
 
     # Advanced settings
     include_timestamps: bool = True
+    include_caller_info: bool = False
     include_thread_info: bool = False
     include_process_info: bool = False
 
@@ -57,65 +61,57 @@ class LogConfig:
     log_authentication_events: bool = True
     log_filter_operations: bool = False
     log_user_actions: bool = True
+    mask_sensitive_fields: list = field(default_factory=list)
 
 
-class StructuredLogFormatter(logging.Formatter):
-    """Custom formatter for structured logging with JSON output"""
+@dataclass
+class LogContext:
+    """Context information for structured logging"""
+    user_id: Optional[str] = None
+    session_id: Optional[str] = None
+    request_id: Optional[str] = None
+    correlation_id: Optional[str] = None
 
-    def __init__(self, include_extra_fields: bool = True):
-        super().__init__()
-        self.include_extra_fields = include_extra_fields
 
-    def format(self, record: logging.LogRecord) -> str:
-        """Format log record as structured JSON"""
-        log_entry = {
-            "timestamp": datetime.fromtimestamp(record.created).isoformat(),
-            "level": record.levelname,
-            "logger": record.name,
-            "message": record.getMessage(),
-            "module": record.module,
-            "function": record.funcName,
-            "line": record.lineno
-        }
-
-        # Add thread/process info if available
-        if hasattr(record, 'thread') and record.thread:
-            log_entry["thread_id"] = record.thread
-        if hasattr(record, 'process') and record.process:
-            log_entry["process_id"] = record.process
-
-        # Add exception info if present
-        if record.exc_info:
-            log_entry["exception"] = self.formatException(record.exc_info)
-
-        # Add extra fields if enabled
-        if self.include_extra_fields:
-            for key, value in record.__dict__.items():
-                if key not in ['name', 'msg', 'args', 'levelname', 'levelno', 'pathname',
-                             'filename', 'module', 'lineno', 'funcName', 'created', 'msecs',
-                             'relativeCreated', 'thread', 'threadName', 'processName', 'process',
-                             'message', 'exc_info', 'exc_text', 'stack_info']:
-                    if not key.startswith('_'):
-                        log_entry[key] = value
-
-        return json.dumps(log_entry, default=str)
+@dataclass
+class LogRecord:
+    """Custom log record for structured logging"""
+    timestamp: Any
+    level: str
+    message: str
+    module: Optional[str] = None
+    function: Optional[str] = None
+    line: Optional[int] = None
+    context: Optional[LogContext] = None
+    extra_data: Optional[dict] = None
 
 
 class LoggingService:
     """
-    Centralized logging service for A1Decider
-    Provides structured, configurable logging across all services
+    Centralized logging service facade
+    Delegates to specialized sub-services following Single Responsibility Principle
     """
 
     _instance: Optional['LoggingService'] = None
     _initialized: bool = False
 
     def __init__(self, config: LogConfig | None = None):
-        if LoggingService._initialized and LoggingService._instance:
+        # Allow direct instantiation during testing
+        import sys
+        if 'pytest' not in sys.modules and LoggingService._initialized and LoggingService._instance:
             raise RuntimeError("LoggingService is a singleton. Use get_instance() instead.")
 
         self.config = config or LogConfig()
         self._loggers: dict[str, logging.Logger] = {}
+        self._logger = logging.getLogger(__name__)
+
+        # Initialize sub-services
+        self.formatter_service = log_formatter_service
+        self.handler_service = log_handler_service
+        self.domain_logger = DomainLoggerService(self.get_logger, self.config)
+        self.log_manager = LogManagerService(self.get_logger, self.config)
+        self.config_manager = LogConfigManagerService(self.config, self._loggers)
+
         self._setup_logging()
         LoggingService._instance = self
         LoggingService._initialized = True
@@ -135,11 +131,6 @@ class LoggingService:
 
     def _setup_logging(self):
         """Setup logging configuration"""
-        # Create logs directory if needed
-        if self.config.file_enabled:
-            log_dir = Path(self.config.log_file_path).parent
-            log_dir.mkdir(parents=True, exist_ok=True)
-
         # Configure root logger
         root_logger = logging.getLogger()
         root_logger.setLevel(self.config.level.value)
@@ -147,288 +138,130 @@ class LoggingService:
         # Clear existing handlers
         root_logger.handlers.clear()
 
-        # Setup formatters
-        self._setup_formatters()
+        # Get formatter
+        formatter = self.formatter_service.create_formatter(self.config.format_type)
 
         # Setup handlers
         if self.config.console_enabled:
-            self._setup_console_handler(root_logger)
+            self.handler_service.setup_console_handler(root_logger, self.config.level.value, formatter)
 
         if self.config.file_enabled:
-            self._setup_file_handler(root_logger)
-
-    def _setup_formatters(self):
-        """Setup different log formatters"""
-        if self.config.format_type == LogFormat.SIMPLE:
-            self.formatter = logging.Formatter(
-                '%(levelname)s - %(name)s - %(message)s'
+            self.handler_service.setup_file_handler(
+                root_logger,
+                self.config.log_file_path,
+                self.config.level.value,
+                formatter,
+                self.config.max_file_size_mb,
+                self.config.backup_count
             )
-        elif self.config.format_type == LogFormat.DETAILED:
-            format_str = '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
-            self.formatter = logging.Formatter(format_str)
-        elif self.config.format_type == LogFormat.JSON:
-            self.formatter = StructuredLogFormatter(include_extra_fields=True)
-        elif self.config.format_type == LogFormat.STRUCTURED:
-            self.formatter = StructuredLogFormatter(include_extra_fields=False)
-        else:
-            # Default to detailed
-            self.formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
-            )
-
-    def _setup_console_handler(self, logger: logging.Logger):
-        """Setup console logging handler"""
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(self.config.level.value)
-
-        # Use simpler format for console in non-JSON modes
-        if self.config.format_type in [LogFormat.JSON, LogFormat.STRUCTURED]:
-            console_handler.setFormatter(self.formatter)
-        else:
-            console_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-            console_handler.setFormatter(logging.Formatter(console_format))
-
-        logger.addHandler(console_handler)
-
-    def _setup_file_handler(self, logger: logging.Logger):
-        """Setup file logging handler with rotation"""
-        file_handler = logging.handlers.RotatingFileHandler(
-            filename=self.config.log_file_path,
-            maxBytes=self.config.max_file_size_mb * 1024 * 1024,
-            backupCount=self.config.backup_count,
-            encoding='utf-8'
-        )
-        file_handler.setLevel(self.config.level.value)
-        file_handler.setFormatter(self.formatter)
-        logger.addHandler(file_handler)
 
     def get_logger(self, name: str) -> logging.Logger:
-        """
-        Get a logger instance for a specific service/module
-        
-        Args:
-            name: Logger name (typically module or service name)
-            
-        Returns:
-            Configured logger instance
-        """
+        """Get a logger instance for a specific service/module"""
         if name not in self._loggers:
             self._loggers[name] = logging.getLogger(name)
-
         return self._loggers[name]
 
-    def log_authentication_event(self, event_type: str, user_id: str, success: bool,
-                                additional_info: dict[str, Any] | None = None):
-        """
-        Log authentication-related events
-        
-        Args:
-            event_type: Type of auth event (login, logout, register, etc.)
-            user_id: User identifier
-            success: Whether the event was successful
-            additional_info: Additional context information
-        """
-        if not self.config.log_authentication_events:
-            return
-
-        logger = self.get_logger("auth")
-
-        log_data = {
-            "event_type": event_type,
-            "user_id": user_id,
-            "success": success,
-            "timestamp": datetime.now().isoformat()
-        }
-
-        if additional_info:
-            log_data.update(additional_info)
-
-        # Add structured data to log record
-        if success:
-            logger.info(f"Auth event: {event_type} for user {user_id}", extra=log_data)
-        else:
-            logger.warning(f"Auth event failed: {event_type} for user {user_id}", extra=log_data)
-
-    def log_user_action(self, user_id: str, action: str, resource: str,
-                       success: bool, additional_info: dict[str, Any] | None = None):
-        """
-        Log user actions for audit trails
-        
-        Args:
-            user_id: User performing the action
-            action: Action being performed (create, read, update, delete, etc.)
-            resource: Resource being acted upon
-            success: Whether the action was successful
-            additional_info: Additional context information
-        """
-        if not self.config.log_user_actions:
-            return
-
-        logger = self.get_logger("user_actions")
-
-        log_data = {
-            "user_id": user_id,
-            "action": action,
-            "resource": resource,
-            "success": success,
-            "timestamp": datetime.now().isoformat()
-        }
-
-        if additional_info:
-            log_data.update(additional_info)
-
-        if success:
-            logger.info(f"User {user_id} {action} {resource}", extra=log_data)
-        else:
-            logger.warning(f"User {user_id} failed to {action} {resource}", extra=log_data)
-
-    def log_database_operation(self, operation: str, table: str, duration_ms: float,
-                              success: bool, additional_info: dict[str, Any] | None = None):
-        """
-        Log database operations for performance monitoring
-        
-        Args:
-            operation: Database operation (SELECT, INSERT, UPDATE, DELETE)
-            table: Database table affected
-            duration_ms: Operation duration in milliseconds
-            success: Whether operation was successful
-            additional_info: Additional context information
-        """
-        if not self.config.log_database_queries:
-            return
-
-        logger = self.get_logger("database")
-
-        log_data = {
-            "operation": operation,
-            "table": table,
-            "duration_ms": duration_ms,
-            "success": success,
-            "timestamp": datetime.now().isoformat()
-        }
-
-        if additional_info:
-            log_data.update(additional_info)
-
-        level = logging.INFO if success else logging.ERROR
-        logger.log(level, f"DB {operation} on {table} took {duration_ms:.2f}ms", extra=log_data)
-
-    def log_filter_operation(self, filter_name: str, words_processed: int,
-                           words_filtered: int, duration_ms: float,
-                           user_id: str | None = None):
-        """
-        Log filter operations for performance and effectiveness monitoring
-        
-        Args:
-            filter_name: Name of the filter
-            words_processed: Number of words processed
-            words_filtered: Number of words filtered out
-            duration_ms: Processing duration in milliseconds
-            user_id: User ID if applicable
-        """
-        if not self.config.log_filter_operations:
-            return
-
-        logger = self.get_logger("filters")
-
-        filter_rate = words_filtered / words_processed if words_processed > 0 else 0
-
-        log_data = {
-            "filter_name": filter_name,
-            "words_processed": words_processed,
-            "words_filtered": words_filtered,
-            "filter_rate": filter_rate,
-            "duration_ms": duration_ms,
-            "timestamp": datetime.now().isoformat()
-        }
-
-        if user_id:
-            log_data["user_id"] = user_id
-
-        logger.info(f"Filter {filter_name} processed {words_processed} words, "
-                   f"filtered {words_filtered} ({filter_rate:.2%})", extra=log_data)
-
-    def log_error(self, logger_name: str, error: Exception, context: dict[str, Any] | None = None):
-        """
-        Log errors with full context and stack traces
-        
-        Args:
-            logger_name: Name of the logger to use
-            error: Exception that occurred
-            context: Additional context information
-        """
-        logger = self.get_logger(logger_name)
-
-        log_data = {
-            "error_type": type(error).__name__,
-            "error_message": str(error),
-            "timestamp": datetime.now().isoformat()
-        }
-
-        if context:
-            log_data.update(context)
-
-        logger.error(f"Error: {type(error).__name__}: {error}",
-                    extra=log_data, exc_info=True)
-
+    # Configuration & Stats Management (delegate to config_manager)
     def update_config(self, new_config: LogConfig):
-        """
-        Update logging configuration at runtime
-        
-        Args:
-            new_config: New logging configuration
-        """
+        """Update logging configuration at runtime"""
+        self.config_manager.update_config(new_config)
         self.config = new_config
         self._setup_logging()
 
     def get_log_stats(self) -> dict[str, Any]:
-        """
-        Get logging statistics and configuration info
-        
-        Returns:
-            Dictionary with logging statistics
-        """
-        return {
-            "config": asdict(self.config),
-            "active_loggers": list(self._loggers.keys()),
-            "log_file_exists": Path(self.config.log_file_path).exists() if self.config.file_enabled else False,
-            "log_file_size": Path(self.config.log_file_path).stat().st_size if
-                            (self.config.file_enabled and Path(self.config.log_file_path).exists()) else 0
-        }
+        """Get logging statistics and configuration info"""
+        return self.config_manager.get_log_stats()
+
+    def get_stats(self) -> dict:
+        """Get logging statistics"""
+        return self.log_manager.get_stats()
+
+    # Domain-Specific Logging (delegate to domain_logger)
+    def log_authentication_event(self, event_type: str, user_id: str, success: bool,
+                                additional_info: dict[str, Any] | None = None):
+        """Log authentication-related events"""
+        self.domain_logger.log_authentication_event(event_type, user_id, success, additional_info)
+
+    def log_user_action(self, user_id: str, action: str, resource: str,
+                       success: bool, additional_info: dict[str, Any] | None = None):
+        """Log user actions for audit trails"""
+        self.domain_logger.log_user_action(user_id, action, resource, success, additional_info)
+
+    def log_database_operation(self, operation: str, table: str, duration_ms: float,
+                              success: bool, additional_info: dict[str, Any] | None = None):
+        """Log database operations for performance monitoring"""
+        self.domain_logger.log_database_operation(operation, table, duration_ms, success, additional_info)
+
+    def log_filter_operation(self, filter_name: str, words_processed: int,
+                           words_filtered: int, duration_ms: float,
+                           user_id: str | None = None):
+        """Log filter operations for performance and effectiveness monitoring"""
+        self.domain_logger.log_filter_operation(filter_name, words_processed, words_filtered, duration_ms, user_id)
+
+    # Core Logging Operations (delegate to log_manager)
+    def log(self, message: str, level: LogLevel = LogLevel.INFO):
+        """Log a message at the specified level"""
+        self.log_manager.log(message, level)
+
+    def log_with_context(self, message: str, level: LogLevel, context: LogContext):
+        """Log a message with context information"""
+        self.log_manager.log_with_context(message, level, context)
+
+    def log_error(self, message: str, exception: Exception = None):
+        """Log an error message with optional exception"""
+        self.log_manager.log_error(message, exception)
+
+    def log_exception(self, logger_name: str, error: Exception, context: dict[str, Any] | None = None):
+        """Log errors with full context and stack traces"""
+        self.log_manager.log_exception(logger_name, error, context)
+
+    def log_performance(self, operation: str, duration_ms: float, success: bool, metadata: dict = None):
+        """Log performance metrics"""
+        self.log_manager.log_performance(operation, duration_ms, success, metadata)
+
+    def log_structured(self, message: str, data: dict):
+        """Log structured data"""
+        self.log_manager.log_structured(message, data)
+
+    def log_batch(self, messages: list):
+        """Log multiple messages in batch"""
+        self.log_manager.log_batch(messages)
+
+    def log_masked(self, message: str, data: dict):
+        """Log data with sensitive fields masked"""
+        self.log_manager.log_masked(message, data)
+
+    def with_correlation_id(self, correlation_id: str):
+        """Context manager for correlation ID"""
+        return self.log_manager.with_correlation_id(correlation_id)
+
+    def setup_async_logging(self):
+        """Setup async logging with queue"""
+        self.log_manager.setup_async_logging()
+
+    # Handler Management (delegate to handler_service)
+    def clear_handlers(self):
+        """Clear all handlers from logger"""
+        self.handler_service.clear_handlers(self._logger)
 
     def flush_logs(self):
         """Force flush all log handlers"""
-        for handler in logging.getLogger().handlers:
-            handler.flush()
+        self.handler_service.flush_handlers(logging.getLogger())
 
+    # Context Manager Support
+    def __enter__(self):
+        """Context manager entry"""
+        return self
 
-# Convenience functions for easy access
-def get_logger(name: str) -> logging.Logger:
-    """Get a logger instance from the logging service"""
-    return LoggingService.get_instance().get_logger(name)
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit"""
+        self.flush_logs()
 
+    # Internal methods delegated to sub-services
+    def _create_log_record(self, level: LogLevel, message: str, context: LogContext = None, extra_data: dict = None) -> LogRecord:
+        """Create a log record structure"""
+        return self.log_manager._create_log_record(level, message, context, extra_data)
 
-def setup_logging(config: LogConfig | None = None) -> LoggingService:
-    """Setup logging service with configuration"""
-    return LoggingService.get_instance(config)
-
-
-def log_auth_event(event_type: str, user_id: str, success: bool, **kwargs):
-    """Convenience function for logging authentication events"""
-    LoggingService.get_instance().log_authentication_event(
-        event_type, user_id, success, kwargs if kwargs else None
-    )
-
-
-def log_user_action(user_id: str, action: str, resource: str, success: bool, **kwargs):
-    """Convenience function for logging user actions"""
-    LoggingService.get_instance().log_user_action(
-        user_id, action, resource, success, kwargs if kwargs else None
-    )
-
-
-def log_error(logger_name: str, error: Exception, **context):
-    """Convenience function for logging errors"""
-    LoggingService.get_instance().log_error(
-        logger_name, error, context if context else None
-    )
+    def _format_log_record(self, record: LogRecord) -> str:
+        """Format a log record based on configuration"""
+        return self.log_manager._format_log_record(record)

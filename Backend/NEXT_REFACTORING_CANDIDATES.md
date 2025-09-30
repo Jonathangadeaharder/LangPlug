@@ -20,32 +20,21 @@
 - 43% complexity reduction in longest method
 - 11 responsibilities → 5 focused services
 - Architecture verified (10/10 tests passing)
+- **COMMITTED**: 01ceb8e
+
+✅ **logging_service.py** (622 → 266 facade, -57%)
+- Split into 5 focused services
+- Fixed critical duplicate method bug
+- Removed all backward compatibility boilerplate (-33 lines)
+- 12+ responsibilities → 5 focused services
+- Architecture verified (10/10 tests passing)
 - **READY TO COMMIT**
 
 ---
 
 ## Top Refactoring Candidates
 
-### 1. logging_service.py (607 lines) ⭐⭐⭐ TOP PRIORITY
-**Location**: `services/loggingservice/logging_service.py`
-**Size**: 607 lines, 21KB
-**Current Structure**: Likely monolithic logging service
-
-**Potential Issues**:
-- May handle multiple logging concerns (formatting, handlers, rotation, etc.)
-- Could have duplicate handler code
-- Might mix configuration with execution
-
-**Recommended Approach**:
-- Split into LogFormatter, LogHandler, LogManager
-- Extract configuration to separate class
-- Apply similar patterns as vocabulary refactoring
-
-**Estimated Impact**: 10-15% reduction, clearer separation of logging concerns
-
----
-
-### 2. user_vocabulary_service.py (466 lines) ⭐⭐ MEDIUM PRIORITY
+### 1. user_vocabulary_service.py (466 lines) ⭐⭐⭐ TOP PRIORITY
 **Location**: `services/dataservice/user_vocabulary_service.py`
 **Size**: 466 lines
 
@@ -106,8 +95,8 @@
 | File | Lines | Priority | Complexity | Impact | Effort | Status |
 |------|-------|----------|------------|--------|--------|--------|
 | ~~filtering_handler.py~~ | ~~621~~ | ✅ COMPLETE | ~~High~~ | ~~High~~ | ~~Medium~~ | Done |
-| logging_service.py | 607 | ⭐⭐⭐ | Medium | Medium | Medium | Next |
-| user_vocabulary_service.py | 466 | ⭐⭐ | Medium | Medium | Low | Pending |
+| ~~logging_service.py~~ | ~~622~~ | ✅ COMPLETE | ~~Medium~~ | ~~Medium~~ | ~~Medium~~ | Done |
+| user_vocabulary_service.py | 466 | ⭐⭐⭐ | Medium | Medium | Low | Next |
 | chunk_processor.py | 422 | ⭐⭐ | High | Medium | Medium | Pending |
 | direct_subtitle_processor.py | 420 | ⭐ | Medium | Low | Medium | Pending |
 | service_factory.py | 386 | ⭐ | Low | Low | Low | Pending |
