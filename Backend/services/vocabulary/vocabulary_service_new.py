@@ -7,9 +7,9 @@ import logging
 from typing import Dict, List, Optional, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from services.vocabulary.vocabulary_query_service import vocabulary_query_service
-from services.vocabulary.vocabulary_progress_service import vocabulary_progress_service
-from services.vocabulary.vocabulary_stats_service import vocabulary_stats_service
+from .vocabulary_query_service import vocabulary_query_service
+from .vocabulary_progress_service import vocabulary_progress_service
+from .vocabulary_stats_service import vocabulary_stats_service
 from core.database import AsyncSessionLocal
 
 logger = logging.getLogger(__name__)
