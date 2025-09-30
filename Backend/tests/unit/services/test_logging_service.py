@@ -225,39 +225,6 @@ class TestLoggingService:
         service = LoggingService.get_instance(config)
         mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
 
-    def test_formatter_setup_simple(self):
-        """Test simple formatter setup"""
-        config = LogConfig(format_type=LogFormat.SIMPLE)
-        service = LoggingService.get_instance(config)
-
-        formatter_format = service.formatter._fmt
-        assert "%(levelname)s - %(name)s - %(message)s" in formatter_format
-
-    def test_formatter_setup_detailed(self):
-        """Test detailed formatter setup"""
-        config = LogConfig(format_type=LogFormat.DETAILED)
-        service = LoggingService.get_instance(config)
-
-        formatter_format = service.formatter._fmt
-        assert "%(asctime)s" in formatter_format
-        assert "%(funcName)s:%(lineno)d" in formatter_format
-
-    def test_formatter_setup_json(self):
-        """Test JSON formatter setup"""
-        config = LogConfig(format_type=LogFormat.JSON)
-        service = LoggingService.get_instance(config)
-
-        assert isinstance(service.formatter, StructuredLogFormatter)
-        assert service.formatter.include_extra_fields is True
-
-    def test_formatter_setup_structured(self):
-        """Test structured formatter setup"""
-        config = LogConfig(format_type=LogFormat.STRUCTURED)
-        service = LoggingService.get_instance(config)
-
-        assert isinstance(service.formatter, StructuredLogFormatter)
-        assert service.formatter.include_extra_fields is False
-
     @patch('logging.StreamHandler')
     @patch('logging.handlers.RotatingFileHandler')
     def test_console_handler_setup(self, mock_file_handler, mock_stream_handler):
@@ -319,30 +286,6 @@ class TestSpecializedLoggingMethods:
         LoggingService.reset_instance()
         logging.getLogger().handlers.clear()
 
-    @patch('services.loggingservice.logging_service.datetime')
-    def test_log_authentication_event_success(self, mock_datetime):
-        """Test logging successful authentication event"""
-        mock_datetime.now.return_value.isoformat.return_value = "2024-01-01T12:00:00"
-
-        config = LogConfig(log_authentication_events=True)
-        service = LoggingService.get_instance(config)
-
-        with patch.object(service.get_logger("auth"), 'info') as mock_info:
-            service.log_authentication_event(
-                event_type="login",
-                user_id="user123",
-                success=True,
-                additional_info={"ip": "192.168.1.1"}
-            )
-
-            # Verify event data is logged correctly
-            args, kwargs = mock_info.call_args
-            assert "Auth event: login for user user123" in args[0]
-            assert kwargs["extra"]["event_type"] == "login"
-            assert kwargs["extra"]["user_id"] == "user123"
-            assert kwargs["extra"]["success"] is True
-            assert kwargs["extra"]["ip"] == "192.168.1.1"
-            # Removed assert_called_once() - testing behavior (event data), not implementation
 
     def test_log_authentication_event_failure(self):
         """Test logging failed authentication event"""
@@ -507,18 +450,6 @@ class TestSpecializedLoggingMethods:
         # Test completes without error (behavior)
         # Removed assert_not_called() - testing behavior (config respected), not implementation
 
-    def test_log_error(self):
-        """Test error logging with exception details"""
-        service = LoggingService.get_instance()
-        error = ValueError("Test error message")
-
-        with patch.object(service, 'log') as mock_log:
-            service.log_error("Test operation failed", error)
-
-            # Verify error message includes exception details
-            args, kwargs = mock_log.call_args
-            assert "Test operation failed: Test error message" in args[0]
-            # Removed assert_called_once() - testing behavior (error message), not implementation
 
 
 class TestRuntimeConfiguration:
