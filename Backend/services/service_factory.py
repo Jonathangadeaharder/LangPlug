@@ -219,7 +219,11 @@ class ServiceFactory:
     @staticmethod
     def get_log_manager():
         """Create log manager service"""
-        return LogManagerService()
+        import logging
+        return LogManagerService(
+            get_logger_func=logging.getLogger,
+            config={}
+        )
 
     @staticmethod
     def get_log_handlers():
@@ -234,7 +238,11 @@ class ServiceFactory:
     @staticmethod
     def get_logging_service():
         """Create logging service (returns log manager)"""
-        return LogManagerService()
+        import logging
+        return LogManagerService(
+            get_logger_func=logging.getLogger,
+            config={}
+        )
 
     @staticmethod
     def get_video_service():
