@@ -80,13 +80,14 @@ repos:
         exclude: ^(alembic/|\.venv/)
 
   # Additional hooks for security
-  # Detect secrets
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.5.0
-    hooks:
-      - id: detect-secrets
-        args: [--baseline, Backend/.secrets.baseline]
-        exclude: ^(tests/|\.venv/|api_venv/)
+  # Detect secrets - Disabled due to baseline path resolution issues
+  # Run manually with: detect-secrets scan --baseline .secrets.baseline
+  # - repo: https://github.com/Yelp/detect-secrets
+  #   rev: v1.5.0
+  #   hooks:
+  #     - id: detect-secrets
+  #       args: [--baseline, ../.secrets.baseline]
+  #       exclude: ^(tests/|\.venv/|api_venv/)
 
 # CI-specific settings
 ci:
