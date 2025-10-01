@@ -2,15 +2,12 @@
 Test suite for ITranscriptionService interface
 Tests focus on interface contract compliance for all implementations
 """
-import pytest
-from unittest.mock import MagicMock, patch
+
 from abc import ABC
 
-from services.transcriptionservice.interface import (
-    ITranscriptionService,
-    TranscriptionResult,
-    TranscriptionSegment
-)
+import pytest
+
+from services.transcriptionservice.interface import ITranscriptionService, TranscriptionResult, TranscriptionSegment
 
 
 class MockTranscriptionService(ITranscriptionService):
@@ -32,15 +29,10 @@ class MockTranscriptionService(ITranscriptionService):
         return TranscriptionResult(
             full_text="This is a test transcription",
             segments=[
-                TranscriptionSegment(
-                    start_time=0.0,
-                    end_time=5.0,
-                    text="This is a test transcription",
-                    confidence=0.95
-                )
+                TranscriptionSegment(start_time=0.0, end_time=5.0, text="This is a test transcription", confidence=0.95)
             ],
             language=language or "en",
-            duration=5.0
+            duration=5.0,
         )
 
     def transcribe_with_timestamps(self, audio_path: str, language: str | None = None) -> TranscriptionResult:
@@ -54,10 +46,10 @@ class MockTranscriptionService(ITranscriptionService):
                 TranscriptionSegment(start_time=0.0, end_time=1.0, text="Word", confidence=0.98),
                 TranscriptionSegment(start_time=1.0, end_time=2.0, text="by", confidence=0.95),
                 TranscriptionSegment(start_time=2.0, end_time=3.0, text="word", confidence=0.97),
-                TranscriptionSegment(start_time=3.0, end_time=5.0, text="transcription", confidence=0.93)
+                TranscriptionSegment(start_time=3.0, end_time=5.0, text="transcription", confidence=0.93),
             ],
             language=language or "en",
-            duration=5.0
+            duration=5.0,
         )
 
     def transcribe_batch(self, audio_paths: list[str], language: str | None = None) -> list[TranscriptionResult]:
@@ -66,20 +58,19 @@ class MockTranscriptionService(ITranscriptionService):
             raise RuntimeError("Service not initialized")
 
         results = []
-        for i, path in enumerate(audio_paths):
-            results.append(TranscriptionResult(
-                full_text=f"Transcription for file {i+1}",
-                segments=[
-                    TranscriptionSegment(
-                        start_time=0.0,
-                        end_time=3.0,
-                        text=f"Transcription for file {i+1}",
-                        confidence=0.9
-                    )
-                ],
-                language=language or "en",
-                duration=3.0
-            ))
+        for i, _path in enumerate(audio_paths):
+            results.append(
+                TranscriptionResult(
+                    full_text=f"Transcription for file {i + 1}",
+                    segments=[
+                        TranscriptionSegment(
+                            start_time=0.0, end_time=3.0, text=f"Transcription for file {i + 1}", confidence=0.9
+                        )
+                    ],
+                    language=language or "en",
+                    duration=3.0,
+                )
+            )
         return results
 
     def supports_video(self) -> bool:
@@ -91,7 +82,7 @@ class MockTranscriptionService(ITranscriptionService):
         if not self.supports_video():
             raise NotImplementedError("Video extraction not supported")
 
-        output_path = output_path or video_path.replace('.mp4', '.wav')
+        output_path = output_path or video_path.replace(".mp4", ".wav")
         return output_path
 
     def get_supported_languages(self) -> list[str]:
@@ -115,11 +106,7 @@ class MockTranscriptionService(ITranscriptionService):
     @property
     def model_info(self) -> dict[str, any]:
         """Mock implementation of model_info property"""
-        return {
-            "model_name": "MockModel",
-            "version": "1.0.0",
-            "language_support": self.get_supported_languages()
-        }
+        return {"model_name": "MockModel", "version": "1.0.0", "language_support": self.get_supported_languages()}
 
 
 @pytest.fixture
@@ -258,9 +245,7 @@ class TestTranscriptionServiceInterface:
 
         # Test with custom output path
         custom_output = "/test/custom_audio.wav"
-        audio_path_custom = transcription_service.extract_audio_from_video(
-            video_path, custom_output
-        )
+        audio_path_custom = transcription_service.extract_audio_from_video(video_path, custom_output)
         assert audio_path_custom == custom_output
 
     def test_supported_languages(self, transcription_service):
@@ -291,11 +276,7 @@ class TestTranscriptionResultDataStructures:
     def test_transcription_segment_creation(self):
         """Test TranscriptionSegment creation and properties"""
         segment = TranscriptionSegment(
-            start_time=0.0,
-            end_time=5.0,
-            text="Test segment",
-            confidence=0.95,
-            speaker="Speaker1"
+            start_time=0.0, end_time=5.0, text="Test segment", confidence=0.95, speaker="Speaker1"
         )
 
         assert segment.start_time == 0.0
@@ -307,11 +288,7 @@ class TestTranscriptionResultDataStructures:
     def test_transcription_segment_optional_fields(self):
         """Test TranscriptionSegment with optional fields"""
         # Minimal segment
-        segment = TranscriptionSegment(
-            start_time=1.0,
-            end_time=2.0,
-            text="Minimal segment"
-        )
+        segment = TranscriptionSegment(start_time=1.0, end_time=2.0, text="Minimal segment")
 
         assert segment.confidence is None
         assert segment.speaker is None
@@ -320,27 +297,16 @@ class TestTranscriptionResultDataStructures:
     def test_transcription_segment_with_metadata(self):
         """Test TranscriptionSegment with metadata"""
         metadata = {"source": "microphone", "noise_level": 0.1}
-        segment = TranscriptionSegment(
-            start_time=0.0,
-            end_time=1.0,
-            text="Segment with metadata",
-            metadata=metadata
-        )
+        segment = TranscriptionSegment(start_time=0.0, end_time=1.0, text="Segment with metadata", metadata=metadata)
 
         assert segment.metadata == metadata
 
     def test_transcription_result_creation(self):
         """Test TranscriptionResult creation and properties"""
-        segments = [
-            TranscriptionSegment(0.0, 2.0, "First segment"),
-            TranscriptionSegment(2.0, 4.0, "Second segment")
-        ]
+        segments = [TranscriptionSegment(0.0, 2.0, "First segment"), TranscriptionSegment(2.0, 4.0, "Second segment")]
 
         result = TranscriptionResult(
-            full_text="First segment Second segment",
-            segments=segments,
-            language="en",
-            duration=4.0
+            full_text="First segment Second segment", segments=segments, language="en", duration=4.0
         )
 
         assert result.full_text == "First segment Second segment"
@@ -351,10 +317,7 @@ class TestTranscriptionResultDataStructures:
     def test_transcription_result_optional_fields(self):
         """Test TranscriptionResult with optional fields"""
         # Minimal result
-        result = TranscriptionResult(
-            full_text="Test transcription",
-            segments=[]
-        )
+        result = TranscriptionResult(full_text="Test transcription", segments=[])
 
         assert result.language is None
         assert result.duration is None
@@ -363,11 +326,7 @@ class TestTranscriptionResultDataStructures:
     def test_transcription_result_with_metadata(self):
         """Test TranscriptionResult with metadata"""
         metadata = {"model": "whisper", "processing_time": 1.5}
-        result = TranscriptionResult(
-            full_text="Test",
-            segments=[],
-            metadata=metadata
-        )
+        result = TranscriptionResult(full_text="Test", segments=[], metadata=metadata)
 
         assert result.metadata == metadata
 

@@ -1,15 +1,16 @@
 """Proper pytest tests for authentication workflow (converted from manual demo script)."""
+
 from __future__ import annotations
 
 import pytest
 
 from tests.helpers import (
     AsyncAuthHelper,
-    assert_status_code,
-    assert_json_response,
     assert_auth_response_structure,
+    assert_authentication_error,
+    assert_json_response,
+    assert_status_code,
     assert_user_response_structure,
-    assert_authentication_error
 )
 
 
@@ -66,7 +67,7 @@ class TestAuthenticationWorkflow:
         # Act
         login_data = {
             "username": user.username,  # Using username instead of email
-            "password": user.password
+            "password": user.password,
         }
         response = await async_client.post("/api/auth/login", data=login_data)
 
@@ -77,10 +78,7 @@ class TestAuthenticationWorkflow:
     async def test_When_invalid_credentials_used_Then_login_fails(self, async_client):
         """Login with invalid credentials should return authentication error."""
         # Act
-        login_data = {
-            "username": "nonexistent@example.com",
-            "password": "wrongpassword"
-        }
+        login_data = {"username": "nonexistent@example.com", "password": "wrongpassword"}
         response = await async_client.post("/api/auth/login", data=login_data)
 
         # Assert
@@ -91,7 +89,7 @@ class TestAuthenticationWorkflow:
         """Valid token should allow access to user info."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        user, _token, headers = await auth_helper.create_authenticated_user()
 
         # Act
         response = await async_client.get("/api/auth/me", headers=headers)
@@ -139,14 +137,14 @@ class TestAuthenticationWorkflow:
         """After logout, token should become invalid."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        _user, token, headers = await auth_helper.create_authenticated_user()
 
         # Verify token works initially
         response = await async_client.get("/api/auth/me", headers=headers)
         assert_status_code(response, 200)
 
         # Act - logout
-        logout_data = await auth_helper.logout_user(token)
+        await auth_helper.logout_user(token)
 
         # Assert - token should now be invalid
         response = await async_client.get("/api/auth/me", headers=headers)
@@ -160,21 +158,14 @@ class TestCORSConfiguration:
     async def test_When_options_request_sent_Then_cors_headers_present(self, async_client):
         """OPTIONS request should return appropriate CORS headers."""
         # Act
-        response = await async_client.options(
-            "/api/auth/login",
-            headers={"Origin": "http://localhost:3000"}
-        )
+        response = await async_client.options("/api/auth/login", headers={"Origin": "http://localhost:3000"})
 
         # Assert
         # Accept various status codes as different servers handle OPTIONS differently
         assert response.status_code in [200, 204, 405], f"Unexpected status code: {response.status_code}"
 
         # Check for CORS headers (if supported)
-        cors_headers = [
-            "Access-Control-Allow-Origin",
-            "Access-Control-Allow-Methods",
-            "Access-Control-Allow-Headers"
-        ]
+        cors_headers = ["Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers"]
 
         cors_found = any(header in response.headers for header in cors_headers)
         if not cors_found and response.status_code == 405:
@@ -200,11 +191,7 @@ class TestAuthenticationSecurity:
     async def test_When_weak_password_provided_Then_validation_error(self, async_client):
         """Weak password should be rejected during registration."""
         # Act
-        registration_data = {
-            "username": "testuser",
-            "email": "test@example.com",
-            "password": "weak"
-        }
+        registration_data = {"username": "testuser", "email": "test@example.com", "password": "weak"}
         response = await async_client.post("/api/auth/register", json=registration_data)
 
         # Assert
@@ -242,7 +229,7 @@ class TestAuthenticationIntegration:
         """Authenticated user should be able to access protected resources."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        _user, _token, headers = await auth_helper.create_authenticated_user()
 
         # Act - try to access a protected endpoint (example: vocabulary stats)
         response = await async_client.get("/api/vocabulary/stats", headers=headers)

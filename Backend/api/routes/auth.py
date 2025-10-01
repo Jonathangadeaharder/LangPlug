@@ -1,6 +1,7 @@
 """
 Authentication API routes
 """
+
 import logging
 from typing import Annotated
 
@@ -22,9 +23,7 @@ router = APIRouter(tags=["authentication"])
 
 
 @router.get("/me", response_model=UserResponse, name="auth_get_current_user")
-async def get_current_user_info(
-    current_user: Annotated[User, Depends(current_active_user)]
-):
+async def get_current_user_info(current_user: Annotated[User, Depends(current_active_user)]):
     """Get current user information"""
     return UserResponse(
         id=current_user.id,
@@ -33,5 +32,5 @@ async def get_current_user_info(
         is_superuser=current_user.is_superuser,
         is_active=current_user.is_active,
         created_at=current_user.created_at.isoformat(),
-        last_login=current_user.last_login.isoformat() if current_user.last_login else None
+        last_login=current_user.last_login.isoformat() if current_user.last_login else None,
     )

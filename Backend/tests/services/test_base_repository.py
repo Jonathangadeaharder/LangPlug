@@ -1,4 +1,5 @@
 """Focused behavior tests for the async `BaseRepository`."""
+
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
@@ -16,8 +17,8 @@ class Base(DeclarativeBase):
 
 
 class DummyModel(Base):
-    __tablename__ = 'dummy'
-    
+    __tablename__ = "dummy"
+
     id = Column(Integer, primary_key=True)
     name = Column(String(50))
 
@@ -66,7 +67,7 @@ def repository(session_double):
 async def test_Whenfind_by_idCalled_ThenReturnsmodel(repository, session_double):
     """Happy path: repository surfaces the ORM entity returned by SQLAlchemy."""
     expected = DummyModel(id=5, name="item")
-    
+
     # Create a mock result that behaves like SQLAlchemy result
     result_mock = MagicMock()
     result_mock.scalar_one_or_none.return_value = expected

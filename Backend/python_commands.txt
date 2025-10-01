@@ -1,9 +1,0 @@
-
-CommandType     Name                                      
------------     ----                                      
-Application     python.exe                                
-Application     python.exe                                
-Application     python.exe                                
-Application     python.exe                                
-
-

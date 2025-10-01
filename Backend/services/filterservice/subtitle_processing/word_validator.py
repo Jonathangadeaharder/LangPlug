@@ -20,16 +20,41 @@ class WordValidator:
 
         # Language-specific interjections (German)
         self._german_interjections = {
-            'ach', 'ah', 'äh', 'ähm', 'also', 'eh', 'hm', 'hmm', 'na', 'oh', 'oje',
-            'ok', 'okay', 'so', 'tja', 'uh', 'uhm', 'um', 'ups', 'wow', 'ja', 'nein',
-            'doch', 'hallo', 'hey', 'hi', 'tschüss', 'bye'
+            "ach",
+            "ah",
+            "äh",
+            "ähm",
+            "also",
+            "eh",
+            "hm",
+            "hmm",
+            "na",
+            "oh",
+            "oje",
+            "ok",
+            "okay",
+            "so",
+            "tja",
+            "uh",
+            "uhm",
+            "um",
+            "ups",
+            "wow",
+            "ja",
+            "nein",
+            "doch",
+            "hallo",
+            "hey",
+            "hi",
+            "tschüss",
+            "bye",
         }
 
         # Language-specific interjections mapping
         self._interjections_by_language = {
-            'de': self._german_interjections,
-            'en': {'ah', 'oh', 'um', 'uh', 'hmm', 'hm', 'okay', 'ok', 'hey', 'hi', 'bye', 'wow'},
-            'es': {'ah', 'oh', 'eh', 'hola', 'adiós', 'ok', 'bueno', 'pues'},
+            "de": self._german_interjections,
+            "en": {"ah", "oh", "um", "uh", "hmm", "hm", "okay", "ok", "hey", "hi", "bye", "wow"},
+            "es": {"ah", "oh", "eh", "hola", "adiós", "ok", "bueno", "pues"},
         }
 
     def is_valid_vocabulary_word(self, word_text: str, language: str = "de") -> bool:
@@ -73,10 +98,7 @@ class WordValidator:
             return True
 
         # Proper names (basic check)
-        if self.is_proper_name(word_text):
-            return True
-
-        return False
+        return bool(self.is_proper_name(word_text))
 
     def is_interjection(self, word_text: str, language: str = "de") -> bool:
         """

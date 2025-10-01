@@ -4,13 +4,13 @@ Game Workflow Integration Tests
 Tests complete game session workflows including user authentication,
 session management, question flow, and scoring across multiple endpoints.
 """
-import pytest
-import asyncio
-from datetime import datetime
+
 from uuid import uuid4
 
-from tests.helpers.data_builders import UserBuilder
+import pytest
+
 from tests.auth_helpers import AuthTestHelperAsync
+from tests.helpers.data_builders import UserBuilder
 
 
 class TestCompleteGameWorkflow:
@@ -22,19 +22,12 @@ class TestCompleteGameWorkflow:
         user = UserBuilder().build()
 
         # Register user
-        register_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
-        }
+        register_data = {"username": user.username, "email": user.email, "password": user.password}
         register_response = await async_client.post("/api/auth/register", json=register_data)
         assert register_response.status_code == 201
 
         # Login user
-        login_data = {
-            "username": user.email,
-            "password": user.password
-        }
+        login_data = {"username": user.email, "password": user.password}
         login_response = await async_client.post("/api/auth/login", data=login_data)
         assert login_response.status_code == 200
 
@@ -42,16 +35,14 @@ class TestCompleteGameWorkflow:
         return {"user": user, "token": token, "headers": {"Authorization": f"Bearer {token}"}}
 
     @pytest.mark.asyncio
-    async def test_WhenCompleteVocabularyGameWorkflow_ThenSucceedsWithCorrectScoring(self, async_client, authenticated_user):
+    async def test_WhenCompleteVocabularyGameWorkflow_ThenSucceedsWithCorrectScoring(
+        self, async_client, authenticated_user
+    ):
         """Test complete vocabulary game workflow from start to finish"""
         headers = authenticated_user["headers"]
 
         # Step 1: Start vocabulary game session
-        start_request = {
-            "game_type": "vocabulary",
-            "difficulty": "intermediate",
-            "total_questions": 3
-        }
+        start_request = {"game_type": "vocabulary", "difficulty": "intermediate", "total_questions": 3}
 
         start_response = await async_client.post("/api/game/start", json=start_request, headers=headers)
         assert start_response.status_code == 200
@@ -73,7 +64,7 @@ class TestCompleteGameWorkflow:
             "question_type": "translation",  # Fixed: Use correct question type
             "user_answer": "hermoso",  # Fixed: Use correct translation for "beautiful"
             "correct_answer": "hermoso",
-            "points": 10
+            "points": 10,
         }
 
         answer1_response = await async_client.post("/api/game/answer", json=answer1_request, headers=headers)
@@ -101,7 +92,7 @@ class TestCompleteGameWorkflow:
             "question_type": "translation",  # Fixed: Use correct question type
             "user_answer": "wrong answer",  # Intentionally wrong for test
             "correct_answer": "entender",  # Fixed: Use correct translation for "understand"
-            "points": 10
+            "points": 10,
         }
 
         answer2_response = await async_client.post("/api/game/answer", json=answer2_request, headers=headers)
@@ -119,7 +110,7 @@ class TestCompleteGameWorkflow:
             "question_type": "translation",
             "user_answer": "hermoso",  # Fixed: Correct Spanish translation for "beautiful"
             "correct_answer": "hermoso",
-            "points": 10  # Fixed: Use correct default points value
+            "points": 10,  # Fixed: Use correct default points value
         }
 
         answer3_response = await async_client.post("/api/game/answer", json=answer3_request, headers=headers)
@@ -157,17 +148,13 @@ class TestCompleteGameWorkflow:
         headers = authenticated_user["headers"]
 
         # Create two different game sessions
-        vocab_session_request = {
-            "game_type": "vocabulary",
-            "difficulty": "beginner",
-            "total_questions": 2
-        }
+        vocab_session_request = {"game_type": "vocabulary", "difficulty": "beginner", "total_questions": 2}
 
         listening_session_request = {
             "game_type": "listening",
             "difficulty": "advanced",
             "video_id": str(uuid4()),
-            "total_questions": 2
+            "total_questions": 2,
         }
 
         # Start both sessions
@@ -193,7 +180,7 @@ class TestCompleteGameWorkflow:
             "question_type": "translation",  # Fixed: Use correct question type
             "user_answer": "hola",  # Fixed: Use actual beginner vocabulary translation for "hello"
             "correct_answer": "hola",
-            "points": 10  # Fixed: Use default points value
+            "points": 10,  # Fixed: Use default points value
         }
 
         vocab_answer_response = await async_client.post("/api/game/answer", json=vocab_answer, headers=headers)
@@ -207,7 +194,7 @@ class TestCompleteGameWorkflow:
             "question_type": "multiple_choice",  # Fixed: Use correct question type for listening
             "user_answer": "wrong answer",  # Intentionally wrong
             "correct_answer": "Option A",  # Fixed: Use actual listening game correct answer
-            "points": 10  # Fixed: Use default points value
+            "points": 10,  # Fixed: Use default points value
         }
 
         listening_answer_response = await async_client.post("/api/game/answer", json=listening_answer, headers=headers)
@@ -215,7 +202,9 @@ class TestCompleteGameWorkflow:
 
         # Verify independent scoring
         vocab_final = await async_client.get(f"/api/game/session/{vocab_session['session_id']}", headers=headers)
-        listening_final = await async_client.get(f"/api/game/session/{listening_session['session_id']}", headers=headers)
+        listening_final = await async_client.get(
+            f"/api/game/session/{listening_session['session_id']}", headers=headers
+        )
 
         vocab_data = vocab_final.json()
         listening_data = listening_final.json()
@@ -248,7 +237,7 @@ class TestCompleteGameWorkflow:
             "game_type": "listening",
             "difficulty": "intermediate",
             "video_id": video_id,
-            "total_questions": 2
+            "total_questions": 2,
         }
 
         start_response = await async_client.post("/api/game/start", json=start_request, headers=headers)
@@ -268,7 +257,7 @@ class TestCompleteGameWorkflow:
             "question_type": "multiple_choice",  # Fixed: Use correct question type for listening
             "user_answer": "Option A",  # Fixed: Use actual listening game correct answer
             "correct_answer": "Option A",
-            "points": 10  # Fixed: Use default points value
+            "points": 10,  # Fixed: Use default points value
         }
 
         answer_response = await async_client.post("/api/game/answer", json=answer_request, headers=headers)
@@ -288,11 +277,7 @@ class TestCompleteGameWorkflow:
         headers = authenticated_user["headers"]
 
         # Start valid session
-        start_request = {
-            "game_type": "vocabulary",
-            "difficulty": "intermediate",
-            "total_questions": 2
-        }
+        start_request = {"game_type": "vocabulary", "difficulty": "intermediate", "total_questions": 2}
 
         start_response = await async_client.post("/api/game/start", json=start_request, headers=headers)
         assert start_response.status_code == 200
@@ -306,7 +291,7 @@ class TestCompleteGameWorkflow:
             "question_id": "q1",
             "question_type": "translation",  # Fixed: Add required question type
             "user_answer": "hermoso",  # Fixed: Use actual vocabulary translation
-            "correct_answer": "hermoso"
+            "correct_answer": "hermoso",
         }
 
         invalid_response = await async_client.post("/api/game/answer", json=invalid_answer, headers=headers)
@@ -327,7 +312,7 @@ class TestCompleteGameWorkflow:
             "question_type": "translation",  # Fixed: Add required question type
             "user_answer": "hermoso",  # Fixed: Use actual vocabulary translation
             "correct_answer": "hermoso",
-            "points": 10
+            "points": 10,
         }
 
         valid_response = await async_client.post("/api/game/answer", json=valid_answer, headers=headers)
@@ -347,27 +332,16 @@ class TestCompleteGameWorkflow:
         user1_flow = await AuthTestHelperAsync.register_and_login_async(async_client)
         user2_flow = await AuthTestHelperAsync.register_and_login_async(async_client)
 
-        user_tokens = {
-            "user1": {"headers": user1_flow["headers"]},
-            "user2": {"headers": user2_flow["headers"]}
-        }
+        user_tokens = {"user1": {"headers": user1_flow["headers"]}, "user2": {"headers": user2_flow["headers"]}}
 
         # Each user starts a game session
-        start_request = {
-            "game_type": "vocabulary",
-            "difficulty": "intermediate",
-            "total_questions": 1
-        }
+        start_request = {"game_type": "vocabulary", "difficulty": "intermediate", "total_questions": 1}
 
         user1_session_response = await async_client.post(
-            "/api/game/start",
-            json=start_request,
-            headers=user_tokens["user1"]["headers"]
+            "/api/game/start", json=start_request, headers=user_tokens["user1"]["headers"]
         )
         user2_session_response = await async_client.post(
-            "/api/game/start",
-            json=start_request,
-            headers=user_tokens["user2"]["headers"]
+            "/api/game/start", json=start_request, headers=user_tokens["user2"]["headers"]
         )
 
         assert user1_session_response.status_code == 200
@@ -381,15 +355,13 @@ class TestCompleteGameWorkflow:
 
         # User 1 cannot access User 2's session
         user1_accessing_user2 = await async_client.get(
-            f"/api/game/session/{user2_session['session_id']}",
-            headers=user_tokens["user1"]["headers"]
+            f"/api/game/session/{user2_session['session_id']}", headers=user_tokens["user1"]["headers"]
         )
         assert user1_accessing_user2.status_code == 404  # Should not find other user's session
 
         # User 2 cannot access User 1's session
         user2_accessing_user1 = await async_client.get(
-            f"/api/game/session/{user1_session['session_id']}",
-            headers=user_tokens["user2"]["headers"]
+            f"/api/game/session/{user1_session['session_id']}", headers=user_tokens["user2"]["headers"]
         )
         assert user2_accessing_user1.status_code == 404
 

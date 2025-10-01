@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist
+build
+.next
+out
+
+# Generated files
+src/client/*.gen.ts
+*.gen.ts
+
+# Coverage
+coverage
+.nyc_output
+
+# Logs
+*.log
+
+# Cache
+.cache
+.eslintcache
+
+# Test results
+playwright-report
+test-results
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Other
+*.min.js
+*.min.css

@@ -1,6 +1,9 @@
 """Application factory lifespan smoke tests."""
+
 from __future__ import annotations
 
+import builtins
+import contextlib
 from unittest.mock import AsyncMock
 
 import pytest
@@ -32,19 +35,17 @@ async def test_Whenlifespan_schedules_cleanupCalled_ThenSucceeds(monkeypatch) ->
         created_tasks.append("cleanup")
 
     # Track coroutines that get created
-    original_create_task = __import__('asyncio').create_task
+    __import__("asyncio").create_task
+
     def mock_create_task(coro):
-        if hasattr(coro, '__await__'):  # It's a coroutine
+        if hasattr(coro, "__await__"):  # It's a coroutine
             # Close the coroutine to prevent warning
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 coro.close()
-            except:
-                pass
         created_tasks.append(coro)
-        return None
 
     monkeypatch.setattr("core.app.cleanup_services", fake_cleanup)
-    # Patch the global asyncio.create_task since core.app imports asyncio locally  
+    # Patch the global asyncio.create_task since core.app imports asyncio locally
     monkeypatch.setattr("asyncio.create_task", mock_create_task, raising=False)
 
     app = create_app()

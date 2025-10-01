@@ -19,12 +19,7 @@
         "question_id": "d6ebe4ac-bb2a-438a-9f59-51ddf2f01b2b",
         "question_type": "multiple_choice",
         "question_text": "What did the speaker say in segment 1?",
-        "options": [
-          "Option A",
-          "Option B",
-          "Option C",
-          "Option D"
-        ],
+        "options": ["Option A", "Option B", "Option C", "Option D"],
         "correct_answer": "Option A",
         "user_answer": null,
         "is_correct": null,
@@ -35,12 +30,7 @@
         "question_id": "e027f852-cb59-4773-8298-fa40b3395a65",
         "question_type": "multiple_choice",
         "question_text": "What did the speaker say in segment 2?",
-        "options": [
-          "Option A",
-          "Option B",
-          "Option C",
-          "Option D"
-        ],
+        "options": ["Option A", "Option B", "Option C", "Option D"],
         "correct_answer": "Option A",
         "user_answer": null,
         "is_correct": null,
@@ -51,12 +41,7 @@
         "question_id": "5f7acd7c-2d43-4b3a-8d55-bdd7255c3318",
         "question_type": "multiple_choice",
         "question_text": "What did the speaker say in segment 3?",
-        "options": [
-          "Option A",
-          "Option B",
-          "Option C",
-          "Option D"
-        ],
+        "options": ["Option A", "Option B", "Option C", "Option D"],
         "correct_answer": "Option A",
         "user_answer": null,
         "is_correct": null,
@@ -67,12 +52,7 @@
         "question_id": "a9462b30-2b78-4132-88aa-b3e1be517c28",
         "question_type": "multiple_choice",
         "question_text": "What did the speaker say in segment 4?",
-        "options": [
-          "Option A",
-          "Option B",
-          "Option C",
-          "Option D"
-        ],
+        "options": ["Option A", "Option B", "Option C", "Option D"],
         "correct_answer": "Option A",
         "user_answer": null,
         "is_correct": null,
@@ -83,12 +63,7 @@
         "question_id": "34d0c58f-879d-436c-9442-fefea97e2aac",
         "question_type": "multiple_choice",
         "question_text": "What did the speaker say in segment 5?",
-        "options": [
-          "Option A",
-          "Option B",
-          "Option C",
-          "Option D"
-        ],
+        "options": ["Option A", "Option B", "Option C", "Option D"],
         "correct_answer": "Option A",
         "user_answer": null,
         "is_correct": null,

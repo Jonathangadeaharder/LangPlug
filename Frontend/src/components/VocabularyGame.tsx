@@ -68,7 +68,7 @@ const CardContainer = styled.div`
   width: 400px;
   height: 500px;
   margin: 40px auto;
-  
+
   @media (max-width: 480px) {
     width: 320px;
     height: 420px;
@@ -105,7 +105,7 @@ const WordText = styled.h1`
   color: white;
   margin-bottom: 24px;
   word-break: break-word;
-  
+
   @media (max-width: 480px) {
     font-size: 36px;
   }
@@ -117,7 +117,7 @@ const DifficultyBadge = styled.div<{ $level: string }>`
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 16px;
-  
+
   ${props => {
     switch (props.$level.toLowerCase()) {
       case 'a1':
@@ -160,12 +160,12 @@ const SwipeAction = styled.div<{ $type: 'know' | 'unknown' }>`
   gap: 8px;
   padding: 8px 12px;
   border-radius: 20px;
-  background: ${props => props.$type === 'know' 
-    ? 'rgba(70, 211, 105, 0.1)' 
+  background: ${props => props.$type === 'know'
+    ? 'rgba(70, 211, 105, 0.1)'
     : 'rgba(239, 68, 68, 0.1)'
   };
-  border: 1px solid ${props => props.$type === 'know' 
-    ? 'rgba(70, 211, 105, 0.3)' 
+  border: 1px solid ${props => props.$type === 'know'
+    ? 'rgba(70, 211, 105, 0.3)'
     : 'rgba(239, 68, 68, 0.3)'
   };
   color: ${props => props.$type === 'know' ? '#46d369' : '#ef4444'};
@@ -187,12 +187,12 @@ const ActionButton = styled.button<{ $type: 'know' | 'unknown' }>`
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  
+
   ${props => props.$type === 'know' ? `
     background: rgba(70, 211, 105, 0.2);
     color: #46d369;
     border: 2px solid #46d369;
-    
+
     &:hover {
       background: rgba(70, 211, 105, 0.3);
       transform: scale(1.1);
@@ -201,7 +201,7 @@ const ActionButton = styled.button<{ $type: 'know' | 'unknown' }>`
     background: rgba(239, 68, 68, 0.2);
     color: #ef4444;
     border: 2px solid #ef4444;
-    
+
     &:hover {
       background: rgba(239, 68, 68, 0.3);
       transform: scale(1.1);
@@ -260,6 +260,7 @@ export const VocabularyGame: React.FC<VocabularyGameProps> = ({
   const [isProcessing, setIsProcessing] = useState(false)
   const [knownWords, setKnownWords] = useState<string[]>([])
   const [unknownWords, setUnknownWords] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   const currentWord = words[currentIndex]
   const progress = words.length > 0 ? ((currentIndex + 1) / words.length) * 100 : 0
@@ -280,7 +281,7 @@ export const VocabularyGame: React.FC<VocabularyGameProps> = ({
       if (onWordAnswered) {
         await onWordAnswered(currentWord.word, known)
       }
-      
+
       setAnsweredWords(prev => prev + 1)
       if (known) {
         setKnownCount(prev => prev + 1)
@@ -288,17 +289,23 @@ export const VocabularyGame: React.FC<VocabularyGameProps> = ({
       } else {
         setUnknownWords(prev => [...prev, currentWord.word])
       }
-      
+
       // Move to next word after a short delay
       setTimeout(() => {
         setCurrentIndex(prev => prev + 1)
         setIsProcessing(false)
       }, 300)
-      
+
     } catch (error) {
       setIsProcessing(false)
+      setError('Failed to save word progress. Please check your connection and try again.')
       toast.error('Failed to save word progress')
     }
+  }
+
+  const handleRetry = () => {
+    setError(null)
+    setIsProcessing(false)
   }
 
   const handleSkip = async () => {
@@ -307,31 +314,26 @@ export const VocabularyGame: React.FC<VocabularyGameProps> = ({
     setIsProcessing(true)
 
     try {
-      // Mark all remaining words as unknown
-      const remainingWords = words.slice(currentIndex)
-      const newUnknownWords = [...unknownWords]
-      
-      for (const word of remainingWords) {
-        // Call onWordAnswered for each remaining word as unknown
-        if (onWordAnswered) {
-          await onWordAnswered(word.word, false)
-        }
-        newUnknownWords.push(word.word)
-      }
+      // Don't save remaining words - just skip to the video
+      // The user explicitly chose to skip, so we don't need to mark them as unknown
+      // This avoids unnecessary API calls and failures when the backend is down
 
-      // Update final counts
-      const finalAnsweredWords = answeredWords + remainingWords.length
-      
-      // Complete the game with all remaining words marked as unknown
-      onComplete(knownWords, newUnknownWords)
-      
-    } catch (error) {
-      setIsProcessing(false)
-      console.error('Failed to process remaining words:', error)
-      // Still allow skip even if word processing fails
+      // Complete with current progress (only words that were actually answered)
+      onComplete(knownWords, unknownWords)
+
+      // Call skip handler if provided to move to the next phase
       if (onSkip) {
         onSkip()
       }
+
+    } catch (error) {
+      console.error('Failed to skip:', error)
+      // Still allow skip even if error occurs
+      if (onSkip) {
+        onSkip()
+      }
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -349,7 +351,7 @@ export const VocabularyGame: React.FC<VocabularyGameProps> = ({
   if (words.length === 0) {
     return (
       <GameContainer>
-        <CompletionScreen>
+        <CompletionScreen data-testid="empty-state">
           <CompletionTitle>No New Words!</CompletionTitle>
           <p style={{ color: '#b3b3b3', marginBottom: '32px' }}>
             You already know all the vocabulary in this segment. Great job!
@@ -365,7 +367,7 @@ export const VocabularyGame: React.FC<VocabularyGameProps> = ({
   if (isComplete) {
     return (
       <GameContainer>
-        <CompletionScreen>
+        <CompletionScreen data-testid="success-message">
           <CompletionTitle>Segment Complete!</CompletionTitle>
           <CompletionStats>
             You knew {knownCount} out of {answeredWords} words ({Math.round((knownCount / answeredWords) * 100)}%)
@@ -415,16 +417,19 @@ export const VocabularyGame: React.FC<VocabularyGameProps> = ({
                 }
               }}
             >
-              <WordText>{currentWord?.word || ''}</WordText>
+              <WordText data-testid="vocabulary-word">{currentWord?.word || ''}</WordText>
+              {currentWord?.lemma && currentWord?.lemma.toLowerCase() !== currentWord?.word?.toLowerCase() && (
+                <Definition>Base form: {currentWord.lemma}</Definition>
+              )}
 
-              <DifficultyBadge $level={currentWord?.difficulty_level}>
+              <DifficultyBadge data-testid="difficulty-badge" $level={currentWord?.difficulty_level}>
                 {(currentWord?.difficulty_level || 'unknown').toUpperCase()} Level
               </DifficultyBadge>
-              
+
               {currentWord?.definition && (
-                <Definition>{currentWord?.definition}</Definition>
+                <Definition data-testid="translation">{currentWord?.definition}</Definition>
               )}
-              
+
               <SwipeHint>
                 <SwipeAction $type="unknown">
                   <XMarkIcon className="w-4 h-4" />
@@ -441,16 +446,18 @@ export const VocabularyGame: React.FC<VocabularyGameProps> = ({
       </CardContainer>
 
       <ActionButtons>
-        <ActionButton 
-          $type="unknown" 
+        <ActionButton
+          data-testid="mark-unknown-button"
+          $type="unknown"
           onClick={() => handleAnswer(false)}
           disabled={isProcessing}
         >
           <XMarkIcon className="w-6 h-6" />
         </ActionButton>
-        
-        <ActionButton 
-          $type="know" 
+
+        <ActionButton
+          data-testid="mark-known-button"
+          $type="know"
           onClick={() => handleAnswer(true)}
           disabled={isProcessing}
         >
@@ -463,6 +470,32 @@ export const VocabularyGame: React.FC<VocabularyGameProps> = ({
           Skip Remaining
         </NetflixButton>
       </div>
+
+      {error && (
+        <div
+          data-testid="error-message"
+          style={{
+            marginTop: '24px',
+            padding: '16px',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '8px',
+            color: '#ef4444',
+            textAlign: 'center',
+            maxWidth: '400px',
+          }}
+        >
+          <p style={{ marginBottom: '12px' }}>{error}</p>
+          <NetflixButton
+            data-testid="retry-button"
+            variant="secondary"
+            onClick={handleRetry}
+            style={{ fontSize: '14px', padding: '8px 16px' }}
+          >
+            Retry
+          </NetflixButton>
+        </div>
+      )}
     </GameContainer>
   )
 }

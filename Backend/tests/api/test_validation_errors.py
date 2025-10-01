@@ -1,4 +1,5 @@
 """Validation error contract tests following the 80/20 guideline."""
+
 from __future__ import annotations
 
 import pytest

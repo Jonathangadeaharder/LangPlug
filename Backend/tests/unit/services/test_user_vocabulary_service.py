@@ -2,35 +2,37 @@
 Test suite for SQLiteUserVocabularyService
 Tests focus on interface-based testing of vocabulary management business logic
 """
+
+from datetime import datetime
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
-from typing import Any
 
 from services.dataservice.user_vocabulary_service import SQLiteUserVocabularyService
-from tests.base import ServiceTestBase
 
 
 class MockVocabularyWord:
     """Mock vocabulary word for testing"""
+
     def __init__(self, **kwargs):
-        self.id = kwargs.get('id', 1)
-        self.word = kwargs.get('word', 'test')
-        self.language = kwargs.get('language', 'en')
-        self.created_at = kwargs.get('created_at', datetime.now().isoformat())
-        self.updated_at = kwargs.get('updated_at', datetime.now().isoformat())
+        self.id = kwargs.get("id", 1)
+        self.word = kwargs.get("word", "test")
+        self.language = kwargs.get("language", "en")
+        self.created_at = kwargs.get("created_at", datetime.now().isoformat())
+        self.updated_at = kwargs.get("updated_at", datetime.now().isoformat())
 
 
 class MockLearningProgress:
     """Mock learning progress record for testing"""
+
     def __init__(self, **kwargs):
-        self.id = kwargs.get('id', 1)
-        self.user_id = kwargs.get('user_id', 'test_user')
-        self.word_id = kwargs.get('word_id', 1)
-        self.confidence_level = kwargs.get('confidence_level', 1)
-        self.review_count = kwargs.get('review_count', 1)
-        self.learned_at = kwargs.get('learned_at', datetime.now().isoformat())
-        self.last_reviewed = kwargs.get('last_reviewed', None)
+        self.id = kwargs.get("id", 1)
+        self.user_id = kwargs.get("user_id", "test_user")
+        self.word_id = kwargs.get("word_id", 1)
+        self.confidence_level = kwargs.get("confidence_level", 1)
+        self.review_count = kwargs.get("review_count", 1)
+        self.learned_at = kwargs.get("learned_at", datetime.now().isoformat())
+        self.last_reviewed = kwargs.get("last_reviewed")
 
 
 @pytest.fixture
@@ -43,29 +45,19 @@ def vocab_service():
 @pytest.fixture
 def mock_word():
     """Create a mock vocabulary word"""
-    return MockVocabularyWord(
-        id=1,
-        word='hello',
-        language='en',
-        created_at=datetime.now().isoformat()
-    )
+    return MockVocabularyWord(id=1, word="hello", language="en", created_at=datetime.now().isoformat())
 
 
 @pytest.fixture
 def mock_progress():
     """Create a mock learning progress record"""
-    return MockLearningProgress(
-        id=1,
-        user_id='test_user',
-        word_id=1,
-        confidence_level=1,
-        review_count=1
-    )
+    return MockLearningProgress(id=1, user_id="test_user", word_id=1, confidence_level=1, review_count=1)
 
 
 # =============================================================================
 # TestUserVocabularyServiceBasicOperations - Basic CRUD operations
 # =============================================================================
+
 
 class TestUserVocabularyServiceBasicOperations:
     """Test basic vocabulary service operations"""
@@ -75,10 +67,10 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock word_status service
-        with patch.object(service.word_status, 'is_word_known', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.word_status, "is_word_known", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = True
 
-            result = await service.is_word_known('test_user', 'hello', 'en')
+            result = await service.is_word_known("test_user", "hello", "en")
 
             assert result is True
 
@@ -87,10 +79,10 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock word_status service
-        with patch.object(service.word_status, 'is_word_known', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.word_status, "is_word_known", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = False
 
-            result = await service.is_word_known('test_user', 'unknown', 'en')
+            result = await service.is_word_known("test_user", "unknown", "en")
 
             assert result is False
 
@@ -99,10 +91,10 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock database error
-        with patch.object(service.word_status, 'is_word_known', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.word_status, "is_word_known", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Database connection failed")
 
-            result = await service.is_word_known('test_user', 'hello', 'en')
+            result = await service.is_word_known("test_user", "hello", "en")
 
             assert result is False  # Should return False on error
 
@@ -111,22 +103,22 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock word_status service
-        with patch.object(service.word_status, 'get_known_words', new_callable=AsyncMock) as mock_method:
-            mock_method.return_value = ['hello', 'world', 'test']
+        with patch.object(service.word_status, "get_known_words", new_callable=AsyncMock) as mock_method:
+            mock_method.return_value = ["hello", "world", "test"]
 
-            result = await service.get_known_words('test_user', 'en')
+            result = await service.get_known_words("test_user", "en")
 
-            assert result == ['hello', 'world', 'test']
+            assert result == ["hello", "world", "test"]
 
     async def test_get_known_words_returns_empty_list_for_new_user(self, vocab_service):
         """Test that get_known_words returns empty list for new users"""
         service = vocab_service
 
         # Mock word_status service
-        with patch.object(service.word_status, 'get_known_words', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.word_status, "get_known_words", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = []
 
-            result = await service.get_known_words('new_user', 'en')
+            result = await service.get_known_words("new_user", "en")
 
             assert result == []
 
@@ -135,10 +127,10 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock database error
-        with patch.object(service.word_status, 'get_known_words', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.word_status, "get_known_words", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Database error")
 
-            result = await service.get_known_words('test_user', 'en')
+            result = await service.get_known_words("test_user", "en")
 
             assert result == []  # Should return empty list on error
 
@@ -147,10 +139,10 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock learning_progress service
-        with patch.object(service.learning_progress, 'mark_word_learned', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "mark_word_learned", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = True
 
-            result = await service.mark_word_learned('test_user', 'hello', 'en')
+            result = await service.mark_word_learned("test_user", "hello", "en")
 
             assert result is True
 
@@ -159,10 +151,10 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock learning_progress service
-        with patch.object(service.learning_progress, 'mark_word_learned', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "mark_word_learned", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = True
 
-            result = await service.mark_word_learned('test_user', 'hello', 'en')
+            result = await service.mark_word_learned("test_user", "hello", "en")
 
             assert result is True
 
@@ -171,10 +163,10 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock learning_progress service to return False
-        with patch.object(service.learning_progress, 'mark_word_learned', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "mark_word_learned", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = False
 
-            result = await service.mark_word_learned('test_user', 'hello', 'en')
+            result = await service.mark_word_learned("test_user", "hello", "en")
 
             assert result is False
 
@@ -183,10 +175,10 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock database error
-        with patch.object(service.learning_progress, 'mark_word_learned', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "mark_word_learned", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Database error")
 
-            result = await service.mark_word_learned('test_user', 'hello', 'en')
+            result = await service.mark_word_learned("test_user", "hello", "en")
 
             assert result is False
 
@@ -195,10 +187,10 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock learning_progress service
-        with patch.object(service.learning_progress, 'remove_word', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "remove_word", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = True
 
-            result = await service.remove_word('test_user', 'hello', 'en')
+            result = await service.remove_word("test_user", "hello", "en")
 
             assert result is True
 
@@ -207,10 +199,10 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock learning_progress service
-        with patch.object(service.learning_progress, 'remove_word', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "remove_word", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = False
 
-            result = await service.remove_word('test_user', 'nonexistent', 'en')
+            result = await service.remove_word("test_user", "nonexistent", "en")
 
             assert result is False
 
@@ -219,10 +211,10 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock learning_progress service
-        with patch.object(service.learning_progress, 'remove_word', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "remove_word", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = False
 
-            result = await service.remove_word('test_user', 'hello', 'en')
+            result = await service.remove_word("test_user", "hello", "en")
 
             assert result is False
 
@@ -231,10 +223,10 @@ class TestUserVocabularyServiceBasicOperations:
         service = vocab_service
 
         # Mock database error
-        with patch.object(service.learning_progress, 'remove_word', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "remove_word", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Database error")
 
-            result = await service.remove_word('test_user', 'hello', 'en')
+            result = await service.remove_word("test_user", "hello", "en")
 
             assert result is False
 
@@ -242,6 +234,7 @@ class TestUserVocabularyServiceBasicOperations:
 # =============================================================================
 # TestUserVocabularyServiceLevelOperations - Learning level operations
 # =============================================================================
+
 
 class TestUserVocabularyServiceLevelOperations:
     """Test learning level calculation and management"""
@@ -251,10 +244,10 @@ class TestUserVocabularyServiceLevelOperations:
         service = vocab_service
 
         # Mock learning_level service
-        with patch.object(service.learning_level, 'get_learning_level', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_level, "get_learning_level", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = "A1"
 
-            result = await service.get_learning_level('test_user')
+            result = await service.get_learning_level("test_user")
 
             assert result == "A1"
 
@@ -263,10 +256,10 @@ class TestUserVocabularyServiceLevelOperations:
         service = vocab_service
 
         # Mock learning_level service
-        with patch.object(service.learning_level, 'get_learning_level', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_level, "get_learning_level", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = "A2"
 
-            result = await service.get_learning_level('test_user')
+            result = await service.get_learning_level("test_user")
 
             assert result == "A2"
 
@@ -275,10 +268,10 @@ class TestUserVocabularyServiceLevelOperations:
         service = vocab_service
 
         # Mock learning_level service
-        with patch.object(service.learning_level, 'get_learning_level', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_level, "get_learning_level", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = "B1"
 
-            result = await service.get_learning_level('test_user')
+            result = await service.get_learning_level("test_user")
 
             assert result == "B1"
 
@@ -287,10 +280,10 @@ class TestUserVocabularyServiceLevelOperations:
         service = vocab_service
 
         # Mock learning_level service
-        with patch.object(service.learning_level, 'get_learning_level', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_level, "get_learning_level", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = "B2"
 
-            result = await service.get_learning_level('test_user')
+            result = await service.get_learning_level("test_user")
 
             assert result == "B2"
 
@@ -299,10 +292,10 @@ class TestUserVocabularyServiceLevelOperations:
         service = vocab_service
 
         # Mock learning_level service
-        with patch.object(service.learning_level, 'get_learning_level', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_level, "get_learning_level", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = "C1"
 
-            result = await service.get_learning_level('test_user')
+            result = await service.get_learning_level("test_user")
 
             assert result == "C1"
 
@@ -311,10 +304,10 @@ class TestUserVocabularyServiceLevelOperations:
         service = vocab_service
 
         # Mock learning_level service
-        with patch.object(service.learning_level, 'get_learning_level', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_level, "get_learning_level", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = "C2"
 
-            result = await service.get_learning_level('test_user')
+            result = await service.get_learning_level("test_user")
 
             assert result == "C2"
 
@@ -323,10 +316,10 @@ class TestUserVocabularyServiceLevelOperations:
         service = vocab_service
 
         # Mock learning_level service to raise exception
-        with patch.object(service.learning_level, 'get_learning_level', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_level, "get_learning_level", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Error")
 
-            result = await service.get_learning_level('test_user')
+            result = await service.get_learning_level("test_user")
 
             assert result == "A2"  # Default level
 
@@ -335,10 +328,10 @@ class TestUserVocabularyServiceLevelOperations:
         service = vocab_service
 
         # Mock learning_level service
-        with patch.object(service.learning_level, 'set_learning_level', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_level, "set_learning_level", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = True
 
-            result = await service.set_learning_level('test_user', 'B1')
+            result = await service.set_learning_level("test_user", "B1")
 
             assert result is True
 
@@ -346,6 +339,7 @@ class TestUserVocabularyServiceLevelOperations:
 # =============================================================================
 # TestUserVocabularyServiceBatchOperations - Batch processing tests
 # =============================================================================
+
 
 class TestUserVocabularyServiceBatchOperations:
     """Test batch word operations"""
@@ -355,10 +349,10 @@ class TestUserVocabularyServiceBatchOperations:
         service = vocab_service
 
         # Mock learning_progress service
-        with patch.object(service.learning_progress, 'add_known_words', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "add_known_words", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = True
 
-            result = await service.add_known_words('test_user', [], 'en')
+            result = await service.add_known_words("test_user", [], "en")
 
             assert result is True
 
@@ -367,10 +361,10 @@ class TestUserVocabularyServiceBatchOperations:
         service = vocab_service
 
         # Mock learning_progress service
-        with patch.object(service.learning_progress, 'add_known_words', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "add_known_words", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = True
 
-            result = await service.add_known_words('test_user', ['', '  ', '\t'], 'en')
+            result = await service.add_known_words("test_user", ["", "  ", "\t"], "en")
 
             assert result is True
 
@@ -379,10 +373,10 @@ class TestUserVocabularyServiceBatchOperations:
         service = vocab_service
 
         # Mock learning_progress service
-        with patch.object(service.learning_progress, 'add_known_words', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "add_known_words", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = True
 
-            result = await service.add_known_words('test_user', ['hello', 'world'], 'en')
+            result = await service.add_known_words("test_user", ["hello", "world"], "en")
 
             assert result is True
 
@@ -391,10 +385,10 @@ class TestUserVocabularyServiceBatchOperations:
         service = vocab_service
 
         # Mock learning_progress service
-        with patch.object(service.learning_progress, 'add_known_words', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "add_known_words", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = True
 
-            result = await service.add_known_words('test_user', ['hello', 'world'], 'en')
+            result = await service.add_known_words("test_user", ["hello", "world"], "en")
 
             assert result is True
 
@@ -403,10 +397,10 @@ class TestUserVocabularyServiceBatchOperations:
         service = vocab_service
 
         # Mock learning_progress service to return False
-        with patch.object(service.learning_progress, 'add_known_words', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "add_known_words", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = False
 
-            result = await service.add_known_words('test_user', ['hello', 'world'], 'en')
+            result = await service.add_known_words("test_user", ["hello", "world"], "en")
 
             assert result is False
 
@@ -415,10 +409,10 @@ class TestUserVocabularyServiceBatchOperations:
         service = vocab_service
 
         # Mock database error during batch operations
-        with patch.object(service.learning_progress, 'add_known_words', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "add_known_words", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Database error")
 
-            result = await service.add_known_words('test_user', ['hello', 'world'], 'en')
+            result = await service.add_known_words("test_user", ["hello", "world"], "en")
 
             assert result is False
 
@@ -427,10 +421,10 @@ class TestUserVocabularyServiceBatchOperations:
         service = vocab_service
 
         # Mock learning_progress service
-        with patch.object(service.learning_progress, 'add_known_words', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_progress, "add_known_words", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = True
 
-            result = await service.add_known_words('test_user', ['  HELLO  ', 'WORLD\t'], 'en')
+            result = await service.add_known_words("test_user", ["  HELLO  ", "WORLD\t"], "en")
 
             # Facade delegates to learning_progress service
             assert result is True
@@ -439,6 +433,7 @@ class TestUserVocabularyServiceBatchOperations:
 # =============================================================================
 # TestUserVocabularyServiceStatistics - Statistics and analytics tests
 # =============================================================================
+
 
 class TestUserVocabularyServiceStatistics:
     """Test statistics and analytics functionality"""
@@ -449,23 +444,23 @@ class TestUserVocabularyServiceStatistics:
 
         # Mock learning_stats service
         expected = {
-            'total_known': 3,
-            'total_learned': 3,
-            'learning_level': 'A1',
-            'total_vocabulary': 3,
-            'confidence_distribution': {1: 5, 2: 3, 3: 2},
-            'recent_learned_7_days': 2,
-            'top_reviewed_words': [
-                {'word': 'hello', 'review_count': 5, 'confidence_level': 2},
-                {'word': 'world', 'review_count': 3, 'confidence_level': 1}
+            "total_known": 3,
+            "total_learned": 3,
+            "learning_level": "A1",
+            "total_vocabulary": 3,
+            "confidence_distribution": {1: 5, 2: 3, 3: 2},
+            "recent_learned_7_days": 2,
+            "top_reviewed_words": [
+                {"word": "hello", "review_count": 5, "confidence_level": 2},
+                {"word": "world", "review_count": 3, "confidence_level": 1},
             ],
-            'language': 'en'
+            "language": "en",
         }
 
-        with patch.object(service.learning_stats, 'get_learning_statistics', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_stats, "get_learning_statistics", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = expected
 
-            result = await service.get_learning_statistics('test_user', 'en')
+            result = await service.get_learning_statistics("test_user", "en")
 
             assert result == expected
 
@@ -475,33 +470,33 @@ class TestUserVocabularyServiceStatistics:
 
         # Mock learning_stats service
         expected = {
-            'total_known': 0,
-            'total_learned': 0,
-            'confidence_distribution': {},
-            'recent_learned_7_days': 0,
-            'top_reviewed_words': []
+            "total_known": 0,
+            "total_learned": 0,
+            "confidence_distribution": {},
+            "recent_learned_7_days": 0,
+            "top_reviewed_words": [],
         }
 
-        with patch.object(service.learning_stats, 'get_learning_statistics', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_stats, "get_learning_statistics", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = expected
 
-            result = await service.get_learning_statistics('new_user', 'en')
+            result = await service.get_learning_statistics("new_user", "en")
 
-            assert result['total_known'] == 0
-            assert result['total_learned'] == 0
-            assert result['confidence_distribution'] == {}
-            assert result['recent_learned_7_days'] == 0
-            assert result['top_reviewed_words'] == []
+            assert result["total_known"] == 0
+            assert result["total_learned"] == 0
+            assert result["confidence_distribution"] == {}
+            assert result["recent_learned_7_days"] == 0
+            assert result["top_reviewed_words"] == []
 
     async def test_get_learning_statistics_handles_database_error(self, vocab_service):
         """Test get_learning_statistics handles database errors"""
         service = vocab_service
 
         # Mock database error during stats collection
-        with patch.object(service.learning_stats, 'get_learning_statistics', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_stats, "get_learning_statistics", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Database error")
 
-            result = await service.get_learning_statistics('test_user', 'en')
+            result = await service.get_learning_statistics("test_user", "en")
 
             assert result == {"total_known": 0, "total_learned": 0, "error": "Database error"}
 
@@ -511,24 +506,14 @@ class TestUserVocabularyServiceStatistics:
 
         # Mock learning_stats service
         expected = [
-            {
-                'learned_at': '2023-01-01',
-                'confidence_level': 1,
-                'review_count': 1,
-                'last_reviewed': None
-            },
-            {
-                'learned_at': '2023-01-02',
-                'confidence_level': 2,
-                'review_count': 2,
-                'last_reviewed': '2023-01-03'
-            }
+            {"learned_at": "2023-01-01", "confidence_level": 1, "review_count": 1, "last_reviewed": None},
+            {"learned_at": "2023-01-02", "confidence_level": 2, "review_count": 2, "last_reviewed": "2023-01-03"},
         ]
 
-        with patch.object(service.learning_stats, 'get_word_learning_history', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_stats, "get_word_learning_history", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = expected
 
-            result = await service.get_word_learning_history('test_user', 'hello', 'en')
+            result = await service.get_word_learning_history("test_user", "hello", "en")
 
             assert result == expected
 
@@ -537,10 +522,10 @@ class TestUserVocabularyServiceStatistics:
         service = vocab_service
 
         # Mock learning_stats service
-        with patch.object(service.learning_stats, 'get_word_learning_history', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_stats, "get_word_learning_history", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = []
 
-            result = await service.get_word_learning_history('test_user', 'unknown', 'en')
+            result = await service.get_word_learning_history("test_user", "unknown", "en")
 
             assert result == []
 
@@ -549,10 +534,10 @@ class TestUserVocabularyServiceStatistics:
         service = vocab_service
 
         # Mock database error
-        with patch.object(service.learning_stats, 'get_word_learning_history', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_stats, "get_word_learning_history", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Database error")
 
-            result = await service.get_word_learning_history('test_user', 'hello', 'en')
+            result = await service.get_word_learning_history("test_user", "hello", "en")
 
             assert result == []
 
@@ -562,24 +547,14 @@ class TestUserVocabularyServiceStatistics:
 
         # Mock learning_stats service
         expected = [
-            {
-                'word': 'hello',
-                'confidence_level': 2,
-                'learned_at': '2023-01-01',
-                'review_count': 3
-            },
-            {
-                'word': 'world',
-                'confidence_level': 2,
-                'learned_at': '2023-01-02',
-                'review_count': 5
-            }
+            {"word": "hello", "confidence_level": 2, "learned_at": "2023-01-01", "review_count": 3},
+            {"word": "world", "confidence_level": 2, "learned_at": "2023-01-02", "review_count": 5},
         ]
 
-        with patch.object(service.learning_stats, 'get_words_by_confidence', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_stats, "get_words_by_confidence", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = expected
 
-            result = await service.get_words_by_confidence('test_user', 2, 'en', 10)
+            result = await service.get_words_by_confidence("test_user", 2, "en", 10)
 
             assert result == expected
 
@@ -588,10 +563,10 @@ class TestUserVocabularyServiceStatistics:
         service = vocab_service
 
         # Mock learning_stats service
-        with patch.object(service.learning_stats, 'get_words_by_confidence', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_stats, "get_words_by_confidence", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = []
 
-            result = await service.get_words_by_confidence('test_user', 5, 'en', 10)
+            result = await service.get_words_by_confidence("test_user", 5, "en", 10)
 
             assert result == []
 
@@ -600,10 +575,10 @@ class TestUserVocabularyServiceStatistics:
         service = vocab_service
 
         # Mock database error
-        with patch.object(service.learning_stats, 'get_words_by_confidence', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.learning_stats, "get_words_by_confidence", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Database error")
 
-            result = await service.get_words_by_confidence('test_user', 2, 'en', 10)
+            result = await service.get_words_by_confidence("test_user", 2, "en", 10)
 
             assert result == []
 

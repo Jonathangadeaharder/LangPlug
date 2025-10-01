@@ -5,13 +5,26 @@ import type { VideoInfo } from '@/types'
 
 export const ChunkedLearningPage: React.FC = () => {
   const location = useLocation()
-  const videoInfo = location.state?.videoInfo as VideoInfo
+  let videoInfo = location.state?.videoInfo as VideoInfo
+
+  // Fallback for E2E tests: check sessionStorage
+  // This allows tests to inject videoInfo without fighting React Router's state management
+  if (!videoInfo && typeof window !== 'undefined' && sessionStorage) {
+    try {
+      const testVideoInfo = sessionStorage.getItem('testVideoInfo')
+      if (testVideoInfo) {
+        videoInfo = JSON.parse(testVideoInfo) as VideoInfo
+      }
+    } catch (error) {
+      console.warn('Failed to parse test videoInfo from sessionStorage', error)
+    }
+  }
 
   if (!videoInfo) {
     return (
-      <div style={{ 
-        color: 'white', 
-        padding: '40px', 
+      <div style={{
+        color: 'white',
+        padding: '40px',
         textAlign: 'center',
         minHeight: '100vh',
         display: 'flex',

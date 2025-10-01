@@ -2,11 +2,11 @@
 Contract validation middleware for FastAPI
 Provides server-side validation of requests and responses against OpenAPI schema
 """
-import json
-import logging
-from typing import Any, Dict, Optional
 
-from fastapi import FastAPI, Request, Response
+import logging
+from typing import Any
+
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 
 class ContractValidationError(Exception):
     """Exception raised when contract validation fails"""
-    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         self.message = message
         self.details = details or {}
         super().__init__(self.message)
@@ -27,25 +28,21 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
     """Middleware to validate requests and responses against OpenAPI contract"""
 
     def __init__(
-        self,
-        app: ASGIApp,
-        validate_requests: bool = True,
-        validate_responses: bool = True,
-        log_violations: bool = True
+        self, app: ASGIApp, validate_requests: bool = True, validate_responses: bool = True, log_violations: bool = True
     ):
         super().__init__(app)
         self.validate_requests = validate_requests
         self.validate_responses = validate_responses
         self.log_violations = log_violations
-        self._openapi_schema: Optional[Dict[str, Any]] = None
+        self._openapi_schema: dict[str, Any] | None = None
 
-    def get_openapi_schema(self, app: FastAPI) -> Dict[str, Any]:
+    def get_openapi_schema(self, app: FastAPI) -> dict[str, Any]:
         """Get cached OpenAPI schema from the FastAPI app"""
         if self._openapi_schema is None:
             self._openapi_schema = app.openapi()
         return self._openapi_schema
 
-    def validate_request_path(self, method: str, path: str, schema: Dict[str, Any]) -> bool:
+    def validate_request_path(self, method: str, path: str, schema: dict[str, Any]) -> bool:
         """Validate if the request path and method exist in the OpenAPI schema"""
         paths = schema.get("paths", {})
 
@@ -55,9 +52,8 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
 
         # Check for path parameters (simple pattern matching)
         for schema_path in paths:
-            if self._path_matches_pattern(path, schema_path):
-                if method.lower() in paths[schema_path]:
-                    return True
+            if self._path_matches_pattern(path, schema_path) and method.lower() in paths[schema_path]:
+                return True
 
         return False
 
@@ -69,7 +65,7 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
         if len(actual_parts) != len(schema_parts):
             return False
 
-        for actual_part, schema_part in zip(actual_parts, schema_parts):
+        for actual_part, schema_part in zip(actual_parts, schema_parts, strict=False):
             # Check if schema part is a parameter (enclosed in {})
             if schema_part.startswith("{") and schema_part.endswith("}"):
                 continue  # Parameter matches any value
@@ -78,7 +74,7 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
 
         return True
 
-    def validate_response_status(self, path: str, method: str, status_code: int, schema: Dict[str, Any]) -> bool:
+    def validate_response_status(self, path: str, method: str, status_code: int, schema: dict[str, Any]) -> bool:
         """Validate if the response status code is defined in the OpenAPI schema"""
         paths = schema.get("paths", {})
 
@@ -102,105 +98,115 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
         # Check if status code is defined (exact match or 'default')
         return str(status_code) in responses or "default" in responses
 
-    async def dispatch(self, request: Request, call_next):
-        """Process the request and validate contract compliance"""
-        method = request.method
-        path = str(request.url.path)
-
+    def _should_skip_validation(self, method: str, path: str) -> bool:
+        """Check if request should skip validation"""
         # Skip OPTIONS requests (CORS preflight)
         if method == "OPTIONS":
-            response = await call_next(request)
-            return response
+            return True
 
         # Skip subtitle serving endpoint (uses dynamic paths)
         if path.startswith("/api/videos/subtitles/"):
-            response = await call_next(request)
-            return response
+            return True
 
-        # Get the FastAPI app instance to access OpenAPI schema
+        # Skip OpenAPI and documentation endpoints
+        if path in ["/openapi.json", "/docs", "/redoc"]:
+            return True
+
+        return False
+
+    def _validate_request_contract(self, method: str, path: str, schema: dict[str, Any]) -> JSONResponse | None:
+        """Validate request against contract, return error response if invalid"""
+        if not self.validate_requests:
+            return None
+
+        if not self.validate_request_path(method, path, schema):
+            if self.log_violations:
+                logger.warning(f"Contract violation: Undefined endpoint {method} {path}")
+
+            return JSONResponse(
+                status_code=404,
+                content={"detail": "Endpoint not found in API contract", "path": path, "method": method},
+            )
+
+        return None
+
+    def _validate_response_contract(self, path: str, method: str, response, schema: dict[str, Any]) -> None:
+        """Validate response against contract and log violations"""
+        if not self.validate_responses:
+            return
+
+        if not self.validate_response_status(path, method, response.status_code, schema):
+            if self.log_violations:
+                logger.warning(
+                    f"Contract violation: Undefined response status {response.status_code} for {method} {path}"
+                )
+
+    def _add_validation_headers(self, response) -> None:
+        """Add contract validation headers to response"""
+        response.headers["X-Contract-Validated"] = "true"
+        response.headers["X-Request-Validation"] = str(self.validate_requests).lower()
+        response.headers["X-Response-Validation"] = str(self.validate_responses).lower()
+
+    async def dispatch(self, request: Request, call_next):
+        """Process the request and validate contract compliance (Refactored for lower complexity)"""
+        method = request.method
+        path = str(request.url.path)
+
+        # Skip validation for certain endpoints
+        if self._should_skip_validation(method, path):
+            return await call_next(request)
+
         app = request.app
 
         try:
-            # Validate request if enabled
-            if self.validate_requests:
-                schema = self.get_openapi_schema(app)
-                if not self.validate_request_path(method, path, schema):
-                    if self.log_violations:
-                        logger.warning(f"Contract violation: Undefined endpoint {method} {path}")
-
-                    # Return 404 for undefined endpoints
-                    return JSONResponse(
-                        status_code=404,
-                        content={
-                            "detail": "Endpoint not found in API contract",
-                            "path": path,
-                            "method": method
-                        }
-                    )
+            # Validate request contract
+            schema = self.get_openapi_schema(app)
+            error_response = self._validate_request_contract(method, path, schema)
+            if error_response:
+                return error_response
 
             # Process the request
             response = await call_next(request)
 
-            # Validate response if enabled
-            if self.validate_responses:
-                schema = self.get_openapi_schema(app)
-                if not self.validate_response_status(path, method, response.status_code, schema):
-                    if self.log_violations:
-                        logger.warning(
-                            f"Contract violation: Undefined response status {response.status_code} "
-                            f"for {method} {path}"
-                        )
+            # Validate response contract
+            self._validate_response_contract(path, method, response, schema)
 
-            # Add contract validation headers
-            response.headers["X-Contract-Validated"] = "true"
-            response.headers["X-Request-Validation"] = str(self.validate_requests).lower()
-            response.headers["X-Response-Validation"] = str(self.validate_responses).lower()
+            # Add validation headers
+            self._add_validation_headers(response)
 
             return response
 
         except RequestValidationError as e:
-            # Handle FastAPI validation errors
             if self.log_violations:
                 logger.error(f"Request validation error for {method} {path}: {e}")
 
             return JSONResponse(
                 status_code=422,
-                content={
-                    "detail": "Request validation failed",
-                    "errors": e.errors(),
-                    "path": path,
-                    "method": method
-                }
+                content={"detail": "Request validation failed", "errors": e.errors(), "path": path, "method": method},
             )
 
         except Exception as e:
-            # Handle unexpected errors
             if self.log_violations:
                 logger.error(f"Contract validation error for {method} {path}: {e}", exc_info=True)
-
-            # Let the original error propagate for proper error handling
             raise
 
 
 def setup_contract_validation(
-    app: FastAPI,
-    validate_requests: bool = True,
-    validate_responses: bool = True,
-    log_violations: bool = True
+    app: FastAPI, validate_requests: bool = True, validate_responses: bool = True, log_violations: bool = True
 ) -> None:
     """Setup contract validation middleware for the FastAPI app"""
-    middleware = ContractValidationMiddleware(
+    ContractValidationMiddleware(
         app=app,
         validate_requests=validate_requests,
         validate_responses=validate_responses,
-        log_violations=log_violations
+        log_violations=log_violations,
     )
 
     app.add_middleware(
         ContractValidationMiddleware,
         validate_requests=validate_requests,
         validate_responses=validate_responses,
-        log_violations=log_violations
+        log_violations=log_violations,
     )
 
     logger.info(

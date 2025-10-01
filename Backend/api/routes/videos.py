@@ -1,6 +1,7 @@
 """
 Video management API routes
 """
+
 import logging
 from typing import Any
 
@@ -21,17 +22,14 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["videos"])
 
 
-def get_video_service(
-    db_session: AsyncSession = Depends(get_async_session)
-) -> VideoService:
+def get_video_service(db_session: AsyncSession = Depends(get_async_session)) -> VideoService:
     """Get video service instance"""
     return VideoService(db_session, None)
 
 
 @router.get("", response_model=list[VideoInfo], name="get_videos")
 async def get_available_videos(
-    current_user: User = Depends(current_active_user),
-    video_service: VideoService = Depends(get_video_service)
+    current_user: User = Depends(current_active_user), video_service: VideoService = Depends(get_video_service)
 ):
     """Get list of available videos/series"""
     return video_service.get_available_videos()
@@ -41,7 +39,7 @@ async def get_available_videos(
 async def get_subtitles(
     subtitle_path: str,
     current_user: User = Depends(current_active_user),
-    video_service: VideoService = Depends(get_video_service)
+    video_service: VideoService = Depends(get_video_service),
 ):
     """Serve subtitle files - Requires authentication"""
     try:
@@ -60,9 +58,7 @@ async def get_subtitles(
 
         logger.info(f"Successfully serving subtitle file: {subtitle_file}")
         return FileResponse(
-            path=str(subtitle_file),
-            media_type="text/plain",
-            headers={"Content-Type": "text/plain; charset=utf-8"}
+            path=str(subtitle_file), media_type="text/plain", headers={"Content-Type": "text/plain; charset=utf-8"}
         )
 
     except HTTPException:
@@ -85,7 +81,7 @@ async def stream_video(
     series: str,
     episode: str,
     current_user: User = Depends(get_user_from_query_token),
-    video_service: VideoService = Depends(get_video_service)
+    video_service: VideoService = Depends(get_video_service),
 ):
     """Stream video file - Requires authentication"""
     try:
@@ -103,8 +99,8 @@ async def stream_video(
                 "Accept-Ranges": "bytes",
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "Range"
-            }
+                "Access-Control-Allow-Headers": "Range",
+            },
         )
         return response
 
@@ -117,14 +113,12 @@ async def stream_video(
 
 @router.post("/subtitle/upload", name="upload_subtitle")
 async def upload_subtitle(
-    video_path: str,
-    subtitle_file: UploadFile = File(...),
-    current_user: User = Depends(current_active_user)
+    video_path: str, subtitle_file: UploadFile = File(...), current_user: User = Depends(current_active_user)
 ):
     """Upload subtitle file for a video - Requires authentication"""
     try:
         # Validate file type
-        if not subtitle_file.filename.endswith(('.srt', '.vtt', '.sub')):
+        if not subtitle_file.filename.endswith((".srt", ".vtt", ".sub")):
             raise HTTPException(status_code=400, detail="File must be a subtitle file (.srt, .vtt, or .sub)")
 
         # Read content and validate size
@@ -135,7 +129,7 @@ async def upload_subtitle(
         if file_size_kb > MAX_SUBTITLE_SIZE_KB:
             raise HTTPException(
                 status_code=413,
-                detail=f"Subtitle file too large. Maximum size is {MAX_SUBTITLE_SIZE_KB}KB, got {file_size_kb:.1f}KB"
+                detail=f"Subtitle file too large. Maximum size is {MAX_SUBTITLE_SIZE_KB}KB, got {file_size_kb:.1f}KB",
             )
 
         # Get video file path
@@ -146,7 +140,7 @@ async def upload_subtitle(
             raise HTTPException(status_code=404, detail="Video file not found")
 
         # Save subtitle with same name as video
-        subtitle_path = video_file.with_suffix('.srt')
+        subtitle_path = video_file.with_suffix(".srt")
 
         # Write uploaded file (content already read for size validation)
         with open(subtitle_path, "wb") as buffer:
@@ -157,7 +151,7 @@ async def upload_subtitle(
         return {
             "success": True,
             "message": f"Subtitle uploaded for {video_path}",
-            "subtitle_path": str(subtitle_path.relative_to(videos_path))
+            "subtitle_path": str(subtitle_path.relative_to(videos_path)),
         }
 
     except HTTPException:
@@ -169,8 +163,7 @@ async def upload_subtitle(
 
 @router.post("/scan", name="scan_videos")
 async def scan_videos(
-    current_user: User = Depends(current_active_user),
-    video_service: VideoService = Depends(get_video_service)
+    current_user: User = Depends(current_active_user), video_service: VideoService = Depends(get_video_service)
 ):
     """Scan videos directory for new videos - Requires authentication"""
     return video_service.scan_videos_directory()
@@ -178,18 +171,14 @@ async def scan_videos(
 
 @router.get("/user", response_model=list[dict[str, Any]], name="get_user_videos")
 async def get_user_videos(
-    current_user: User = Depends(current_active_user),
-    video_service: VideoService = Depends(get_video_service)
+    current_user: User = Depends(current_active_user), video_service: VideoService = Depends(get_video_service)
 ):
     """Get videos for the current user (alias for get_available_videos)"""
     return video_service.get_available_videos()
 
 
 @router.get("/{video_id}/vocabulary", response_model=list[VocabularyWord], name="get_video_vocabulary")
-async def get_video_vocabulary(
-    video_id: str,
-    current_user: User = Depends(current_active_user)
-):
+async def get_video_vocabulary(video_id: str, current_user: User = Depends(current_active_user)):
     """Get vocabulary words extracted from a video"""
     try:
         # Convert video_id to video path
@@ -208,9 +197,7 @@ async def get_video_vocabulary(
         from api.routes.vocabulary import extract_blocking_words_for_segment
 
         # Extract vocabulary for the entire video (0 to large duration)
-        vocabulary_words = await extract_blocking_words_for_segment(
-            str(srt_path), 0, 999999, current_user.id
-        )
+        vocabulary_words = await extract_blocking_words_for_segment(str(srt_path), 0, 999999, current_user.id)
 
         logger.info(f"Extracted {len(vocabulary_words)} vocabulary words for video {video_id}")
         return vocabulary_words
@@ -229,18 +216,20 @@ class ProcessingStatus(BaseModel):
     message: str = ""
     subtitle_path: str = ""
 
+
 @router.get("/{video_id}/status", response_model=ProcessingStatus, name="get_video_status")
 async def get_video_status(
     video_id: str,
     current_user: User = Depends(current_active_user),
-    task_progress: dict[str, Any] = Depends(get_task_progress_registry)
+    task_progress: dict[str, Any] = Depends(get_task_progress_registry),
 ):
     """Get processing status for a video"""
     try:
         # Look for any processing tasks related to this video
         video_tasks = [
-            (task_id, progress) for task_id, progress in task_progress.items()
-            if video_id in task_id or video_id in str(progress.get('video_path', ''))
+            (task_id, progress)
+            for task_id, progress in task_progress.items()
+            if video_id in task_id or video_id in str(progress.get("video_path", ""))
         ]
 
         if not video_tasks:
@@ -259,18 +248,18 @@ async def get_video_status(
                     progress=100.0,
                     current_step="Processing completed",
                     message="Video has been fully processed",
-                    subtitle_path=str(srt_path.relative_to(videos_path))
+                    subtitle_path=str(srt_path.relative_to(videos_path)),
                 )
             else:
                 return ProcessingStatus(
                     status="completed",
                     progress=0.0,
                     current_step="Not processed",
-                    message="Video has not been processed yet"
+                    message="Video has not been processed yet",
                 )
 
         # Return the most recent task status
-        latest_task_id, latest_progress = video_tasks[-1]
+        _latest_task_id, latest_progress = video_tasks[-1]
         return latest_progress
 
     except HTTPException:
@@ -282,9 +271,7 @@ async def get_video_status(
 
 @router.post("/upload", name="upload_video_generic")
 async def upload_video_generic(
-    video_file: UploadFile = File(...),
-    current_user: User = Depends(current_active_user),
-    series: str = "Default"
+    video_file: UploadFile = File(...), current_user: User = Depends(current_active_user), series: str = "Default"
 ):
     """Upload a new video file (generic endpoint) - Requires authentication"""
     return await upload_video(series, video_file, current_user)
@@ -292,14 +279,12 @@ async def upload_video_generic(
 
 @router.post("/upload/{series}", name="upload_video_to_series")
 async def upload_video(
-    series: str,
-    video_file: UploadFile = File(...),
-    current_user: User = Depends(current_active_user)
+    series: str, video_file: UploadFile = File(...), current_user: User = Depends(current_active_user)
 ):
     """Upload a new video file to a series - Requires authentication"""
     try:
         # Validate file type
-        if not video_file.content_type or not video_file.content_type.startswith('video/'):
+        if not video_file.content_type or not video_file.content_type.startswith("video/"):
             raise HTTPException(status_code=400, detail="File must be a video")
 
         # Get series directory
@@ -308,7 +293,7 @@ async def upload_video(
 
         # Generate safe filename
         safe_filename = video_file.filename
-        if not safe_filename or not safe_filename.endswith(('.mp4', '.avi', '.mkv', '.mov')):
+        if not safe_filename or not safe_filename.endswith((".mp4", ".avi", ".mkv", ".mov")):
             raise HTTPException(status_code=400, detail="Invalid video file format")
 
         # Save file
@@ -337,7 +322,7 @@ async def upload_video(
                     file_path.unlink(missing_ok=True)
                     raise HTTPException(
                         status_code=413,
-                        detail=f"Video file too large. Maximum size is {MAX_VIDEO_SIZE_MB}MB, got {total_size/(1024*1024):.1f}MB"
+                        detail=f"Video file too large. Maximum size is {MAX_VIDEO_SIZE_MB}MB, got {total_size / (1024 * 1024):.1f}MB",
                     )
 
                 buffer.write(chunk)
@@ -355,7 +340,7 @@ async def upload_video(
             title=episode_info.get("title", file_path.stem),
             path=str(file_path.relative_to(settings.get_videos_path())),
             has_subtitles=False,  # New uploads won't have subtitles initially
-            duration=0
+            duration=0,
         )
 
     except HTTPException:

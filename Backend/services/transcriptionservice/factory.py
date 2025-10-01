@@ -52,14 +52,11 @@ class TranscriptionServiceFactory:
 
     @classmethod
     def register_service(
-        cls,
-        name: str,
-        service_class: type[ITranscriptionService],
-        default_config: dict | None = None
+        cls, name: str, service_class: type[ITranscriptionService], default_config: dict | None = None
     ) -> None:
         """
         Register a new transcription service
-        
+
         Args:
             name: Name to register the service under
             service_class: Class implementing ITranscriptionService
@@ -73,21 +70,17 @@ class TranscriptionServiceFactory:
             cls._default_configs[name.lower()] = default_config
 
     @classmethod
-    def create_service(
-        cls,
-        service_name: str = "whisper",
-        **kwargs
-    ) -> ITranscriptionService:
+    def create_service(cls, service_name: str = "whisper", **kwargs) -> ITranscriptionService:
         """
         Create a transcription service instance
-        
+
         Args:
             service_name: Name of the service to create
             **kwargs: Additional arguments to pass to the service constructor
-            
+
         Returns:
             Instance of the requested transcription service
-            
+
         Raises:
             ValueError: If service_name is not registered
         """
@@ -105,10 +98,7 @@ class TranscriptionServiceFactory:
                 service_class = cls_or_path
         else:
             available = ", ".join(cls._services.keys())
-            raise ValueError(
-                f"Unknown transcription service: {service_name}. "
-                f"Available services: {available}"
-            )
+            raise ValueError(f"Unknown transcription service: {service_name}. Available services: {available}")
 
         # Merge default config with provided kwargs
         if service_name in cls._default_configs:
@@ -134,7 +124,7 @@ class TranscriptionServiceFactory:
     def get_available_services(cls) -> dict[str, str]:
         """
         Get dictionary of available services
-        
+
         Returns:
             Dictionary mapping service names to descriptions
         """
@@ -162,17 +152,14 @@ class TranscriptionServiceFactory:
 
 
 # Convenience function for quick service creation
-def get_transcription_service(
-    name: str = "whisper",
-    **kwargs
-) -> ITranscriptionService:
+def get_transcription_service(name: str = "whisper", **kwargs) -> ITranscriptionService:
     """
     Get a transcription service instance
-    
+
     Args:
         name: Name of the service
         **kwargs: Service-specific configuration
-        
+
     Returns:
         Transcription service instance
     """

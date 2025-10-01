@@ -1,9 +1,11 @@
 """
 Tests for Settings path helpers (videos, data, database path).
 """
+
 from __future__ import annotations
 
 from pathlib import Path
+
 import pytest
 from pydantic import Field
 from pydantic_settings import BaseSettings
@@ -11,15 +13,15 @@ from pydantic_settings import BaseSettings
 
 class _TestSettings(BaseSettings):
     """Test settings class that doesn't load from .env file"""
-    
+
     model_config = {
         "env_file": None,  # Disable .env file loading
-        "extra": "ignore"
+        "extra": "ignore",
     }
 
     # Copy the relevant fields from the original Settings class
     videos_path: str | None = Field(default=None)
-    data_path: str | None = Field(default=None) 
+    data_path: str | None = Field(default=None)
     database_url: str | None = Field(default=None)
     db_type: str = Field(default="sqlite")
 
@@ -76,4 +78,3 @@ def test_Whenget_data_path_override_createsCalled_ThenSucceeds(tmp_path: Path):
     p = s.get_data_path()
     assert p == target
     assert p.exists() and p.is_dir()
-

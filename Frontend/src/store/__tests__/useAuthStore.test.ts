@@ -79,7 +79,11 @@ describe('useAuthStore', () => {
     const { result } = renderHook(() => useAuthStore())
 
     await act(async () => {
-      await result.current.login('demo@example.com', 'badpass')
+      try {
+        await result.current.login('demo@example.com', 'badpass')
+      } catch (error) {
+        // Expected to throw
+      }
     })
 
     expect(result.current.error).toBe('Invalid credentials')

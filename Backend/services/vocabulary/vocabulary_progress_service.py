@@ -3,11 +3,12 @@ Vocabulary Progress Service - Handles user progress tracking
 """
 
 import logging
-from typing import Dict, Any
-from sqlalchemy import select, func, and_
+from typing import Any
+
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import VocabularyWord, UserVocabularyProgress
+from database.models import UserVocabularyProgress, VocabularyWord
 
 logger = logging.getLogger(__name__)
 
@@ -20,17 +21,13 @@ class VocabularyProgressService:
         self.query_service = query_service
 
     async def mark_word_known(
-        self,
-        user_id: int,
-        word: str,
-        language: str,
-        is_known: bool,
-        db: AsyncSession
-    ) -> Dict[str, Any]:
+        self, user_id: int, word: str, language: str, is_known: bool, db: AsyncSession
+    ) -> dict[str, Any]:
         """Mark a word as known or unknown for a user"""
         # Get word info from query service
         if not self.query_service:
             from .vocabulary_query_service import vocabulary_query_service
+
             self.query_service = vocabulary_query_service
 
         word_info = await self.query_service.get_word_info(word, language, db)
@@ -40,21 +37,15 @@ class VocabularyProgressService:
                 "success": False,
                 "message": "Word not in vocabulary database",
                 "word": word,
-                "lemma": word_info.get("lemma")
+                "lemma": word_info.get("lemma"),
             }
 
         vocab_id = word_info["id"]
         lemma = word_info["lemma"]
 
         # Check existing progress
-        stmt = (
-            select(UserVocabularyProgress)
-            .where(
-                and_(
-                    UserVocabularyProgress.user_id == user_id,
-                    UserVocabularyProgress.vocabulary_id == vocab_id
-                )
-            )
+        stmt = select(UserVocabularyProgress).where(
+            and_(UserVocabularyProgress.user_id == user_id, UserVocabularyProgress.vocabulary_id == vocab_id)
         )
         result = await db.execute(stmt)
         progress = result.scalar_one_or_none()
@@ -76,7 +67,7 @@ class VocabularyProgressService:
                 language=language,
                 is_known=is_known,
                 confidence_level=1 if is_known else 0,
-                review_count=1
+                review_count=1,
             )
             db.add(progress)
 
@@ -88,46 +79,28 @@ class VocabularyProgressService:
             "lemma": lemma,
             "level": word_info["difficulty_level"],
             "is_known": is_known,
-            "confidence_level": progress.confidence_level
+            "confidence_level": progress.confidence_level,
         }
 
     async def bulk_mark_level(
-        self,
-        db: AsyncSession,
-        user_id: int,
-        language: str,
-        level: str,
-        is_known: bool
-    ) -> Dict[str, Any]:
+        self, db: AsyncSession, user_id: int, language: str, level: str, is_known: bool
+    ) -> dict[str, Any]:
         """Mark all words of a level as known or unknown"""
         # Get all words for the level
-        stmt = (
-            select(VocabularyWord.id, VocabularyWord.lemma)
-            .where(
-                and_(
-                    VocabularyWord.language == language,
-                    VocabularyWord.difficulty_level == level
-                )
-            )
+        stmt = select(VocabularyWord.id, VocabularyWord.lemma).where(
+            and_(VocabularyWord.language == language, VocabularyWord.difficulty_level == level)
         )
         result = await db.execute(stmt)
         words = result.all()
 
         if not words:
-            return {"success": True, "level": level, "language": language,
-                    "updated_count": 0, "is_known": is_known}
+            return {"success": True, "level": level, "language": language, "updated_count": 0, "is_known": is_known}
 
         vocab_ids = [vocab_id for vocab_id, _ in words]
 
         # Bulk get existing progress
-        existing_progress_stmt = (
-            select(UserVocabularyProgress)
-            .where(
-                and_(
-                    UserVocabularyProgress.user_id == user_id,
-                    UserVocabularyProgress.vocabulary_id.in_(vocab_ids)
-                )
-            )
+        existing_progress_stmt = select(UserVocabularyProgress).where(
+            and_(UserVocabularyProgress.user_id == user_id, UserVocabularyProgress.vocabulary_id.in_(vocab_ids))
         )
         existing_result = await db.execute(existing_progress_stmt)
         existing_progress = {p.vocabulary_id: p for p in existing_result.scalars()}
@@ -140,15 +113,17 @@ class VocabularyProgressService:
                 progress.is_known = is_known
                 progress.confidence_level = 3 if is_known else 0
             else:
-                new_progress_records.append(UserVocabularyProgress(
-                    user_id=user_id,
-                    vocabulary_id=vocab_id,
-                    lemma=lemma,
-                    language=language,
-                    is_known=is_known,
-                    confidence_level=3 if is_known else 0,
-                    review_count=0
-                ))
+                new_progress_records.append(
+                    UserVocabularyProgress(
+                        user_id=user_id,
+                        vocabulary_id=vocab_id,
+                        lemma=lemma,
+                        language=language,
+                        is_known=is_known,
+                        confidence_level=3 if is_known else 0,
+                        review_count=0,
+                    )
+                )
 
         if new_progress_records:
             db.add_all(new_progress_records)
@@ -160,33 +135,22 @@ class VocabularyProgressService:
             "level": level,
             "language": language,
             "updated_count": len(words),
-            "is_known": is_known
+            "is_known": is_known,
         }
 
-    async def get_user_vocabulary_stats(
-        self,
-        user_id: int,
-        language: str,
-        db: AsyncSession
-    ) -> Dict[str, Any]:
+    async def get_user_vocabulary_stats(self, user_id: int, language: str, db: AsyncSession) -> dict[str, Any]:
         """Get vocabulary statistics for a user"""
         # Total words in language
-        total_stmt = (
-            select(func.count(VocabularyWord.id))
-            .where(VocabularyWord.language == language)
-        )
+        total_stmt = select(func.count(VocabularyWord.id)).where(VocabularyWord.language == language)
         total_result = await db.execute(total_stmt)
         total_words = total_result.scalar() or 0
 
         # Known words by user
-        known_stmt = (
-            select(func.count(UserVocabularyProgress.id))
-            .where(
-                and_(
-                    UserVocabularyProgress.user_id == user_id,
-                    UserVocabularyProgress.language == language,
-                    UserVocabularyProgress.is_known == True
-                )
+        known_stmt = select(func.count(UserVocabularyProgress.id)).where(
+            and_(
+                UserVocabularyProgress.user_id == user_id,
+                UserVocabularyProgress.language == language,
+                UserVocabularyProgress.is_known,
             )
         )
         known_result = await db.execute(known_stmt)
@@ -196,16 +160,16 @@ class VocabularyProgressService:
         level_stmt = (
             select(
                 VocabularyWord.difficulty_level,
-                func.count(VocabularyWord.id).label('total'),
-                func.count(UserVocabularyProgress.id).label('known')
+                func.count(VocabularyWord.id).label("total"),
+                func.count(UserVocabularyProgress.id).label("known"),
             )
             .outerjoin(
                 UserVocabularyProgress,
                 and_(
                     UserVocabularyProgress.vocabulary_id == VocabularyWord.id,
                     UserVocabularyProgress.user_id == user_id,
-                    UserVocabularyProgress.is_known == True
-                )
+                    UserVocabularyProgress.is_known,
+                ),
             )
             .where(VocabularyWord.language == language)
             .group_by(VocabularyWord.difficulty_level)
@@ -218,7 +182,7 @@ class VocabularyProgressService:
             words_by_level[level] = {
                 "total": total,
                 "known": known or 0,
-                "percentage": round((known or 0) / total * 100, 1) if total > 0 else 0
+                "percentage": round((known or 0) / total * 100, 1) if total > 0 else 0,
             }
 
         return {
@@ -226,7 +190,7 @@ class VocabularyProgressService:
             "total_known": known_words,
             "percentage_known": round(known_words / total_words * 100, 1) if total_words > 0 else 0,
             "words_by_level": words_by_level,
-            "language": language
+            "language": language,
         }
 
 

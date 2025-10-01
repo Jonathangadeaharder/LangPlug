@@ -1,17 +1,17 @@
 """Test data builders following the builder pattern for consistent test data creation."""
+
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, UTC
-from typing import Any, Dict, Optional
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import Enum
-
-from database.models import VocabularyWord, Language, UserVocabularyProgress
+from typing import Any
 
 
 class CEFRLevel(str, Enum):
     """CEFR levels for vocabulary testing."""
+
     A1 = "A1"
     A2 = "A2"
     B1 = "B1"
@@ -23,45 +23,40 @@ class CEFRLevel(str, Enum):
 @dataclass
 class TestUser:
     """Test user data structure."""
-    id: Optional[str] = None
+
+    id: str | None = None
     username: str = ""
     email: str = ""
     password: str = "TestPass123!"
     is_active: bool = True
     is_superuser: bool = False
-    created_at: Optional[datetime] = None
-    last_login: Optional[datetime] = None
+    created_at: datetime | None = None
+    last_login: datetime | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for API requests."""
-        return {
-            "username": self.username,
-            "email": self.email,
-            "password": self.password
-        }
+        return {"username": self.username, "email": self.email, "password": self.password}
 
 
 @dataclass
 class TestVocabularyWord:
     """Test vocabulary concept data structure."""
-    id: Optional[str] = None
+
+    id: str | None = None
     word: str = ""
     level: str = "A1"
     language_code: str = "de"
-    frequency_rank: Optional[int] = None
-    created_at: Optional[datetime] = None
+    frequency_rank: int | None = None
+    created_at: datetime | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for API requests."""
         return {
             "word": self.word,
             "level": self.level,
             "language_code": self.language_code,
-            "frequency_rank": self.frequency_rank
+            "frequency_rank": self.frequency_rank,
         }
-
-
-
 
 
 class UserBuilder:
@@ -77,7 +72,7 @@ class UserBuilder:
             id=str(uuid.uuid4()),
             username=f"testuser_{unique_id}",
             email=f"test_{unique_id}@example.com",
-            created_at=datetime.now(UTC)
+            created_at=datetime.now(UTC),
         )
 
     def with_username(self, username: str) -> UserBuilder:
@@ -105,7 +100,7 @@ class UserBuilder:
         self._user.is_active = False
         return self
 
-    def with_last_login(self, last_login: datetime = None) -> UserBuilder:
+    def with_last_login(self, last_login: datetime | None = None) -> UserBuilder:
         """Set last login time."""
         self._user.last_login = last_login or datetime.now(UTC)
         return self
@@ -126,9 +121,7 @@ class VocabularyWordBuilder:
     def _reset(self):
         """Reset builder to default state."""
         self._concept = TestVocabularyWord(
-            id=str(uuid.uuid4()),
-            word=f"testword_{str(uuid.uuid4())[:8]}",
-            created_at=datetime.now(UTC)
+            id=str(uuid.uuid4()), word=f"testword_{str(uuid.uuid4())[:8]}", created_at=datetime.now(UTC)
         )
 
     def with_word(self, word: str) -> VocabularyWordBuilder:
@@ -156,9 +149,6 @@ class VocabularyWordBuilder:
         concept = self._concept
         self._reset()
         return concept
-
-
-
 
 
 class TestDataSets:
@@ -195,46 +185,24 @@ class TestDataSets:
             .with_level(CEFRLevel.A2)
             .with_language("de")
             .with_frequency_rank(300)
-            .build()
+            .build(),
         ]
 
-
-
     @staticmethod
-    def create_multilevel_vocabulary() -> Dict[str, list[TestVocabularyWord]]:
+    def create_multilevel_vocabulary() -> dict[str, list[TestVocabularyWord]]:
         """Create vocabulary words across different CEFR levels."""
         return {
             "A1": [
-                VocabularyWordBuilder()
-                .with_word("ich")
-                .with_level(CEFRLevel.A1)
-                .with_language("de")
-                .build(),
-                VocabularyWordBuilder()
-                .with_word("du")
-                .with_level(CEFRLevel.A1)
-                .with_language("de")
-                .build()
+                VocabularyWordBuilder().with_word("ich").with_level(CEFRLevel.A1).with_language("de").build(),
+                VocabularyWordBuilder().with_word("du").with_level(CEFRLevel.A1).with_language("de").build(),
             ],
             "B1": [
-                VocabularyWordBuilder()
-                .with_word("jedoch")
-                .with_level(CEFRLevel.B1)
-                .with_language("de")
-                .build(),
-                VocabularyWordBuilder()
-                .with_word("obwohl")
-                .with_level(CEFRLevel.B1)
-                .with_language("de")
-                .build()
+                VocabularyWordBuilder().with_word("jedoch").with_level(CEFRLevel.B1).with_language("de").build(),
+                VocabularyWordBuilder().with_word("obwohl").with_level(CEFRLevel.B1).with_language("de").build(),
             ],
             "C1": [
-                VocabularyWordBuilder()
-                .with_word("diesbezüglich")
-                .with_level(CEFRLevel.C1)
-                .with_language("de")
-                .build()
-            ]
+                VocabularyWordBuilder().with_word("diesbezüglich").with_level(CEFRLevel.C1).with_language("de").build()
+            ],
         }
 
 
@@ -257,4 +225,3 @@ def create_vocabulary_word(**kwargs) -> TestVocabularyWord:
         if hasattr(word, key):
             setattr(word, key, value)
     return word
-

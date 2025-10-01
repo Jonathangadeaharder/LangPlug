@@ -52,11 +52,11 @@ const Input = styled.input`
   border-radius: 4px;
   color: white;
   font-size: 16px;
-  
+
   &::placeholder {
     color: #8c8c8c;
   }
-  
+
   &:focus {
     background: #454545;
   }
@@ -72,11 +72,11 @@ const RegisterButton = styled(NetflixButton)`
 const SignInText = styled.p`
   color: #737373;
   margin-top: 16px;
-  
+
   a {
     color: white;
     text-decoration: none;
-    
+
     &:hover {
       text-decoration: underline;
     }
@@ -87,12 +87,12 @@ const PasswordRequirements = styled.div`
   color: #b3b3b3;
   font-size: 13px;
   margin: 8px 0;
-  
+
   ul {
     margin: 4px 0;
     padding-left: 20px;
   }
-  
+
   li {
     margin: 2px 0;
   }
@@ -105,7 +105,7 @@ export const RegisterForm: React.FC = () => {
   const [name, setName] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  
+
   const { register, isLoading, error: authError } = useAuthStore()
   const navigate = useNavigate()
 
@@ -125,8 +125,8 @@ export const RegisterForm: React.FC = () => {
     if (!password) {
       return 'Password is required'
     }
-    if (password.length < 6) {
-      return 'Password must be at least 6 characters long'
+    if (password.length < 12) {
+      return 'Password must be at least 12 characters long'
     }
     if (password !== confirmPassword) {
       return 'Passwords do not match'
@@ -150,13 +150,33 @@ export const RegisterForm: React.FC = () => {
       setSuccess(true)
       toast.success('Account created successfully! Redirecting to dashboard...')
       setTimeout(() => navigate('/'), 2000)
-    } catch (error) {
-      const errorMessage = authError || 'Failed to create account. Please try again.'
-      setError(errorMessage)
+    } catch (error: any) {
+      // Handle validation errors from backend
+      if (error?.response?.data?.detail) {
+        // Handle array of validation errors
+        if (Array.isArray(error.response.data.detail)) {
+          const messages = error.response.data.detail.map((err: any) => {
+            if (err.msg) {
+              // Extract user-friendly message from validation error
+              const msg = err.msg.includes('Value error,')
+                ? err.msg.split('Value error, ')[1]
+                : err.msg
+              return msg
+            }
+            return 'Invalid input'
+          })
+          setError(messages.join('. '))
+        } else {
+          setError(error.response.data.detail)
+        }
+      } else {
+        const errorMessage = authError || 'Failed to create account. Please try again.'
+        setError(errorMessage)
+      }
     }
   }
 
-  const isPasswordValid = password.length >= 6
+  const isPasswordValid = password.length >= 12
   const doPasswordsMatch = password === confirmPassword && confirmPassword.length > 0
 
   return (
@@ -164,7 +184,7 @@ export const RegisterForm: React.FC = () => {
       <RegisterCard>
         <Logo>LangPlug</Logo>
         <Title>Sign Up</Title>
-        
+
         <form onSubmit={handleSubmit}>
           <Input
             type="email"
@@ -174,7 +194,7 @@ export const RegisterForm: React.FC = () => {
             disabled={isLoading}
             data-testid="register-email-input"
           />
-          
+
           <Input
             type="text"
             placeholder="Name"
@@ -183,7 +203,7 @@ export const RegisterForm: React.FC = () => {
             disabled={isLoading}
             data-testid="register-name-input"
           />
-          
+
           <Input
             type="password"
             placeholder="Password"
@@ -192,7 +212,7 @@ export const RegisterForm: React.FC = () => {
             disabled={isLoading}
             data-testid="register-password-input"
           />
-          
+
           <Input
             type="password"
             placeholder="Confirm Password"
@@ -201,31 +221,31 @@ export const RegisterForm: React.FC = () => {
             disabled={isLoading}
             data-testid="register-confirm-password-input"
           />
-          
+
           <PasswordRequirements>
             Password requirements:
             <ul>
               <li style={{ color: isPasswordValid ? '#46d369' : '#b3b3b3' }}>
-                At least 6 characters
+                At least 12 characters
               </li>
               <li style={{ color: doPasswordsMatch ? '#46d369' : '#b3b3b3' }}>
                 Passwords must match
               </li>
             </ul>
           </PasswordRequirements>
-          
+
           {error && <ErrorMessage>{error}</ErrorMessage>}
           {success && <SuccessMessage>Account created successfully! Redirecting to login...</SuccessMessage>}
-          
-          <RegisterButton 
-            type="submit" 
+
+          <RegisterButton
+            type="submit"
             disabled={isLoading || success}
             data-testid="register-submit-button"
           >
             {isLoading ? 'Creating Account...' : 'Sign Up'}
           </RegisterButton>
         </form>
-        
+
         <SignInText>
           Already have an account? <a href="/login">Sign in now</a>.
         </SignInText>

@@ -1,10 +1,11 @@
 """Focused auth error-path coverage respecting the CDD/TDD 80/20 rules."""
+
 from __future__ import annotations
 
 import pytest
 
-from tests.auth_helpers import AuthResponseStructures, AuthTestHelper
 from tests.assertion_helpers import assert_validation_error_response
+from tests.auth_helpers import AuthResponseStructures, AuthTestHelper
 
 
 @pytest.mark.anyio
@@ -40,9 +41,14 @@ async def test_WhenLoginbad_credentials_ThenReturnscontract_error(async_http_cli
     if "error" in payload and "message" in payload["error"]:
         assert payload["error"]["message"] == "LOGIN_BAD_CREDENTIALS"
     elif "detail" in payload:
-        assert payload["detail"] in {"LOGIN_BAD_CREDENTIALS", AuthResponseStructures.LOGIN_BAD_CREDENTIALS.get("detail")}
+        assert payload["detail"] in {
+            "LOGIN_BAD_CREDENTIALS",
+            AuthResponseStructures.LOGIN_BAD_CREDENTIALS.get("detail"),
+        }
     else:
-        assert False, f"Unexpected error format: {payload}"
+        raise AssertionError(f"Unexpected error format: {payload}")
+
+
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
 async def test_WhenLogoutwithout_token_ThenReturnsunauthorized(async_http_client):
@@ -52,5 +58,3 @@ async def test_WhenLogoutwithout_token_ThenReturnsunauthorized(async_http_client
     assert response.status_code == AuthResponseStructures.UNAUTHORIZED["status_code"]
     www_authenticate = response.headers.get("www-authenticate")
     assert www_authenticate is None or "bearer" in www_authenticate.lower()
-
-

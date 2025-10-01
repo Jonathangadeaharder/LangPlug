@@ -19,12 +19,7 @@
         "question_id": "f3d56852-520d-4ccf-8512-d5ca4e0babb4",
         "question_type": "multiple_choice",
         "question_text": "What was the main idea of segment 1?",
-        "options": [
-          "Idea A",
-          "Idea B",
-          "Idea C",
-          "Idea D"
-        ],
+        "options": ["Idea A", "Idea B", "Idea C", "Idea D"],
         "correct_answer": "Idea A",
         "user_answer": null,
         "is_correct": null,
@@ -35,12 +30,7 @@
         "question_id": "be6be26a-813b-4838-baf1-70d9faa7c74c",
         "question_type": "multiple_choice",
         "question_text": "What was the main idea of segment 2?",
-        "options": [
-          "Idea A",
-          "Idea B",
-          "Idea C",
-          "Idea D"
-        ],
+        "options": ["Idea A", "Idea B", "Idea C", "Idea D"],
         "correct_answer": "Idea A",
         "user_answer": null,
         "is_correct": null,
@@ -51,12 +41,7 @@
         "question_id": "3b090a36-11db-46b7-acfa-ffd00761fd47",
         "question_type": "multiple_choice",
         "question_text": "What was the main idea of segment 3?",
-        "options": [
-          "Idea A",
-          "Idea B",
-          "Idea C",
-          "Idea D"
-        ],
+        "options": ["Idea A", "Idea B", "Idea C", "Idea D"],
         "correct_answer": "Idea A",
         "user_answer": null,
         "is_correct": null,
@@ -67,12 +52,7 @@
         "question_id": "db59c938-1c60-4741-be51-906427476b4f",
         "question_type": "multiple_choice",
         "question_text": "What was the main idea of segment 4?",
-        "options": [
-          "Idea A",
-          "Idea B",
-          "Idea C",
-          "Idea D"
-        ],
+        "options": ["Idea A", "Idea B", "Idea C", "Idea D"],
         "correct_answer": "Idea A",
         "user_answer": null,
         "is_correct": null,
@@ -83,12 +63,7 @@
         "question_id": "1e7882bf-3c33-4feb-9521-3f270c29c07e",
         "question_type": "multiple_choice",
         "question_text": "What was the main idea of segment 5?",
-        "options": [
-          "Idea A",
-          "Idea B",
-          "Idea C",
-          "Idea D"
-        ],
+        "options": ["Idea A", "Idea B", "Idea C", "Idea D"],
         "correct_answer": "Idea A",
         "user_answer": null,
         "is_correct": null,
@@ -99,12 +74,7 @@
         "question_id": "ae87c215-8e40-47d3-ac64-30732a7caaae",
         "question_type": "multiple_choice",
         "question_text": "What was the main idea of segment 6?",
-        "options": [
-          "Idea A",
-          "Idea B",
-          "Idea C",
-          "Idea D"
-        ],
+        "options": ["Idea A", "Idea B", "Idea C", "Idea D"],
         "correct_answer": "Idea A",
         "user_answer": null,
         "is_correct": null,
@@ -115,12 +85,7 @@
         "question_id": "6e32d690-1377-4112-9dbe-6a9d2709d018",
         "question_type": "multiple_choice",
         "question_text": "What was the main idea of segment 7?",
-        "options": [
-          "Idea A",
-          "Idea B",
-          "Idea C",
-          "Idea D"
-        ],
+        "options": ["Idea A", "Idea B", "Idea C", "Idea D"],
         "correct_answer": "Idea A",
         "user_answer": null,
         "is_correct": null,
@@ -131,12 +96,7 @@
         "question_id": "8a3e0329-deb7-4fb6-b632-626bedf7a366",
         "question_type": "multiple_choice",
         "question_text": "What was the main idea of segment 8?",
-        "options": [
-          "Idea A",
-          "Idea B",
-          "Idea C",
-          "Idea D"
-        ],
+        "options": ["Idea A", "Idea B", "Idea C", "Idea D"],
         "correct_answer": "Idea A",
         "user_answer": null,
         "is_correct": null,
@@ -147,12 +107,7 @@
         "question_id": "aab1424d-752a-467b-8411-22a1d23f304f",
         "question_type": "multiple_choice",
         "question_text": "What was the main idea of segment 9?",
-        "options": [
-          "Idea A",
-          "Idea B",
-          "Idea C",
-          "Idea D"
-        ],
+        "options": ["Idea A", "Idea B", "Idea C", "Idea D"],
         "correct_answer": "Idea A",
         "user_answer": null,
         "is_correct": null,
@@ -163,12 +118,7 @@
         "question_id": "f6ff81f0-c36b-48b5-ad34-e30eab99f9bb",
         "question_type": "multiple_choice",
         "question_text": "What was the main idea of segment 10?",
-        "options": [
-          "Idea A",
-          "Idea B",
-          "Idea C",
-          "Idea D"
-        ],
+        "options": ["Idea A", "Idea B", "Idea C", "Idea D"],
         "correct_answer": "Idea A",
         "user_answer": null,
         "is_correct": null,

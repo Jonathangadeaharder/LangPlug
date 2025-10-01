@@ -1,4 +1,5 @@
 """Sentry configuration for error tracking"""
+
 import sentry_sdk
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.fastapi import FastApiIntegration
@@ -20,13 +21,13 @@ def configure_sentry():
             SqlalchemyIntegration(),
             LoggingIntegration(
                 level=None,  # Capture records from all levels
-                event_level=None  # Send no events from logging
+                event_level=None,  # Send no events from logging
             ),
             AsyncioIntegration(),
         ],
         traces_sample_rate=0.1,  # Capture 10% of transactions for performance monitoring
         environment=settings.environment,
-        release=getattr(settings, 'version', None),
+        release=getattr(settings, "version", None),
         before_send=filter_sensitive_data,
     )
 
@@ -34,31 +35,28 @@ def configure_sentry():
 def filter_sensitive_data(event, hint):
     """Filter sensitive data from Sentry events"""
     # Remove sensitive headers
-    if 'request' in event and 'headers' in event['request']:
-        headers = event['request']['headers']
-        sensitive_headers = ['authorization', 'cookie', 'x-api-key']
+    if "request" in event and "headers" in event["request"]:
+        headers = event["request"]["headers"]
+        sensitive_headers = ["authorization", "cookie", "x-api-key"]
         for header in sensitive_headers:
             if header in headers:
-                headers[header] = '[Filtered]'
+                headers[header] = "[Filtered]"
 
     # Remove sensitive form data
-    if 'request' in event and 'data' in event['request']:
-        data = event['request']['data']
+    if "request" in event and "data" in event["request"]:
+        data = event["request"]["data"]
         if isinstance(data, dict):
-            sensitive_fields = ['password', 'token', 'secret', 'key']
+            sensitive_fields = ["password", "token", "secret", "key"]
             for field in sensitive_fields:
                 if field in data:
-                    data[field] = '[Filtered]'
+                    data[field] = "[Filtered]"
 
     return event
 
 
-def set_user_context(user_id: str, email: str = None):
+def set_user_context(user_id: str, email: str | None = None):
     """Set user context for Sentry"""
-    sentry_sdk.set_user({
-        "id": user_id,
-        "email": email
-    })
+    sentry_sdk.set_user({"id": user_id, "email": email})
 
 
 def set_tag(key: str, value: str):

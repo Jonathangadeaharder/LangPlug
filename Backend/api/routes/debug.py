@@ -55,9 +55,4 @@ async def debug_health():
     """
     Debug health check endpoint
     """
-    return {
-        "status": "healthy",
-        "service": "langplug-backend",
-        "debug_mode": True
-    }
-
+    return {"status": "healthy", "service": "langplug-backend", "debug_mode": True}

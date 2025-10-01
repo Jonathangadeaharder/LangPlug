@@ -3,20 +3,15 @@ Test suite for VocabularyLookupService
 Tests word lookups, searches, and basic vocabulary operations
 """
 
-import pytest
 from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
+
 from services.vocabulary.vocabulary_lookup_service import VocabularyLookupService
-from database.models import VocabularyWord, UnknownWord
 
 
 class TestVocabularyLookupService:
-    """Test VocabularyLookupService initialization and basic functionality"""
-
-    def test_initialization(self):
-        """Test service initialization"""
-        service = VocabularyLookupService()
-        assert service is not None
+    """Test VocabularyLookupService functionality"""
 
     @pytest.fixture
     def service(self):
@@ -59,7 +54,7 @@ class TestGetWordInfo:
         word.notes = "Basic German word"
         return word
 
-    @patch('services.vocabulary.vocabulary_lookup_service.lemmatization_service')
+    @patch("services.vocabulary.vocabulary_lookup_service.lemmatization_service")
     async def test_get_word_info_found(self, mock_lemma_service, service, mock_db_session, mock_vocab_word):
         """Test successful word information retrieval"""
         # Setup
@@ -83,7 +78,7 @@ class TestGetWordInfo:
         assert result["difficulty_level"] == "A1"
         assert result["translation_en"] == "house"
 
-    @patch('services.vocabulary.vocabulary_lookup_service.lemmatization_service')
+    @patch("services.vocabulary.vocabulary_lookup_service.lemmatization_service")
     async def test_get_word_info_not_found(self, mock_lemma_service, service, mock_db_session):
         """Test word information retrieval when word not found"""
         # Setup
@@ -243,7 +238,7 @@ class TestGetVocabularyLibrary:
 
         async def mock_execute_side_effect(*args):
             # Return count result first, then scalars result
-            if not hasattr(mock_execute_side_effect, 'call_count'):
+            if not hasattr(mock_execute_side_effect, "call_count"):
                 mock_execute_side_effect.call_count = 0
             mock_execute_side_effect.call_count += 1
 

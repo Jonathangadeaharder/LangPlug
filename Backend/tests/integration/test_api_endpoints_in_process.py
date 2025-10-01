@@ -1,17 +1,17 @@
 """In-process integration tests using TestClient (replacing external process tests)."""
+
 from __future__ import annotations
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 
 from tests.helpers import (
     AsyncAuthHelper,
-    assert_status_code,
-    assert_json_response,
     assert_auth_response_structure,
-    assert_user_response_structure,
     assert_authentication_error,
-    assert_vocabulary_response_structure
+    assert_json_response,
+    assert_status_code,
+    assert_user_response_structure,
+    assert_vocabulary_response_structure,
 )
 
 
@@ -54,7 +54,7 @@ class TestAuthenticationEndpoints:
         """Authenticated user should be able to access their profile."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        user, _token, headers = await auth_helper.create_authenticated_user()
 
         # Act
         response = await async_client.get("/api/auth/me", headers=headers)
@@ -80,7 +80,7 @@ class TestAuthenticationEndpoints:
         """User logout should invalidate the token."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        _user, token, headers = await auth_helper.create_authenticated_user()
 
         # Verify token works initially
         response = await async_client.get("/api/auth/me", headers=headers)
@@ -106,7 +106,7 @@ class TestVocabularyEndpoints:
         """Authenticated user should be able to get vocabulary statistics."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        _user, _token, headers = await auth_helper.create_authenticated_user()
 
         # Act
         response = await async_client.get("/api/vocabulary/stats", headers=headers)
@@ -124,7 +124,7 @@ class TestVocabularyEndpoints:
         """Authenticated user should be able to get supported languages."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        _user, _token, headers = await auth_helper.create_authenticated_user()
 
         # Act
         response = await async_client.get("/api/vocabulary/languages", headers=headers)
@@ -139,7 +139,7 @@ class TestVocabularyEndpoints:
         """Authenticated user should be able to get vocabulary for a specific level."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        _user, _token, headers = await auth_helper.create_authenticated_user()
 
         # Act
         response = await async_client.get(
@@ -157,9 +157,10 @@ class TestVocabularyEndpoints:
         """Authenticated user should be able to mark a word as known."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        _user, _token, headers = await auth_helper.create_authenticated_user()
 
         from uuid import uuid4
+
         concept_id = str(uuid4())
 
         # Act
@@ -196,7 +197,7 @@ class TestVocabularyEndpoints:
         """Authenticated user should be able to perform bulk mark operations."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        _user, _token, headers = await auth_helper.create_authenticated_user()
 
         # Act
         response = await async_client.post(
@@ -221,13 +222,10 @@ class TestEndpointValidation:
         """Request for invalid vocabulary level should return validation error."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        _user, _token, headers = await auth_helper.create_authenticated_user()
 
         # Act
-        response = await async_client.get(
-            "/api/vocabulary/library/INVALID_LEVEL",
-            headers=headers
-        )
+        response = await async_client.get("/api/vocabulary/library/INVALID_LEVEL", headers=headers)
 
         # Assert
         assert response.status_code == 422, "Invalid level should return validation error"
@@ -237,7 +235,7 @@ class TestEndpointValidation:
         """Mark known request without concept_id should return validation error."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        _user, _token, headers = await auth_helper.create_authenticated_user()
 
         # Act
         response = await async_client.post(
@@ -254,7 +252,7 @@ class TestEndpointValidation:
         """Mark known request with invalid UUID should return validation error."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        _user, _token, headers = await auth_helper.create_authenticated_user()
 
         # Act
         response = await async_client.post(
@@ -271,7 +269,7 @@ class TestEndpointValidation:
         """Bulk mark with invalid level should return validation error."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
-        user, token, headers = await auth_helper.create_authenticated_user()
+        _user, _token, headers = await auth_helper.create_authenticated_user()
 
         # Act
         response = await async_client.post(
@@ -318,8 +316,8 @@ class TestEndpointSecurity:
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
 
-        user1, token1, headers1 = await auth_helper.create_authenticated_user()
-        user2, token2, headers2 = await auth_helper.create_authenticated_user()
+        user1, _token1, headers1 = await auth_helper.create_authenticated_user()
+        user2, _token2, headers2 = await auth_helper.create_authenticated_user()
 
         # Act
         response1 = await async_client.get("/api/auth/me", headers=headers1)
@@ -358,14 +356,13 @@ class TestEndpointPerformance:
     async def test_When_concurrent_auth_requests_made_Then_all_succeed(self, async_client):
         """Concurrent authentication requests should all succeed."""
         import asyncio
-        from tests.helpers import UserBuilder
 
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)
 
         # Create multiple users concurrently
         async def create_user():
-            user, token, headers = await auth_helper.create_authenticated_user()
+            _user, _token, headers = await auth_helper.create_authenticated_user()
             response = await async_client.get("/api/auth/me", headers=headers)
             return assert_json_response(response, 200)
 

@@ -52,9 +52,7 @@ class UserDataLoader:
                     rows = await rows
                 lemmas = {lemma.lower() for (lemma,) in rows}
                 if lemmas:
-                    logger.debug(
-                        f"Loaded {len(lemmas)} known lemmas for user {user_id_str} via direct query"
-                    )
+                    logger.debug(f"Loaded {len(lemmas)} known lemmas for user {user_id_str} via direct query")
                     return lemmas
         except Exception as exc:
             logger.error(f"Error loading user known words via direct query: {exc}")
@@ -62,13 +60,12 @@ class UserDataLoader:
         # Service fallback if direct query returns nothing or fails
         try:
             from services.vocabulary_service import VocabularyService
+
             vocab_service = VocabularyService
 
             known_lemmas = await vocab_service.get_user_known_words(user_id_str, language)
             if known_lemmas:
-                logger.debug(
-                    f"Loaded {len(known_lemmas)} known lemmas for user {user_id_str} via service fallback"
-                )
+                logger.debug(f"Loaded {len(known_lemmas)} known lemmas for user {user_id_str} via service fallback")
                 return {lemma.lower() for lemma in known_lemmas}
         except Exception as exc:
             logger.error(f"Service lookup for user known words failed: {exc}")

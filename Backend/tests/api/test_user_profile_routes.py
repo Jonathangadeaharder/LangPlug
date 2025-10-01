@@ -1,4 +1,5 @@
 """User profile route tests following the CDD/TDD policies."""
+
 from __future__ import annotations
 
 import pytest

@@ -1,11 +1,13 @@
 """Server smoke tests that validate critical endpoints respond as expected."""
+
 from __future__ import annotations
 
 import os
+
 import pytest
+from httpx import ASGITransport, AsyncClient
 
 from core.app import create_app
-from httpx import ASGITransport, AsyncClient
 from tests.auth_helpers import AuthTestHelper
 
 
@@ -42,7 +44,10 @@ async def test_WhenloginWithoutform_encoding_ThenReturnsError(async_client_no_db
         json={"username": "user@example.com", "password": "Password123!"},
     )
 
-    assert response.status_code in {400, 422}
+    # JSON login should return 422 (validation error - expects form data)
+    assert (
+        response.status_code == 422
+    ), f"Expected 422 (validation error for JSON login), got {response.status_code}: {response.text}"
 
 
 @pytest.mark.timeout(30)

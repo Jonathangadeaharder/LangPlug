@@ -1,6 +1,7 @@
 """
 FastAPI application factory
 """
+
 from contextlib import asynccontextmanager
 from datetime import datetime
 
@@ -25,6 +26,7 @@ from .dependencies import cleanup_services, init_services
 from .exception_handlers import setup_exception_handlers
 from .logging_config import configure_logging, get_logger
 from .middleware import setup_middleware
+from .security_middleware import setup_security_middleware
 from .sentry_config import configure_sentry
 
 # Initialize logging and Sentry
@@ -39,6 +41,7 @@ async def lifespan(app: FastAPI):
     try:
         # Import os at the beginning
         import os
+
         from .config import settings
 
         # Log startup information including port
@@ -63,6 +66,7 @@ async def lifespan(app: FastAPI):
         # Note: cleanup_services is async but called in sync context during shutdown
         # This is acceptable as it's a cleanup operation
         import asyncio
+
         try:
             asyncio.create_task(cleanup_services())
         except RuntimeError:
@@ -80,20 +84,18 @@ def create_app() -> FastAPI:
         description="German Language Learning Platform API",
         version="1.0.0",
         lifespan=lifespan,
-        debug=settings.debug
+        debug=settings.debug,
     )
 
     # Set up middleware (CORS, logging, error handling)
     setup_middleware(app)
 
+    # Set up security middleware
+    setup_security_middleware(app, settings)
+
     # Set up contract validation (only in debug mode for development)
     if settings.debug:
-        setup_contract_validation(
-            app,
-            validate_requests=True,
-            validate_responses=True,
-            log_violations=True
-        )
+        setup_contract_validation(app, validate_requests=True, validate_responses=True, log_violations=True)
 
     # Set up exception handlers
     setup_exception_handlers(app)
@@ -106,7 +108,7 @@ def create_app() -> FastAPI:
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
             "version": "1.0.0",
-            "debug": settings.debug
+            "debug": settings.debug,
         }
 
     # Simple test endpoint
@@ -115,12 +117,10 @@ def create_app() -> FastAPI:
         """Simple test endpoint"""
         return {"message": "Test endpoint is working!", "timestamp": datetime.now().isoformat()}
 
-
     # Include FastAPI-Users authentication routes
     from .auth import UserCreate, UserRead, auth_backend, fastapi_users
-    app.include_router(
-        fastapi_users.get_auth_router(auth_backend), prefix="/api/auth", tags=["auth"]
-    )
+
+    app.include_router(fastapi_users.get_auth_router(auth_backend), prefix="/api/auth", tags=["auth"])
     app.include_router(
         fastapi_users.get_register_router(UserRead, UserCreate),
         prefix="/api/auth",

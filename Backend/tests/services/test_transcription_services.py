@@ -1,4 +1,5 @@
 """Transcription service interface tests."""
+
 from __future__ import annotations
 
 import pytest
@@ -11,7 +12,7 @@ def test_Whenservice_factory_called_ThenReturnsService():
     """Service factory should return a service instance or None if unavailable."""
     service = get_transcription_service("whisper-tiny")
     if service is not None:
-        assert hasattr(service, 'transcribe'), "Service missing transcribe method"
+        assert hasattr(service, "transcribe"), "Service missing transcribe method"
 
 
 @pytest.mark.timeout(30)

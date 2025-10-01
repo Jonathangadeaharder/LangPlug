@@ -13,7 +13,7 @@ from datetime import datetime
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 
 
 # revision identifiers, used by Alembic.
@@ -26,20 +26,33 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Add password migration tracking column and mark existing users."""
     # Add the needs_password_migration column to users table
-    op.add_column('users', sa.Column('needs_password_migration', sa.Boolean(), server_default='1'))
-    
-    # Update existing users to mark them for password migration
-    # This handles users who have SHA256 passwords that need to be migrated to bcrypt
+    op.add_column('users', sa.Column('needs_password_migration', sa.Boolean(), server_default=sa.true()))
+
     connection = op.get_bind()
-    connection.execute(
-        text("""
-            UPDATE users 
-            SET needs_password_migration = 1,
-                updated_at = :updated_at
-            WHERE hashed_password IS NOT NULL AND hashed_password != ''
-        """),
-        {"updated_at": datetime.utcnow()}
-    )
+    inspector = inspect(connection)
+    user_columns = {column['name'] for column in inspector.get_columns('users')}
+
+    update_target = None
+    if 'hashed_password' in user_columns:
+        update_target = 'hashed_password'
+    elif 'password_hash' in user_columns:
+        update_target = 'password_hash'
+
+    if update_target:
+        connection.execute(
+            text(
+                f"""
+                UPDATE users
+                SET needs_password_migration = :needs_migration,
+                    updated_at = :updated_at
+                WHERE {update_target} IS NOT NULL AND {update_target} != ''
+                """
+            ),
+            {
+                "updated_at": datetime.utcnow(),
+                "needs_migration": True,
+            }
+        )
 
 
 def downgrade() -> None:

@@ -2,6 +2,7 @@
 """
 LangPlug Backend Startup Script with Error Handling
 """
+
 import os
 import sys
 import traceback
@@ -9,20 +10,21 @@ import warnings
 from pathlib import Path
 
 # Configure console encoding for Windows compatibility
-if sys.platform.startswith('win'):
+if sys.platform.startswith("win"):
     import codecs
+
     # Set stdout and stderr to use UTF-8 encoding
-    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
-    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
+    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
+    sys.stderr = codecs.getwriter("utf-8")(sys.stderr.detach())
     # Set environment variable for Python to use UTF-8
-    os.environ['PYTHONIOENCODING'] = 'utf-8'
+    os.environ["PYTHONIOENCODING"] = "utf-8"
 
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
+
 def main():
     """Main startup function with comprehensive error handling"""
-    print("Starting LangPlug Backend...")
 
     try:
         # Silence known third-party deprecation warnings until dependencies update
@@ -40,23 +42,19 @@ def main():
         )
 
         # Step 1: Test imports
-        print("Testing imports...")
         import fastapi
         import uvicorn
 
         from core.config import settings
         from core.logging_config import setup_logging
-        print("Basic imports successful")
 
         # Step 2: Initialize logging
-        print("Setting up logging...")
         setup_logging()
-        print("Logging configured")
 
         # Enable debug logging for watchfiles to see which files are changing
         if settings.reload:
             import logging
-            from typing import Iterable
+            from collections.abc import Iterable
 
             class _WatchfilesSelectiveFilter(logging.Filter):
                 """Only surface reload notifications for relevant source changes."""
@@ -74,7 +72,7 @@ def main():
                         return False
                     return path.endswith(self.allowed_suffixes)
 
-                def filter(self, record: logging.LogRecord) -> bool:  # noqa: D401
+                def filter(self, record: logging.LogRecord) -> bool:
                     # Drop generic watchfiles info messages ('4 changes detected')
                     if record.levelno >= logging.INFO and "changes detected" in record.getMessage().lower():
                         return False
@@ -88,9 +86,7 @@ def main():
                         return keep
 
                     message = record.getMessage().lower()
-                    if any(token in message for token in self.ignored_tokens):
-                        return False
-                    return True
+                    return not any(token in message for token in self.ignored_tokens)
 
             log_level_name = os.getenv("WATCHFILES_LOG_LEVEL", "DEBUG").upper()
             log_level = getattr(logging, log_level_name, logging.DEBUG)
@@ -111,39 +107,35 @@ def main():
         # Step 3: Test database and services initialization
         # Skip in CI/test mode to avoid heavy model loading which slows or blocks startup
         if os.getenv("TESTING") == "1":
-            print("Skipping service initialization in TESTING mode")
+            pass
         else:
-            print("Initializing services...")
             import asyncio
 
             from core.dependencies import init_services
+
             asyncio.run(init_services())
-            print("Services initialized")
 
         # Step 4: Create FastAPI app
-        print("Creating FastAPI application...")
         from core.app import create_app
-        app = create_app()
-        print(f"App created: {app.title}")
+
+        create_app()
 
         # Step 5: Start server
-        print(f"Starting server on {settings.host}:{settings.port}")
-        print("Backend will be available at:")
-        print(f"   • Health check: http://{settings.host}:{settings.port}/health")
-        print(f"   • API docs: http://{settings.host}:{settings.port}/docs")
-        print("Default admin credentials: admin / admin")
-        print("\nServer starting...")
 
         # Only watch specific directories to avoid SQLite WAL file spam
-        reload_dirs = [
-            str(Path(__file__).parent / "api"),
-            str(Path(__file__).parent / "core"),
-            str(Path(__file__).parent / "services")
-        ] if settings.reload else None
+        reload_dirs = (
+            [
+                str(Path(__file__).parent / "api"),
+                str(Path(__file__).parent / "core"),
+                str(Path(__file__).parent / "services"),
+            ]
+            if settings.reload
+            else None
+        )
 
         # Simplified reload configuration - only watch .py files in specific dirs
         if reload_dirs:
-            print(f"Watching directories: {reload_dirs}")
+            pass
 
         # Configure reload with conservative settings to minimize watchfiles spam
         reload_excludes = None
@@ -181,17 +173,13 @@ def main():
             **reload_config,
         )
 
-    except ImportError as e:
-        print(f"Import Error: {e}")
-        print("Make sure all dependencies are installed:")
-        print("   pip install -r requirements.txt")
+    except ImportError:
         return 1
 
-    except Exception as e:
-        print(f"Startup Error: {e}")
-        print("\nFull error traceback:")
+    except Exception:
         traceback.print_exc()
         return 1
 
+
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

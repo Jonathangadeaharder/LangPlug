@@ -7,13 +7,12 @@ import csv
 import logging
 import uuid
 from pathlib import Path
-from typing import List, Tuple
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import AsyncSessionLocal, init_db
-from database.models import VocabularyConcept, VocabularyTranslation, Language
+from database.models import Language, VocabularyConcept, VocabularyTranslation
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,31 +27,24 @@ async def setup_languages(session: AsyncSession) -> None:
 
     for code, name, native_name in languages:
         # Check if language already exists
-        result = await session.execute(
-            select(Language).where(Language.code == code)
-        )
+        result = await session.execute(select(Language).where(Language.code == code))
         existing = result.scalar_one_or_none()
 
         if not existing:
-            language = Language(
-                code=code,
-                name=name,
-                native_name=native_name,
-                is_active=True
-            )
+            language = Language(code=code, name=name, native_name=native_name, is_active=True)
             session.add(language)
             logger.info(f"Added language: {name} ({code})")
 
     await session.commit()
 
 
-def read_csv_pairs(filename: str) -> List[Tuple[str, str, str]]:
+def read_csv_pairs(filename: str) -> list[tuple[str, str, str]]:
     """Read German-Spanish pairs from CSV file"""
     pairs = []
-    level = filename.split('_')[0]  # Extract level from filename like "A1_vokabeln.csv"
+    level = filename.split("_")[0]  # Extract level from filename like "A1_vokabeln.csv"
 
     try:
-        with open(filename, 'r', encoding='utf-8') as f:
+        with open(filename, encoding="utf-8") as f:
             reader = csv.reader(f)
             next(reader)  # Skip header
             for row in reader:
@@ -68,7 +60,7 @@ def read_csv_pairs(filename: str) -> List[Tuple[str, str, str]]:
     return pairs
 
 
-async def import_vocabulary_pairs(pairs: List[Tuple[str, str, str]], session: AsyncSession) -> int:
+async def import_vocabulary_pairs(pairs: list[tuple[str, str, str]], session: AsyncSession) -> int:
     """Import vocabulary pairs into the database one by one"""
     imported_count = 0
     skipped_count = 0
@@ -80,8 +72,7 @@ async def import_vocabulary_pairs(pairs: List[Tuple[str, str, str]], session: As
                 # Check if a concept with this German word already exists
                 result = await session.execute(
                     select(VocabularyTranslation).where(
-                        VocabularyTranslation.word == german,
-                        VocabularyTranslation.language_code == "de"
+                        VocabularyTranslation.word == german, VocabularyTranslation.language_code == "de"
                     )
                 )
                 existing_translation = result.scalar_one_or_none()
@@ -93,8 +84,7 @@ async def import_vocabulary_pairs(pairs: List[Tuple[str, str, str]], session: As
                     # Check for existing Spanish translation
                     spanish_result = await session.execute(
                         select(VocabularyTranslation).where(
-                            VocabularyTranslation.concept_id == concept_id,
-                            VocabularyTranslation.language_code == "es"
+                            VocabularyTranslation.concept_id == concept_id, VocabularyTranslation.language_code == "es"
                         )
                     )
                     existing_spanish = spanish_result.scalar_one_or_none()
@@ -106,11 +96,7 @@ async def import_vocabulary_pairs(pairs: List[Tuple[str, str, str]], session: As
                     else:
                         # Add Spanish translation to existing concept
                         spanish_translation = VocabularyTranslation(
-                            id=str(uuid.uuid4()),
-                            concept_id=concept_id,
-                            language_code="es",
-                            word=spanish,
-                            lemma=spanish
+                            id=str(uuid.uuid4()), concept_id=concept_id, language_code="es", word=spanish, lemma=spanish
                         )
                         session.add(spanish_translation)
                         imported_count += 1
@@ -118,30 +104,19 @@ async def import_vocabulary_pairs(pairs: List[Tuple[str, str, str]], session: As
                 else:
                     # Create new concept and both translations
                     concept = VocabularyConcept(
-                        id=str(uuid.uuid4()),
-                        difficulty_level=level,
-                        semantic_category="unknown",
-                        domain="general"
+                        id=str(uuid.uuid4()), difficulty_level=level, semantic_category="unknown", domain="general"
                     )
                     session.add(concept)
 
                     # Add German translation
                     german_translation = VocabularyTranslation(
-                        id=str(uuid.uuid4()),
-                        concept_id=concept.id,
-                        language_code="de",
-                        word=german,
-                        lemma=german
+                        id=str(uuid.uuid4()), concept_id=concept.id, language_code="de", word=german, lemma=german
                     )
                     session.add(german_translation)
 
                     # Add Spanish translation
                     spanish_translation = VocabularyTranslation(
-                        id=str(uuid.uuid4()),
-                        concept_id=concept.id,
-                        language_code="es",
-                        word=spanish,
-                        lemma=spanish
+                        id=str(uuid.uuid4()), concept_id=concept.id, language_code="es", word=spanish, lemma=spanish
                     )
                     session.add(spanish_translation)
 
@@ -197,14 +172,11 @@ async def main():
 
         # Print summary statistics
         from sqlalchemy import func as sql_func
-        concept_count_result = await session.execute(
-            select(sql_func.count(VocabularyConcept.id))
-        )
+
+        concept_count_result = await session.execute(select(sql_func.count(VocabularyConcept.id)))
         concept_count = concept_count_result.scalar()
 
-        translation_count_result = await session.execute(
-            select(sql_func.count(VocabularyTranslation.id))
-        )
+        translation_count_result = await session.execute(select(sql_func.count(VocabularyTranslation.id)))
         translation_count = translation_count_result.scalar()
 
         logger.info(f"Database now contains {concept_count} concepts and {translation_count} translations")

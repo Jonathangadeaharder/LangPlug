@@ -1,8 +1,7 @@
 """Focused vocabulary route tests for the multilingual system matching CDD/TDD rules."""
+
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -220,6 +219,7 @@ async def test_When_blocking_words_called_Then_returns_structure(async_client, m
     """Happy path: blocking words returns expected keys when SRT exists."""
     headers = await _auth(async_client)
     from api.routes import vocabulary as vocab
+
     monkeypatch.setattr(type(vocab.settings), "get_videos_path", lambda self: tmp_path)
     (tmp_path / "video.mp4").write_bytes(b"x")
     (tmp_path / "video.srt").write_text(
@@ -246,18 +246,15 @@ async def test_When_blocking_words_called_Then_returns_structure(async_client, m
 async def test_When_stats_called_without_auth_Then_returns_unauthorized(async_client):
     """Security: stats endpoint requires authentication."""
     response = await async_client.get("/api/vocabulary/stats")
-    assert response.status_code in {401, 403}
+    assert response.status_code == 401, f"Expected 401 (not authenticated), got {response.status_code}: {response.text}"
 
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
 async def test_When_mark_known_called_without_auth_Then_returns_unauthorized(async_client):
     """Security: mark-known endpoint requires authentication."""
-    response = await async_client.post(
-        "/api/vocabulary/mark-known",
-        json={"concept_id": str(uuid4()), "known": True}
-    )
-    assert response.status_code in {401, 403}
+    response = await async_client.post("/api/vocabulary/mark-known", json={"concept_id": str(uuid4()), "known": True})
+    assert response.status_code == 401, f"Expected 401 (not authenticated), got {response.status_code}: {response.text}"
 
 
 @pytest.mark.anyio
@@ -294,8 +291,10 @@ async def test_When_stats_called_with_unsupported_language_Then_handles_graceful
         headers=headers,
     )
 
-    # Should either work (empty results) or return validation error
-    assert response.status_code in {200, 422}, f"Expected 200 or 422, got {response.status_code}: {response.text}"
+    # Unsupported language codes should return validation error
+    assert (
+        response.status_code == 422
+    ), f"Expected 422 (validation error for unsupported language), got {response.status_code}: {response.text}"
 
 
 @pytest.mark.anyio

@@ -2,11 +2,10 @@
 Integration tests for AI services using smallest/fastest models.
 These tests actually load and test real AI models to ensure proper integration.
 """
-import pytest
-import tempfile
-from pathlib import Path
-from unittest.mock import patch
+
 import os
+
+import pytest
 
 from services.transcriptionservice.factory import TranscriptionServiceFactory, get_transcription_service
 from services.translationservice.factory import TranslationServiceFactory
@@ -22,8 +21,8 @@ class TestTranscriptionServiceIntegration:
         # Test service creation
         service = get_transcription_service("whisper-tiny")
         assert service is not None
-        assert hasattr(service, 'transcribe')
-        assert hasattr(service, 'initialize')
+        assert hasattr(service, "transcribe")
+        assert hasattr(service, "initialize")
 
         # Test model configuration
         assert service.model_size == "tiny"
@@ -33,31 +32,29 @@ class TestTranscriptionServiceIntegration:
 
     @pytest.mark.skipif(
         os.environ.get("SKIP_HEAVY_AI_TESTS") == "1",
-        reason="Skipping heavy AI model tests - set SKIP_HEAVY_AI_TESTS=0 to run"
+        reason="Skipping heavy AI model tests - set SKIP_HEAVY_AI_TESTS=0 to run",
     )
     def test_whisper_tiny_actual_transcription(self):
         """Test actual transcription with whisper-tiny model (requires model download)"""
         service = get_transcription_service("whisper-tiny")
 
         # Create a minimal test audio file (silent WAV)
-        # In practice, you'd use a real small audio file
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp_file:
-            # Create minimal WAV header for a 1-second silent audio
-            wav_header = b'RIFF$\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x80>\x00\x00\x00}\x00\x00\x02\x00\x10\x00data\x00\x00\x00\x00'
-            tmp_file.write(wav_header)
-            tmp_file.flush()
+        # Use the real audio file for transcription
+        audio_file_path = "/mnt/c/Users/Jonandrop/IdeaProjects/LangPlug/Backend/tests/data/HalloWelt.wav"
+        try:
+            # This would actually download and load the tiny model
+            result = service.transcribe(audio_file_path, language="de")
 
-            try:
-                # This would actually download and load the tiny model
-                result = service.transcribe(tmp_file.name, language="en")
+            # Basic validation of transcription result
+            assert hasattr(result, "text") or isinstance(result, dict)
+            if isinstance(result, dict):
+                assert "text" in result
+                assert "Hallo Welt" in result["text"]
+            else:
+                assert "Hallo Welt" in result.text
 
-                # Basic validation of transcription result
-                assert hasattr(result, 'text') or isinstance(result, dict)
-                if isinstance(result, dict):
-                    assert 'text' in result or 'segments' in result
-
-            finally:
-                os.unlink(tmp_file.name)
+        finally:
+            pass
 
 
 @pytest.mark.integration
@@ -69,26 +66,26 @@ class TestTranslationServiceIntegration:
         """Test that opus-de-es service can be created with correct configuration"""
         service = TranslationServiceFactory.create_service("opus-de-es")
         assert service is not None
-        assert hasattr(service, 'translate')
+        assert hasattr(service, "translate")
 
         # Verify model configuration
         assert service.model_name == "Helsinki-NLP/opus-mt-de-es"
 
         # Test service interface
-        assert hasattr(service, 'initialize') or hasattr(service, 'model_name')
+        assert hasattr(service, "initialize") or hasattr(service, "model_name")
 
     def test_nllb_distilled_600m_service_creation(self):
         """Test that nllb-distilled-600m service can be created"""
         service = TranslationServiceFactory.create_service("nllb-distilled-600m")
         assert service is not None
-        assert hasattr(service, 'translate')
+        assert hasattr(service, "translate")
 
         # Verify model configuration for smallest NLLB model
         assert service.model_name == "facebook/nllb-200-distilled-600M"
 
     @pytest.mark.skipif(
         os.environ.get("SKIP_HEAVY_AI_TESTS") == "1",
-        reason="Skipping heavy AI model tests - set SKIP_HEAVY_AI_TESTS=0 to run"
+        reason="Skipping heavy AI model tests - set SKIP_HEAVY_AI_TESTS=0 to run",
     )
     def test_opus_de_es_actual_translation(self):
         """Test actual translation with opus-de-es model (requires model download)"""
@@ -98,16 +95,12 @@ class TestTranslationServiceIntegration:
         german_text = "Hallo Welt"
 
         try:
-            result = service.translate(
-                text=german_text,
-                source_language="de",
-                target_language="es"
-            )
+            result = service.translate(text=german_text, source_language="de", target_language="es")
 
             # Basic validation of translation result
             assert result is not None
             if isinstance(result, dict):
-                assert 'translated_text' in result or 'text' in result
+                assert "translated_text" in result or "text" in result
             elif isinstance(result, str):
                 assert len(result) > 0
                 # Should not be the same as input (German -> Spanish)
@@ -119,7 +112,7 @@ class TestTranslationServiceIntegration:
 
     @pytest.mark.skipif(
         os.environ.get("SKIP_HEAVY_AI_TESTS") == "1",
-        reason="Skipping heavy AI model tests - set SKIP_HEAVY_AI_TESTS=0 to run"
+        reason="Skipping heavy AI model tests - set SKIP_HEAVY_AI_TESTS=0 to run",
     )
     def test_nllb_distilled_basic_functionality(self):
         """Test basic NLLB distilled model functionality"""
@@ -130,11 +123,7 @@ class TestTranslationServiceIntegration:
         german_text = "Guten Tag"
 
         try:
-            result = service.translate(
-                text=german_text,
-                source_language="de",
-                target_language="es"
-            )
+            result = service.translate(text=german_text, source_language="de", target_language="es")
 
             # Basic validation
             assert result is not None
@@ -149,7 +138,6 @@ class TestServiceFactoryConfiguration:
 
     def test_transcription_service_factory_has_expected_models(self):
         """Verify transcription factory has all expected model configurations"""
-        from services.transcriptionservice.factory import TranscriptionServiceFactory
 
         # Check that whisper-tiny is configured correctly
         assert "whisper-tiny" in TranscriptionServiceFactory._default_configs
@@ -168,7 +156,10 @@ class TestServiceFactoryConfiguration:
 
         # Check NLLB models
         assert "nllb-distilled-600m" in TranslationServiceFactory._default_configs
-        assert TranslationServiceFactory._default_configs["nllb-distilled-600m"]["model_name"] == "facebook/nllb-200-distilled-600M"
+        assert (
+            TranslationServiceFactory._default_configs["nllb-distilled-600m"]["model_name"]
+            == "facebook/nllb-200-distilled-600M"
+        )
 
         # Verify fastest models for testing
         assert "opus-de-en" in TranslationServiceFactory._default_configs

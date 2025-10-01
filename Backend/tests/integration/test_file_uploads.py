@@ -1,4 +1,5 @@
 """Integration tests for upload endpoints using the in-process client."""
+
 from __future__ import annotations
 
 import io
@@ -21,7 +22,10 @@ async def test_Whensubtitle_uploadWithnon_srt_ThenRejects(async_http_client):
         params={"video_path": "missing.mp4"},
     )
 
-    assert response.status_code in {400, 422}
+    # Invalid file type should return 422 (validation error)
+    assert (
+        response.status_code == 422
+    ), f"Expected 422 (validation error for invalid file), got {response.status_code}: {response.text}"
 
 
 @pytest.mark.anyio
@@ -36,4 +40,7 @@ async def test_Whenvideo_uploadWithoutmp_ThenReturnsError4(async_http_client):
         files={"video_file": ("clip.txt", io.BytesIO(b"content"), "text/plain")},
     )
 
-    assert response.status_code in {400, 422}
+    # Invalid file type should return 422 (validation error)
+    assert (
+        response.status_code == 422
+    ), f"Expected 422 (validation error for invalid file), got {response.status_code}: {response.text}"

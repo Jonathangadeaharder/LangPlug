@@ -1,6 +1,7 @@
 """
 Unit tests for ConnectionManager without real network websockets.
 """
+
 from __future__ import annotations
 
 import pytest

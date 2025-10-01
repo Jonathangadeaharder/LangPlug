@@ -10,17 +10,17 @@ from passlib.context import CryptContext
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import User
-# Note: AuthSession doesn't exist in models_v2, may need to be handled differently
-
-from .models import (
+# Import exceptions from core.exceptions (unified error handling)
+from core.exceptions import (
     AuthenticationError,
-    AuthSession,
-    AuthUser,
     InvalidCredentialsError,
     SessionExpiredError,
     UserAlreadyExistsError,
 )
+from database.models import User
+
+# Import data models from local models module
+from .models import AuthSession, AuthUser
 
 
 class AuthService:
@@ -72,7 +72,7 @@ class AuthService:
                 hashed_password=password_hash,
                 is_superuser=False,
                 is_active=True,
-                is_verified=False
+                is_verified=False,
             )
 
             self.db_session.add(new_user)
@@ -106,20 +106,17 @@ class AuthService:
         auth_user = AuthUser(
             id=user.id,
             username=user.username,
-            is_admin=getattr(user, 'is_superuser', False),
+            is_admin=getattr(user, "is_superuser", False),
             is_active=user.is_active,
-            created_at=user.created_at.isoformat() if hasattr(user, 'created_at') and user.created_at else '',
-            native_language=getattr(user, 'native_language', 'en'),
-            target_language=getattr(user, 'target_language', 'de'),
-            last_login=getattr(user, 'last_login', None)
+            created_at=user.created_at.isoformat() if hasattr(user, "created_at") and user.created_at else "",
+            native_language=getattr(user, "native_language", "en"),
+            target_language=getattr(user, "target_language", "de"),
+            last_login=getattr(user, "last_login", None),
         )
 
         # Create and store session in memory
         new_session = AuthSession(
-            session_token=session_token,
-            user=auth_user,
-            expires_at=expires_at,
-            created_at=datetime.now()
+            session_token=session_token, user=auth_user, expires_at=expires_at, created_at=datetime.now()
         )
 
         try:
@@ -127,9 +124,7 @@ class AuthService:
             self._sessions[session_token] = new_session
 
             # Update last login in database
-            stmt = update(User).where(User.id == user.id).values(
-                last_login=datetime.now()
-            )
+            stmt = update(User).where(User.id == user.id).values(last_login=datetime.now())
             await self.db_session.execute(stmt)
             await self.db_session.commit()
         except Exception as e:
@@ -191,6 +186,6 @@ class AuthService:
 
     def cleanup(self):
         """Cleanup resources, particularly database session"""
-        if hasattr(self.db_session, 'close'):
+        if hasattr(self.db_session, "close"):
             self.db_session.close()
         self._sessions.clear()

@@ -26,10 +26,7 @@ class LogHandlerService:
         log_dir.mkdir(parents=True, exist_ok=True)
 
         file_handler = logging.handlers.RotatingFileHandler(
-            filename=file_path,
-            maxBytes=max_size_mb * 1024 * 1024,
-            backupCount=backup_count,
-            encoding='utf-8'
+            filename=file_path, maxBytes=max_size_mb * 1024 * 1024, backupCount=backup_count, encoding="utf-8"
         )
         file_handler.setLevel(level)
         file_handler.setFormatter(formatter)

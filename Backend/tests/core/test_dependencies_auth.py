@@ -1,11 +1,13 @@
 """
 Tests for core.dependencies authentication helpers: WebSocket authentication and backward compatibility.
 """
+
 from __future__ import annotations
+
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import HTTPException
-from unittest.mock import AsyncMock
 
 from core import dependencies as deps
 from database.models import User

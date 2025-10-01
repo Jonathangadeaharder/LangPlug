@@ -1,12 +1,13 @@
 """Unit tests for VocabularyService - Clean lemma-based implementation"""
 
-import pytest
-from unittest.mock import AsyncMock, Mock, patch, MagicMock
-from sqlalchemy.ext.asyncio import AsyncSession
+from unittest.mock import AsyncMock, Mock, patch
 from uuid import uuid4
 
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from database.models import VocabularyWord
 from services.vocabulary_service import VocabularyService
-from database.models import VocabularyWord, UserVocabularyProgress, UnknownWord
 
 
 class TestVocabularyServiceGetWordInfo:
@@ -30,11 +31,11 @@ class TestVocabularyServiceGetWordInfo:
             "translation_en": "house",
             "pronunciation": "haus",
             "notes": None,
-            "found": True
+            "found": True,
         }
 
         # Act - Mock facade delegation to query_service
-        with patch.object(service.query_service, 'get_word_info', new_callable=AsyncMock, return_value=expected_result):
+        with patch.object(service.query_service, "get_word_info", new_callable=AsyncMock, return_value=expected_result):
             result = await service.get_word_info("Haus", "de", mock_db)
 
         # Assert
@@ -58,11 +59,11 @@ class TestVocabularyServiceGetWordInfo:
             "lemma": "xyz",
             "language": "de",
             "found": False,
-            "message": "Word not in vocabulary database"
+            "message": "Word not in vocabulary database",
         }
 
         # Act - Mock facade delegation to query_service
-        with patch.object(service.query_service, 'get_word_info', new_callable=AsyncMock, return_value=expected_result):
+        with patch.object(service.query_service, "get_word_info", new_callable=AsyncMock, return_value=expected_result):
             result = await service.get_word_info("xyz", "de", mock_db)
 
         # Assert
@@ -84,11 +85,13 @@ class TestVocabularyServiceGetWordInfo:
             "lemma": "unknown",
             "language": "de",
             "found": False,
-            "message": "Word not in vocabulary database"
+            "message": "Word not in vocabulary database",
         }
 
         # Act - Mock facade delegation to query_service (which handles tracking internally)
-        with patch.object(service.query_service, 'get_word_info', new_callable=AsyncMock, return_value=expected_result) as mock_get_word:
+        with patch.object(
+            service.query_service, "get_word_info", new_callable=AsyncMock, return_value=expected_result
+        ) as mock_get_word:
             await service.get_word_info("unknown", "de", mock_db)
 
         # Assert - verify delegation occurred (tracking is handled by query_service)
@@ -105,7 +108,7 @@ class TestVocabularyServiceMarkWordKnown:
         service = VocabularyService()
         mock_db = AsyncMock(spec=AsyncSession)
         user_id = 1
-        word_id = uuid4()
+        uuid4()
 
         expected_result = {
             "success": True,
@@ -113,11 +116,13 @@ class TestVocabularyServiceMarkWordKnown:
             "lemma": "hund",
             "is_known": True,
             "confidence_level": 1,
-            "level": "A1"
+            "level": "A1",
         }
 
         # Act - Mock facade delegation to progress_service
-        with patch.object(service.progress_service, 'mark_word_known', new_callable=AsyncMock, return_value=expected_result):
+        with patch.object(
+            service.progress_service, "mark_word_known", new_callable=AsyncMock, return_value=expected_result
+        ):
             result = await service.mark_word_known(user_id, "Hund", "de", True, mock_db)
 
         # Assert
@@ -138,11 +143,13 @@ class TestVocabularyServiceMarkWordKnown:
             "success": False,
             "word": "xyz",
             "lemma": "xyz",
-            "message": "Word not in vocabulary database"
+            "message": "Word not in vocabulary database",
         }
 
         # Act - Mock facade delegation to progress_service
-        with patch.object(service.progress_service, 'mark_word_known', new_callable=AsyncMock, return_value=expected_result):
+        with patch.object(
+            service.progress_service, "mark_word_known", new_callable=AsyncMock, return_value=expected_result
+        ):
             result = await service.mark_word_known(user_id, "xyz", "de", True, mock_db)
 
         # Assert
@@ -156,7 +163,7 @@ class TestVocabularyServiceMarkWordKnown:
         service = VocabularyService()
         mock_db = AsyncMock(spec=AsyncSession)
         user_id = 1
-        word_id = uuid4()
+        uuid4()
 
         expected_result = {
             "success": True,
@@ -165,11 +172,13 @@ class TestVocabularyServiceMarkWordKnown:
             "is_known": True,
             "confidence_level": 3,  # Increased from 2 to 3
             "review_count": 2,  # Increased from 1 to 2
-            "level": "A1"
+            "level": "A1",
         }
 
         # Act - Mock facade delegation to progress_service
-        with patch.object(service.progress_service, 'mark_word_known', new_callable=AsyncMock, return_value=expected_result):
+        with patch.object(
+            service.progress_service, "mark_word_known", new_callable=AsyncMock, return_value=expected_result
+        ):
             result = await service.mark_word_known(user_id, "Katze", "de", True, mock_db)
 
         # Assert
@@ -201,11 +210,7 @@ class TestVocabularyServiceGetUserStats:
         # Mock level breakdown - needs to be iterable with tuple unpacking
         # The code does: level, total, known = row
         mock_level_result = Mock()
-        mock_level_result.__iter__ = Mock(return_value=iter([
-            ("A1", 300, 100),
-            ("A2", 400, 50),
-            ("B1", 300, 0)
-        ]))
+        mock_level_result.__iter__ = Mock(return_value=iter([("A1", 300, 100), ("A2", 400, 50), ("B1", 300, 0)]))
 
         # Configure execute to return different results
         mock_db.execute.side_effect = [mock_total_result, mock_known_result, mock_level_result]
@@ -279,7 +284,7 @@ class TestVocabularyServiceMarkConceptKnown:
         mock_db.execute.side_effect = [mock_word_result, mock_progress_result]
 
         # Act
-        with patch('services.vocabulary_service.AsyncSessionLocal'):
+        with patch("services.vocabulary_service.AsyncSessionLocal"):
             result = await service.mark_concept_known(user_id, concept_id, True)
 
         # Assert - just verify it doesn't raise an exception
@@ -301,12 +306,12 @@ class TestVocabularyServiceMarkConceptKnown:
         mock_db.execute.return_value = mock_result
 
         # Act & Assert
-        with patch('services.vocabulary_service.AsyncSessionLocal', return_value=mock_db):
-            with patch.object(mock_db, '__aenter__', return_value=mock_db):
-                with patch.object(mock_db, '__aexit__', return_value=AsyncMock()):
+        with patch("services.vocabulary_service.AsyncSessionLocal", return_value=mock_db):
+            with patch.object(mock_db, "__aenter__", return_value=mock_db):
+                with patch.object(mock_db, "__aexit__", return_value=AsyncMock()):
                     # Should not raise exception
                     try:
-                        result = await service.mark_concept_known(user_id, invalid_concept_id, True)
+                        await service.mark_concept_known(user_id, invalid_concept_id, True)
                         # Method may return None or handle error internally
                         assert True
                     except Exception:
@@ -340,7 +345,7 @@ class TestVocabularyServiceGetVocabularyLevel:
             difficulty_level="A1",
             language="de",
             part_of_speech="noun",
-            gender="masculine"
+            gender="masculine",
         )
         mock_vocab_word1.translations = [mock_translation1]
 
@@ -356,7 +361,7 @@ class TestVocabularyServiceGetVocabularyLevel:
             difficulty_level="A1",
             language="de",
             part_of_speech="noun",
-            gender="feminine"
+            gender="feminine",
         )
         mock_vocab_word2.translations = [mock_translation2]
 
@@ -366,7 +371,7 @@ class TestVocabularyServiceGetVocabularyLevel:
         mock_result.scalars.return_value.all.return_value = mock_vocab_words
 
         # Act
-        with patch('services.vocabulary_service.AsyncSessionLocal') as mock_session_local:
+        with patch("services.vocabulary_service.AsyncSessionLocal") as mock_session_local:
             mock_db = AsyncMock(spec=AsyncSession)
             mock_db.execute.return_value = mock_result
             mock_session_local.return_value.__aenter__.return_value = mock_db
@@ -392,14 +397,12 @@ class TestVocabularyServiceGetVocabularyLevel:
         mock_result.scalars.return_value.all.return_value = []
 
         # Act
-        with patch('services.vocabulary_service.AsyncSessionLocal') as mock_session_local:
+        with patch("services.vocabulary_service.AsyncSessionLocal") as mock_session_local:
             mock_db = AsyncMock(spec=AsyncSession)
             mock_db.execute.return_value = mock_result
             mock_session_local.return_value.__aenter__.return_value = mock_db
 
-            result = await service.get_vocabulary_level(
-                level, "de", "es", None, limit=limit, offset=0
-            )
+            result = await service.get_vocabulary_level(level, "de", "es", None, limit=limit, offset=0)
 
         # Assert
         assert result is not None
@@ -433,7 +436,7 @@ class TestVocabularyServiceGetSupportedLanguages:
         mock_result.scalars.return_value.all.return_value = [mock_lang1, mock_lang2, mock_lang3]
 
         # Act
-        with patch('services.vocabulary_service.AsyncSessionLocal') as mock_session_local:
+        with patch("services.vocabulary_service.AsyncSessionLocal") as mock_session_local:
             mock_db = AsyncMock(spec=AsyncSession)
             mock_db.execute.return_value = mock_result
             mock_session_local.return_value.__aenter__.return_value = mock_db

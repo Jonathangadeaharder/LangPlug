@@ -2,6 +2,7 @@
 Master Test Monitoring System
 Orchestrates all monitoring components for comprehensive test infrastructure oversight
 """
+
 import argparse
 import sys
 from datetime import datetime
@@ -15,7 +16,7 @@ from quality_gates import QualityGateChecker
 class MasterTestMonitor:
     """Master coordinator for all test monitoring systems"""
 
-    def __init__(self, project_root: Path = None):
+    def __init__(self, project_root: Path | None = None):
         self.project_root = project_root or Path(__file__).parent.parent.parent
         self.reports_dir = Path(self.project_root) / "tests" / "reports"
 
@@ -39,7 +40,7 @@ class MasterTestMonitor:
 
             coverage_report = self.coverage_monitor.generate_coverage_report(coverage_snapshot)
             coverage_file = self.reports_dir / "latest_coverage_report.md"
-            with open(coverage_file, 'w') as f:
+            with open(coverage_file, "w") as f:
                 f.write(coverage_report)
             print(f"[INFO] Coverage report saved: {coverage_file}")
 
@@ -52,7 +53,7 @@ class MasterTestMonitor:
                 health_trends = self.health_monitor.analyze_trends()
                 health_dashboard = self.health_monitor.generate_health_dashboard(health_metrics, health_trends)
                 dashboard_file = self.reports_dir / "health_dashboard.md"
-                with open(dashboard_file, 'w', encoding='utf-8') as f:
+                with open(dashboard_file, "w", encoding="utf-8") as f:
                     f.write(health_dashboard)
                 print(f"[INFO] Health dashboard saved: {dashboard_file}")
             else:
@@ -73,7 +74,7 @@ class MasterTestMonitor:
             print("\n[STEP 4] Generating master summary...")
             master_summary = self._generate_master_summary(coverage_snapshot, violations, gates_passed)
             summary_file = self.reports_dir / "master_summary.md"
-            with open(summary_file, 'w', encoding='utf-8') as f:
+            with open(summary_file, "w", encoding="utf-8") as f:
                 f.write(master_summary)
             print(f"[INFO] Master summary saved: {summary_file}")
 
@@ -91,8 +92,8 @@ class MasterTestMonitor:
         # Calculate key metrics
         total_coverage = coverage_snapshot.total_coverage
         service_count = len(coverage_snapshot.service_coverage)
-        critical_violations = len([v for v in violations if v.severity == 'error'])
-        warning_violations = len([v for v in violations if v.severity == 'warning'])
+        critical_violations = len([v for v in violations if v.severity == "error"])
+        warning_violations = len([v for v in violations if v.severity == "warning"])
 
         # Overall health score (0-100)
         health_score = self._calculate_health_score(coverage_snapshot, violations)
@@ -123,7 +124,13 @@ Generated: {timestamp}
         if sorted_services:
             summary += "\n### Top Coverage Services\n"
             for service in sorted_services[:3]:
-                status = "[GOOD]" if service.coverage_percentage >= 70 else "[FAIR]" if service.coverage_percentage >= 40 else "[POOR]"
+                status = (
+                    "[GOOD]"
+                    if service.coverage_percentage >= 70
+                    else "[FAIR]"
+                    if service.coverage_percentage >= 40
+                    else "[POOR]"
+                )
                 summary += f"- {status} **{service.service_name}**: {service.coverage_percentage:.1f}%\n"
 
             summary += "\n### Needs Improvement\n"
@@ -137,12 +144,12 @@ Generated: {timestamp}
 
             if critical_violations > 0:
                 summary += "\n### Critical Issues (Must Fix)\n"
-                for violation in [v for v in violations if v.severity == 'error']:
+                for violation in [v for v in violations if v.severity == "error"]:
                     summary += f"- **{violation.gate_name}**: {violation.message}\n"
 
             if warning_violations > 0:
                 summary += "\n### Warnings (Should Fix)\n"
-                for violation in [v for v in violations if v.severity == 'warning']:
+                for violation in [v for v in violations if v.severity == "warning"]:
                     summary += f"- **{violation.gate_name}**: {violation.message}\n"
         else:
             summary += "\n## [SUCCESS] No Quality Issues Detected\n"
@@ -169,18 +176,17 @@ Generated: {timestamp}
 
     def _calculate_health_score(self, coverage_snapshot, violations) -> float:
         """Calculate overall health score (0-100)"""
-        score = 100.0
 
         # Coverage component (40% of score)
         coverage_score = min(coverage_snapshot.total_coverage / 80.0, 1.0) * 40
 
         # Quality gates component (40% of score)
-        critical_violations = len([v for v in violations if v.severity == 'error'])
-        warning_violations = len([v for v in violations if v.severity == 'warning'])
+        critical_violations = len([v for v in violations if v.severity == "error"])
+        warning_violations = len([v for v in violations if v.severity == "warning"])
 
         quality_score = 40.0
         quality_score -= critical_violations * 15  # -15 per critical violation
-        quality_score -= warning_violations * 5    # -5 per warning
+        quality_score -= warning_violations * 5  # -5 per warning
         quality_score = max(quality_score, 0)
 
         # Service coverage distribution component (20% of score)

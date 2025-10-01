@@ -107,7 +107,7 @@ const ProgressBarFill = styled.div<{ $progress: number }>`
   border-radius: 6px;
   transition: width 0.5s ease-out;
   position: relative;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -123,7 +123,7 @@ const ProgressBarFill = styled.div<{ $progress: number }>`
     );
     animation: shimmer 2s infinite;
   }
-  
+
   @keyframes shimmer {
     0% {
       transform: translateX(-100%);
@@ -193,33 +193,42 @@ interface ProcessingScreenProps {
   chunkDuration?: string // e.g., "0:00 - 5:00"
 }
 
-export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ 
-  status, 
-  chunkNumber = 1, 
+export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({
+  status,
+  chunkNumber = 1,
   totalChunks = 1,
   chunkDuration = "0:00 - 5:00"
 }) => {
   const [estimatedTime, setEstimatedTime] = useState<string>('calculating...')
+  const [startTime] = useState<number>(Date.now())
 
   useEffect(() => {
     // Calculate estimated time based on progress
     if (status.progress > 0 && status.progress < 100) {
-      const elapsedTime = Date.now() - (status.started_at || Date.now())
+      // Use local start time instead of relying on status.started_at
+      const elapsedTime = Date.now() - startTime
       const totalTime = (elapsedTime / status.progress) * 100
       const remainingTime = totalTime - elapsedTime
-      
-      const minutes = Math.floor(remainingTime / 60000)
-      const seconds = Math.floor((remainingTime % 60000) / 1000)
-      
-      if (minutes > 0) {
-        setEstimatedTime(`${minutes}m ${seconds}s remaining`)
+
+      // Sanity check: don't show ridiculous times
+      if (remainingTime < 0 || remainingTime > 3600000) { // More than 1 hour
+        setEstimatedTime('calculating...')
       } else {
-        setEstimatedTime(`${seconds}s remaining`)
+        const minutes = Math.floor(remainingTime / 60000)
+        const seconds = Math.floor((remainingTime % 60000) / 1000)
+
+        if (minutes > 0) {
+          setEstimatedTime(`${minutes}m ${seconds}s remaining`)
+        } else {
+          setEstimatedTime(`${seconds}s remaining`)
+        }
       }
     } else if (status.progress === 100) {
       setEstimatedTime('Completing...')
+    } else if (status.progress === 0) {
+      setEstimatedTime('Starting...')
     }
-  }, [status.progress, status.started_at])
+  }, [status.progress, startTime])
 
   const getStepIcon = () => {
     switch (status.current_step?.toLowerCase()) {

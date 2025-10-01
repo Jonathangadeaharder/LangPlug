@@ -11,6 +11,7 @@ from typing import Any
 @dataclass
 class TranscriptionSegment:
     """A segment of transcribed text with timing"""
+
     start_time: float
     end_time: float
     text: str
@@ -22,6 +23,7 @@ class TranscriptionSegment:
 @dataclass
 class TranscriptionResult:
     """Result of a transcription operation"""
+
     full_text: str
     segments: list[TranscriptionSegment]
     language: str | None = None
@@ -41,54 +43,42 @@ class ITranscriptionService(ABC):
         pass
 
     @abstractmethod
-    def transcribe(
-        self,
-        audio_path: str,
-        language: str | None = None
-    ) -> TranscriptionResult:
+    def transcribe(self, audio_path: str, language: str | None = None) -> TranscriptionResult:
         """
         Transcribe an audio file
-        
+
         Args:
             audio_path: Path to the audio file
             language: Optional language hint (e.g., 'en', 'de')
-            
+
         Returns:
             TranscriptionResult with transcription details
         """
         pass
 
     @abstractmethod
-    def transcribe_with_timestamps(
-        self,
-        audio_path: str,
-        language: str | None = None
-    ) -> TranscriptionResult:
+    def transcribe_with_timestamps(self, audio_path: str, language: str | None = None) -> TranscriptionResult:
         """
         Transcribe with detailed timestamps for each segment
-        
+
         Args:
             audio_path: Path to the audio file
             language: Optional language hint
-            
+
         Returns:
             TranscriptionResult with timed segments
         """
         pass
 
     @abstractmethod
-    def transcribe_batch(
-        self,
-        audio_paths: list[str],
-        language: str | None = None
-    ) -> list[TranscriptionResult]:
+    def transcribe_batch(self, audio_paths: list[str], language: str | None = None) -> list[TranscriptionResult]:
         """
         Transcribe multiple audio files in batch
-        
+
         Args:
             audio_paths: List of paths to audio files
             language: Optional language hint
-            
+
         Returns:
             List of TranscriptionResult objects
         """
@@ -98,25 +88,21 @@ class ITranscriptionService(ABC):
     def supports_video(self) -> bool:
         """
         Check if the service supports direct video transcription
-        
+
         Returns:
             True if video files are supported, False otherwise
         """
         pass
 
     @abstractmethod
-    def extract_audio_from_video(
-        self,
-        video_path: str,
-        output_path: str | None = None
-    ) -> str:
+    def extract_audio_from_video(self, video_path: str, output_path: str | None = None) -> str:
         """
         Extract audio from video file
-        
+
         Args:
             video_path: Path to video file
             output_path: Optional path for extracted audio
-            
+
         Returns:
             Path to extracted audio file
         """
@@ -126,7 +112,7 @@ class ITranscriptionService(ABC):
     def get_supported_languages(self) -> list[str]:
         """
         Get list of supported language codes
-        
+
         Returns:
             List of language codes (e.g., ['en', 'de', 'es'])
         """

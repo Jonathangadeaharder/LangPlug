@@ -2,16 +2,16 @@
 User Repository Implementation
 Standardized async SQLAlchemy-based user data access patterns
 """
+
 import logging
 import uuid
 from datetime import datetime
-from typing import Any
 
 from sqlalchemy import select, update
-from sqlalchemy.exc import IntegrityError
+
+from core.auth import User
 
 from .base_repository import BaseRepository
-from core.auth import User
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ class UserRepository(BaseRepository[User]):
                 stmt = select(User).where(User.username == username)
                 if exclude_id:
                     stmt = stmt.where(User.id != exclude_id)
-                
+
                 result = await session.execute(stmt)
                 return result.scalar_one_or_none() is not None
         except Exception as e:
@@ -70,7 +70,7 @@ class UserRepository(BaseRepository[User]):
                 stmt = select(User).where(User.email == email)
                 if exclude_id:
                     stmt = stmt.where(User.id != exclude_id)
-                
+
                 result = await session.execute(stmt)
                 return result.scalar_one_or_none() is not None
         except Exception as e:
@@ -81,11 +81,7 @@ class UserRepository(BaseRepository[User]):
         """Update user's last login timestamp using async SQLAlchemy"""
         try:
             async with self.transaction() as session:
-                stmt = (
-                    update(User)
-                    .where(User.id == user_id)
-                    .values(last_login=datetime.utcnow())
-                )
+                stmt = update(User).where(User.id == user_id).values(last_login=datetime.utcnow())
                 result = await session.execute(stmt)
                 return result.rowcount > 0
         except Exception as e:

@@ -11,20 +11,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.interfaces.chunk_interface import IChunkProcessingService
 from services.interfaces.handler_interface import IChunkHandler
+
+from .chunk_services import subtitle_generation_service, translation_management_service, vocabulary_filter_service
 from .chunk_transcription_service import ChunkTranscriptionService
 from .chunk_translation_service import ChunkTranslationService
 from .chunk_utilities import ChunkUtilities
-from .chunk_services import (
-    vocabulary_filter_service,
-    subtitle_generation_service,
-    translation_management_service
-)
 
 logger = logging.getLogger(__name__)
 
 
 class ChunkProcessingError(Exception):
     """Base exception for chunk processing errors"""
+
     pass
 
 
@@ -53,7 +51,7 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
         user_id: int,
         task_id: str,
         task_progress: dict[str, Any],
-        session_token: str = None,
+        session_token: str | None = None,
     ) -> None:
         """
         Process a specific chunk of video for vocabulary learning
@@ -87,9 +85,7 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
             )
 
             # Step 3: Filter vocabulary (50-85% progress)
-            vocabulary = await self._filter_vocabulary(
-                task_id, task_progress, video_file, user, language_preferences
-            )
+            vocabulary = await self._filter_vocabulary(task_id, task_progress, video_file, user, language_preferences)
 
             # Step 4: Generate filtered subtitles (85-95% progress)
             filtered_srt = await self._generate_filtered_subtitles(
@@ -98,9 +94,11 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
 
             # Step 5: Build translation segments (95-100% progress)
             translation_segments = await self.translation_service.build_translation_segments(
-                task_id, task_progress,
+                task_id,
+                task_progress,
                 self.transcription_service.find_matching_srt_file(video_file),
-                vocabulary, language_preferences
+                vocabulary,
+                language_preferences,
             )
 
             # Complete processing
@@ -115,7 +113,7 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
         except Exception as e:
             logger.error(f"Chunk processing failed for task {task_id}: {e}", exc_info=True)
             # Cleanup temporary audio file on error
-            if 'audio_file' in locals():
+            if "audio_file" in locals():
                 self.transcription_service.cleanup_temp_audio_file(audio_file, video_file)
             self.utilities.handle_error(task_id, task_progress, e)
             raise
@@ -149,9 +147,7 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
         srt_file_path = self.transcription_service.find_matching_srt_file(video_file)
 
         # Delegate to vocabulary filter service
-        vocabulary = await self.vocabulary_filter.filter_vocabulary_from_srt(
-            srt_file_path, user, language_preferences
-        )
+        vocabulary = await self.vocabulary_filter.filter_vocabulary_from_srt(srt_file_path, user, language_preferences)
 
         logger.info(f"[CHUNK DEBUG] Filtered {len(vocabulary)} vocabulary words")
         return vocabulary
@@ -185,9 +181,7 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
         source_srt = self.transcription_service.find_matching_srt_file(video_file)
 
         # Delegate to subtitle generation service
-        filtered_srt = await self.subtitle_generator.generate_filtered_subtitles(
-            video_file, vocabulary, source_srt
-        )
+        filtered_srt = await self.subtitle_generator.generate_filtered_subtitles(video_file, vocabulary, source_srt)
 
         return filtered_srt
 
@@ -221,11 +215,7 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
         return {
             "service": "ChunkProcessingService",
             "status": "healthy",
-            "components": {
-                "transcription": "available",
-                "translation": "available",
-                "utilities": "available"
-            }
+            "components": {"transcription": "available", "translation": "available", "utilities": "available"},
         }
 
     async def initialize(self) -> None:
@@ -236,20 +226,11 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
         """Cleanup chunk processing service resources"""
         logger.info("ChunkProcessingService cleanup completed")
 
-    async def handle(
-        self,
-        task_id: str,
-        task_progress: dict[str, Any],
-        **kwargs
-    ) -> None:
+    async def handle(self, task_id: str, task_progress: dict[str, Any], **kwargs) -> None:
         """Handle chunk processing task - delegates to process_chunk"""
-        await self.process_chunk(
-            task_id=task_id,
-            task_progress=task_progress,
-            **kwargs
-        )
+        await self.process_chunk(task_id=task_id, task_progress=task_progress, **kwargs)
 
     def validate_parameters(self, **kwargs) -> bool:
         """Validate input parameters for chunk processing"""
-        required_params = ['video_path', 'start_time', 'end_time', 'user_id']
+        required_params = ["video_path", "start_time", "end_time", "user_id"]
         return all(param in kwargs for param in required_params)

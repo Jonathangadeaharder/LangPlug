@@ -1,7 +1,9 @@
 """Tests for token blacklist service."""
+
+from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime, timedelta, UTC
 
 from core.token_blacklist import TokenBlacklist
 
@@ -11,7 +13,7 @@ class TestTokenBlacklist:
 
     def test_initialization_without_redis(self):
         """Test initialization when Redis is not available."""
-        with patch('core.token_blacklist.REDIS_AVAILABLE', False):
+        with patch("core.token_blacklist.REDIS_AVAILABLE", False):
             blacklist = TokenBlacklist()
             assert not blacklist._use_redis
             assert isinstance(blacklist._memory_blacklist, set)
@@ -20,7 +22,7 @@ class TestTokenBlacklist:
 
     def test_initialization_with_redis(self):
         """Test initialization when Redis is available."""
-        with patch('core.token_blacklist.REDIS_AVAILABLE', True):
+        with patch("core.token_blacklist.REDIS_AVAILABLE", True):
             blacklist = TokenBlacklist()
             assert blacklist._use_redis
             assert blacklist._redis_client is None
@@ -28,7 +30,7 @@ class TestTokenBlacklist:
     @pytest.mark.anyio
     async def test_get_redis_client_without_redis(self):
         """Test Redis client getter when Redis is not available."""
-        with patch('core.token_blacklist.REDIS_AVAILABLE', False):
+        with patch("core.token_blacklist.REDIS_AVAILABLE", False):
             blacklist = TokenBlacklist()
             client = await blacklist._get_redis_client()
             assert client is None
@@ -39,8 +41,8 @@ class TestTokenBlacklist:
         mock_redis = AsyncMock()
         mock_redis.ping = AsyncMock()
 
-        with patch('core.token_blacklist.REDIS_AVAILABLE', True):
-            with patch('redis.asyncio.Redis', return_value=mock_redis):
+        with patch("core.token_blacklist.REDIS_AVAILABLE", True):
+            with patch("redis.asyncio.Redis", return_value=mock_redis):
                 blacklist = TokenBlacklist()
                 client = await blacklist._get_redis_client()
 
@@ -53,8 +55,8 @@ class TestTokenBlacklist:
         mock_redis = AsyncMock()
         mock_redis.ping = AsyncMock(side_effect=Exception("Connection failed"))
 
-        with patch('core.token_blacklist.REDIS_AVAILABLE', True):
-            with patch('redis.asyncio.Redis', return_value=mock_redis):
+        with patch("core.token_blacklist.REDIS_AVAILABLE", True):
+            with patch("redis.asyncio.Redis", return_value=mock_redis):
                 blacklist = TokenBlacklist()
                 client = await blacklist._get_redis_client()
 
@@ -69,7 +71,7 @@ class TestTokenBlacklistMemoryOperations:
     @pytest.fixture
     def memory_blacklist(self):
         """Create blacklist instance using memory storage."""
-        with patch('core.token_blacklist.REDIS_AVAILABLE', False):
+        with patch("core.token_blacklist.REDIS_AVAILABLE", False):
             return TokenBlacklist()
 
     @pytest.mark.anyio
@@ -164,14 +166,8 @@ class TestTokenBlacklistMemoryOperations:
         expired_token = "expired_token"
         valid_token = "valid_token"
 
-        await memory_blacklist.add_token(
-            expired_token,
-            datetime.now(UTC) - timedelta(hours=1)
-        )
-        await memory_blacklist.add_token(
-            valid_token,
-            datetime.now(UTC) + timedelta(hours=1)
-        )
+        await memory_blacklist.add_token(expired_token, datetime.now(UTC) - timedelta(hours=1))
+        await memory_blacklist.add_token(valid_token, datetime.now(UTC) + timedelta(hours=1))
 
         # Cleanup
         result = await memory_blacklist.cleanup_expired()
@@ -187,7 +183,7 @@ class TestTokenBlacklistRedisOperations:
     @pytest.fixture
     def redis_blacklist(self):
         """Create blacklist instance with Redis enabled."""
-        with patch('core.token_blacklist.REDIS_AVAILABLE', True):
+        with patch("core.token_blacklist.REDIS_AVAILABLE", True):
             return TokenBlacklist()
 
     @pytest.mark.anyio
@@ -197,7 +193,7 @@ class TestTokenBlacklistRedisOperations:
         mock_redis.ping = AsyncMock()
         mock_redis.setex = AsyncMock(return_value=True)
 
-        with patch('core.token_blacklist.redis.Redis', return_value=mock_redis):
+        with patch("core.token_blacklist.redis.Redis", return_value=mock_redis):
             token = "test_token_12345"
             expires_at = datetime.now(UTC) + timedelta(hours=1)
 
@@ -214,7 +210,7 @@ class TestTokenBlacklistRedisOperations:
         mock_redis.ping = AsyncMock()
         mock_redis.exists = AsyncMock(return_value=1)  # Token exists
 
-        with patch('core.token_blacklist.redis.Redis', return_value=mock_redis):
+        with patch("core.token_blacklist.redis.Redis", return_value=mock_redis):
             token = "test_token_12345"
 
             result = await redis_blacklist.is_blacklisted(token)
@@ -230,7 +226,7 @@ class TestTokenBlacklistRedisOperations:
         mock_redis.ping = AsyncMock()
         mock_redis.exists = AsyncMock(return_value=0)  # Token doesn't exist
 
-        with patch('core.token_blacklist.redis.Redis', return_value=mock_redis):
+        with patch("core.token_blacklist.redis.Redis", return_value=mock_redis):
             token = "test_token_12345"
 
             result = await redis_blacklist.is_blacklisted(token)
@@ -245,7 +241,7 @@ class TestTokenBlacklistRedisOperations:
         mock_redis.ping = AsyncMock()
         mock_redis.delete = AsyncMock(return_value=1)  # Token was deleted
 
-        with patch('core.token_blacklist.redis.Redis', return_value=mock_redis):
+        with patch("core.token_blacklist.redis.Redis", return_value=mock_redis):
             token = "test_token_12345"
 
             result = await redis_blacklist.remove_token(token)
@@ -260,7 +256,7 @@ class TestTokenBlacklistRedisOperations:
         mock_redis.ping = AsyncMock()
         mock_redis.setex = AsyncMock(side_effect=Exception("Redis error"))
 
-        with patch('core.token_blacklist.redis.Redis', return_value=mock_redis):
+        with patch("core.token_blacklist.redis.Redis", return_value=mock_redis):
             token = "test_token_12345"
             expires_at = datetime.now(UTC) + timedelta(hours=1)
 
@@ -277,7 +273,7 @@ class TestTokenBlacklistEdgeCases:
     @pytest.fixture
     def blacklist(self):
         """Create blacklist instance."""
-        with patch('core.token_blacklist.REDIS_AVAILABLE', False):
+        with patch("core.token_blacklist.REDIS_AVAILABLE", False):
             return TokenBlacklist()
 
     @pytest.mark.anyio
@@ -336,27 +332,17 @@ class TestTokenBlacklistEdgeCases:
 
     @pytest.mark.anyio
     async def test_concurrent_operations(self, blacklist):
-        """Test concurrent token operations."""
+        """Test concurrent token operations without sleep."""
         import asyncio
 
-        async def add_tokens():
-            for i in range(5):
-                await blacklist.add_token(f"token_{i}", datetime.now(UTC) + timedelta(hours=1))
+        # First, add all tokens
+        for i in range(5):
+            await blacklist.add_token(f"token_{i}", datetime.now(UTC) + timedelta(hours=1))
 
-        async def check_tokens():
-            await asyncio.sleep(0.1)  # Small delay
-            results = []
-            for i in range(5):
-                result = await blacklist.is_blacklisted(f"token_{i}")
-                results.append(result)
-            return results
+        # Then verify all can be checked concurrently
+        check_tasks = [asyncio.create_task(blacklist.is_blacklisted(f"token_{i}")) for i in range(5)]
 
-        # Run operations concurrently
-        add_task = asyncio.create_task(add_tokens())
-        check_task = asyncio.create_task(check_tokens())
-
-        await add_task
-        results = await check_task
+        results = await asyncio.gather(*check_tasks)
 
         # All tokens should be found
         assert all(results)

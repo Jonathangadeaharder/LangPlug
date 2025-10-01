@@ -5,11 +5,12 @@ Enhanced coverage for video processing pipeline including transcription,
 filtering, translation, chunking, and progress tracking. Tests realistic
 scenarios with proper mocking of external services.
 """
-import pytest
-import asyncio
-from unittest.mock import AsyncMock, MagicMock
-from uuid import uuid4
+
 from pathlib import Path
+from unittest.mock import AsyncMock
+from uuid import uuid4
+
+import pytest
 
 from tests.helpers.data_builders import UserBuilder
 
@@ -23,17 +24,10 @@ class TestVideoTranscription:
         user = UserBuilder().build()
 
         # Register and login
-        register_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
-        }
+        register_data = {"username": user.username, "email": user.email, "password": user.password}
         await async_client.post("/api/auth/register", json=register_data)
 
-        login_data = {
-            "username": user.email,
-            "password": user.password
-        }
+        login_data = {"username": user.email, "password": user.password}
         login_response = await async_client.post("/api/auth/login", data=login_data)
         token = login_response.json()["access_token"]
 
@@ -49,7 +43,7 @@ class TestVideoTranscription:
         mock_transcription.transcribe_video.return_value = {
             "transcript": "Hello world in German",
             "language": "de",
-            "confidence": 0.95
+            "confidence": 0.95,
         }
 
         # Mock the transcription service dependency
@@ -67,16 +61,12 @@ class TestVideoTranscription:
                 "status": "completed",
                 "progress": 100.0,
                 "current_step": "transcription_complete",
-                "message": "Transcription successful"
+                "message": "Transcription successful",
             }
 
         monkeypatch.setattr("api.routes.processing.run_transcription", mock_transcription_task)
 
-        request_data = {
-            "video_path": "/uploads/test_video.mp4",
-            "source_language": "de",
-            "model": "whisper-base"
-        }
+        request_data = {"video_path": "/uploads/test_video.mp4", "source_language": "de", "model": "whisper-base"}
 
         response = await async_client.post("/api/process/transcribe", json=request_data, headers=headers)
 
@@ -93,10 +83,7 @@ class TestVideoTranscription:
         """Test transcribing nonexistent video file returns not found"""
         headers = authenticated_user["headers"]
 
-        request_data = {
-            "video_path": "/uploads/nonexistent_video.mp4",
-            "source_language": "de"
-        }
+        request_data = {"video_path": "/uploads/nonexistent_video.mp4", "source_language": "de"}
 
         response = await async_client.post("/api/process/transcribe", json=request_data, headers=headers)
 
@@ -109,7 +96,6 @@ class TestVideoTranscription:
 
         # Mock Path.exists to make the txt file appear to exist
         # so we can test format validation instead of file existence
-        from pathlib import Path
         original_exists = Path.exists
 
         def mock_exists(self):
@@ -119,18 +105,12 @@ class TestVideoTranscription:
 
         monkeypatch.setattr(Path, "exists", mock_exists)
 
-        request_data = {
-            "video_path": "/uploads/not_a_video.txt",
-            "source_language": "de"
-        }
+        request_data = {"video_path": "/uploads/not_a_video.txt", "source_language": "de"}
 
         # Mock the transcription service to avoid actual processing
         # and test the endpoint behavior directly
         mock_transcription = AsyncMock()
-        mock_transcription.transcribe_video.return_value = {
-            "transcript": "Mock transcription result",
-            "segments": []
-        }
+        mock_transcription.transcribe_video.return_value = {"transcript": "Mock transcription result", "segments": []}
 
         # Mock the transcription service call to simulate format validation error
         from subprocess import CalledProcessError
@@ -139,9 +119,7 @@ class TestVideoTranscription:
         def mock_get_transcription_service():
             service = AsyncMock()
             # Simulate the error that occurs when processing invalid format
-            service.extract_audio_from_video.side_effect = CalledProcessError(
-                1, ["ffmpeg"], "Error opening input file"
-            )
+            service.extract_audio_from_video.side_effect = CalledProcessError(1, ["ffmpeg"], "Error opening input file")
             return service
 
         monkeypatch.setattr("api.routes.processing.get_transcription_service", mock_get_transcription_service)
@@ -162,10 +140,7 @@ class TestVideoTranscription:
     @pytest.mark.asyncio
     async def test_WhenTranscribeWithoutAuth_ThenReturns401(self, async_client):
         """Test transcription without authentication returns unauthorized"""
-        request_data = {
-            "video_path": "/uploads/test_video.mp4",
-            "source_language": "de"
-        }
+        request_data = {"video_path": "/uploads/test_video.mp4", "source_language": "de"}
 
         response = await async_client.post("/api/process/transcribe", json=request_data)
 
@@ -180,24 +155,19 @@ class TestSubtitleFiltering:
         """Authenticated user fixture"""
         user = UserBuilder().build()
 
-        register_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
-        }
+        register_data = {"username": user.username, "email": user.email, "password": user.password}
         await async_client.post("/api/auth/register", json=register_data)
 
-        login_data = {
-            "username": user.email,
-            "password": user.password
-        }
+        login_data = {"username": user.email, "password": user.password}
         login_response = await async_client.post("/api/auth/login", data=login_data)
         token = login_response.json()["access_token"]
 
         return {"headers": {"Authorization": f"Bearer {token}"}}
 
     @pytest.mark.asyncio
-    async def test_WhenFilterSubtitlesWithValidSrt_ThenReturnsFilteredContent(self, async_client, auth_user, monkeypatch):
+    async def test_WhenFilterSubtitlesWithValidSrt_ThenReturnsFilteredContent(
+        self, async_client, auth_user, monkeypatch
+    ):
         """Test filtering SRT file returns vocabulary-filtered content"""
         headers = auth_user["headers"]
 
@@ -205,10 +175,15 @@ class TestSubtitleFiltering:
         mock_filtered_content = {
             "filtered_subtitles": [
                 {"start": "00:00:01,000", "end": "00:00:03,000", "text": "Das ist ein Haus", "vocabulary": ["Haus"]},
-                {"start": "00:00:04,000", "end": "00:00:06,000", "text": "Der Hund ist groß", "vocabulary": ["Hund", "groß"]}
+                {
+                    "start": "00:00:04,000",
+                    "end": "00:00:06,000",
+                    "text": "Der Hund ist groß",
+                    "vocabulary": ["Hund", "groß"],
+                },
             ],
             "vocabulary_words": ["Haus", "Hund", "groß"],
-            "difficulty_level": "A2"
+            "difficulty_level": "A2",
         }
 
         async def mock_filter_task(video_path: str, task_id: str, task_progress, subtitle_processor, current_user):
@@ -216,11 +191,10 @@ class TestSubtitleFiltering:
                 "status": "completed",
                 "progress": 100.0,
                 "current_step": "filtering_complete",
-                "result": mock_filtered_content
+                "result": mock_filtered_content,
             }
 
         # Mock Path.exists to make the SRT file appear to exist
-        from pathlib import Path
         original_exists = Path.exists
 
         def mock_exists(self):
@@ -234,7 +208,7 @@ class TestSubtitleFiltering:
         request_data = {
             "video_path": "/uploads/video.mp4",  # Changed to video_path as expected by API
             "target_level": "A2",
-            "vocabulary_filter": True
+            "vocabulary_filter": True,
         }
 
         response = await async_client.post("/api/process/filter-subtitles", json=request_data, headers=headers)
@@ -249,10 +223,7 @@ class TestSubtitleFiltering:
         """Test filtering with invalid difficulty level returns validation error"""
         headers = auth_user["headers"]
 
-        request_data = {
-            "subtitle_path": "/uploads/subtitles.srt",
-            "target_level": "INVALID_LEVEL"
-        }
+        request_data = {"subtitle_path": "/uploads/subtitles.srt", "target_level": "INVALID_LEVEL"}
 
         response = await async_client.post("/api/process/filter-subtitles", json=request_data, headers=headers)
 
@@ -265,7 +236,7 @@ class TestSubtitleFiltering:
 
         request_data = {
             "video_path": "/uploads/missing_video.mp4",  # Changed to video_path (correct field name)
-            "target_level": "A2"
+            "target_level": "A2",
         }
 
         response = await async_client.post("/api/process/filter-subtitles", json=request_data, headers=headers)
@@ -284,17 +255,10 @@ class TestSubtitleTranslation:
         """Authenticated user fixture"""
         user = UserBuilder().build()
 
-        register_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
-        }
+        register_data = {"username": user.username, "email": user.email, "password": user.password}
         await async_client.post("/api/auth/register", json=register_data)
 
-        login_data = {
-            "username": user.email,
-            "password": user.password
-        }
+        login_data = {"username": user.email, "password": user.password}
         login_response = await async_client.post("/api/auth/login", data=login_data)
         token = login_response.json()["access_token"]
 
@@ -308,23 +272,34 @@ class TestSubtitleTranslation:
         # Mock translation result
         mock_translation = {
             "translated_subtitles": [
-                {"start": "00:00:01,000", "end": "00:00:03,000", "original": "Das ist ein Haus", "translation": "This is a house"},
-                {"start": "00:00:04,000", "end": "00:00:06,000", "original": "Der Hund ist groß", "translation": "The dog is big"}
+                {
+                    "start": "00:00:01,000",
+                    "end": "00:00:03,000",
+                    "original": "Das ist ein Haus",
+                    "translation": "This is a house",
+                },
+                {
+                    "start": "00:00:04,000",
+                    "end": "00:00:06,000",
+                    "original": "Der Hund ist groß",
+                    "translation": "The dog is big",
+                },
             ],
             "source_language": "de",
-            "target_language": "en"
+            "target_language": "en",
         }
 
-        async def mock_translation_task(video_path: str, task_id: str, task_progress: dict, source_lang: str, target_lang: str):
+        async def mock_translation_task(
+            video_path: str, task_id: str, task_progress: dict, source_lang: str, target_lang: str
+        ):
             task_progress[task_id] = {
                 "status": "completed",
                 "progress": 100.0,
                 "current_step": "translation_complete",
-                "result": mock_translation
+                "result": mock_translation,
             }
 
         # Mock Path.exists to make the SRT file appear to exist
-        from pathlib import Path
         original_exists = Path.exists
 
         def mock_exists(self):
@@ -338,7 +313,7 @@ class TestSubtitleTranslation:
         request_data = {
             "video_path": "/uploads/german_video.mp4",  # Changed to video_path as expected by API
             "source_lang": "de",  # Changed to source_lang
-            "target_lang": "en"   # Changed to target_lang
+            "target_lang": "en",  # Changed to target_lang
         }
 
         response = await async_client.post("/api/process/translate-subtitles", json=request_data, headers=headers)
@@ -356,7 +331,7 @@ class TestSubtitleTranslation:
         request_data = {
             "subtitle_path": "/uploads/subtitles.srt",
             "source_language": "unsupported_lang",
-            "target_language": "en"
+            "target_language": "en",
         }
 
         response = await async_client.post("/api/process/translate-subtitles", json=request_data, headers=headers)
@@ -372,17 +347,10 @@ class TestVideoChunking:
         """Authenticated user fixture"""
         user = UserBuilder().build()
 
-        register_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
-        }
+        register_data = {"username": user.username, "email": user.email, "password": user.password}
         await async_client.post("/api/auth/register", json=register_data)
 
-        login_data = {
-            "username": user.email,
-            "password": user.password
-        }
+        login_data = {"username": user.email, "password": user.password}
         login_response = await async_client.post("/api/auth/login", data=login_data)
         token = login_response.json()["access_token"]
 
@@ -401,41 +369,50 @@ class TestVideoChunking:
                     "start_time": 0,
                     "end_time": 300,  # 5 minutes
                     "chunk_path": "/chunks/video_chunk_1.mp4",
-                    "subtitle_chunk": "/chunks/subtitles_chunk_1.srt"
+                    "subtitle_chunk": "/chunks/subtitles_chunk_1.srt",
                 },
                 {
                     "chunk_number": 2,
                     "start_time": 300,
                     "end_time": 600,  # 10 minutes
                     "chunk_path": "/chunks/video_chunk_2.mp4",
-                    "subtitle_chunk": "/chunks/subtitles_chunk_2.srt"
-                }
+                    "subtitle_chunk": "/chunks/subtitles_chunk_2.srt",
+                },
             ],
             "total_chunks": 2,
-            "chunk_duration": 300
+            "chunk_duration": 300,
         }
 
-        async def mock_chunking_task(video_path: str, start_time: float, end_time: float, task_id: str, task_progress: dict, user_id: int, session_token: str = None):
+        async def mock_chunking_task(
+            video_path: str,
+            start_time: float,
+            end_time: float,
+            task_id: str,
+            task_progress: dict,
+            user_id: int,
+            session_token: str | None = None,
+        ):
             task_progress[task_id] = {
                 "status": "completed",
                 "progress": 100.0,
                 "current_step": "chunking_complete",
-                "result": mock_chunks
+                "result": mock_chunks,
             }
 
         monkeypatch.setattr("api.routes.processing.run_chunk_processing", mock_chunking_task)
 
         # Mock Path.exists to make the video file appear to exist
-        from pathlib import Path
         original_exists = Path.exists
+
         def mock_exists(self):
-            return True if str(self).endswith('.mp4') else original_exists(self)
+            return True if str(self).endswith(".mp4") else original_exists(self)
+
         monkeypatch.setattr(Path, "exists", mock_exists)
 
         request_data = {
             "video_path": "/uploads/long_video.mp4",
             "start_time": 0.0,
-            "end_time": 300.0  # 5 minutes
+            "end_time": 300.0,  # 5 minutes
         }
 
         response = await async_client.post("/api/process/chunk", json=request_data, headers=headers)
@@ -452,7 +429,7 @@ class TestVideoChunking:
 
         request_data = {
             "video_path": "/uploads/video.mp4",
-            "chunk_duration_seconds": -10  # Invalid negative duration
+            "chunk_duration_seconds": -10,  # Invalid negative duration
         }
 
         response = await async_client.post("/api/process/chunk", json=request_data, headers=headers)
@@ -464,10 +441,7 @@ class TestVideoChunking:
         """Test chunking oversized video returns payload too large"""
         headers = auth_user["headers"]
 
-        request_data = {
-            "video_path": "/uploads/extremely_large_video.mp4",
-            "chunk_duration_seconds": 300
-        }
+        request_data = {"video_path": "/uploads/extremely_large_video.mp4", "chunk_duration_seconds": 300}
 
         # This would be handled by file size validation in actual implementation
         response = await async_client.post("/api/process/chunk", json=request_data, headers=headers)
@@ -484,17 +458,10 @@ class TestFullProcessingPipeline:
         """Authenticated user fixture"""
         user = UserBuilder().build()
 
-        register_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
-        }
+        register_data = {"username": user.username, "email": user.email, "password": user.password}
         await async_client.post("/api/auth/register", json=register_data)
 
-        login_data = {
-            "username": user.email,
-            "password": user.password
-        }
+        login_data = {"username": user.email, "password": user.password}
         login_response = await async_client.post("/api/auth/login", data=login_data)
         token = login_response.json()["access_token"]
 
@@ -506,66 +473,25 @@ class TestFullProcessingPipeline:
         headers = auth_user["headers"]
 
         # Mock complete pipeline result
-        mock_pipeline_result = {
-            "transcription": {
-                "transcript_path": "/results/transcript.srt",
-                "language": "de",
-                "confidence": 0.92
-            },
-            "filtering": {
-                "filtered_path": "/results/filtered.srt",
-                "vocabulary_count": 45,
-                "difficulty_level": "B1"
-            },
-            "translation": {
-                "translation_path": "/results/translated.srt",
-                "source_language": "de",
-                "target_language": "en"
-            },
-            "chunking": {
-                "chunks": [
-                    {"chunk_number": 1, "path": "/chunks/chunk_1.mp4"},
-                    {"chunk_number": 2, "path": "/chunks/chunk_2.mp4"}
-                ],
-                "total_chunks": 2
-            }
-        }
 
         async def mock_full_pipeline(video_path_str: str, task_id: str, task_progress: dict, user_id: int):
             from api.models.processing import ProcessingStatus
-            # Simulate progressive updates
+
+            # Simulate progressive updates without sleep (mocked processing is synchronous)
             task_progress[task_id] = ProcessingStatus(
-                status="processing",
-                progress=25.0,
-                current_step="transcription",
-                message="Transcribing video..."
+                status="processing", progress=25.0, current_step="transcription", message="Transcribing video..."
             )
 
-            await asyncio.sleep(0.1)  # Simulate processing time
-
             task_progress[task_id] = ProcessingStatus(
-                status="processing",
-                progress=50.0,
-                current_step="filtering",
-                message="Filtering vocabulary..."
+                status="processing", progress=50.0, current_step="filtering", message="Filtering vocabulary..."
             )
 
-            await asyncio.sleep(0.1)
-
             task_progress[task_id] = ProcessingStatus(
-                status="processing",
-                progress=75.0,
-                current_step="translation",
-                message="Translating subtitles..."
+                status="processing", progress=75.0, current_step="translation", message="Translating subtitles..."
             )
 
-            await asyncio.sleep(0.1)
-
             task_progress[task_id] = ProcessingStatus(
-                status="completed",
-                progress=100.0,
-                current_step="complete",
-                message="Processing complete"
+                status="completed", progress=100.0, current_step="complete", message="Processing complete"
             )
 
         monkeypatch.setattr("api.routes.processing.run_processing_pipeline", mock_full_pipeline)
@@ -575,7 +501,7 @@ class TestFullProcessingPipeline:
             "source_language": "de",
             "target_language": "en",
             "difficulty_level": "B1",
-            "chunk_duration": 300
+            "chunk_duration": 300,
         }
 
         response = await async_client.post("/api/process/full-pipeline", json=request_data, headers=headers)
@@ -586,10 +512,8 @@ class TestFullProcessingPipeline:
         assert "task_id" in response_data
         task_id = response_data["task_id"]
 
-        # Wait a bit for background processing
-        await asyncio.sleep(0.5)
-
-        # Check progress endpoint
+        # Mock completes synchronously, no need to wait for background processing
+        # Check progress endpoint immediately
         progress_response = await async_client.get(f"/api/process/progress/{task_id}", headers=headers)
         assert progress_response.status_code == 200
 
@@ -605,7 +529,7 @@ class TestFullProcessingPipeline:
         request_data = {
             "video_path": "/uploads/video.mp4",
             "source_lang": "",  # Empty source language - should fail validation
-            "target_lang": "en"
+            "target_lang": "en",
         }
 
         response = await async_client.post("/api/process/full-pipeline", json=request_data, headers=headers)
@@ -620,7 +544,7 @@ class TestFullProcessingPipeline:
         request_data = {
             # Missing required video_path parameter
             "source_lang": "de",
-            "target_lang": "en"
+            "target_lang": "en",
         }
 
         response = await async_client.post("/api/process/full-pipeline", json=request_data, headers=headers)
@@ -637,17 +561,10 @@ class TestProcessingEndpoints:
         user = UserBuilder().build()
 
         # Register and login
-        register_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
-        }
+        register_data = {"username": user.username, "email": user.email, "password": user.password}
         await async_client.post("/api/auth/register", json=register_data)
 
-        login_data = {
-            "username": user.email,
-            "password": user.password
-        }
+        login_data = {"username": user.email, "password": user.password}
         login_response = await async_client.post("/api/auth/login", data=login_data)
         token = login_response.json()["access_token"]
 
@@ -659,7 +576,6 @@ class TestProcessingEndpoints:
         headers = authenticated_user["headers"]
 
         # Mock Path.exists to make the video file appear to exist
-        from pathlib import Path
         original_exists = Path.exists
 
         def mock_exists(self):
@@ -671,27 +587,27 @@ class TestProcessingEndpoints:
 
         # Mock the transcription service to prevent actual file processing
         from unittest.mock import AsyncMock
+
         from utils.transcription import TranscriptionResult, TranscriptionSegment
 
         mock_transcription_service = AsyncMock()
         mock_result = TranscriptionResult(
             segments=[
                 TranscriptionSegment(0.0, 5.0, "Test transcription segment 1"),
-                TranscriptionSegment(5.0, 10.0, "Test transcription segment 2")
+                TranscriptionSegment(5.0, 10.0, "Test transcription segment 2"),
             ],
             language="de",
-            duration=10.0
+            duration=10.0,
         )
         mock_transcription_service.transcribe.return_value = mock_result
 
         # Mock the transcription service getter
         from utils import transcription
+
         monkeypatch.setattr(transcription, "get_transcription_service", lambda: mock_transcription_service)
 
         response = await async_client.post(
-            "/api/process/transcribe",
-            json={"video_path": "video.mp4", "language": "de"},
-            headers=headers
+            "/api/process/transcribe", json={"video_path": "video.mp4", "language": "de"}, headers=headers
         )
 
         assert response.status_code == 200
@@ -706,7 +622,6 @@ class TestProcessingEndpoints:
         headers = authenticated_user["headers"]
 
         # Mock Path.exists to make both video and SRT files appear to exist
-        from pathlib import Path
         original_exists = Path.exists
 
         def mock_exists(self):
@@ -718,31 +633,29 @@ class TestProcessingEndpoints:
 
         # Mock the transcription service to prevent actual file processing
         from unittest.mock import AsyncMock
+
         from utils.transcription import TranscriptionResult, TranscriptionSegment
 
         mock_transcription_service = AsyncMock()
         mock_result = TranscriptionResult(
             segments=[
                 TranscriptionSegment(0.0, 5.0, "Test German text"),
-                TranscriptionSegment(5.0, 10.0, "More German text")
+                TranscriptionSegment(5.0, 10.0, "More German text"),
             ],
             language="de",
-            duration=10.0
+            duration=10.0,
         )
         mock_transcription_service.transcribe.return_value = mock_result
 
         # Mock the transcription service getter
         from utils import transcription
+
         monkeypatch.setattr(transcription, "get_transcription_service", lambda: mock_transcription_service)
 
         response = await async_client.post(
             "/api/process/translate-subtitles",
-            json={
-                "video_path": "video.mp4",
-                "source_lang": "de",
-                "target_lang": "en"
-            },
-            headers=headers
+            json={"video_path": "video.mp4", "source_lang": "de", "target_lang": "en"},
+            headers=headers,
         )
 
         assert response.status_code == 200
@@ -752,12 +665,13 @@ class TestProcessingEndpoints:
         assert data["status"] == "started"
 
     @pytest.mark.asyncio
-    async def test_WhenFilterSubtitlesWithValidVideo_ThenReturns200(self, async_client, authenticated_user, monkeypatch):
+    async def test_WhenFilterSubtitlesWithValidVideo_ThenReturns200(
+        self, async_client, authenticated_user, monkeypatch
+    ):
         """Test filtering subtitles with valid video returns 200 status with task ID"""
         headers = authenticated_user["headers"]
 
         # Mock Path.exists to make both video and SRT files appear to exist
-        from pathlib import Path
         original_exists = Path.exists
 
         def mock_exists(self):
@@ -773,16 +687,14 @@ class TestProcessingEndpoints:
         mock_subtitle_processor = AsyncMock()
         mock_subtitle_processor.process_srt_file.return_value = [
             {"text": "Filtered subtitle 1", "start_time": 0.0, "end_time": 5.0},
-            {"text": "Filtered subtitle 2", "start_time": 5.0, "end_time": 10.0}
+            {"text": "Filtered subtitle 2", "start_time": 5.0, "end_time": 10.0},
         ]
 
         # Mock the subtitle processor dependency
         monkeypatch.setattr("core.dependencies.get_subtitle_processor", lambda db=None: mock_subtitle_processor)
 
         response = await async_client.post(
-            "/api/process/filter-subtitles",
-            json={"video_path": "video.mp4"},
-            headers=headers
+            "/api/process/filter-subtitles", json={"video_path": "video.mp4"}, headers=headers
         )
 
         assert response.status_code == 200
@@ -797,7 +709,6 @@ class TestProcessingEndpoints:
         headers = authenticated_user["headers"]
 
         # Mock Path.exists to make both video and SRT files appear to exist
-        from pathlib import Path
         original_exists = Path.exists
 
         def mock_exists(self):
@@ -809,6 +720,7 @@ class TestProcessingEndpoints:
 
         # Mock all the services used in the full pipeline
         from unittest.mock import AsyncMock
+
         from utils.transcription import TranscriptionResult, TranscriptionSegment
 
         # Mock transcription service
@@ -816,33 +728,30 @@ class TestProcessingEndpoints:
         mock_result = TranscriptionResult(
             segments=[
                 TranscriptionSegment(0.0, 5.0, "German text for pipeline"),
-                TranscriptionSegment(5.0, 10.0, "More German text")
+                TranscriptionSegment(5.0, 10.0, "More German text"),
             ],
             language="de",
-            duration=10.0
+            duration=10.0,
         )
         mock_transcription_service.transcribe.return_value = mock_result
 
         from utils import transcription
+
         monkeypatch.setattr(transcription, "get_transcription_service", lambda: mock_transcription_service)
 
         # Mock subtitle processor
         mock_subtitle_processor = AsyncMock()
         mock_subtitle_processor.process_srt_file.return_value = [
             {"text": "Filtered German subtitle 1", "start_time": 0.0, "end_time": 5.0},
-            {"text": "Filtered German subtitle 2", "start_time": 5.0, "end_time": 10.0}
+            {"text": "Filtered German subtitle 2", "start_time": 5.0, "end_time": 10.0},
         ]
 
         monkeypatch.setattr("core.dependencies.get_subtitle_processor", lambda db=None: mock_subtitle_processor)
 
         response = await async_client.post(
             "/api/process/full-pipeline",
-            json={
-                "video_path": "video.mp4",
-                "source_lang": "de",
-                "target_lang": "en"
-            },
-            headers=headers
+            json={"video_path": "video.mp4", "source_lang": "de", "target_lang": "en"},
+            headers=headers,
         )
 
         assert response.status_code == 200
@@ -857,7 +766,6 @@ class TestProcessingEndpoints:
         headers = authenticated_user["headers"]
 
         # Mock Path.exists to make the video file appear to exist
-        from pathlib import Path
         original_exists = Path.exists
 
         def mock_exists(self):
@@ -876,31 +784,29 @@ class TestProcessingEndpoints:
         mock_video.write_videofile = Mock()
 
         # Mock VideoFileClip and the transcription service
-        with patch('moviepy.video.io.VideoFileClip.VideoFileClip', return_value=mock_video) as mock_clip:
+        with patch("moviepy.video.io.VideoFileClip.VideoFileClip", return_value=mock_video):
             # Mock transcription service
             from utils.transcription import TranscriptionResult, TranscriptionSegment
+
             mock_transcription_service = Mock()
             mock_result = TranscriptionResult(
                 segments=[
                     TranscriptionSegment(0.0, 5.0, "Chunk transcription 1"),
-                    TranscriptionSegment(5.0, 10.0, "Chunk transcription 2")
+                    TranscriptionSegment(5.0, 10.0, "Chunk transcription 2"),
                 ],
                 language="de",
-                duration=10.0
+                duration=10.0,
             )
             mock_transcription_service.transcribe.return_value = mock_result
 
             from utils import transcription
+
             monkeypatch.setattr(transcription, "get_transcription_service", lambda: mock_transcription_service)
 
             response = await async_client.post(
                 "/api/process/chunk",
-                json={
-                    "video_path": "video.mp4",
-                    "start_time": 0,
-                    "end_time": 300
-                },
-                headers=headers
+                json={"video_path": "video.mp4", "start_time": 0, "end_time": 300},
+                headers=headers,
             )
 
         assert response.status_code == 200
@@ -918,17 +824,10 @@ class TestProgressTracking:
         """Authenticated user fixture"""
         user = UserBuilder().build()
 
-        register_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
-        }
+        register_data = {"username": user.username, "email": user.email, "password": user.password}
         await async_client.post("/api/auth/register", json=register_data)
 
-        login_data = {
-            "username": user.email,
-            "password": user.password
-        }
+        login_data = {"username": user.email, "password": user.password}
         login_response = await async_client.post("/api/auth/login", data=login_data)
         token = login_response.json()["access_token"]
 
@@ -941,12 +840,10 @@ class TestProgressTracking:
 
         # Mock progress registry
         from api.models.processing import ProcessingStatus
+
         mock_progress = {
             "test_task_123": ProcessingStatus(
-                status="processing",
-                progress=65.5,
-                current_step="translation",
-                message="Translating subtitles..."
+                status="processing", progress=65.5, current_step="translation", message="Translating subtitles..."
             )
         }
 
@@ -955,6 +852,7 @@ class TestProgressTracking:
 
         # Set the global progress registry directly
         import core.dependencies
+
         monkeypatch.setattr(core.dependencies, "_task_progress_registry", mock_progress)
 
         response = await async_client.get("/api/process/progress/test_task_123", headers=headers)
@@ -986,35 +884,30 @@ class TestProgressTracking:
         assert response.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_WhenMultipleTasksProgress_ThenEachTaskTrackedIndependently(self, async_client, auth_user, monkeypatch):
+    async def test_WhenMultipleTasksProgress_ThenEachTaskTrackedIndependently(
+        self, async_client, auth_user, monkeypatch
+    ):
         """Test multiple tasks are tracked independently"""
         headers = auth_user["headers"]
 
         # Mock multiple tasks in progress
         from api.models.processing import ProcessingStatus
+
         mock_progress_registry = {
             "task_1": ProcessingStatus(
-                status="processing",
-                progress=30.0,
-                current_step="transcription",
-                message="Transcribing audio..."
+                status="processing", progress=30.0, current_step="transcription", message="Transcribing audio..."
             ),
             "task_2": ProcessingStatus(
-                status="completed",
-                progress=100.0,
-                current_step="complete",
-                message="Processing completed successfully"
+                status="completed", progress=100.0, current_step="complete", message="Processing completed successfully"
             ),
             "task_3": ProcessingStatus(
-                status="error",
-                progress=45.0,
-                current_step="filtering",
-                message="Error during vocabulary filtering"
-            )
+                status="error", progress=45.0, current_step="filtering", message="Error during vocabulary filtering"
+            ),
         }
 
         # Set the global progress registry directly
         import core.dependencies
+
         monkeypatch.setattr(core.dependencies, "_task_progress_registry", mock_progress_registry)
 
         # Check each task independently

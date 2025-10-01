@@ -4,7 +4,6 @@ Subtitle loading and parsing service
 
 import re
 from pathlib import Path
-from typing import List
 
 from services.filterservice.interface import FilteredSubtitle
 from utils.srt_parser import SRTParser
@@ -13,10 +12,7 @@ from utils.srt_parser import SRTParser
 class SubtitleLoaderService:
     """Handles subtitle loading, parsing, and word extraction"""
 
-    async def load_and_parse(
-        self,
-        srt_path: str
-    ) -> List[FilteredSubtitle]:
+    async def load_and_parse(self, srt_path: str) -> list[FilteredSubtitle]:
         """
         Load and parse SRT file into FilteredSubtitle objects
 
@@ -42,28 +38,16 @@ class SubtitleLoaderService:
         # Convert to FilteredSubtitle objects
         subtitles = []
         for segment in segments:
-            words = self.extract_words_from_text(
-                segment.text,
-                segment.start_time,
-                segment.end_time
-            )
+            words = self.extract_words_from_text(segment.text, segment.start_time, segment.end_time)
 
             subtitle = FilteredSubtitle(
-                original_text=segment.text,
-                start_time=segment.start_time,
-                end_time=segment.end_time,
-                words=words
+                original_text=segment.text, start_time=segment.start_time, end_time=segment.end_time, words=words
             )
             subtitles.append(subtitle)
 
         return subtitles
 
-    def extract_words_from_text(
-        self,
-        text: str,
-        start_time: float,
-        end_time: float
-    ) -> List[dict]:
+    def extract_words_from_text(self, text: str, start_time: float, end_time: float) -> list[dict]:
         """
         Extract words from subtitle text with timing
 
@@ -76,7 +60,7 @@ class SubtitleLoaderService:
             List of word dictionaries with text and timing
         """
         # Extract words using regex pattern
-        word_pattern = re.compile(r'\b\w+\b')
+        word_pattern = re.compile(r"\b\w+\b")
         words = word_pattern.findall(text.lower())
 
         # Distribute timing evenly among words
@@ -87,11 +71,7 @@ class SubtitleLoaderService:
         for i, word in enumerate(words):
             word_start = start_time + (i * word_duration)
             word_end = word_start + word_duration
-            word_objects.append({
-                "text": word,
-                "start_time": word_start,
-                "end_time": word_end
-            })
+            word_objects.append({"text": word, "start_time": word_start, "end_time": word_end})
 
         return word_objects
 

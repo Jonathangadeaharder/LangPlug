@@ -1,37 +1,53 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { getApiConfig } from '../../config/api-config'
 
 describe('API Connection Configuration', () => {
-  it('should use environment variable for API URL when provided', () => {
-    // Test that VITE_API_URL overrides the default
-    const originalEnv = import.meta.env.VITE_API_URL
+  let originalEnv: string | undefined
+  let originalMode: string | undefined
 
-    // Set a custom URL
+  beforeEach(() => {
+    // Save original values
+    originalEnv = import.meta.env.VITE_API_URL
+    originalMode = import.meta.env.VITE_ENVIRONMENT
+  })
+
+  afterEach(() => {
+    // Restore original values after each test
+    if (originalEnv !== undefined) {
+      import.meta.env.VITE_API_URL = originalEnv
+    } else {
+      delete import.meta.env.VITE_API_URL
+    }
+    if (originalMode !== undefined) {
+      import.meta.env.VITE_ENVIRONMENT = originalMode
+    } else {
+      delete import.meta.env.VITE_ENVIRONMENT
+    }
+  })
+
+  it('should use environment variable for API URL when provided', () => {
+    // Test that VITE_API_URL overrides the default in development mode
+    import.meta.env.VITE_ENVIRONMENT = 'development'
     import.meta.env.VITE_API_URL = 'http://localhost:9999'
     const config = getApiConfig()
 
     expect(config.baseUrl).toBe('http://localhost:9999')
-
-    // Restore original
-    import.meta.env.VITE_API_URL = originalEnv
   })
 
   it('should default to port 8000 when no environment variable is set', () => {
-    // Ensure no env var is set
-    const originalEnv = import.meta.env.VITE_API_URL
+    // Ensure development mode with no custom URL
+    import.meta.env.VITE_ENVIRONMENT = 'development'
     delete import.meta.env.VITE_API_URL
 
     const config = getApiConfig()
     expect(config.baseUrl).toBe('http://localhost:8000')
-
-    // Restore original
-    if (originalEnv) {
-      import.meta.env.VITE_API_URL = originalEnv
-    }
   })
 
   it('should match Backend port configuration', () => {
     // This test documents the expected coordination between Frontend and Backend
+    // Use test environment which has a default baseUrl
+    import.meta.env.VITE_ENVIRONMENT = 'test'
+
     const config = getApiConfig()
     const url = new URL(config.baseUrl)
 

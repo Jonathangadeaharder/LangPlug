@@ -1,4 +1,5 @@
 """Proper pytest tests for model validation (converted from print-based validation script)."""
+
 from __future__ import annotations
 
 import pytest
@@ -75,17 +76,13 @@ class TestVocabularyModelValidation:
 
     def test_When_valid_vocabulary_word_data_provided_Then_model_created_successfully(self):
         """Valid vocabulary word data should create model without errors."""
-        from api.models.vocabulary import VocabularyWord
         import uuid
+
+        from api.models.vocabulary import VocabularyWord
 
         # Arrange & Act
         concept_id = uuid.uuid4()
-        word = VocabularyWord(
-            concept_id=concept_id,
-            word="Hallo",
-            translation="Hello",
-            difficulty_level="A1"
-        )
+        word = VocabularyWord(concept_id=concept_id, word="Hallo", translation="Hello", difficulty_level="A1")
 
         # Assert
         assert word.concept_id == concept_id
@@ -95,8 +92,9 @@ class TestVocabularyModelValidation:
 
     def test_When_valid_mark_known_request_provided_Then_model_created_successfully(self):
         """Valid mark known request should create model without errors."""
-        from api.models.vocabulary import MarkKnownRequest
         import uuid
+
+        from api.models.vocabulary import MarkKnownRequest
 
         # Arrange & Act
         concept_id = uuid.uuid4()
@@ -123,9 +121,7 @@ class TestProcessingModelValidation:
         from api.models.processing import TranscribeRequest
 
         # Arrange & Act
-        request = TranscribeRequest(
-            video_path="/videos/test.mp4"
-        )
+        request = TranscribeRequest(video_path="/videos/test.mp4")
 
         # Assert
         assert request.video_path == "/videos/test.mp4"
@@ -135,11 +131,7 @@ class TestProcessingModelValidation:
         from api.models.processing import ChunkProcessingRequest
 
         # Arrange & Act
-        request = ChunkProcessingRequest(
-            video_path="/videos/test.mp4",
-            start_time=0.0,
-            end_time=30.0
-        )
+        request = ChunkProcessingRequest(video_path="/videos/test.mp4", start_time=0.0, end_time=30.0)
 
         # Assert
         assert request.video_path == "/videos/test.mp4"
@@ -155,7 +147,7 @@ class TestProcessingModelValidation:
             request = ChunkProcessingRequest(
                 video_path="/videos/test.mp4",
                 start_time=30.0,
-                end_time=10.0  # End before start
+                end_time=10.0,  # End before start
             )
             # If no validation error, model allows invalid time ranges (current behavior)
             assert request.start_time > request.end_time
@@ -169,8 +161,9 @@ class TestTranscriptionInterfaceValidation:
 
     def test_When_transcription_service_interface_inspected_Then_is_properly_abstract(self):
         """ITranscriptionService should be properly defined as abstract."""
-        from services.transcriptionservice.interface import ITranscriptionService
         from abc import ABC
+
+        from services.transcriptionservice.interface import ITranscriptionService
 
         # Assert
         assert issubclass(ITranscriptionService, ABC)
@@ -180,12 +173,7 @@ class TestTranscriptionInterfaceValidation:
         from services.transcriptionservice.interface import TranscriptionSegment
 
         # Arrange & Act
-        segment = TranscriptionSegment(
-            start_time=0.0,
-            end_time=5.0,
-            text="Test segment",
-            confidence=0.95
-        )
+        segment = TranscriptionSegment(start_time=0.0, end_time=5.0, text="Test segment", confidence=0.95)
 
         # Assert
         assert segment.start_time == 0.0
@@ -198,19 +186,10 @@ class TestTranscriptionInterfaceValidation:
         from services.transcriptionservice.interface import TranscriptionResult, TranscriptionSegment
 
         # Arrange
-        segment = TranscriptionSegment(
-            start_time=0.0,
-            end_time=5.0,
-            text="Test segment",
-            confidence=0.95
-        )
+        segment = TranscriptionSegment(start_time=0.0, end_time=5.0, text="Test segment", confidence=0.95)
 
         # Act
-        result = TranscriptionResult(
-            full_text="Test transcription",
-            segments=[segment],
-            language="en"
-        )
+        result = TranscriptionResult(full_text="Test transcription", segments=[segment], language="en")
 
         # Assert
         assert result.full_text == "Test transcription"
@@ -228,32 +207,23 @@ class TestModelValidationIntegration:
 
         with AssertionContext("Authentication model validation consistency") as ctx:
             # Test that all required validation is in place
-            ctx.assert_that(
-                hasattr(RegisterRequest, 'model_fields'),
-                "RegisterRequest should have defined fields"
-            )
+            ctx.assert_that(hasattr(RegisterRequest, "model_fields"), "RegisterRequest should have defined fields")
 
             # Test that validation errors are properly typed
             try:
                 RegisterRequest()
             except ValidationError as e:
-                ctx.assert_that(
-                    isinstance(e.errors(), list),
-                    "Validation errors should be properly formatted"
-                )
+                ctx.assert_that(isinstance(e.errors(), list), "Validation errors should be properly formatted")
 
     def test_When_vocabulary_models_used_together_Then_compatible_data_structures(self):
         """Vocabulary models should have compatible data structures."""
-        from api.models.vocabulary import VocabularyWord, MarkKnownRequest
-
         # Ensure models can work together in realistic scenarios
         import uuid
+
+        from api.models.vocabulary import MarkKnownRequest, VocabularyWord
+
         word = VocabularyWord(
-            concept_id=uuid.uuid4(),
-            word="sprechen",
-            translation="to speak",
-            difficulty_level="A2",
-            frequency_rank=200
+            concept_id=uuid.uuid4(), word="sprechen", translation="to speak", difficulty_level="A2", frequency_rank=200
         )
 
         mark_request = MarkKnownRequest(concept_id=word.concept_id, known=True)

@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import ReactPlayer from 'react-player'
-import { 
-  PlayIcon, 
-  PauseIcon, 
+import {
+  PlayIcon,
+  PauseIcon,
   SpeakerWaveIcon,
   SpeakerXMarkIcon,
   ArrowLeftIcon,
@@ -72,7 +72,7 @@ const BackButton = styled.button`
   font-size: 14px;
   cursor: pointer;
   transition: background 0.3s ease;
-  
+
   &:hover {
     background: rgba(0, 0, 0, 0.9);
   }
@@ -157,12 +157,12 @@ const ControlButton = styled.button`
   padding: 8px;
   border-radius: 50%;
   transition: all 0.3s ease;
-  
+
   &:hover {
     background: rgba(255, 255, 255, 0.1);
     transform: scale(1.1);
   }
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -182,7 +182,7 @@ const VolumeSlider = styled.input`
   border-radius: 2px;
   outline: none;
   cursor: pointer;
-  
+
   &::-webkit-slider-thumb {
     appearance: none;
     width: 12px;
@@ -204,7 +204,7 @@ const SubtitleToggle = styled(NetflixButton)<{ $mode: string }>`
   font-size: 14px;
   background: ${props => props.$mode !== 'OFF' ? '#e50914' : 'rgba(255, 255, 255, 0.2)'};
   min-width: 80px;
-  
+
   &:hover {
     background: ${props => props.$mode !== 'OFF' ? '#f40612' : 'rgba(255, 255, 255, 0.3)'};
   }
@@ -272,9 +272,9 @@ export const LearningPlayer: React.FC = () => {
   const { series, episode } = useParams<{ series: string; episode: string }>()
   const location = useLocation()
   const navigate = useNavigate()
-  
+
   const videoInfo = location.state?.videoInfo as VideoInfo
-  
+
   // Player state
   const [playing, setPlaying] = useState(false)
   const [volume, setVolume] = useState(1)
@@ -284,13 +284,13 @@ export const LearningPlayer: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(0)
   const [controlsVisible, setControlsVisible] = useState(true)
   const [loading, setLoading] = useState(false)
-  
+
   // Learning state
   const [currentSegment, setCurrentSegment] = useState(0)
   const [segmentWords, setSegmentWords] = useState<VocabularyWord[]>([])
   const [showVocabularyGame, setShowVocabularyGame] = useState(false)
   const [segmentComplete, setSegmentComplete] = useState(false)
-  
+
   // Subtitle system state
   type SubtitleMode = 'OFF' | 'DE' | 'ES' | 'DE+ES' | 'UPLOAD'
   const [subtitleMode, setSubtitleMode] = useState<SubtitleMode>('OFF')
@@ -300,11 +300,11 @@ export const LearningPlayer: React.FC = () => {
   const [currentOriginalSubtitle, setCurrentOriginalSubtitle] = useState('')
   const [translatedSubtitles, setTranslatedSubtitles] = useState<Array<{start: number, end: number, text: string}>>([])
   const [currentTranslatedSubtitle, setCurrentTranslatedSubtitle] = useState('')
-  
+
   const { showSubtitles, toggleSubtitles, markWordKnown } = useGameStore()
   const playerRef = useRef<ReactPlayer>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout>()
-  
+
   const SEGMENT_DURATION = 300 // 5 minutes
 
   useEffect(() => {
@@ -312,7 +312,7 @@ export const LearningPlayer: React.FC = () => {
       navigate('/')
       return
     }
-    
+
     // Start with vocabulary check for first segment
     loadSegmentWords(0)
   }, [videoInfo, navigate])
@@ -324,7 +324,7 @@ export const LearningPlayer: React.FC = () => {
         setControlsVisible(false)
       }, 3000)
     }
-    
+
     return () => {
       if (controlsTimeoutRef.current) {
         clearTimeout(controlsTimeoutRef.current)
@@ -334,7 +334,7 @@ export const LearningPlayer: React.FC = () => {
 
   const loadSegmentWords = async (segmentIndex: number) => {
     if (!videoInfo) return
-    
+
     setLoading(true)
     try {
       const blockingWordsResponse = await getBlockingWordsApiVocabularyBlockingWordsGet({
@@ -358,35 +358,35 @@ export const LearningPlayer: React.FC = () => {
   const handleProgress = (state: { played: number; playedSeconds: number }) => {
     setProgress(state.played * 100)
     setCurrentTime(state.playedSeconds)
-    
+
     // Update subtitles based on mode
     if (subtitleMode === 'UPLOAD' && uploadedSubtitles.length > 0) {
-      const currentSub = uploadedSubtitles.find(sub => 
+      const currentSub = uploadedSubtitles.find(sub =>
         state.playedSeconds >= sub.start && state.playedSeconds <= sub.end
       )
       setCurrentUploadedSubtitle(currentSub?.text || '')
     }
-    
+
     if ((subtitleMode === 'DE' || subtitleMode === 'DE+ES') && originalSubtitles.length > 0) {
-      const currentSub = originalSubtitles.find(sub => 
+      const currentSub = originalSubtitles.find(sub =>
         state.playedSeconds >= sub.start && state.playedSeconds <= sub.end
       )
       setCurrentOriginalSubtitle(currentSub?.text || '')
     }
-    
+
     if ((subtitleMode === 'ES' || subtitleMode === 'DE+ES') && translatedSubtitles.length > 0) {
-      const currentSub = translatedSubtitles.find(sub => 
+      const currentSub = translatedSubtitles.find(sub =>
         state.playedSeconds >= sub.start && state.playedSeconds <= sub.end
       )
       setCurrentTranslatedSubtitle(currentSub?.text || '')
     }
-    
+
     // Check if we've completed the current 5-minute segment
     const segmentEnd = (currentSegment + 1) * SEGMENT_DURATION
     if (state.playedSeconds >= segmentEnd && !segmentComplete) {
       setPlaying(false)
       setSegmentComplete(true)
-      
+
       // Load words for next segment
       setTimeout(() => {
         const nextSegment = currentSegment + 1
@@ -400,7 +400,7 @@ export const LearningPlayer: React.FC = () => {
   const handleVocabularyComplete = () => {
     setShowVocabularyGame(false)
     setPlaying(true)
-    
+
     // Seek to the start of current segment
     const seekTime = currentSegment * SEGMENT_DURATION
     if (playerRef.current) {
@@ -419,7 +419,7 @@ export const LearningPlayer: React.FC = () => {
   const handleSkipVocabulary = () => {
     setShowVocabularyGame(false)
     setPlaying(true)
-    
+
     const seekTime = currentSegment * SEGMENT_DURATION
     if (playerRef.current) {
       playerRef.current.seekTo(seekTime, 'seconds')
@@ -443,7 +443,7 @@ export const LearningPlayer: React.FC = () => {
     const clickX = e.clientX - bounds.left
     const percentage = clickX / bounds.width
     const seekTime = percentage * duration
-    
+
     if (playerRef.current) {
       playerRef.current.seekTo(seekTime, 'seconds')
     }
@@ -458,7 +458,7 @@ export const LearningPlayer: React.FC = () => {
   const parseSRT = (srtContent: string) => {
     const subtitles: Array<{start: number, end: number, text: string}> = []
     const blocks = srtContent.trim().split(/\n\s*\n/)
-    
+
     for (const block of blocks) {
       const lines = block.split('\n')
       if (lines.length >= 3) {
@@ -467,12 +467,12 @@ export const LearningPlayer: React.FC = () => {
           const start = parseInt(timeMatch[1]) * 3600 + parseInt(timeMatch[2]) * 60 + parseInt(timeMatch[3]) + parseInt(timeMatch[4]) / 1000
           const end = parseInt(timeMatch[5]) * 3600 + parseInt(timeMatch[6]) * 60 + parseInt(timeMatch[7]) + parseInt(timeMatch[8]) / 1000
           const text = lines.slice(2).join(' ').trim()
-          
+
           subtitles.push({ start, end, text })
         }
       }
     }
-    
+
     return subtitles
   }
 
@@ -502,7 +502,7 @@ export const LearningPlayer: React.FC = () => {
     switch (subtitleMode) {
       case 'OFF': return 'Off'
       case 'DE': return 'DE'
-      case 'ES': return 'ES' 
+      case 'ES': return 'ES'
       case 'DE+ES': return 'DE+ES'
       case 'UPLOAD': return 'Upload'
       default: return 'Off'
@@ -541,46 +541,46 @@ export const LearningPlayer: React.FC = () => {
           onBufferEnd={() => setLoading(false)}
           progressInterval={1000}
         />
-        
+
         {loading && (
           <LoadingOverlay>
             <div className="loading-spinner" />
             <p style={{ marginTop: '16px' }}>Loading...</p>
           </LoadingOverlay>
         )}
-        
+
         <ControlsOverlay $visible={controlsVisible}>
           <TopControls>
             <BackButton onClick={() => navigate(-1)}>
               <ArrowLeftIcon className="w-4 h-4" />
               Back
             </BackButton>
-            
+
             <VideoTitle>{videoInfo.title}</VideoTitle>
-            
+
             <SegmentInfo>
               <div>Segment {currentSegment + 1}</div>
               <div>{formatTime(getCurrentSegmentTime())} / {formatTime(SEGMENT_DURATION)}</div>
             </SegmentInfo>
           </TopControls>
-          
+
           <BottomControls>
             <ProgressSection>
               <ProgressBar onClick={handleProgressClick}>
                 <ProgressFill $progress={progress} />
               </ProgressBar>
-              
+
               <TimeInfo>
                 <span>{formatTime(currentTime)}</span>
-                
+
                 <SegmentProgress>
                   Segment Progress: {Math.round(segmentProgress)}%
                 </SegmentProgress>
-                
+
                 <span>{formatTime(duration)}</span>
               </TimeInfo>
             </ProgressSection>
-            
+
             <Controls>
               <PlayControls>
                 <ControlButton onClick={handlePlayPause}>
@@ -590,7 +590,7 @@ export const LearningPlayer: React.FC = () => {
                     <PlayIcon className="w-6 h-6" />
                   )}
                 </ControlButton>
-                
+
                 <VolumeControl>
                   <ControlButton onClick={() => setMuted(!muted)}>
                     {muted ? (
@@ -599,7 +599,7 @@ export const LearningPlayer: React.FC = () => {
                       <SpeakerWaveIcon className="w-5 h-5" />
                     )}
                   </ControlButton>
-                  
+
                   <VolumeSlider
                     type="range"
                     min="0"
@@ -614,7 +614,7 @@ export const LearningPlayer: React.FC = () => {
                   />
                 </VolumeControl>
               </PlayControls>
-              
+
               <RightControls>
                 <SubtitleToggle
                   $mode={subtitleMode}
@@ -630,14 +630,14 @@ export const LearningPlayer: React.FC = () => {
                   <LanguageIcon className="w-4 h-4 inline mr-2" />
                   {getSubtitleModeDisplay()}
                 </SubtitleToggle>
-                
+
                 <FileInput
                   type="file"
                   accept=".srt"
                   id="srt-upload"
                   onChange={handleSRTUpload}
                 />
-                
+
                 <NextSegmentButton onClick={() => {
                   const nextSegment = currentSegment + 1
                   setCurrentSegment(nextSegment)
@@ -651,17 +651,17 @@ export const LearningPlayer: React.FC = () => {
             </Controls>
           </BottomControls>
         </ControlsOverlay>
-        
+
         {subtitleMode !== 'OFF' && (
           <SubtitleDisplay>
             {subtitleMode === 'DE' && currentOriginalSubtitle && (
               <SubtitleLine $language="DE">{currentOriginalSubtitle}</SubtitleLine>
             )}
-            
+
             {subtitleMode === 'ES' && currentTranslatedSubtitle && (
               <SubtitleLine $language="ES">{currentTranslatedSubtitle}</SubtitleLine>
             )}
-            
+
             {subtitleMode === 'DE+ES' && (
               <>
                 {currentOriginalSubtitle && (
@@ -672,17 +672,17 @@ export const LearningPlayer: React.FC = () => {
                 )}
               </>
             )}
-            
+
             {subtitleMode === 'UPLOAD' && currentUploadedSubtitle && (
               <SubtitleLine $language="UPLOAD">{currentUploadedSubtitle}</SubtitleLine>
             )}
           </SubtitleDisplay>
         )}
       </VideoWrapper>
-      
+
       {showVocabularyGame && (
         <VocabularyGame
-          words={segmentWords}
+          words={segmentWords as any}
           onWordAnswered={handleWordAnswered}
           onComplete={handleVocabularyComplete}
           onSkip={handleSkipVocabulary}

@@ -7,13 +7,12 @@ import {
   SpeakerWaveIcon,
   SpeakerXMarkIcon,
   CheckCircleIcon,
-  ArrowsPointingOutIcon,
-  ArrowsPointingInIcon,
+  MinusIcon,
+  PlusIcon,
   ArrowLeftIcon,
   ForwardIcon,
   LanguageIcon,
-  EyeSlashIcon,
-  EyeIcon
+  EyeSlashIcon
 } from '@heroicons/react/24/solid'
 import axios from 'axios'
 import { buildVideoStreamUrl } from '@/services/api'
@@ -596,6 +595,7 @@ interface ChunkedLearningPlayerProps {
   episode: string
   subtitlePath?: string
   translationPath?: string
+  translationIndices?: number[]  // Indices of subtitles that still need translation
   startTime: number
   endTime: number
   onComplete: () => void
@@ -615,11 +615,12 @@ type PlaybackSpeed = 0.5 | 0.75 | 1 | 1.25 | 1.5 | 2
 type SubtitleMode = 'off' | 'original' | 'translation' | 'both'
 
 export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
-  videoPath,
+  videoPath: _videoPath,
   series,
   episode,
   subtitlePath,
   translationPath,
+  translationIndices,
   startTime,
   endTime,
   onComplete,
@@ -886,6 +887,7 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
     logger.info('ChunkedLearningPlayer', 'Loading subtitles...', {
       subtitlePath,
       translationPath,
+      translationIndices,
       startTime,
       endTime
     })
@@ -917,7 +919,7 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
       const headers: Record<string, string> = {
         'Content-Type': 'application/json'
       }
-      
+
       if (token) {
         headers['Authorization'] = `Bearer ${token}`
       }
@@ -946,7 +948,7 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
       const headers: Record<string, string> = {
         'Content-Type': 'application/json'
       }
-      
+
       if (token) {
         headers['Authorization'] = `Bearer ${token}`
       }
@@ -983,15 +985,32 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
     const clampedTime = Math.min(relativeTime, chunkDuration)
 
     // Update current subtitles
-    const currentSub = subtitles.find(sub =>
+    const currentSubIndex = subtitles.findIndex(sub =>
       clampedTime >= sub.start && clampedTime <= sub.end
     )
+    const currentSub = currentSubIndex >= 0 ? subtitles[currentSubIndex] : null
 
     const currentTranslation = translations.find(trans =>
       clampedTime >= trans.start && clampedTime <= trans.end
     )
 
-    const translationText = currentTranslation
+    // Check if this subtitle index needs translation
+    // If translationIndices is provided, only show translation for those indices
+    // If not provided, show all translations (backward compatibility)
+    const shouldShowTranslation = translationIndices
+      ? translationIndices.includes(currentSubIndex)
+      : true
+
+    // Log when translation filtering is applied
+    if (translationIndices && currentSubIndex >= 0) {
+      logger.debug('ChunkedLearningPlayer', 'Translation filtering', {
+        subtitleIndex: currentSubIndex,
+        shouldShowTranslation,
+        translationIndices: translationIndices.slice(0, 5) // Log first 5 for brevity
+      })
+    }
+
+    const translationText = shouldShowTranslation && currentTranslation
       ? (currentTranslation.translation && currentTranslation.translation.trim().length > 0
         ? currentTranslation.translation
         : currentTranslation.text || '')
@@ -1007,7 +1026,7 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
       setPlaying(false)
       setShowCompletion(true)
     }
-  }, [subtitles, translations, endTime, showCompletion])
+  }, [subtitles, translations, translationIndices, endTime, showCompletion, startTime, chunkDuration])
 
   // Handle seeking
   const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -1192,9 +1211,9 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
 
                 <ControlButton onClick={toggleFullscreen}>
                   {isFullscreen ? (
-                    <ArrowsPointingInIcon className="w-5 h-5" />
+                    <MinusIcon className="w-5 h-5" />
                   ) : (
-                    <ArrowsPointingOutIcon className="w-5 h-5" />
+                    <PlusIcon className="w-5 h-5" />
                   )}
                 </ControlButton>
               </RightControls>
@@ -1235,7 +1254,7 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
             <CompletionContent>
               <CompletionTitle>Chunk Complete! 🎉</CompletionTitle>
               <CompletionMessage>
-                Excellent work! You've completed this segment and learned {learnedWords.length} new words.
+                Excellent work! You&apos;ve completed this segment and learned {learnedWords.length} new words.
                 {chunkInfo && chunkInfo.current < chunkInfo.total && (
                   <> Ready for the next chunk?</>
                 )}

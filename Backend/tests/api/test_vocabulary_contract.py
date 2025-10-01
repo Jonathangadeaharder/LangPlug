@@ -1,4 +1,5 @@
 """Vocabulary contract tests in line with the protective testing policy."""
+
 from __future__ import annotations
 
 from uuid import uuid4
@@ -28,7 +29,7 @@ async def test_Whenmark_known_AcceptsValid_payloadCalled_ThenSucceeds(async_http
 
     assert response.status_code == 200
     body = response.json()
-    assert any(key in body for key in {"success", "message", "status"})
+    assert any(key in body for key in ("success", "message", "status"))
 
 
 @pytest.mark.anyio
@@ -44,6 +45,8 @@ async def test_Whenmark_knownWithoutconcept_id_ThenReturnsError(async_http_clien
     )
 
     assert response.status_code == 422
+
+
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
 async def test_Whenvocabulary_statsCalled_ThenReturnsexpected_fields(async_http_client):
@@ -51,14 +54,12 @@ async def test_Whenvocabulary_statsCalled_ThenReturnsexpected_fields(async_http_
     headers = await _auth(async_http_client)
 
     response = await async_http_client.get(
-        "/api/vocabulary/stats",
-        params={"target_language": "de", "translation_language": "es"},
-        headers=headers
+        "/api/vocabulary/stats", params={"target_language": "de", "translation_language": "es"}, headers=headers
     )
 
     assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
     payload = response.json()
-    assert any(key in payload for key in {"total_words", "total_known", "levels", "target_language"})
+    assert any(key in payload for key in ("total_words", "total_known", "levels", "target_language"))
 
 
 @pytest.mark.anyio
@@ -68,12 +69,13 @@ async def test_Whenlibrary_levelWithoutvalid_code_ThenReturnsError(async_http_cl
     headers = await _auth(async_http_client)
 
     response = await async_http_client.get(
-        "/api/vocabulary/library/invalid",
-        params={"target_language": "de"},
-        headers=headers
+        "/api/vocabulary/library/invalid", params={"target_language": "de"}, headers=headers
     )
 
-    assert response.status_code in {404, 422}
+    # Invalid level parameter should return 422 (validation error)
+    assert (
+        response.status_code == 422
+    ), f"Expected 422 (validation error for invalid level), got {response.status_code}: {response.text}"
 
 
 @pytest.mark.anyio
@@ -107,7 +109,7 @@ async def test_Whenbulk_mark_WithValid_level_ThenSucceeds(async_http_client):
 
     assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
     payload = response.json()
-    assert any(key in payload for key in {"success", "level", "word_count"})
+    assert any(key in payload for key in ("success", "level", "word_count"))
 
 
 @pytest.mark.anyio
@@ -138,5 +140,3 @@ async def test_Whenmark_known_WithInvalid_uuid_ThenReturnsError(async_http_clien
     )
 
     assert response.status_code == 422
-
-

@@ -37,7 +37,7 @@ PROGRESS_STEPS = {
     "EXTRACTING_AUDIO": 30,
     "TRANSCRIBING": 70,
     "SAVING_RESULTS": 90,
-    "COMPLETED": 100
+    "COMPLETED": 100,
 }
 
 # API Rate limiting

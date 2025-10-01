@@ -15,6 +15,8 @@ vi.mock('@/services/api', () => ({
 vi.mock('@/client/services.gen', () => ({
   processChunkApiProcessChunkPost: vi.fn(),
   getTaskProgressApiProcessProgressTaskIdGet: vi.fn(),
+  profileGetApiProfileGet: vi.fn(),
+  markWordKnownApiVocabularyMarkKnownPost: vi.fn(),
 }))
 
 vi.mock('@/services/logger', () => ({
@@ -65,6 +67,12 @@ describe('ChunkedLearningFlow', () => {
   })
 
   it('starts processing the first chunk on mount', async () => {
+    // Mock profile to be loaded so processChunk gets triggered
+    sdkMock.profileGetApiProfileGet.mockResolvedValue({
+      native_language: { code: 'en', name: 'English' },
+      target_language: { code: 'de', name: 'German' }
+    })
+
     sdkMock.processChunkApiProcessChunkPost.mockResolvedValue({ task_id: 'task-1', status: 'started' })
     sdkMock.getTaskProgressApiProcessProgressTaskIdGet.mockResolvedValue({
       status: 'completed',
@@ -93,6 +101,13 @@ describe('ChunkedLearningFlow', () => {
 
   it('surfaces errors when processing fails to start', async () => {
     const error = new Error('backend down')
+
+    // Mock profile to be loaded so processChunk gets triggered
+    sdkMock.profileGetApiProfileGet.mockResolvedValue({
+      native_language: { code: 'en', name: 'English' },
+      target_language: { code: 'de', name: 'German' }
+    })
+
     sdkMock.processChunkApiProcessChunkPost.mockRejectedValue(error)
 
     // Just verify the component renders without crashing when there's an error
@@ -102,12 +117,12 @@ describe('ChunkedLearningFlow', () => {
       </MemoryRouter>
     )
 
-    // Wait for any async operations
+    // Wait for the API to be called after profile loads
     await waitFor(() => {
-      expect(container).toBeInTheDocument()
+      expect(sdkMock.processChunkApiProcessChunkPost).toHaveBeenCalled()
     })
 
-    // The component should have called the API
-    expect(sdkMock.processChunkApiProcessChunkPost).toHaveBeenCalled()
+    // Verify component is still in the document after error
+    expect(container).toBeInTheDocument()
   })
 })

@@ -5,7 +5,7 @@ Replaces run_checks.bat and run_checks.sh with a single Python solution.
 
 Usage:
     python run_checks.py [--lint-only] [--format-only] [--test-only] [--fix]
-    
+
     --lint-only    Run only linting checks
     --format-only  Run only code formatting
     --test-only    Run only tests
@@ -20,27 +20,28 @@ from pathlib import Path
 
 class Colors:
     """ANSI color codes for cross-platform colored output."""
-    CYAN = '\033[96m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    RESET = '\033[0m'
+
+    CYAN = "\033[96m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    RESET = "\033[0m"
 
     @classmethod
     def info(cls, msg):
-        print(f"{cls.CYAN}[checks] {msg}{cls.RESET}")
+        pass
 
     @classmethod
     def success(cls, msg):
-        print(f"{cls.GREEN}[checks] {msg}{cls.RESET}")
+        pass
 
     @classmethod
     def warning(cls, msg):
-        print(f"{cls.YELLOW}[checks] {msg}{cls.RESET}")
+        pass
 
     @classmethod
     def error(cls, msg):
-        print(f"{cls.RED}[checks] {msg}{cls.RESET}")
+        pass
 
 
 class CodeQualityChecker:
@@ -52,21 +53,15 @@ class CodeQualityChecker:
         """Run a command and track failures."""
         Colors.info(f"{description}...")
         try:
-            result = subprocess.run(
-                cmd,
-                cwd=self.backend_dir,
-                check=True,
-                capture_output=True,
-                text=True
-            )
+            subprocess.run(cmd, cwd=self.backend_dir, check=True, capture_output=True, text=True)
             Colors.success(f"{description} passed")
             return True
         except subprocess.CalledProcessError as e:
             Colors.error(f"{description} failed")
             if e.stdout:
-                print(e.stdout)
+                pass
             if e.stderr:
-                print(e.stderr)
+                pass
             self.failed_checks.append(description)
             return False
         except FileNotFoundError:
@@ -104,36 +99,26 @@ class CodeQualityChecker:
 
     def print_summary(self):
         """Print summary of check results."""
-        print("\n" + "="*50)
         if not self.failed_checks:
             Colors.success("All code quality checks passed! ✅")
         else:
             Colors.error(f"Failed checks ({len(self.failed_checks)}):")
-            for check in self.failed_checks:
-                print(f"  ❌ {check}")
-            print()
+            for _check in self.failed_checks:
+                pass
             Colors.warning("Please fix the issues above before committing.")
-        print("="*50)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Run code quality checks for the backend",
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        description="Run code quality checks for the backend", formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument("--lint-only", action="store_true",
-                       help="Run only linting checks")
-    parser.add_argument("--format-only", action="store_true",
-                       help="Run only code formatting checks")
-    parser.add_argument("--test-only", action="store_true",
-                       help="Run only tests")
-    parser.add_argument("--type-only", action="store_true",
-                       help="Run only type checking")
-    parser.add_argument("--fix", action="store_true",
-                       help="Automatically fix linting and formatting issues")
-    parser.add_argument("--no-tests", action="store_true",
-                       help="Skip running tests")
+    parser.add_argument("--lint-only", action="store_true", help="Run only linting checks")
+    parser.add_argument("--format-only", action="store_true", help="Run only code formatting checks")
+    parser.add_argument("--test-only", action="store_true", help="Run only tests")
+    parser.add_argument("--type-only", action="store_true", help="Run only type checking")
+    parser.add_argument("--fix", action="store_true", help="Automatically fix linting and formatting issues")
+    parser.add_argument("--no-tests", action="store_true", help="Skip running tests")
 
     args = parser.parse_args()
 

@@ -3,12 +3,12 @@ Vocabulary Stats Service - Handles vocabulary statistics and analytics
 """
 
 import logging
-from typing import Dict, Any
-from sqlalchemy import select, func, and_
+
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import VocabularyWord, UserVocabularyProgress
 from core.database import AsyncSessionLocal
+from database.models import UserVocabularyProgress, VocabularyWord
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 class VocabularyStatsService:
     """Handles vocabulary statistics, analytics, and supported languages"""
 
-    async def get_vocabulary_stats(self, db_session: AsyncSession, user_id: int, target_language: str, translation_language: str = "en"):
+    async def get_vocabulary_stats(
+        self, db_session: AsyncSession, user_id: int, target_language: str, translation_language: str = "en"
+    ):
         """Get vocabulary statistics by level with injected database session
 
         This is the primary method used by API routes.
@@ -31,37 +33,31 @@ class VocabularyStatsService:
         New code should use get_vocabulary_stats() with dependency injection instead.
         """
         levels_list = ["A1", "A2", "B1", "B2", "C1", "C2"]
-        stats = {
-            "target_language": target_language,
-            "levels": {},
-            "total_words": 0,
-            "total_known": 0
-        }
+        stats = {"target_language": target_language, "levels": {}, "total_words": 0, "total_known": 0}
 
         async with AsyncSessionLocal() as session:
             for level in levels_list:
                 # Count total words at this level
                 total_stmt = select(func.count(VocabularyWord.id)).where(
-                    and_(
-                        VocabularyWord.language == target_language,
-                        VocabularyWord.difficulty_level == level
-                    )
+                    and_(VocabularyWord.language == target_language, VocabularyWord.difficulty_level == level)
                 )
                 total_result = await session.execute(total_stmt)
                 total_words = total_result.scalar() or 0
 
                 # Count known words at this level for user
                 if user_id:
-                    known_stmt = select(func.count(UserVocabularyProgress.id)).where(
-                        and_(
-                            UserVocabularyProgress.user_id == user_id,
-                            UserVocabularyProgress.language == target_language,
-                            UserVocabularyProgress.is_known == True
+                    known_stmt = (
+                        select(func.count(UserVocabularyProgress.id))
+                        .where(
+                            and_(
+                                UserVocabularyProgress.user_id == user_id,
+                                UserVocabularyProgress.language == target_language,
+                                UserVocabularyProgress.is_known,
+                            )
                         )
-                    ).join(
-                        VocabularyWord,
-                        VocabularyWord.id == UserVocabularyProgress.vocabulary_id
-                    ).where(VocabularyWord.difficulty_level == level)
+                        .join(VocabularyWord, VocabularyWord.id == UserVocabularyProgress.vocabulary_id)
+                        .where(VocabularyWord.difficulty_level == level)
+                    )
 
                     known_result = await session.execute(known_stmt)
                     known_words = known_result.scalar() or 0
@@ -71,14 +67,16 @@ class VocabularyStatsService:
                 stats["levels"][level] = {
                     "total_words": total_words,
                     "user_known": known_words,
-                    "percentage": round((known_words / total_words) * 100, 1) if total_words > 0 else 0.0
+                    "percentage": round((known_words / total_words) * 100, 1) if total_words > 0 else 0.0,
                 }
                 stats["total_words"] += total_words
                 stats["total_known"] += known_words
 
         return stats
 
-    async def _get_vocabulary_stats_with_session(self, db_session, user_id: str, target_language: str, native_language: str = "en"):
+    async def _get_vocabulary_stats_with_session(
+        self, db_session, user_id: str, target_language: str, native_language: str = "en"
+    ):
         """New implementation for comprehensive tests - uses injected session and returns VocabularyStats object"""
         from api.models.vocabulary import VocabularyStats
 
@@ -89,10 +87,7 @@ class VocabularyStatsService:
         for level in ["A1", "A2", "B1", "B2", "C1", "C2"]:
             # Execute database query
             total_stmt = select(func.count(VocabularyWord.id)).where(
-                and_(
-                    VocabularyWord.language == target_language,
-                    VocabularyWord.difficulty_level == level
-                )
+                and_(VocabularyWord.language == target_language, VocabularyWord.difficulty_level == level)
             )
             total_result = await db_session.execute(total_stmt)
 
@@ -100,7 +95,7 @@ class VocabularyStatsService:
             try:
                 total_words_raw = total_result.scalar()
                 # Check if it's a mock coroutine that wasn't awaited
-                if hasattr(total_words_raw, '__await__'):
+                if hasattr(total_words_raw, "__await__"):
                     total_words = 0  # Default for mock
                 else:
                     total_words = total_words_raw or 0
@@ -108,33 +103,32 @@ class VocabularyStatsService:
                 total_words = 0
 
             # Count known words at this level for user
-            known_stmt = select(func.count(UserVocabularyProgress.id)).where(
-                and_(
-                    UserVocabularyProgress.user_id == user_id,
-                    UserVocabularyProgress.language == target_language,
-                    UserVocabularyProgress.is_known == True
+            known_stmt = (
+                select(func.count(UserVocabularyProgress.id))
+                .where(
+                    and_(
+                        UserVocabularyProgress.user_id == user_id,
+                        UserVocabularyProgress.language == target_language,
+                        UserVocabularyProgress.is_known,
+                    )
                 )
-            ).join(
-                VocabularyWord,
-                VocabularyWord.id == UserVocabularyProgress.vocabulary_id
-            ).where(VocabularyWord.difficulty_level == level)
+                .join(VocabularyWord, VocabularyWord.id == UserVocabularyProgress.vocabulary_id)
+                .where(VocabularyWord.difficulty_level == level)
+            )
 
             known_result = await db_session.execute(known_stmt)
 
             try:
                 known_words_raw = known_result.scalar()
                 # Check if it's a mock coroutine that wasn't awaited
-                if hasattr(known_words_raw, '__await__'):
+                if hasattr(known_words_raw, "__await__"):
                     known_words = 0  # Default for mock
                 else:
                     known_words = known_words_raw or 0
             except:
                 known_words = 0
 
-            levels_dict[level] = {
-                "total_words": total_words,
-                "user_known": known_words
-            }
+            levels_dict[level] = {"total_words": total_words, "user_known": known_words}
 
             total_words_all += total_words
             total_known_all += known_words
@@ -144,7 +138,7 @@ class VocabularyStatsService:
             target_language=target_language,
             translation_language=native_language,
             total_words=total_words_all,
-            total_known=total_known_all
+            total_known=total_known_all,
         )
 
     async def get_user_progress_summary(self, db_session, user_id: str):
@@ -156,10 +150,7 @@ class VocabularyStatsService:
 
         # Total known words for user
         known_stmt = select(func.count(UserVocabularyProgress.id)).where(
-            and_(
-                UserVocabularyProgress.user_id == user_id,
-                UserVocabularyProgress.is_known == True
-            )
+            and_(UserVocabularyProgress.user_id == user_id, UserVocabularyProgress.is_known)
         )
         known_result = await db_session.execute(known_stmt)
         known_words = known_result.scalar() or 0
@@ -167,37 +158,34 @@ class VocabularyStatsService:
         # Progress by level
         levels_progress = []
         for level in ["A1", "A2", "B1", "B2", "C1", "C2"]:
-            level_total_stmt = select(func.count(VocabularyWord.id)).where(
-                VocabularyWord.difficulty_level == level
-            )
+            level_total_stmt = select(func.count(VocabularyWord.id)).where(VocabularyWord.difficulty_level == level)
             level_total_result = await db_session.execute(level_total_stmt)
             level_total = level_total_result.scalar() or 0
 
-            level_known_stmt = select(func.count(UserVocabularyProgress.id)).where(
-                and_(
-                    UserVocabularyProgress.user_id == user_id,
-                    UserVocabularyProgress.is_known == True
-                )
-            ).join(
-                VocabularyWord,
-                VocabularyWord.id == UserVocabularyProgress.vocabulary_id
-            ).where(VocabularyWord.difficulty_level == level)
-            
+            level_known_stmt = (
+                select(func.count(UserVocabularyProgress.id))
+                .where(and_(UserVocabularyProgress.user_id == user_id, UserVocabularyProgress.is_known))
+                .join(VocabularyWord, VocabularyWord.id == UserVocabularyProgress.vocabulary_id)
+                .where(VocabularyWord.difficulty_level == level)
+            )
+
             level_known_result = await db_session.execute(level_known_stmt)
             level_known = level_known_result.scalar() or 0
 
-            levels_progress.append({
-                "level": level,
-                "total": level_total,
-                "known": level_known,
-                "percentage": round((level_known / level_total * 100), 1) if level_total > 0 else 0.0
-            })
+            levels_progress.append(
+                {
+                    "level": level,
+                    "total": level_total,
+                    "known": level_known,
+                    "percentage": round((level_known / level_total * 100), 1) if level_total > 0 else 0.0,
+                }
+            )
 
         return {
             "total_words": total_words,
             "known_words": known_words,
             "percentage_known": round((known_words / total_words * 100), 1) if total_words > 0 else 0.0,
-            "levels_progress": levels_progress
+            "levels_progress": levels_progress,
         }
 
     async def get_supported_languages(self):
@@ -207,17 +195,13 @@ class VocabularyStatsService:
             # This would normally query: SELECT * FROM languages WHERE is_active = True
             try:
                 from database.models import Language
-                stmt = select(Language).where(Language.is_active == True)
+
+                stmt = select(Language).where(Language.is_active)
                 result = await session.execute(stmt)
                 languages = result.scalars().all()
 
                 return [
-                    {
-                        "code": lang.code,
-                        "name": lang.name,
-                        "native_name": lang.native_name,
-                        "is_active": lang.is_active
-                    }
+                    {"code": lang.code, "name": lang.name, "native_name": lang.native_name, "is_active": lang.is_active}
                     for lang in languages
                 ]
             except ImportError:

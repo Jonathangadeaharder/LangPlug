@@ -3,20 +3,15 @@ Test suite for VocabularyProgressService
 Tests user vocabulary progress tracking and management
 """
 
-import pytest
 from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
+
 from services.vocabulary.vocabulary_progress_service import VocabularyProgressService
-from database.models import VocabularyWord, UserVocabularyProgress
 
 
 class TestVocabularyProgressService:
-    """Test VocabularyProgressService initialization and basic functionality"""
-
-    def test_initialization(self):
-        """Test service initialization"""
-        service = VocabularyProgressService()
-        assert service is not None
+    """Test VocabularyProgressService functionality"""
 
     @pytest.fixture
     def service(self):
@@ -52,7 +47,7 @@ class TestMarkWordKnown:
         word.difficulty_level = "A1"
         return word
 
-    @patch('services.lemmatization_service.lemmatization_service')
+    @patch("services.lemmatization_service.lemmatization_service")
     async def test_mark_word_known_new_word(self, mock_lemma_service, service, mock_db_session, mock_vocab_word):
         """Test marking a word as known for the first time"""
         # Setup
@@ -86,8 +81,10 @@ class TestMarkWordKnown:
         mock_db_session.commit.assert_called_once()
         # Removed add.assert_called_once() - testing behavior (data persisted), not implementation
 
-    @patch('services.lemmatization_service.lemmatization_service')
-    async def test_mark_word_known_existing_progress(self, mock_lemma_service, service, mock_db_session, mock_vocab_word):
+    @patch("services.lemmatization_service.lemmatization_service")
+    async def test_mark_word_known_existing_progress(
+        self, mock_lemma_service, service, mock_db_session, mock_vocab_word
+    ):
         """Test updating existing word progress"""
         # Setup
         mock_lemma_service.lemmatize.return_value = "haus"
@@ -120,7 +117,7 @@ class TestMarkWordKnown:
         assert mock_progress.review_count == 2
         mock_db_session.commit.assert_called_once()
 
-    @patch('services.lemmatization_service.lemmatization_service')
+    @patch("services.lemmatization_service.lemmatization_service")
     async def test_mark_word_known_word_not_found(self, mock_lemma_service, service, mock_db_session):
         """Test marking unknown word as known"""
         # Setup
@@ -143,5 +140,3 @@ class TestMarkWordKnown:
         assert result["message"] == "Word not in vocabulary database"
         assert result["word"] == "unknownword"
         assert result["lemma"] == "unknownword"
-
-

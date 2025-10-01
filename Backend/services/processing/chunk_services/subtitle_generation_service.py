@@ -15,13 +15,10 @@ class SubtitleGenerationService:
     """Service for generating and processing filtered subtitle files"""
 
     def __init__(self):
-        self._word_pattern = re.compile(r'\b[\w]+\b')
+        self._word_pattern = re.compile(r"\b[\w]+\b")
 
     async def generate_filtered_subtitles(
-        self,
-        video_file: Path,
-        vocabulary: list[dict[str, Any]],
-        source_srt: str
+        self, video_file: Path, vocabulary: list[dict[str, Any]], source_srt: str
     ) -> str:
         """
         Generate filtered subtitle files for the chunk
@@ -75,7 +72,7 @@ class SubtitleGenerationService:
         Returns:
             SRT file content
         """
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             return f.read()
 
     def write_srt_file(self, file_path: Path, content: str) -> None:
@@ -86,7 +83,7 @@ class SubtitleGenerationService:
             file_path: Path to SRT file
             content: SRT content to write
         """
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
 
     def process_srt_content(self, srt_content: str, vocab_words: set[str]) -> str:
@@ -100,19 +97,19 @@ class SubtitleGenerationService:
         Returns:
             Processed SRT content with highlighted vocabulary
         """
-        lines = srt_content.split('\n')
+        lines = srt_content.split("\n")
         processed_lines = []
 
         for line in lines:
             # Skip index lines, timestamp lines, and empty lines
-            if line.strip() and not line.strip().isdigit() and '-->' not in line:
+            if line.strip() and not line.strip().isdigit() and "-->" not in line:
                 # This is a subtitle text line - highlight vocabulary words
                 highlighted_line = self.highlight_vocabulary_in_line(line, vocab_words)
                 processed_lines.append(highlighted_line)
             else:
                 processed_lines.append(line)
 
-        return '\n'.join(processed_lines)
+        return "\n".join(processed_lines)
 
     def highlight_vocabulary_in_line(self, line: str, vocab_words: set[str]) -> str:
         """
@@ -133,15 +130,13 @@ class SubtitleGenerationService:
 
         for word in sorted_words:
             # Create regex pattern for whole words (case insensitive)
-            pattern = r'\b' + re.escape(word) + r'\b'
+            pattern = r"\b" + re.escape(word) + r"\b"
 
             # Replace with highlighted version using SRT color tags
             def replace_func(match):
                 return f'<font color="yellow">{match.group()}</font>'
 
-            highlighted_line = re.sub(
-                pattern, replace_func, highlighted_line, flags=re.IGNORECASE
-            )
+            highlighted_line = re.sub(pattern, replace_func, highlighted_line, flags=re.IGNORECASE)
 
         return highlighted_line
 

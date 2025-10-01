@@ -5,19 +5,14 @@ Tests logging configuration, formatters, handlers, and specialized logging metho
 
 import json
 import logging
-import pytest
-import tempfile
-import os
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock, call
-from datetime import datetime
+from unittest.mock import Mock, patch
 
 from services.loggingservice.logging_service import (
-    LoggingService,
     LogConfig,
-    LogLevel,
     LogFormat,
-    StructuredLogFormatter
+    LoggingService,
+    LogLevel,
+    StructuredLogFormatter,
 )
 
 
@@ -37,12 +32,7 @@ class TestLogConfig:
 
     def test_custom_config_values(self):
         """Test custom configuration values"""
-        config = LogConfig(
-            level=LogLevel.DEBUG,
-            format_type=LogFormat.JSON,
-            console_enabled=False,
-            max_file_size_mb=50
-        )
+        config = LogConfig(level=LogLevel.DEBUG, format_type=LogFormat.JSON, console_enabled=False, max_file_size_mb=50)
         assert config.level == LogLevel.DEBUG
         assert config.format_type == LogFormat.JSON
         assert config.console_enabled is False
@@ -64,7 +54,7 @@ class TestStructuredLogFormatter:
             lineno=42,
             msg="Test message",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
         record.module = "test"
         record.funcName = "test_function"
@@ -88,6 +78,7 @@ class TestStructuredLogFormatter:
             raise ValueError("Test exception")
         except ValueError:
             import sys
+
             exc_info = sys.exc_info()
 
             record = logging.LogRecord(
@@ -97,7 +88,7 @@ class TestStructuredLogFormatter:
                 lineno=42,
                 msg="Error occurred",
                 args=(),
-                exc_info=exc_info
+                exc_info=exc_info,
             )
             record.module = "test"
             record.funcName = "test_function"
@@ -120,7 +111,7 @@ class TestStructuredLogFormatter:
             lineno=42,
             msg="Test message",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
         record.module = "test"
         record.funcName = "test_function"
@@ -145,7 +136,7 @@ class TestStructuredLogFormatter:
             lineno=42,
             msg="Test message",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
         record.module = "test"
         record.funcName = "test_function"
@@ -206,27 +197,23 @@ class TestLoggingService:
 
     def test_custom_config_initialization(self):
         """Test initialization with custom configuration"""
-        config = LogConfig(
-            level=LogLevel.DEBUG,
-            format_type=LogFormat.JSON,
-            console_enabled=False
-        )
+        config = LogConfig(level=LogLevel.DEBUG, format_type=LogFormat.JSON, console_enabled=False)
         service = LoggingService.get_instance(config)
         assert service.config.level == LogLevel.DEBUG
         assert service.config.format_type == LogFormat.JSON
         assert service.config.console_enabled is False
 
-    @patch('pathlib.Path.mkdir')
-    @patch('logging.handlers.RotatingFileHandler')
+    @patch("pathlib.Path.mkdir")
+    @patch("logging.handlers.RotatingFileHandler")
     def test_setup_logging_creates_directory(self, mock_file_handler, mock_mkdir):
         """Test that setup_logging creates log directory"""
         mock_file_handler.return_value = Mock()
         config = LogConfig(log_file_path="test/logs/app.log")
-        service = LoggingService.get_instance(config)
+        LoggingService.get_instance(config)
         mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
 
-    @patch('logging.StreamHandler')
-    @patch('logging.handlers.RotatingFileHandler')
+    @patch("logging.StreamHandler")
+    @patch("logging.handlers.RotatingFileHandler")
     def test_console_handler_setup(self, mock_file_handler, mock_stream_handler):
         """Test console handler setup"""
         mock_handler = Mock()
@@ -234,30 +221,25 @@ class TestLoggingService:
         mock_file_handler.return_value = Mock()
 
         config = LogConfig(console_enabled=True, level=LogLevel.DEBUG)
-        service = LoggingService.get_instance(config)
+        LoggingService.get_instance(config)
 
         # Test completes without error (behavior)
         # Removed assert_called_once() and setLevel assertion - testing behavior (service created), not implementation
 
-    @patch('logging.handlers.RotatingFileHandler')
+    @patch("logging.handlers.RotatingFileHandler")
     def test_file_handler_setup(self, mock_file_handler):
         """Test file handler setup with rotation"""
         mock_handler = Mock()
         mock_file_handler.return_value = mock_handler
 
-        config = LogConfig(
-            file_enabled=True,
-            log_file_path="test.log",
-            max_file_size_mb=5,
-            backup_count=3
-        )
-        service = LoggingService.get_instance(config)
+        config = LogConfig(file_enabled=True, log_file_path="test.log", max_file_size_mb=5, backup_count=3)
+        LoggingService.get_instance(config)
 
         mock_file_handler.assert_called_once_with(
             filename="test.log",
             maxBytes=5 * 1024 * 1024,  # 5MB
             backupCount=3,
-            encoding='utf-8'
+            encoding="utf-8",
         )
 
     def test_get_logger(self):
@@ -286,18 +268,13 @@ class TestSpecializedLoggingMethods:
         LoggingService.reset_instance()
         logging.getLogger().handlers.clear()
 
-
     def test_log_authentication_event_failure(self):
         """Test logging failed authentication event"""
         config = LogConfig(log_authentication_events=True)
         service = LoggingService.get_instance(config)
 
-        with patch.object(service.get_logger("auth"), 'warning') as mock_warning:
-            service.log_authentication_event(
-                event_type="login",
-                user_id="user123",
-                success=False
-            )
+        with patch.object(service.get_logger("auth"), "warning") as mock_warning:
+            service.log_authentication_event(event_type="login", user_id="user123", success=False)
 
             # Verify failure data is logged correctly
             args, kwargs = mock_warning.call_args
@@ -320,13 +297,9 @@ class TestSpecializedLoggingMethods:
         config = LogConfig(log_user_actions=True)
         service = LoggingService.get_instance(config)
 
-        with patch.object(service.get_logger("user_actions"), 'info') as mock_info:
+        with patch.object(service.get_logger("user_actions"), "info") as mock_info:
             service.log_user_action(
-                user_id="user123",
-                action="create",
-                resource="vocabulary",
-                success=True,
-                additional_info={"count": 50}
+                user_id="user123", action="create", resource="vocabulary", success=True, additional_info={"count": 50}
             )
 
             # Verify action data is logged correctly
@@ -342,11 +315,11 @@ class TestSpecializedLoggingMethods:
         config = LogConfig(log_user_actions=True)
         service = LoggingService.get_instance(config)
 
-        with patch.object(service.get_logger("user_actions"), 'warning') as mock_warning:
+        with patch.object(service.get_logger("user_actions"), "warning") as mock_warning:
             service.log_user_action("user123", "delete", "file", False)
 
             # Verify failure data is logged correctly
-            args, kwargs = mock_warning.call_args
+            args, _kwargs = mock_warning.call_args
             assert "User user123 failed to delete file" in args[0]
             # Removed assert_called_once() - testing behavior (failure logged), not implementation
 
@@ -365,13 +338,9 @@ class TestSpecializedLoggingMethods:
         config = LogConfig(log_database_queries=True)
         service = LoggingService.get_instance(config)
 
-        with patch.object(service.get_logger("database"), 'log') as mock_log:
+        with patch.object(service.get_logger("database"), "log") as mock_log:
             service.log_database_operation(
-                operation="SELECT",
-                table="vocabulary",
-                duration_ms=15.5,
-                success=True,
-                additional_info={"rows": 100}
+                operation="SELECT", table="vocabulary", duration_ms=15.5, success=True, additional_info={"rows": 100}
             )
 
             # Verify operation data is logged correctly
@@ -388,11 +357,11 @@ class TestSpecializedLoggingMethods:
         config = LogConfig(log_database_queries=True)
         service = LoggingService.get_instance(config)
 
-        with patch.object(service.get_logger("database"), 'log') as mock_log:
+        with patch.object(service.get_logger("database"), "log") as mock_log:
             service.log_database_operation("INSERT", "users", 250.0, False)
 
             # Verify failure is logged at ERROR level
-            args, kwargs = mock_log.call_args
+            args, _kwargs = mock_log.call_args
             assert args[0] == logging.ERROR  # Log level for failure
             # Removed assert_called_once() - testing behavior (failure logged at ERROR), not implementation
 
@@ -411,13 +380,13 @@ class TestSpecializedLoggingMethods:
         config = LogConfig(log_filter_operations=True)
         service = LoggingService.get_instance(config)
 
-        with patch.object(service.get_logger("filters"), 'info') as mock_info:
+        with patch.object(service.get_logger("filters"), "info") as mock_info:
             service.log_filter_operation(
                 filter_name="profanity_filter",
                 words_processed=1000,
                 words_filtered=50,
                 duration_ms=25.0,
-                user_id="user123"
+                user_id="user123",
             )
 
             # Verify filter operation data is logged correctly
@@ -432,11 +401,11 @@ class TestSpecializedLoggingMethods:
         config = LogConfig(log_filter_operations=True)
         service = LoggingService.get_instance(config)
 
-        with patch.object(service.get_logger("filters"), 'info') as mock_info:
+        with patch.object(service.get_logger("filters"), "info") as mock_info:
             service.log_filter_operation("test_filter", 0, 0, 5.0)
 
             # Verify filter rate is 0 when no words processed
-            args, kwargs = mock_info.call_args
+            _args, kwargs = mock_info.call_args
             assert kwargs["extra"]["filter_rate"] == 0
             # Removed assert_called_once() - testing behavior (rate calculation), not implementation
 
@@ -449,7 +418,6 @@ class TestSpecializedLoggingMethods:
         service.log_filter_operation("filter", 100, 10, 5.0)
         # Test completes without error (behavior)
         # Removed assert_not_called() - testing behavior (config respected), not implementation
-
 
 
 class TestRuntimeConfiguration:
@@ -465,11 +433,10 @@ class TestRuntimeConfiguration:
     def test_update_config(self):
         """Test runtime configuration update"""
         service = LoggingService.get_instance()
-        original_level = service.config.level
 
         new_config = LogConfig(level=LogLevel.DEBUG, format_type=LogFormat.JSON)
 
-        with patch.object(service, '_setup_logging') as mock_setup:
+        with patch.object(service, "_setup_logging"):
             service.update_config(new_config)
 
             # Verify configuration was updated
@@ -477,10 +444,10 @@ class TestRuntimeConfiguration:
             assert service.config.format_type == LogFormat.JSON
             # Removed assert_called_once() - testing behavior (config updated), not implementation
 
-    @patch('pathlib.Path.mkdir')
-    @patch('pathlib.Path.exists')
-    @patch('pathlib.Path.stat')
-    @patch('logging.handlers.RotatingFileHandler')
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.exists")
+    @patch("pathlib.Path.stat")
+    @patch("logging.handlers.RotatingFileHandler")
     def test_get_log_stats(self, mock_file_handler, mock_stat, mock_exists, mock_mkdir):
         """Test log statistics retrieval"""
         mock_file_handler.return_value = Mock()
@@ -503,7 +470,7 @@ class TestRuntimeConfiguration:
         assert stats["log_file_exists"] is True
         assert stats["log_file_size"] == 1024
 
-    @patch('pathlib.Path.exists')
+    @patch("pathlib.Path.exists")
     def test_get_log_stats_no_file(self, mock_exists):
         """Test log statistics when file doesn't exist"""
         mock_exists.return_value = False
@@ -531,7 +498,7 @@ class TestRuntimeConfiguration:
         mock_handler1 = Mock()
         mock_handler2 = Mock()
 
-        with patch('logging.getLogger') as mock_get_logger:
+        with patch("logging.getLogger") as mock_get_logger:
             mock_logger = Mock()
             mock_logger.handlers = [mock_handler1, mock_handler2]
             mock_get_logger.return_value = mock_logger

@@ -2,6 +2,7 @@
 Integration tests for authentication flow
 Tests the complete authentication workflow with proper fixtures and assertions
 """
+
 import pytest
 from httpx import AsyncClient
 
@@ -55,17 +56,19 @@ class TestAuthenticationIntegration:
         response = await async_client.post(
             "/api/auth/login",
             data={"username": "admin", "password": "admin"},
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
 
-        # Should fail because username login is not supported
-        assert response.status_code in {401, 422}, f"Expected 401/422, got {response.status_code}: {response.text}"
+        # Should fail because username login is not supported - returns 422 validation error
+        assert (
+            response.status_code == 422
+        ), f"Expected 422 (validation error - username not supported), got {response.status_code}: {response.text}"
 
         # Test wrong password
         response = await async_client.post(
             "/api/auth/login",
             data={"username": "admin@langplug.com", "password": "wrong_password"},
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
 
         assert response.status_code == 401, f"Expected 401, got {response.status_code}: {response.text}"
@@ -87,13 +90,11 @@ class TestAuthenticationIntegration:
     async def test_cors_configuration(self, async_client: AsyncClient):
         """Test CORS headers are properly configured"""
 
-        response = await async_client.options(
-            "/api/auth/login",
-            headers={"Origin": "http://localhost:3000"}
-        )
+        response = await async_client.options("/api/auth/login", headers={"Origin": "http://localhost:3000"})
 
-        # CORS preflight should be handled
-        assert response.status_code in {200, 204}
+        # CORS preflight should return 204 (No Content) or 200 (OK) depending on server config
+        # Both are valid success responses for OPTIONS
+        assert response.status_code == 204, f"Expected 204 (CORS preflight no content), got {response.status_code}"
 
         # Check CORS headers are present (may vary based on configuration)
         cors_origin = response.headers.get("Access-Control-Allow-Origin")

@@ -1,9 +1,11 @@
 """High-level API endpoint smoke tests complying with the CDD/TDD rules."""
+
 from __future__ import annotations
 
 import datetime as dt
 
 import pytest
+
 from tests.assertion_helpers import assert_json_error_response
 
 
@@ -34,6 +36,8 @@ async def test_Whenunknown_routeCalled_ThenReturnscontract_404(async_http_client
     else:
         # Accept both the standard FastAPI message and the contract middleware message
         assert payload.get("detail") in ["Not Found", "Endpoint not found in API contract"]
+
+
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
 async def test_WhenHealthEndpoint_Thenread_only(async_http_client):
@@ -47,11 +51,8 @@ async def test_WhenHealthEndpoint_Thenread_only(async_http_client):
     if response.status_code == 404:
         # Contract middleware response format
         assert payload.get("detail") in ["Not Found", "Endpoint not found in API contract"]
+    # FastAPI 405 response format
+    elif "error" in payload and "message" in payload["error"]:
+        assert payload["error"]["message"] == "Method Not Allowed"
     else:
-        # FastAPI 405 response format
-        if "error" in payload and "message" in payload["error"]:
-            assert payload["error"]["message"] == "Method Not Allowed"
-        else:
-            assert payload.get("detail") == "Method Not Allowed"
-
-
+        assert payload.get("detail") == "Method Not Allowed"

@@ -1,7 +1,7 @@
 """Integration-level chunk processing smoke tests using the API stack."""
+
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
@@ -20,15 +20,11 @@ async def test_Whenchunk_processing_accepts_requestCalled_ThenSucceeds(async_htt
         video_path = tmp_path / "episode.mp4"
         video_path.write_bytes(b"fake")
         subtitle_path = tmp_path / "episode.srt"
-        subtitle_path.write_text(
-            "1\n00:00:00,000 --> 00:00:01,000\nHallo Welt\n\n", encoding="utf-8"
-        )
+        subtitle_path.write_text("1\n00:00:00,000 --> 00:00:01,000\nHallo Welt\n\n", encoding="utf-8")
 
         transcription = Mock(is_initialized=True)
         transcription.transcribe.return_value = Mock(segments=[])
-        monkeypatch.setattr(
-            "api.routes.processing.get_transcription_service", lambda: transcription
-        )
+        monkeypatch.setattr("api.routes.processing.get_transcription_service", lambda: transcription)
 
         filter_chain = Mock()
         filter_chain.process_file.return_value = {
@@ -36,9 +32,7 @@ async def test_Whenchunk_processing_accepts_requestCalled_ThenSucceeds(async_htt
             "learning_subtitles": [],
             "statistics": {},
         }
-        monkeypatch.setattr(
-            "core.dependencies.get_user_filter_chain", lambda *a, **k: filter_chain
-        )
+        monkeypatch.setattr("core.dependencies.get_user_filter_chain", lambda *a, **k: filter_chain)
 
         response = await async_http_client.post(
             "/api/process/chunk",
@@ -46,7 +40,10 @@ async def test_Whenchunk_processing_accepts_requestCalled_ThenSucceeds(async_htt
             headers=auth["headers"],
         )
 
-        assert response.status_code in {200, 202}
+        # Async chunk processing should return 202 (Accepted)
+        assert (
+            response.status_code == 202
+        ), f"Expected 202 (async accepted), got {response.status_code}: {response.text}"
 
 
 @pytest.mark.anyio
@@ -62,7 +59,7 @@ async def test_Whenchunk_processingWithoutexisting_subtitle_ThenReturnsError(asy
         response = await async_http_client.post(
             "/api/process/chunk",
             json={"video_path": video_path.name, "start_time": 0, "end_time": 5},
-            headers=auth["headers"]
+            headers=auth["headers"],
         )
 
         # The endpoint accepts the request and starts background processing

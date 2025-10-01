@@ -85,7 +85,7 @@ const ProfileScreen: React.FC = () => {
   const loadProfile = async () => {
     try {
       setLoading(true)
-      const profileData = await Services.profileGetApiProfileGet() as ProfileResponse
+      const profileData = await Services.profileGetApiProfileGet() as unknown as ProfileResponse
 
       if (!profileData) {
         toast.error('Could not load profile details.')

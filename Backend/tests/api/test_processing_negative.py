@@ -1,4 +1,5 @@
 """Focused negative tests for processing endpoints following the 80/20 guidelines."""
+
 from __future__ import annotations
 
 from pathlib import Path

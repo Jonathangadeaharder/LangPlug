@@ -1,10 +1,11 @@
 """Targeted auth error cases following the protective testing guidelines."""
+
 from __future__ import annotations
 
 import pytest
 
-from tests.auth_helpers import AuthTestHelper
 from tests.assertion_helpers import assert_validation_error_response
+from tests.auth_helpers import AuthTestHelper
 
 
 @pytest.mark.anyio
@@ -36,6 +37,8 @@ async def test_WhenloginWithoutpassword_ThenReturnsError(async_http_client):
     )
 
     assert_validation_error_response(response, "password")
+
+
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
 async def test_WhenloginWithoutusername_ThenReturnsError(async_http_client):
@@ -47,5 +50,3 @@ async def test_WhenloginWithoutusername_ThenReturnsError(async_http_client):
     )
 
     assert_validation_error_response(response, "username")
-
-

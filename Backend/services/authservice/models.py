@@ -2,23 +2,18 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 # Import unified exceptions from core module
-from core.exceptions import (
-    AuthenticationError,
-    InvalidCredentialsError, 
-    UserAlreadyExistsError,
-    SessionExpiredError
-)
 
 if TYPE_CHECKING:
-    from database.models import User
+    pass
 
 
 @dataclass
 class AuthUser:
     """Represents an authenticated user"""
+
     id: str
     username: str
     is_admin: bool = False
@@ -26,12 +21,13 @@ class AuthUser:
     created_at: str = ""
     native_language: str = "en"
     target_language: str = "de"
-    last_login: Optional[datetime] = None
+    last_login: datetime | None = None
 
 
 @dataclass
 class AuthSession:
     """Represents a user session"""
+
     session_token: str
     user: AuthUser
     expires_at: datetime

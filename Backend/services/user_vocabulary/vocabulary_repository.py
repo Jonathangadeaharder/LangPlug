@@ -5,7 +5,6 @@ Handles data access for vocabulary and user learning progress tables
 
 import logging
 from datetime import datetime
-from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,12 +19,12 @@ class VocabularyRepository:
     async def ensure_word_exists(self, session: AsyncSession, word: str, language: str = "en") -> int | None:
         """
         Ensure word exists in vocabulary table and return its ID
-        
+
         Args:
             session: Database session
             word: Word to ensure exists
             language: Language code
-            
+
         Returns:
             Word ID if successful, None otherwise
         """
@@ -53,15 +52,17 @@ class VocabularyRepository:
             self.logger.error(f"Error ensuring word exists: {e}")
             return None
 
-    async def ensure_words_exist_batch(self, session: AsyncSession, words: list[str], language: str = "en") -> dict[str, int]:
+    async def ensure_words_exist_batch(
+        self, session: AsyncSession, words: list[str], language: str = "en"
+    ) -> dict[str, int]:
         """
         Ensure multiple words exist in vocabulary table and return word->id mapping
-        
+
         Args:
             session: Database session
             words: List of words to ensure exist
             language: Language code
-            
+
         Returns:
             Dictionary mapping word to word_id
         """
@@ -70,13 +71,13 @@ class VocabularyRepository:
                 return {}
 
             # Check which words already exist
-            placeholders = ','.join([':word' + str(i) for i in range(len(words))])
+            placeholders = ",".join([":word" + str(i) for i in range(len(words))])
             existing_query = text(f"""
-                SELECT word, id FROM vocabulary 
+                SELECT word, id FROM vocabulary
                 WHERE word IN ({placeholders}) AND language = :language
             """)
-            params = {f'word{i}': word for i, word in enumerate(words)}
-            params['language'] = language
+            params = {f"word{i}": word for i, word in enumerate(words)}
+            params["language"] = language
             existing_result = await session.execute(existing_query, params)
 
             # Build mapping of existing words
@@ -93,9 +94,7 @@ class VocabularyRepository:
                 """)
 
                 for word in missing_words:
-                    result = await session.execute(insert_query, {
-                        "word": word, "language": language, "now": now
-                    })
+                    result = await session.execute(insert_query, {"word": word, "language": language, "now": now})
                     word_ids[word] = result.lastrowid
 
                 await session.flush()
@@ -109,12 +108,12 @@ class VocabularyRepository:
     async def get_existing_progress_batch(self, session: AsyncSession, user_id: str, word_ids: list[int]) -> set[int]:
         """
         Get existing learning progress for multiple word IDs
-        
+
         Args:
             session: Database session
             user_id: User ID
             word_ids: List of word IDs to check
-            
+
         Returns:
             Set of word IDs that have existing progress
         """
@@ -122,13 +121,13 @@ class VocabularyRepository:
             if not word_ids:
                 return set()
 
-            placeholders = ','.join([':word_id' + str(i) for i in range(len(word_ids))])
+            placeholders = ",".join([":word_id" + str(i) for i in range(len(word_ids))])
             query = text(f"""
-                SELECT word_id FROM user_learning_progress 
+                SELECT word_id FROM user_learning_progress
                 WHERE user_id = :user_id AND word_id IN ({placeholders})
             """)
-            params = {f'word_id{i}': word_id for i, word_id in enumerate(word_ids)}
-            params['user_id'] = user_id
+            params = {f"word_id{i}": word_id for i, word_id in enumerate(word_ids)}
+            params["user_id"] = user_id
             result = await session.execute(query, params)
 
             return {row[0] for row in result.fetchall()}
@@ -140,12 +139,12 @@ class VocabularyRepository:
     async def get_word_id(self, session: AsyncSession, word: str, language: str = "en") -> int | None:
         """
         Get word ID from vocabulary table
-        
+
         Args:
             session: Database session
             word: Word to look up
             language: Language code
-            
+
         Returns:
             Word ID if found, None otherwise
         """

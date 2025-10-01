@@ -1,8 +1,9 @@
 """Integration tests for the websocket route."""
+
 from __future__ import annotations
 
-import pytest
 import httpx
+import pytest
 
 
 @pytest.mark.anyio

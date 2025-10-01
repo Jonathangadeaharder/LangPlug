@@ -1,11 +1,10 @@
 """Focused tests around the managed server behavior contracts."""
+
 from __future__ import annotations
 
 from types import SimpleNamespace
 
 import pytest
-
-from management.config import ServerStatus
 from management.server import Server
 
 
@@ -21,7 +20,9 @@ def backend_server(tmp_path) -> Server:
 
 
 @pytest.mark.timeout(30)
-def test_Whenis_port_in_use_reflects_socket_connectionCalled_ThenSucceeds(monkeypatch: pytest.MonkeyPatch, backend_server: Server) -> None:
+def test_Whenis_port_in_use_reflects_socket_connectionCalled_ThenSucceeds(
+    monkeypatch: pytest.MonkeyPatch, backend_server: Server
+) -> None:
     """Sockets returning success should be reported as the port being occupied."""
 
     class FakeSocket:
@@ -44,7 +45,9 @@ def test_Whenis_port_in_use_reflects_socket_connectionCalled_ThenSucceeds(monkey
 
 
 @pytest.mark.timeout(30)
-def test_Whencheck_health_falls_back_to_process_statusCalled_ThenSucceeds(monkeypatch: pytest.MonkeyPatch, backend_server: Server) -> None:
+def test_Whencheck_health_falls_back_to_process_statusCalled_ThenSucceeds(
+    monkeypatch: pytest.MonkeyPatch, backend_server: Server
+) -> None:
     """When HTTP is unavailable the server should rely on an active PID."""
     backend_server.pid = 123
 

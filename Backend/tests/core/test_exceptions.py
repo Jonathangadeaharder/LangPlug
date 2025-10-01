@@ -1,19 +1,21 @@
 """
 Tiny tests to exercise custom exception classes and their status codes.
 """
+
 from __future__ import annotations
 
 import pytest
 from fastapi import status
+
 from core.exceptions import (
-    LangPlugException,
     AuthenticationError,
     AuthorizationError,
-    ValidationError,
-    NotFoundError,
-    ServiceUnavailableError,
-    ProcessingError,
     ConfigurationError,
+    LangPlugException,
+    NotFoundError,
+    ProcessingError,
+    ServiceUnavailableError,
+    ValidationError,
 )
 
 
@@ -29,4 +31,3 @@ def test_Whenexception_status_codesCalled_ThenSucceeds():
     # Base class behavior
     e = LangPlugException("msg", 418)
     assert e.message == "msg" and e.status_code == 418
-

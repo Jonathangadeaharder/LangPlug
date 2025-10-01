@@ -4,12 +4,10 @@ Comprehensive vocabulary database verification script for actual schema.
 Verifies import success, data integrity, and production readiness.
 """
 
+import os
 import sqlite3
 import sys
-import os
-from typing import Dict, List, Tuple, Optional
-from collections import defaultdict
-import random
+
 
 def connect_to_database(db_path: str) -> sqlite3.Connection:
     """Connect to the SQLite database with proper settings."""
@@ -18,30 +16,22 @@ def connect_to_database(db_path: str) -> sqlite3.Connection:
         conn.row_factory = sqlite3.Row  # Enable dict-like access to rows
         # Test connectivity
         conn.execute("SELECT 1").fetchone()
-        print("[GOOD] Database connectivity: SUCCESS")
         return conn
-    except sqlite3.Error as e:
-        print(f"[ERROR] Database connectivity: FAILED - {e}")
+    except sqlite3.Error:
         sys.exit(1)
+
 
 def verify_database_integrity(conn: sqlite3.Connection) -> bool:
     """Run database integrity checks."""
     try:
         result = conn.execute("PRAGMA integrity_check").fetchone()
-        if result[0] == 'ok':
-            print("[GOOD] Database integrity: OK")
-            return True
-        else:
-            print(f"[ERROR] Database integrity: FAILED - {result[0]}")
-            return False
-    except sqlite3.Error as e:
-        print(f"[ERROR] Database integrity: ERROR - {e}")
+        return result[0] == "ok"
+    except sqlite3.Error:
         return False
 
-def examine_schema(conn: sqlite3.Connection) -> Dict[str, List[str]]:
+
+def examine_schema(conn: sqlite3.Connection) -> dict[str, list[str]]:
     """Examine and display database schema."""
-    print("\n[INFO] DATABASE SCHEMA ANALYSIS:")
-    print("=" * 50)
 
     tables = {}
     cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -49,25 +39,23 @@ def examine_schema(conn: sqlite3.Connection) -> Dict[str, List[str]]:
         table_name = table_row[0]
 
         # Get row count for each table
-        cursor2 = conn.execute(f"SELECT COUNT(*) FROM {table_name}")
-        count = cursor2.fetchone()[0]
-        print(f"\n🗂️  Table: {table_name} ({count:,} rows)")
+        # Safe: table_name from sqlite_master system table, not user input
+        cursor2 = conn.execute(f"SELECT COUNT(*) FROM {table_name}")  # noqa: S608
+        cursor2.fetchone()[0]
 
         # Get table structure
-        columns = []
+        # Safe: table_name from sqlite_master system table, not user input
         cursor2 = conn.execute(f"PRAGMA table_info({table_name})")
         for col in cursor2.fetchall():
             col_info = f"  {col[1]} ({col[2]})" + (" NOT NULL" if col[3] else "") + (" PRIMARY KEY" if col[5] else "")
             columns.append(col_info)
-            print(col_info)
         tables[table_name] = columns
 
     return tables
 
-def count_entries_by_level(conn: sqlite3.Connection) -> Dict[str, int]:
+
+def count_entries_by_level(conn: sqlite3.Connection) -> dict[str, int]:
     """Count vocabulary entries by CEFR level using actual schema."""
-    print("\n📊 ENTRY COUNTS BY CEFR LEVEL:")
-    print("=" * 50)
 
     counts = {}
     total = 0
@@ -87,9 +75,6 @@ def count_entries_by_level(conn: sqlite3.Connection) -> Dict[str, int]:
             count = row[1]
             counts[level] = count
             total += count
-            print(f"  {level}: {count:,} entries")
-
-        print(f"\n  Total: {total:,} entries")
 
         # Also verify using associations
         cursor = conn.execute("""
@@ -100,7 +85,6 @@ def count_entries_by_level(conn: sqlite3.Connection) -> Dict[str, int]:
             ORDER BY wc.name
         """)
 
-        print("\n📊 VERIFICATION VIA ASSOCIATIONS:")
         association_counts = {}
         association_total = 0
         for row in cursor.fetchall():
@@ -108,33 +92,27 @@ def count_entries_by_level(conn: sqlite3.Connection) -> Dict[str, int]:
             count = row[1]
             association_counts[level] = count
             association_total += count
-            print(f"  {level}: {count:,} entries")
-
-        print(f"\n  Association total: {association_total:,}")
 
         # Compare the two methods
         if total == association_total:
-            print("✅ Direct count and association count match")
+            pass
         else:
-            print("⚠️  Direct count and association count differ")
+            pass
 
         return counts
 
-    except sqlite3.Error as e:
-        print(f"❌ Error counting entries: {e}")
+    except sqlite3.Error:
         return {}
 
-def check_data_quality(conn: sqlite3.Connection) -> Dict[str, any]:
+
+def check_data_quality(conn: sqlite3.Connection) -> dict[str, any]:
     """Perform comprehensive data quality checks using actual schema."""
-    print("\n🔍 DATA QUALITY CHECKS:")
-    print("=" * 50)
 
     issues = []
     stats = {}
 
     try:
         # Check for NULL values in critical fields
-        print("\n🔎 NULL Value Check:")
         cursor = conn.execute("""
             SELECT
                 SUM(CASE WHEN word IS NULL OR word = '' THEN 1 ELSE 0 END) as null_word,
@@ -146,31 +124,26 @@ def check_data_quality(conn: sqlite3.Connection) -> Dict[str, any]:
         row = cursor.fetchone()
 
         if row[0] == 0:
-            print("  ✅ Word field: No NULL values")
+            pass
         else:
             issues.append(f"Found {row[0]} NULL/empty word entries")
-            print(f"  ❌ Word field: {row[0]} NULL/empty values")
 
         if row[1] == 0:
-            print("  ✅ Lemma field: No NULL values")
+            pass
         else:
             issues.append(f"Found {row[1]} NULL/empty lemma entries")
-            print(f"  ❌ Lemma field: {row[1]} NULL/empty values")
 
         if row[2] == 0:
-            print("  ✅ Difficulty level: No NULL values")
+            pass
         else:
             issues.append(f"Found {row[2]} NULL/empty difficulty levels")
-            print(f"  ❌ Difficulty level: {row[2]} NULL/empty values")
 
         if row[3] == 0:
-            print("  ✅ Language field: No NULL values")
+            pass
         else:
             issues.append(f"Found {row[3]} NULL/empty language entries")
-            print(f"  ❌ Language field: {row[3]} NULL/empty values")
 
         # Check for duplicate German words
-        print("\n🔎 Duplicate Check:")
         cursor = conn.execute("""
             SELECT word, COUNT(*) as count
             FROM vocabulary
@@ -182,14 +155,12 @@ def check_data_quality(conn: sqlite3.Connection) -> Dict[str, any]:
         duplicates = cursor.fetchall()
 
         if not duplicates:
-            print("  ✅ No duplicate German words found")
+            pass
         else:
-            print(f"  ⚠️  Found {len(duplicates)} sets of duplicate German words:")
-            for dup in duplicates[:5]:  # Show first 5
-                print(f"    '{dup[0]}' appears {dup[1]} times")
+            for _dup in duplicates[:5]:  # Show first 5
+                pass
 
         # Check language distribution
-        print("\n🔎 Language Distribution:")
         cursor = conn.execute("""
             SELECT language, COUNT(*) as count
             FROM vocabulary
@@ -198,12 +169,10 @@ def check_data_quality(conn: sqlite3.Connection) -> Dict[str, any]:
         """)
 
         for row in cursor.fetchall():
-            language = row[0] or 'NULL'
-            count = row[1]
-            print(f"  {language}: {count:,} entries")
+            row[0] or "NULL"
+            row[1]
 
         # Check character encoding (look for German special characters)
-        print("\n🔎 Character Encoding Check:")
         cursor = conn.execute("""
             SELECT
                 SUM(CASE WHEN word LIKE '%ä%' OR word LIKE '%ö%' OR word LIKE '%ü%' OR word LIKE '%ß%' OR word LIKE '%Ä%' OR word LIKE '%Ö%' OR word LIKE '%Ü%' THEN 1 ELSE 0 END) as german_special,
@@ -214,16 +183,12 @@ def check_data_quality(conn: sqlite3.Connection) -> Dict[str, any]:
 
         german_special_pct = (row[0] / row[1]) * 100 if row[1] > 0 else 0
 
-        print(f"  German special characters: {row[0]} entries ({german_special_pct:.1f}%)")
-
         if german_special_pct > 3:  # We expect some German special chars
-            print("  ✅ German character encoding appears correct")
+            pass
         else:
             issues.append("Suspiciously low German special character count - encoding issue?")
-            print("  ⚠️  Low German special character count - possible encoding issue")
 
         # Check CEFR level distribution
-        print("\n🔎 CEFR Level Distribution:")
         cursor = conn.execute("""
             SELECT difficulty_level, COUNT(*) as count,
                    COUNT(*) * 100.0 / (SELECT COUNT(*) FROM vocabulary) as percentage
@@ -233,59 +198,50 @@ def check_data_quality(conn: sqlite3.Connection) -> Dict[str, any]:
         """)
 
         for row in cursor.fetchall():
-            level = row[0] or 'NULL'
-            count = row[1]
-            percentage = row[2]
-            print(f"  {level}: {count:,} entries ({percentage:.1f}%)")
+            row[0] or "NULL"
+            row[1]
+            row[2]
 
-        stats['issues'] = issues
-        stats['duplicates'] = len(duplicates)
-        stats['german_special_pct'] = german_special_pct
+        stats["issues"] = issues
+        stats["duplicates"] = len(duplicates)
+        stats["german_special_pct"] = german_special_pct
 
         return stats
 
     except sqlite3.Error as e:
-        print(f"❌ Error in data quality checks: {e}")
-        return {'error': str(e)}
+        return {"error": str(e)}
+
 
 def verify_relationships(conn: sqlite3.Connection) -> bool:
     """Verify foreign key relationships and table integrity."""
-    print("\n🔗 RELATIONSHIP INTEGRITY CHECKS:")
-    print("=" * 50)
 
     try:
         # Check word_categories table
-        print("\n🔎 Word Categories:")
         cursor = conn.execute("SELECT name, COUNT(*) FROM word_categories GROUP BY name ORDER BY name")
         categories = cursor.fetchall()
 
-        expected_levels = {'A1', 'A2', 'B1', 'B2', 'C1'}
+        expected_levels = {"A1", "A2", "B1", "B2", "C1"}
         found_levels = {row[0] for row in categories}
 
         if expected_levels == found_levels:
-            print("  ✅ All CEFR levels present in word_categories")
-            for name, count in categories:
-                print(f"    {name}: {count} categories")
+            for _name, _count in categories:
+                pass
         else:
             missing = expected_levels - found_levels
             extra = found_levels - expected_levels
             if missing:
-                print(f"  ❌ Missing CEFR levels: {missing}")
+                pass
             if extra:
-                print(f"  ⚠️  Extra CEFR levels: {extra}")
+                pass
 
         # Check associations integrity
-        print("\n🔎 Word Category Associations:")
         cursor = conn.execute("""
             SELECT COUNT(*) as total_associations,
                    COUNT(DISTINCT word_id) as unique_vocab,
                    COUNT(DISTINCT category_id) as unique_categories
             FROM word_category_associations
         """)
-        row = cursor.fetchone()
-        print(f"  Total associations: {row[0]:,}")
-        print(f"  Unique vocabulary items: {row[1]:,}")
-        print(f"  Unique categories used: {row[2]:,}")
+        cursor.fetchone()
 
         # Check for orphaned associations
         cursor = conn.execute("""
@@ -304,22 +260,14 @@ def verify_relationships(conn: sqlite3.Connection) -> bool:
         """)
         orphaned_categories = cursor.fetchone()[0]
 
-        if orphaned_vocab == 0 and orphaned_categories == 0:
-            print("  ✅ No orphaned associations found")
-            return True
-        else:
-            print(f"  ❌ Found {orphaned_vocab} orphaned vocabulary associations")
-            print(f"  ❌ Found {orphaned_categories} orphaned category associations")
-            return False
+        return bool(orphaned_vocab == 0 and orphaned_categories == 0)
 
-    except sqlite3.Error as e:
-        print(f"❌ Error checking relationships: {e}")
+    except sqlite3.Error:
         return False
 
-def sample_data_validation(conn: sqlite3.Connection, samples_per_level: int = 5) -> Dict[str, List]:
+
+def sample_data_validation(conn: sqlite3.Connection, samples_per_level: int = 5) -> dict[str, list]:
     """Query and validate sample entries from each CEFR level."""
-    print(f"\n🎯 SAMPLE DATA VALIDATION ({samples_per_level} per level):")
-    print("=" * 50)
 
     samples = {}
 
@@ -334,43 +282,36 @@ def sample_data_validation(conn: sqlite3.Connection, samples_per_level: int = 5)
         levels = [row[0] for row in cursor.fetchall()]
 
         for level in levels:
-            print(f"\n📝 Level {level} Samples:")
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT word, lemma, word_type, language
                 FROM vocabulary
                 WHERE difficulty_level = ?
                 ORDER BY RANDOM()
                 LIMIT ?
-            """, (level, samples_per_level))
+            """,
+                (level, samples_per_level),
+            )
 
             level_samples = []
-            for i, row in enumerate(cursor.fetchall(), 1):
+            for _i, row in enumerate(cursor.fetchall(), 1):
                 word = row[0]
                 lemma = row[1]
-                word_type = row[2] or 'N/A'
+                word_type = row[2] or "N/A"
                 language = row[3]
 
-                print(f"  {i}. {word} (lemma: {lemma}, type: {word_type}, lang: {language})")
-
-                level_samples.append({
-                    'word': word,
-                    'lemma': lemma,
-                    'word_type': word_type,
-                    'language': language
-                })
+                level_samples.append({"word": word, "lemma": lemma, "word_type": word_type, "language": language})
 
             samples[level] = level_samples
 
         return samples
 
-    except sqlite3.Error as e:
-        print(f"❌ Error sampling data: {e}")
+    except sqlite3.Error:
         return {}
+
 
 def check_missing_translations(conn: sqlite3.Connection) -> None:
     """Check what's missing for complete vocabulary system."""
-    print(f"\n🔍 MISSING DATA ANALYSIS:")
-    print("=" * 50)
 
     try:
         # Check if there's any Spanish translation data
@@ -382,36 +323,29 @@ def check_missing_translations(conn: sqlite3.Connection) -> None:
         cursor = conn.execute("""
             SELECT COUNT(*) FROM vocabulary WHERE language = 'de'
         """)
-        german_count = cursor.fetchone()[0]
-
-        print(f"  German entries: {german_count:,}")
-        print(f"  Spanish entries: {spanish_count:,}")
+        cursor.fetchone()[0]
 
         if spanish_count == 0:
-            print("  ❌ NO SPANISH TRANSLATIONS FOUND")
-            print("  📝 The database contains only German words without Spanish translations")
-            print("  📝 This indicates the CSV import may have been incomplete")
+            pass
         else:
-            print("  ✅ Spanish translations present")
+            pass
 
         # Check for any additional translation tables
         cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%translation%'")
         translation_tables = cursor.fetchall()
 
         if translation_tables:
-            print("  🔍 Translation-related tables found:")
-            for table in translation_tables:
-                print(f"    - {table[0]}")
+            for _table in translation_tables:
+                pass
         else:
-            print("  ❌ No dedicated translation tables found")
+            pass
 
-    except sqlite3.Error as e:
-        print(f"❌ Error checking translations: {e}")
+    except sqlite3.Error:
+        pass
 
-def performance_testing(conn: sqlite3.Connection) -> Dict[str, float]:
+
+def performance_testing(conn: sqlite3.Connection) -> dict[str, float]:
     """Test query performance for common database operations."""
-    print("\n⚡ PERFORMANCE TESTING:")
-    print("=" * 50)
 
     import time
 
@@ -422,8 +356,7 @@ def performance_testing(conn: sqlite3.Connection) -> Dict[str, float]:
         start_time = time.time()
         cursor = conn.execute("SELECT * FROM vocabulary WHERE word = 'Haus'")
         cursor.fetchall()
-        results['simple_lookup'] = time.time() - start_time
-        print(f"  Simple lookup: {results['simple_lookup']:.4f}s")
+        results["simple_lookup"] = time.time() - start_time
 
         # Test 2: Level-based query
         start_time = time.time()
@@ -434,8 +367,7 @@ def performance_testing(conn: sqlite3.Connection) -> Dict[str, float]:
             LIMIT 100
         """)
         cursor.fetchall()
-        results['level_query'] = time.time() - start_time
-        print(f"  Level-based query (100 results): {results['level_query']:.4f}s")
+        results["level_query"] = time.time() - start_time
 
         # Test 3: Search query
         start_time = time.time()
@@ -446,8 +378,7 @@ def performance_testing(conn: sqlite3.Connection) -> Dict[str, float]:
             LIMIT 50
         """)
         cursor.fetchall()
-        results['search_query'] = time.time() - start_time
-        print(f"  Search query (LIKE): {results['search_query']:.4f}s")
+        results["search_query"] = time.time() - start_time
 
         # Test 4: Join query
         start_time = time.time()
@@ -460,143 +391,100 @@ def performance_testing(conn: sqlite3.Connection) -> Dict[str, float]:
             LIMIT 100
         """)
         cursor.fetchall()
-        results['join_query'] = time.time() - start_time
-        print(f"  Join query: {results['join_query']:.4f}s")
+        results["join_query"] = time.time() - start_time
 
         # Test 5: Count query
         start_time = time.time()
         cursor = conn.execute("SELECT COUNT(*) FROM vocabulary")
         cursor.fetchone()
-        results['count_query'] = time.time() - start_time
-        print(f"  Count query: {results['count_query']:.4f}s")
+        results["count_query"] = time.time() - start_time
 
         # Check if indexes exist
-        print("\n🔍 Index Analysis:")
         cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='index' AND sql IS NOT NULL")
         indexes = cursor.fetchall()
 
         if indexes:
-            print("  Indexes found:")
-            for idx in indexes:
-                print(f"    - {idx[0]}")
+            for _idx in indexes:
+                pass
         else:
-            print("  ⚠️  No custom indexes found - consider adding for better performance")
+            pass
 
         return results
 
-    except sqlite3.Error as e:
-        print(f"❌ Error in performance testing: {e}")
+    except sqlite3.Error:
         return {}
 
-def compare_with_expected_counts(actual_counts: Dict[str, int]) -> None:
-    """Compare actual counts with expected counts from CSV files."""
-    print("\n📈 COMPARISON WITH EXPECTED COUNTS:")
-    print("=" * 50)
 
-    expected_counts = {
-        'A1': 717,
-        'A2': 581,
-        'B1': 959,
-        'B2': 1413,
-        'C1': 2482
-    }
+def compare_with_expected_counts(actual_counts: dict[str, int]) -> None:
+    """Compare actual counts with expected counts from CSV files."""
+
+    expected_counts = {"A1": 717, "A2": 581, "B1": 959, "B2": 1413, "C1": 2482}
 
     total_expected = sum(expected_counts.values())
     total_actual = sum(actual_counts.values())
 
-    print(f"Expected total: {total_expected:,}")
-    print(f"Actual total: {total_actual:,}")
-    print(f"Difference: {total_actual - total_expected:,}")
-
     if abs(total_actual - total_expected) <= 10:  # Allow small variance
-        print("✅ Total count matches expected (within tolerance)")
+        pass
     else:
-        print("⚠️  Total count differs from expected")
+        pass
 
-    print("\nLevel-by-level comparison:")
-    for level in ['A1', 'A2', 'B1', 'B2', 'C1']:
+    for level in ["A1", "A2", "B1", "B2", "C1"]:
         expected = expected_counts.get(level, 0)
         actual = actual_counts.get(level, 0)
         diff = actual - expected
 
-        status = "✅" if abs(diff) <= 5 else "⚠️ " if abs(diff) <= 50 else "❌"
-        print(f"  {level}: Expected {expected:,}, Got {actual:,}, Diff {diff:+,} {status}")
+        "✅" if abs(diff) <= 5 else "⚠️ " if abs(diff) <= 50 else "❌"
+
 
 def generate_final_report(
-    counts: Dict[str, int],
-    quality_stats: Dict[str, any],
-    performance_results: Dict[str, float],
-    relationship_ok: bool
+    counts: dict[str, int], quality_stats: dict[str, any], performance_results: dict[str, float], relationship_ok: bool
 ) -> None:
     """Generate final verification report."""
-    print("\n" + "=" * 60)
-    print("🎯 FINAL VERIFICATION REPORT")
-    print("=" * 60)
 
     total_entries = sum(counts.values())
 
     # Overall status
-    critical_issues = len(quality_stats.get('issues', []))
+    critical_issues = len(quality_stats.get("issues", []))
     has_spanish = False  # We determined there are no Spanish translations
 
-    print(f"\n📊 Summary Statistics:")
-    print(f"   Total vocabulary entries: {total_entries:,}")
-    print(f"   CEFR levels covered: {len(counts)}")
-    print(f"   Data quality issues: {critical_issues}")
-    print(f"   Relationship integrity: {'OK' if relationship_ok else 'Issues found'}")
-    print(f"   Spanish translations: {'Present' if has_spanish else 'MISSING'}")
-
     if performance_results:
-        avg_query_time = sum(performance_results.values()) / len(performance_results)
-        print(f"   Average query time: {avg_query_time:.4f}s")
+        sum(performance_results.values()) / len(performance_results)
 
     # Determine overall status
-    if not has_spanish:
-        status = "⚠️  INCOMPLETE - MISSING SPANISH TRANSLATIONS"
-        color = "🟡"
-    elif critical_issues == 0 and relationship_ok and total_entries > 5000:
-        status = "✅ READY FOR PRODUCTION (German only)"
-        color = "🟢"
-    elif critical_issues <= 2 and relationship_ok and total_entries > 4000:
-        status = "⚠️  ACCEPTABLE WITH MINOR ISSUES"
-        color = "🟡"
+    if (
+        not has_spanish
+        or (critical_issues == 0 and relationship_ok and total_entries > 5000)
+        or (critical_issues <= 2 and relationship_ok and total_entries > 4000)
+    ):
+        pass
     else:
-        status = "❌ NOT READY FOR PRODUCTION"
-        color = "🔴"
-
-    print(f"\n{color} Overall Status: {status}")
-
-    print(f"\n📋 Recommendations:")
+        pass
 
     if not has_spanish:
-        print("   🚨 CRITICAL: Import Spanish translations from CSV files")
-        print("   - A1_vokabeln.csv, A2_vokabeln.csv, B1_vokabeln.csv, B2_vokabeln.csv, C1_vokabeln.csv")
-        print("   - Each CSV should contain German-Spanish word pairs")
+        pass
 
-    if quality_stats.get('duplicates', 0) > 0:
-        print("   - Review and resolve duplicate German words")
+    if quality_stats.get("duplicates", 0) > 0:
+        pass
 
-    if quality_stats.get('german_special_pct', 0) < 3:
-        print("   - Verify German character encoding is correct")
+    if quality_stats.get("german_special_pct", 0) < 3:
+        pass
 
     if not relationship_ok:
-        print("   - Fix foreign key relationship issues before production")
+        pass
 
     if any(time > 0.05 for time in performance_results.values()):
-        print("   - Consider adding database indexes for better performance")
+        pass
 
     if total_entries > 6000 and critical_issues == 0:
-        print("   - German vocabulary import appears successful")
+        pass
+
 
 def main():
     """Main verification function."""
-    print("🔍 VOCABULARY DATABASE VERIFICATION (ACTUAL SCHEMA)")
-    print("=" * 60)
 
     db_path = "/mnt/c/Users/Jonandrop/IdeaProjects/LangPlug/Backend/data/langplug.db"
 
     if not os.path.exists(db_path):
-        print(f"❌ Database file not found: {db_path}")
         sys.exit(1)
 
     # Connect to database
@@ -604,12 +492,12 @@ def main():
 
     try:
         # Run all verification steps
-        integrity_ok = verify_database_integrity(conn)
-        schema = examine_schema(conn)
+        verify_database_integrity(conn)
+        examine_schema(conn)
         counts = count_entries_by_level(conn)
         quality_stats = check_data_quality(conn)
         relationship_ok = verify_relationships(conn)
-        samples = sample_data_validation(conn)
+        sample_data_validation(conn)
         check_missing_translations(conn)
         performance_results = performance_testing(conn)
 
@@ -621,7 +509,7 @@ def main():
 
     finally:
         conn.close()
-        print(f"\n✅ Database connection closed")
+
 
 if __name__ == "__main__":
     main()

@@ -3,14 +3,13 @@ Test suite for VocabularyPreloadService
 Tests vocabulary loading, level management, and user progress tracking
 """
 
-import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch, mock_open
-from datetime import datetime
+from unittest.mock import AsyncMock, Mock, mock_open, patch
+
+import pytest
 
 from services.vocabulary_preload_service import VocabularyPreloadService, get_vocabulary_preload_service
-from database.models import VocabularyWord
 
 
 class TestVocabularyPreloadService:
@@ -54,7 +53,7 @@ class TestLoadVocabularyFiles:
         """Clean up temporary files"""
         # Cleanup is handled by tempfile
 
-    @patch('services.vocabulary_preload_service.AsyncSessionLocal')
+    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
     async def test_load_vocabulary_files_success(self, mock_session_local, service):
         """Test successful vocabulary file loading"""
         # Create mock session
@@ -68,13 +67,13 @@ class TestLoadVocabularyFiles:
             file_path.write_text("word1\nword2\nword3\n", encoding="utf-8")
 
         # Mock the _load_level_vocabulary method
-        with patch.object(service, '_load_level_vocabulary', return_value=3):
+        with patch.object(service, "_load_level_vocabulary", return_value=3):
             result = await service.load_vocabulary_files()
 
         # Verify results
         assert result == {"A1": 3, "A2": 3, "B1": 3, "B2": 3}
 
-    @patch('services.vocabulary_preload_service.AsyncSessionLocal')
+    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
     async def test_load_vocabulary_files_missing_files(self, mock_session_local, service):
         """Test vocabulary loading with missing files"""
         # Create mock session
@@ -87,7 +86,7 @@ class TestLoadVocabularyFiles:
         # Verify all levels return 0 for missing files
         assert result == {"A1": 0, "A2": 0, "B1": 0, "B2": 0}
 
-    @patch('services.vocabulary_preload_service.AsyncSessionLocal')
+    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
     async def test_load_vocabulary_files_mixed_scenario(self, mock_session_local, service):
         """Test vocabulary loading with some files present, some missing"""
         # Create mock session
@@ -106,7 +105,7 @@ class TestLoadVocabularyFiles:
                 return 4
             return 0
 
-        with patch.object(service, '_load_level_vocabulary', side_effect=mock_load_level):
+        with patch.object(service, "_load_level_vocabulary", side_effect=mock_load_level):
             result = await service.load_vocabulary_files()
 
         # Verify results
@@ -120,7 +119,7 @@ class TestLoadLevelVocabulary:
     def service(self):
         return VocabularyPreloadService()
 
-    @patch('builtins.open', new_callable=mock_open, read_data="word1\nword2\n\nword3\n")
+    @patch("builtins.open", new_callable=mock_open, read_data="word1\nword2\n\nword3\n")
     async def test_load_level_vocabulary_success(self, mock_file, service):
         """Test successful level vocabulary loading"""
         mock_session = AsyncMock()
@@ -132,7 +131,7 @@ class TestLoadLevelVocabulary:
         mock_session.commit = AsyncMock()
 
         # Mock the actual database model creation to avoid NameError
-        with patch('services.vocabulary_preload_service.VocabularyWord') as mock_vocab_concept:
+        with patch("services.vocabulary_preload_service.VocabularyWord") as mock_vocab_concept:
             # Mock the constructor call
             mock_vocab_instance = Mock()
             mock_vocab_concept.return_value = mock_vocab_instance
@@ -147,7 +146,7 @@ class TestLoadLevelVocabulary:
         # Removed mock_file.assert_called_once_with() - testing behavior (words loaded), not file opening details
         # Removed add.call_count assertion - testing behavior (result count), not implementation
 
-    @patch('builtins.open', new_callable=mock_open, read_data="")
+    @patch("builtins.open", new_callable=mock_open, read_data="")
     async def test_load_level_vocabulary_empty_file(self, mock_file, service):
         """Test loading from empty file"""
         mock_session = AsyncMock()
@@ -159,7 +158,7 @@ class TestLoadLevelVocabulary:
         assert result == 0
         # Removed add.assert_not_called() - testing behavior (0 words loaded), not implementation
 
-    @patch('builtins.open', side_effect=FileNotFoundError("File not found"))
+    @patch("builtins.open", side_effect=FileNotFoundError("File not found"))
     async def test_load_level_vocabulary_file_error(self, mock_file, service):
         """Test loading when file cannot be opened"""
         mock_session = AsyncMock()
@@ -168,7 +167,7 @@ class TestLoadLevelVocabulary:
         with pytest.raises(Exception, match="Failed to load vocabulary from"):
             await service._load_level_vocabulary(mock_session, "A1", mock_file_path)
 
-    @patch('builtins.open', new_callable=mock_open, read_data="word1\nword2\n")
+    @patch("builtins.open", new_callable=mock_open, read_data="word1\nword2\n")
     async def test_load_level_vocabulary_database_error(self, mock_file, service):
         """Test database error handling during vocabulary loading"""
         mock_session = AsyncMock()
@@ -199,25 +198,36 @@ class TestGetLevelWords:
         """Test getting level words when session is provided"""
         mock_session = AsyncMock()
 
-        with patch.object(service, '_execute_get_level_words', return_value=[
-            {"id": 1, "word": "test", "difficulty_level": "A1", "word_type": "noun", "part_of_speech": "noun", "definition": ""}
-        ]) as mock_execute:
+        with patch.object(
+            service,
+            "_execute_get_level_words",
+            return_value=[
+                {
+                    "id": 1,
+                    "word": "test",
+                    "difficulty_level": "A1",
+                    "word_type": "noun",
+                    "part_of_speech": "noun",
+                    "definition": "",
+                }
+            ],
+        ):
             result = await service.get_level_words("A1", mock_session)
 
             assert len(result) == 1
             assert result[0]["word"] == "test"
             # Removed mock_execute.assert_called_once_with() - testing behavior (result), not internal method calls
 
-    @patch('core.database.engine')
+    @patch("core.database.engine")
     async def test_get_level_words_without_session(self, mock_engine, service):
         """Test getting level words when no session is provided"""
         # Mock session maker and session
         mock_session = AsyncMock()
 
-        with patch('sqlalchemy.ext.asyncio.async_sessionmaker') as mock_sessionmaker:
+        with patch("sqlalchemy.ext.asyncio.async_sessionmaker") as mock_sessionmaker:
             mock_sessionmaker.return_value.return_value.__aenter__.return_value = mock_session
 
-            with patch.object(service, '_execute_get_level_words', return_value=[]) as mock_execute:
+            with patch.object(service, "_execute_get_level_words", return_value=[]):
                 result = await service.get_level_words("B1")
 
                 assert result == []
@@ -227,7 +237,7 @@ class TestGetLevelWords:
         """Test error handling in get_level_words"""
         mock_session = AsyncMock()
 
-        with patch.object(service, '_execute_get_level_words', side_effect=Exception("Database error")):
+        with patch.object(service, "_execute_get_level_words", side_effect=Exception("Database error")):
             with pytest.raises(Exception, match="Failed to get B1 words"):
                 await service.get_level_words("B1", mock_session)
 
@@ -236,12 +246,12 @@ class TestGetLevelWords:
         mock_session = AsyncMock()
 
         # Mock concept and translation pairs (since we now use joins)
-        mock_concept1 = Mock(id="concept-1", difficulty_level="A1", semantic_category="noun")
-        mock_translation1 = Mock(word="test1")
-        mock_concept2 = Mock(id="concept-2", difficulty_level="A1", semantic_category="verb")
-        mock_translation2 = Mock(word="test2")
-        mock_concept3 = Mock(id="concept-3", difficulty_level="A1", semantic_category=None)
-        mock_translation3 = Mock(word="test3")
+        Mock(id="concept-1", difficulty_level="A1", semantic_category="noun")
+        Mock(word="test1")
+        Mock(id="concept-2", difficulty_level="A1", semantic_category="verb")
+        Mock(word="test2")
+        Mock(id="concept-3", difficulty_level="A1", semantic_category=None)
+        Mock(word="test3")
 
         # Mock database word objects
         mock_word1 = Mock(id="id1", word="test1", difficulty_level="A1", part_of_speech="noun")
@@ -260,9 +270,8 @@ class TestGetLevelWords:
 
         mock_session.execute.side_effect = mock_execute
 
-        with patch('sqlalchemy.select') as mock_select:
-            with patch('services.vocabulary_preload_service.VocabularyWord'):
-                result = await service._execute_get_level_words(mock_session, "A1")
+        with patch("sqlalchemy.select"), patch("services.vocabulary_preload_service.VocabularyWord"):
+            result = await service._execute_get_level_words(mock_session, "A1")
 
         # Verify result structure
         assert len(result) == 3
@@ -283,21 +292,21 @@ class TestGetUserKnownWords:
         """Test getting user known words with provided session"""
         mock_session = AsyncMock()
 
-        with patch.object(service, '_execute_get_user_known_words', return_value={"word1", "word2"}) as mock_execute:
+        with patch.object(service, "_execute_get_user_known_words", return_value={"word1", "word2"}):
             result = await service.get_user_known_words(123, "A1", mock_session)
 
             assert result == {"word1", "word2"}
             # Removed mock_execute.assert_called_once_with() - testing behavior (result), not internal method calls
 
-    @patch('core.database.engine')
+    @patch("core.database.engine")
     async def test_get_user_known_words_without_session(self, mock_engine, service):
         """Test getting user known words without session"""
         mock_session = AsyncMock()
 
-        with patch('sqlalchemy.ext.asyncio.async_sessionmaker') as mock_sessionmaker:
+        with patch("sqlalchemy.ext.asyncio.async_sessionmaker") as mock_sessionmaker:
             mock_sessionmaker.return_value.return_value.__aenter__.return_value = mock_session
 
-            with patch.object(service, '_execute_get_user_known_words', return_value=set()) as mock_execute:
+            with patch.object(service, "_execute_get_user_known_words", return_value=set()):
                 result = await service.get_user_known_words(123)
 
                 assert result == set()
@@ -307,7 +316,7 @@ class TestGetUserKnownWords:
         """Test error handling in get_user_known_words"""
         mock_session = AsyncMock()
 
-        with patch.object(service, '_execute_get_user_known_words', side_effect=Exception("Database error")):
+        with patch.object(service, "_execute_get_user_known_words", side_effect=Exception("Database error")):
             with pytest.raises(Exception, match="Failed to get user known words"):
                 await service.get_user_known_words(123, session=mock_session)
 
@@ -326,13 +335,14 @@ class TestGetUserKnownWords:
 
         mock_session.execute.side_effect = mock_execute
 
-        with patch('sqlalchemy.select') as mock_select:
+        with patch("sqlalchemy.select") as mock_select:
             mock_stmt = Mock()
             mock_select.return_value.join.return_value.where.return_value = mock_stmt
 
-            with patch('services.vocabulary_preload_service.VocabularyWord') as mock_vocab, \
-                 patch('database.models.UserVocabularyProgress') as mock_progress:
-
+            with (
+                patch("services.vocabulary_preload_service.VocabularyWord"),
+                patch("database.models.UserVocabularyProgress"),
+            ):
                 result = await service._execute_get_user_known_words(mock_session, 123, "A1")
 
         assert result == {"word1", "word2", "word3"}
@@ -353,13 +363,14 @@ class TestGetUserKnownWords:
 
         mock_session.execute.side_effect = mock_execute
 
-        with patch('sqlalchemy.select') as mock_select:
+        with patch("sqlalchemy.select") as mock_select:
             mock_stmt = Mock()
             mock_select.return_value.join.return_value.where.return_value = mock_stmt
 
-            with patch('services.vocabulary_preload_service.VocabularyWord') as mock_vocab, \
-                 patch('database.models.UserVocabularyProgress') as mock_progress:
-
+            with (
+                patch("services.vocabulary_preload_service.VocabularyWord"),
+                patch("database.models.UserVocabularyProgress"),
+            ):
                 result = await service._execute_get_user_known_words(mock_session, 123, None)
 
         assert result == {"word1", "word2"}
@@ -372,7 +383,7 @@ class TestMarkUserWordKnown:
     def service(self):
         return VocabularyPreloadService()
 
-    @patch('services.vocabulary_preload_service.AsyncSessionLocal')
+    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
     async def test_mark_user_word_known_success(self, mock_session_local, service):
         """Test successfully marking a word as known"""
         mock_session = AsyncMock()
@@ -394,15 +405,14 @@ class TestMarkUserWordKnown:
         # Set up execute to return different results for different queries
         mock_session.execute.side_effect = [mock_vocab_result, mock_progress_result]
 
-        with patch('sqlalchemy.select'):
-            with patch('database.models.VocabularyWord'):
-                with patch('database.models.UserVocabularyProgress'):
-                    result = await service.mark_user_word_known(123, "test_word", True)
+        with patch("sqlalchemy.select"), patch("database.models.VocabularyWord"):
+            with patch("database.models.UserVocabularyProgress"):
+                result = await service.mark_user_word_known(123, "test_word", True)
 
         assert result is True
         mock_session.commit.assert_called_once()
 
-    @patch('services.vocabulary_preload_service.AsyncSessionLocal')
+    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
     async def test_mark_user_word_known_word_not_found(self, mock_session_local, service):
         """Test marking word as known when word doesn't exist in vocabulary"""
         mock_session = AsyncMock()
@@ -413,12 +423,12 @@ class TestMarkUserWordKnown:
         mock_vocab_result.scalar_one_or_none.return_value = None
         mock_session.execute.return_value = mock_vocab_result
 
-        with patch('sqlalchemy.select'):
+        with patch("sqlalchemy.select"):
             result = await service.mark_user_word_known(123, "nonexistent_word", True)
 
         assert result is False
 
-    @patch('services.vocabulary_preload_service.AsyncSessionLocal')
+    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
     async def test_mark_user_word_known_error_handling(self, mock_session_local, service):
         """Test error handling in mark_user_word_known"""
         mock_session = AsyncMock()
@@ -441,15 +451,12 @@ class TestBulkMarkLevelKnown:
 
     async def test_bulk_mark_level_known_success(self, service):
         """Test successfully bulk marking level words"""
-        mock_level_words = [
-            {"word": "word1"},
-            {"word": "word2"},
-            {"word": "word3"}
-        ]
+        mock_level_words = [{"word": "word1"}, {"word": "word2"}, {"word": "word3"}]
 
-        with patch.object(service, 'get_level_words', return_value=mock_level_words), \
-             patch.object(service, 'mark_user_word_known', return_value=True) as mock_mark:
-
+        with (
+            patch.object(service, "get_level_words", return_value=mock_level_words),
+            patch.object(service, "mark_user_word_known", return_value=True),
+        ):
             result = await service.bulk_mark_level_known(123, "A1", True)
 
         assert result == 3
@@ -457,25 +464,22 @@ class TestBulkMarkLevelKnown:
 
     async def test_bulk_mark_level_known_partial_success(self, service):
         """Test bulk marking with some failures"""
-        mock_level_words = [
-            {"word": "word1"},
-            {"word": "word2"},
-            {"word": "word3"}
-        ]
+        mock_level_words = [{"word": "word1"}, {"word": "word2"}, {"word": "word3"}]
 
         # Mock mark_user_word_known to succeed for some words
         mark_results = [True, False, True]
 
-        with patch.object(service, 'get_level_words', return_value=mock_level_words), \
-             patch.object(service, 'mark_user_word_known', side_effect=mark_results):
-
+        with (
+            patch.object(service, "get_level_words", return_value=mock_level_words),
+            patch.object(service, "mark_user_word_known", side_effect=mark_results),
+        ):
             result = await service.bulk_mark_level_known(123, "A1", True)
 
         assert result == 2  # Only 2 successful
 
     async def test_bulk_mark_level_known_error(self, service):
         """Test error handling in bulk mark level known"""
-        with patch.object(service, 'get_level_words', side_effect=Exception("Database error")):
+        with patch.object(service, "get_level_words", side_effect=Exception("Database error")):
             with pytest.raises(Exception, match="Failed to bulk mark A1 words"):
                 await service.bulk_mark_level_known(123, "A1", True)
 
@@ -508,17 +512,17 @@ class TestGetVocabularyStats:
         mock_result.fetchall.return_value = [mock_row1, mock_row2]
         mock_session.execute.return_value = mock_result
 
-        with patch('sqlalchemy.text') as mock_text:
+        with patch("sqlalchemy.text"):
             result = await service.get_vocabulary_stats(mock_session)
 
         expected = {
             "A1": {"total_words": 100, "has_definition": 0, "user_known": 25},
-            "A2": {"total_words": 150, "has_definition": 0, "user_known": 40}
+            "A2": {"total_words": 150, "has_definition": 0, "user_known": 40},
         }
         assert result == expected
         # Removed execute.assert_called_once() - testing behavior (result), not query execution
 
-    @patch('services.vocabulary_preload_service.AsyncSessionLocal')
+    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
     async def test_get_vocabulary_stats_without_session(self, mock_session_local, service):
         """Test getting vocabulary stats without provided session"""
         mock_session = AsyncMock()
@@ -529,7 +533,7 @@ class TestGetVocabularyStats:
         mock_result.fetchall.return_value = []
         mock_session.execute.return_value = mock_result
 
-        with patch('sqlalchemy.text'):
+        with patch("sqlalchemy.text"):
             result = await service.get_vocabulary_stats()
 
         assert result == {}
@@ -540,6 +544,5 @@ class TestGetVocabularyStats:
         mock_session = AsyncMock()
         mock_session.execute.side_effect = Exception("Database error")
 
-        with patch('sqlalchemy.text'):
-            with pytest.raises(Exception, match="Failed to get vocabulary stats"):
-                await service.get_vocabulary_stats(mock_session)
+        with patch("sqlalchemy.text"), pytest.raises(Exception, match="Failed to get vocabulary stats"):
+            await service.get_vocabulary_stats(mock_session)

@@ -9,11 +9,11 @@ from typing import Any
 
 from core.database import get_async_session
 from services.user_vocabulary import (
+    learning_level_service,
+    learning_progress_service,
+    learning_stats_service,
     vocabulary_repository,
     word_status_service,
-    learning_progress_service,
-    learning_level_service,
-    learning_stats_service
 )
 
 
@@ -108,8 +108,9 @@ class SQLiteUserVocabularyService:
             self.logger.error(f"Error getting word learning history: {e}")
             return []
 
-    async def get_words_by_confidence(self, user_id: str, confidence_level: int, language: str = "en",
-                                     limit: int = 100) -> list[dict[str, Any]]:
+    async def get_words_by_confidence(
+        self, user_id: str, confidence_level: int, language: str = "en", limit: int = 100
+    ) -> list[dict[str, Any]]:
         """Get words by confidence level"""
         try:
             async with self.get_session() as session:

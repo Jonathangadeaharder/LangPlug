@@ -1,6 +1,7 @@
 """
 Configuration management using Pydantic Settings
 """
+
 import json
 from pathlib import Path
 
@@ -11,11 +12,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Application settings with environment variable support"""
 
-    model_config = {
-        "env_file": ".env",
-        "env_file_encoding": "utf-8",
-        "extra": "ignore"
-    }
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
     # Server settings
     host: str = Field(default="0.0.0.0", alias="LANGPLUG_HOST")
@@ -45,9 +42,9 @@ class Settings(BaseSettings):
             "http://127.0.0.1:3001",
             "http://127.0.0.1:3002",
             "http://localhost:5173",
-            "http://127.0.0.1:5173"
+            "http://127.0.0.1:5173",
         ],
-        alias="LANGPLUG_CORS_ORIGINS"
+        alias="LANGPLUG_CORS_ORIGINS",
     )
     cors_credentials: bool = Field(default=True, alias="LANGPLUG_CORS_CREDENTIALS")
 
@@ -66,19 +63,19 @@ class Settings(BaseSettings):
     spacy_model_en: str = Field(default="en_core_web_sm", alias="LANGPLUG_SPACY_MODEL_EN")
 
     # Security settings
-    secret_key: str = Field(default="", alias="LANGPLUG_SECRET_KEY")
+    secret_key: str = Field(..., alias="LANGPLUG_SECRET_KEY", min_length=32)
+
+    # Redis caching settings
+    redis_url: str = Field(default="redis://localhost:6379/0", alias="LANGPLUG_REDIS_URL")
+    cache_ttl_default: int = Field(default=3600, alias="LANGPLUG_CACHE_TTL_DEFAULT")  # 1 hour
+    cache_ttl_vocabulary: int = Field(default=7200, alias="LANGPLUG_CACHE_TTL_VOCABULARY")  # 2 hours
+    cache_ttl_user_progress: int = Field(default=1800, alias="LANGPLUG_CACHE_TTL_USER_PROGRESS")  # 30 minutes
     session_timeout_hours: int = Field(default=24, alias="LANGPLUG_SESSION_TIMEOUT_HOURS")
 
     # Sentry settings
-    sentry_dsn: str = Field(
-        default="",
-        alias="SENTRY_DSN",
-        description="Sentry DSN for error tracking"
-    )
+    sentry_dsn: str = Field(default="", alias="SENTRY_DSN", description="Sentry DSN for error tracking")
     environment: str = Field(
-        default="development",
-        alias="ENVIRONMENT",
-        description="Environment name (development, staging, production)"
+        default="development", alias="ENVIRONMENT", description="Environment name (development, staging, production)"
     )
 
     # Performance settings
@@ -89,13 +86,9 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", alias="LANGPLUG_LOG_LEVEL")
     log_format: str = Field(default="json", alias="LANGPLUG_LOG_FORMAT")  # json or text
 
-    model_config = {
-        "env_file": ".env",
-        "case_sensitive": False,
-        "extra": "ignore"
-    }
+    model_config = {"env_file": ".env", "case_sensitive": False, "extra": "ignore"}
 
-    @field_validator('cors_origins')
+    @field_validator("cors_origins")
     @classmethod
     def parse_cors_origins(cls, v):
         """Parse CORS origins from environment variable if it's a string"""
@@ -105,7 +98,7 @@ class Settings(BaseSettings):
                 return json.loads(v)
             except json.JSONDecodeError:
                 # Fall back to comma-separated values
-                return [origin.strip() for origin in v.split(',') if origin.strip()]
+                return [origin.strip() for origin in v.split(",") if origin.strip()]
         return v
 
     def get_database_url(self) -> str:
@@ -135,6 +128,7 @@ class Settings(BaseSettings):
     def get_videos_path(self) -> Path:
         """Get the videos directory path with WSL/Windows compatibility"""
         import logging
+
         logger = logging.getLogger(__name__)
 
         logger.debug(f"get_videos_path called, self.videos_path = {self.videos_path}")
@@ -156,6 +150,7 @@ class Settings(BaseSettings):
     def _ensure_accessible_path(self, path: Path) -> Path:
         """Ensure path is accessible, converting WSL/Windows paths if needed"""
         import logging
+
         logger = logging.getLogger(__name__)
 
         # Resolve relative paths first

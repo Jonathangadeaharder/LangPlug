@@ -2,8 +2,10 @@
 Simple integration tests using FastAPI TestClient.
 These tests verify that the API endpoints work correctly without external server setup.
 """
+
 import pytest
 from fastapi.testclient import TestClient
+
 from core.app import create_app
 
 

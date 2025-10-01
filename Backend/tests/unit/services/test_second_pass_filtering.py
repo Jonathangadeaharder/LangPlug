@@ -2,15 +2,14 @@
 Test second-pass filtering functionality
 """
 
-import pytest
 import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
-from pathlib import Path
+from unittest.mock import AsyncMock, patch
 
-from services.processing.filtering_handler import FilteringHandler
-from sqlalchemy.dialects import sqlite
-from services.filterservice.interface import FilteredSubtitle, FilteredWord, FilteringResult, WordStatus
+import pytest
+
 from api.models.processing import VocabularyWord
+from services.filterservice.interface import FilteredSubtitle, FilteredWord, FilteringResult, WordStatus
+from services.processing.filtering_handler import FilteringHandler
 
 
 @pytest.fixture
@@ -48,8 +47,8 @@ def sample_subtitles():
                 FilteredWord("der", 0.0, 0.5, WordStatus.ACTIVE),
                 FilteredWord("mann", 0.5, 1.0, WordStatus.ACTIVE),
                 FilteredWord("ist", 1.0, 1.5, WordStatus.ACTIVE),
-                FilteredWord("fett", 1.5, 2.0, WordStatus.ACTIVE, metadata={"is_blocker": True})
-            ]
+                FilteredWord("fett", 1.5, 2.0, WordStatus.ACTIVE, metadata={"is_blocker": True}),
+            ],
         ),
         FilteredSubtitle(
             original_text="Das Haus ist groß",
@@ -59,8 +58,8 @@ def sample_subtitles():
                 FilteredWord("das", 2.0, 2.5, WordStatus.ACTIVE),
                 FilteredWord("haus", 2.5, 3.0, WordStatus.ACTIVE, metadata={"is_blocker": True}),
                 FilteredWord("ist", 3.0, 3.5, WordStatus.ACTIVE),
-                FilteredWord("groß", 3.5, 4.0, WordStatus.ACTIVE)
-            ]
+                FilteredWord("groß", 3.5, 4.0, WordStatus.ACTIVE),
+            ],
         ),
         FilteredSubtitle(
             original_text="Ich bin hier",
@@ -69,9 +68,9 @@ def sample_subtitles():
             words=[
                 FilteredWord("ich", 4.0, 4.5, WordStatus.ACTIVE),
                 FilteredWord("bin", 4.5, 5.0, WordStatus.ACTIVE),
-                FilteredWord("hier", 5.0, 6.0, WordStatus.ACTIVE)
-            ]
-        )
+                FilteredWord("hier", 5.0, 6.0, WordStatus.ACTIVE),
+            ],
+        ),
     ]
 
 
@@ -87,7 +86,7 @@ def sample_filtering_result(sample_subtitles):
         learning_subtitles=sample_subtitles,
         blocker_words=blocker_words,
         empty_subtitles=[],
-        statistics={"total_words": 11, "blocker_count": 2}
+        statistics={"total_words": 11, "blocker_count": 2},
     )
 
 
@@ -99,23 +98,17 @@ async def test_refilter_with_no_known_words(filtering_handler, mock_subtitle_pro
         "total_subtitles": 3,
         "translation_count": 2,
         "needs_translation": [0, 1],
-        "filtering_stats": {
-            "total_blockers": 2,
-            "known_blockers": 0,
-            "unknown_blockers": 2
-        }
+        "filtering_stats": {"total_blockers": 2, "known_blockers": 0, "unknown_blockers": 2},
     }
 
-    with patch.object(filtering_handler.coordinator, 'refilter_for_translations', new_callable=AsyncMock) as mock_refilter:
+    with patch.object(
+        filtering_handler.coordinator, "refilter_for_translations", new_callable=AsyncMock
+    ) as mock_refilter:
         mock_refilter.return_value = expected_result
 
         # Call refilter with empty known words list
         result = await filtering_handler.refilter_for_translations(
-            srt_path="/tmp/test.srt",
-            user_id="1",
-            known_words=[],
-            user_level="A1",
-            target_language="de"
+            srt_path="/tmp/test.srt", user_id="1", known_words=[], user_level="A1", target_language="de"
         )
 
     # All subtitles with blockers should need translation (indices 0 and 1)
@@ -135,23 +128,17 @@ async def test_refilter_with_one_known_word(filtering_handler, mock_subtitle_pro
         "total_subtitles": 3,
         "translation_count": 1,
         "needs_translation": [1],
-        "filtering_stats": {
-            "total_blockers": 2,
-            "known_blockers": 1,
-            "unknown_blockers": 1
-        }
+        "filtering_stats": {"total_blockers": 2, "known_blockers": 1, "unknown_blockers": 1},
     }
 
-    with patch.object(filtering_handler.coordinator, 'refilter_for_translations', new_callable=AsyncMock) as mock_refilter:
+    with patch.object(
+        filtering_handler.coordinator, "refilter_for_translations", new_callable=AsyncMock
+    ) as mock_refilter:
         mock_refilter.return_value = expected_result
 
         # Mark "fett" as known
         result = await filtering_handler.refilter_for_translations(
-            srt_path="/tmp/test.srt",
-            user_id="1",
-            known_words=["fett"],
-            user_level="A1",
-            target_language="de"
+            srt_path="/tmp/test.srt", user_id="1", known_words=["fett"], user_level="A1", target_language="de"
         )
 
     # Only subtitle with "haus" blocker should need translation (index 1)
@@ -171,23 +158,17 @@ async def test_refilter_with_all_blockers_known(filtering_handler, mock_subtitle
         "total_subtitles": 3,
         "translation_count": 0,
         "needs_translation": [],
-        "filtering_stats": {
-            "total_blockers": 2,
-            "known_blockers": 2,
-            "unknown_blockers": 0
-        }
+        "filtering_stats": {"total_blockers": 2, "known_blockers": 2, "unknown_blockers": 0},
     }
 
-    with patch.object(filtering_handler.coordinator, 'refilter_for_translations', new_callable=AsyncMock) as mock_refilter:
+    with patch.object(
+        filtering_handler.coordinator, "refilter_for_translations", new_callable=AsyncMock
+    ) as mock_refilter:
         mock_refilter.return_value = expected_result
 
         # Mark both "fett" and "haus" as known
         result = await filtering_handler.refilter_for_translations(
-            srt_path="/tmp/test.srt",
-            user_id="1",
-            known_words=["fett", "haus"],
-            user_level="A1",
-            target_language="de"
+            srt_path="/tmp/test.srt", user_id="1", known_words=["fett", "haus"], user_level="A1", target_language="de"
         )
 
     # No subtitles should need translation
@@ -207,14 +188,12 @@ async def test_refilter_case_insensitive(filtering_handler, mock_subtitle_proces
         "total_subtitles": 3,
         "translation_count": 1,
         "needs_translation": [1],
-        "filtering_stats": {
-            "total_blockers": 2,
-            "known_blockers": 1,
-            "unknown_blockers": 1
-        }
+        "filtering_stats": {"total_blockers": 2, "known_blockers": 1, "unknown_blockers": 1},
     }
 
-    with patch.object(filtering_handler.coordinator, 'refilter_for_translations', new_callable=AsyncMock) as mock_refilter:
+    with patch.object(
+        filtering_handler.coordinator, "refilter_for_translations", new_callable=AsyncMock
+    ) as mock_refilter:
         mock_refilter.return_value = expected_result
 
         # Mark "FETT" as known (uppercase)
@@ -223,7 +202,7 @@ async def test_refilter_case_insensitive(filtering_handler, mock_subtitle_proces
             user_id="1",
             known_words=["FETT"],  # Uppercase
             user_level="A1",
-            target_language="de"
+            target_language="de",
         )
 
     # Should still recognize "fett" as known
@@ -237,30 +216,16 @@ async def test_extract_blocking_words(filtering_handler, mock_subtitle_processor
     """Test extracting blocking words from subtitles"""
     # Mock the coordinator's extract_blocking_words method
     fake_vocab = [
-        VocabularyWord(
-            concept_id=uuid.uuid4(),
-            word="schwierig",
-            translation="",
-            difficulty_level="B2",
-            known=False
-        ),
-        VocabularyWord(
-            concept_id=uuid.uuid4(),
-            word="kompliziert",
-            translation="",
-            difficulty_level="C1",
-            known=False
-        ),
+        VocabularyWord(concept_id=uuid.uuid4(), word="schwierig", translation="", difficulty_level="B2", known=False),
+        VocabularyWord(concept_id=uuid.uuid4(), word="kompliziert", translation="", difficulty_level="C1", known=False),
     ]
 
-    with patch.object(filtering_handler.coordinator, 'extract_blocking_words', new_callable=AsyncMock) as mock_extract:
+    with patch.object(filtering_handler.coordinator, "extract_blocking_words", new_callable=AsyncMock) as mock_extract:
         mock_extract.return_value = fake_vocab
 
         # Extract blocking words
         vocab_words = await filtering_handler.extract_blocking_words(
-            srt_path="/tmp/test.srt",
-            user_id="1",
-            user_level="A1"
+            srt_path="/tmp/test.srt", user_id="1", user_level="A1"
         )
 
     # Check extracted vocabulary words
@@ -284,23 +249,15 @@ async def test_build_vocabulary_words_german_heuristics(filtering_handler, monke
 
     dummy_concept_id = uuid.uuid4()
     expected_vocab = [
-        VocabularyWord(
-            concept_id=dummy_concept_id,
-            word="fetter",
-            translation="",
-            difficulty_level="B1",
-            known=False
-        )
+        VocabularyWord(concept_id=dummy_concept_id, word="fetter", translation="", difficulty_level="B1", known=False)
     ]
 
     # Mock the coordinator's extract_blocking_words which uses the vocab builder
-    with patch.object(filtering_handler.coordinator, 'extract_blocking_words', new_callable=AsyncMock) as mock_extract:
+    with patch.object(filtering_handler.coordinator, "extract_blocking_words", new_callable=AsyncMock) as mock_extract:
         mock_extract.return_value = expected_vocab
 
         vocab_words = await filtering_handler.extract_blocking_words(
-            srt_path="/tmp/test.srt",
-            user_id="1",
-            user_level="A1"
+            srt_path="/tmp/test.srt", user_id="1", user_level="A1"
         )
 
     assert vocab_words

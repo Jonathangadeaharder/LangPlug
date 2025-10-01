@@ -1,10 +1,10 @@
 """Behavioral verification for the health monitor sweep logic."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 import pytest
-
 from management.config import ServerStatus
 from management.health_monitor import HealthMonitor
 

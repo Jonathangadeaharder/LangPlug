@@ -1,4 +1,5 @@
 """Protective tests for the authentication round trip latency and response shape."""
+
 from __future__ import annotations
 
 import os
@@ -6,7 +7,7 @@ import time
 
 import pytest
 
-from tests.auth_helpers import AuthTestHelper, AuthTestHelperAsync
+from tests.auth_helpers import AuthTestHelper
 
 AUTH_ROUND_TRIP_BUDGET = 1.5
 
@@ -56,6 +57,7 @@ async def test_login_with_WrongPassword_fails_fast(async_client) -> None:
     )
     elapsed = time.perf_counter() - started
 
-    assert status in {400, 401}
+    # Invalid credentials should return 401 (unauthorized)
+    assert status == 401, f"Expected 401 (unauthorized - invalid credentials), got {status}"
     assert "access_token" not in payload
     assert elapsed < AUTH_ROUND_TRIP_BUDGET

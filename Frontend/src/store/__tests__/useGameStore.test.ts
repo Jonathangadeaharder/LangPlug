@@ -171,6 +171,9 @@ describe('useGameStore', () => {
     it('handles API errors gracefully', async () => {
       const { result } = renderHook(() => useGameStore())
 
+      // Mock console.error to suppress error output during test
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
       sdkMock.getBlockingWordsApiVocabularyBlockingWordsGet.mockRejectedValue(new Error('API Error'))
 
       act(() => {
@@ -183,6 +186,9 @@ describe('useGameStore', () => {
 
       expect(result.current.isProcessing).toBe(false)
       expect(result.current.currentWords).toEqual([])
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to load segment words:', expect.any(Error))
+
+      consoleErrorSpy.mockRestore()
     })
   })
 })

@@ -1,11 +1,12 @@
 """Contract focused tests for the health monitor lifecycle."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 
+import pytest
 from management.config import ServerStatus
 from management.health_monitor import HealthMonitor
-import pytest
 
 
 @dataclass

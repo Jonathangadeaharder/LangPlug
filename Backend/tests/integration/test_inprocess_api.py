@@ -1,4 +1,5 @@
 """Minimal integration checks using the built-in async_client fixture."""
+
 from __future__ import annotations
 
 import pytest
@@ -21,7 +22,5 @@ async def test_Whenvocabulary_statsWithoutauth_ThenReturnsError(async_http_clien
     assert response.status_code == 401
 
     flow = await AuthTestHelperAsync.register_and_login_async(async_http_client)
-    authed = await async_http_client.get(
-        "/api/vocabulary/library/stats", headers=flow["headers"]
-    )
+    authed = await async_http_client.get("/api/vocabulary/library/stats", headers=flow["headers"])
     assert authed.status_code == 200, f"Expected 200, got {authed.status_code}: {authed.text}"

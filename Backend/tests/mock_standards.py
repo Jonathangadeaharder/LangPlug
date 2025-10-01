@@ -1,8 +1,9 @@
 """
 Standardized mock patterns for test consistency
 """
+
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
-from typing import Dict, Any, List, Optional
 
 
 class StandardMockPatterns:
@@ -59,7 +60,7 @@ class StandardMockPatterns:
         return mock_user
 
     @staticmethod
-    def mock_http_response(status_code: int = 200, json_data: Optional[Dict[str, Any]] = None) -> MagicMock:
+    def mock_http_response(status_code: int = 200, json_data: dict[str, Any] | None = None) -> MagicMock:
         """Create a standardized HTTP response mock"""
         mock_response = MagicMock()
         mock_response.status_code = status_code
@@ -67,26 +68,26 @@ class StandardMockPatterns:
         return mock_response
 
     @staticmethod
-    def configure_session_query_results(mock_session: AsyncMock, results: Dict[str, Any]) -> None:
+    def configure_session_query_results(mock_session: AsyncMock, results: dict[str, Any]) -> None:
         """Configure query results for a mock session"""
         mock_result = mock_session._mock_result
 
         for key, value in results.items():
-            if key == 'scalar_one_or_none':
+            if key == "scalar_one_or_none":
                 mock_result.scalar_one_or_none.return_value = value
-            elif key == 'scalar':
+            elif key == "scalar":
                 mock_result.scalar.return_value = value
-            elif key == 'all':
+            elif key == "all":
                 mock_result.scalars.return_value.all.return_value = value
-            elif key == 'first':
+            elif key == "first":
                 mock_result.first.return_value = value
-            elif key == 'fetchall':
+            elif key == "fetchall":
                 mock_result.fetchall.return_value = value
-            elif key == 'rowcount':
+            elif key == "rowcount":
                 mock_result.rowcount = value
 
     @staticmethod
-    def create_sequential_query_results(results: List[Any]) -> List[AsyncMock]:
+    def create_sequential_query_results(results: list[Any]) -> list[AsyncMock]:
         """Create a sequence of query results for multiple execute calls"""
         mock_results = []
 
@@ -96,17 +97,17 @@ class StandardMockPatterns:
             elif isinstance(result, dict):
                 mock_result = AsyncMock()
                 for key, value in result.items():
-                    if key == 'scalar_one_or_none':
+                    if key == "scalar_one_or_none":
                         mock_result.scalar_one_or_none = AsyncMock(return_value=value)
-                    elif key == 'scalar':
+                    elif key == "scalar":
                         mock_result.scalar = AsyncMock(return_value=value)
-                    elif key == 'all':
+                    elif key == "all":
                         mock_result.scalars.return_value.all = MagicMock(return_value=value)
-                    elif key == 'first':
+                    elif key == "first":
                         mock_result.first = MagicMock(return_value=value)
-                    elif key == 'fetchall':
+                    elif key == "fetchall":
                         mock_result.fetchall = MagicMock(return_value=value)
-                    elif key == 'rowcount':
+                    elif key == "rowcount":
                         mock_result.rowcount = value
                 mock_results.append(mock_result)
             else:
@@ -119,24 +120,21 @@ class TestAssertions:
     """Standard test assertions for common patterns"""
 
     @staticmethod
-    def assert_session_operations(mock_session: AsyncMock, expected_operations: Dict[str, int]) -> None:
+    def assert_session_operations(mock_session: AsyncMock, expected_operations: dict[str, int]) -> None:
         """Assert that session operations were called the expected number of times"""
         for operation, expected_count in expected_operations.items():
             if hasattr(mock_session, operation):
                 actual_count = getattr(mock_session, operation).call_count
-                assert actual_count == expected_count, (
-                    f"Expected {operation} to be called {expected_count} times, "
-                    f"but it was called {actual_count} times"
-                )
+                assert (
+                    actual_count == expected_count
+                ), f"Expected {operation} to be called {expected_count} times, but it was called {actual_count} times"
             else:
                 raise ValueError(f"Unknown session operation: {operation}")
 
     @staticmethod
-    def assert_http_response(response, expected_status: int, expected_keys: Optional[List[str]] = None) -> None:
+    def assert_http_response(response, expected_status: int, expected_keys: list[str] | None = None) -> None:
         """Assert HTTP response status and JSON keys"""
-        assert response.status_code == expected_status, (
-            f"Expected status {expected_status}, got {response.status_code}"
-        )
+        assert response.status_code == expected_status, f"Expected status {expected_status}, got {response.status_code}"
 
         if expected_keys and response.status_code == 200:
             data = response.json()
@@ -148,7 +146,6 @@ class TestAssertions:
         """Assert that a mock was called with arguments matching a pattern"""
         calls = [str(call) for call in mock_obj.call_args_list]
         matching_calls = [call for call in calls if call_pattern in call]
-        assert len(matching_calls) > 0, (
-            f"Expected mock to be called with pattern '{call_pattern}', "
-            f"but actual calls were: {calls}"
-        )
+        assert (
+            len(matching_calls) > 0
+        ), f"Expected mock to be called with pattern '{call_pattern}', but actual calls were: {calls}"

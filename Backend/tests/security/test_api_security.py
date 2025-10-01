@@ -1,7 +1,9 @@
 """Security posture tests that guard critical authentication and input handling paths."""
+
 from __future__ import annotations
 
 import os
+
 import pytest
 
 from tests.auth_helpers import AuthTestHelperAsync
@@ -48,7 +50,10 @@ async def test_Whensql_injection_in_concept_lookupCalled_ThenReturnssafe_respons
         headers=flow["headers"],
     )
 
-    assert response.status_code in {422, 400}  # Validation should catch invalid UUID
+    # Validation should catch invalid UUID and return 422
+    assert (
+        response.status_code == 422
+    ), f"Expected 422 (validation error for malformed UUID), got {response.status_code}: {response.text}"
 
     # System correctly rejects malicious input - that's the main security check
     # Error messages may contain the invalid input for debugging, which is acceptable
@@ -71,7 +76,10 @@ async def test_Whenxss_payload_in_language_parameterCalled_ThenSucceeds(async_cl
         headers=flow["headers"],
     )
 
-    assert response.status_code in {422, 400, 500}  # Validation rejects invalid language codes (may be 500 if caught by internal validation)
+    # Validation should reject XSS payload in language parameter
+    assert (
+        response.status_code == 422
+    ), f"Expected 422 (validation error for XSS payload), got {response.status_code}: {response.text}"
 
     # System correctly rejects XSS payload - that's the main security check
     # Error messages may contain the invalid input for debugging, which is acceptable
@@ -88,9 +96,12 @@ async def test_WhenLogoutCalled_ThenRevokesaccess(async_client) -> None:
     flow = await AuthTestHelperAsync.register_and_login_async(async_client)
 
     logout = await async_client.post("/api/auth/logout", headers=flow["headers"])
-    assert logout.status_code in {200, 204}
+    assert (
+        logout.status_code == 204
+    ), f"Expected 204 (no content - successful logout), got {logout.status_code}: {logout.text}"
 
     me_response = await async_client.get("/api/auth/me", headers=flow["headers"])
-    # JWT tokens are stateless and may remain valid after logout (depending on implementation)
-    # The logout endpoint returns 204 indicating successful logout, but token may still be valid
-    assert me_response.status_code in {200, 401}  # Token may or may not be revoked
+    # After logout, token should be revoked and return 401
+    assert (
+        me_response.status_code == 401
+    ), f"Expected 401 (token revoked after logout), got {me_response.status_code}: {me_response.text}"

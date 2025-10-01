@@ -26,23 +26,23 @@ interface LogEntry {
 class Logger {
   private logLevel: LogLevel = LogLevel.DEBUG
   private logs: LogEntry[] = []
-  private maxLogs: number = 1000
-  private apiEnabled: boolean = true
+  private maxLogs = 1000
+  private apiEnabled = true
 
   constructor() {
     // Set log level based on environment
     const envLogLevel = import.meta.env.VITE_LOG_LEVEL || 'DEBUG'
     this.logLevel = LogLevel[envLogLevel as keyof typeof LogLevel] || LogLevel.DEBUG
-    
+
     // API logging can be disabled via environment variable if needed
     this.apiEnabled = import.meta.env.VITE_ENABLE_API_LOGGING !== 'false'
 
     // Set up global error handler
     this.setupGlobalErrorHandler()
-    
+
     // Set up unhandled promise rejection handler
     this.setupUnhandledRejectionHandler()
-    
+
     // Log frontend startup
     this.info('Frontend Logger', 'Logger initialized', {
       logLevel: LogLevel[this.logLevel],
@@ -115,7 +115,7 @@ class Logger {
   private addLogEntry(entry: LogEntry) {
     // Add to memory buffer
     this.logs.push(entry)
-    
+
     // Keep only recent logs
     if (this.logs.length > this.maxLogs) {
       this.logs = this.logs.slice(-this.maxLogs)
@@ -132,7 +132,7 @@ class Logger {
   private async sendLogToBackend(entry: LogEntry) {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
-      
+
       // Only send INFO and above to backend to avoid spam
       if (LogLevel[entry.level as keyof typeof LogLevel] < LogLevel.INFO) {
         return
@@ -150,7 +150,7 @@ class Logger {
         body: JSON.stringify(entry),
         signal: controller.signal
       })
-      
+
       clearTimeout(timeoutId)
     } catch (error) {
       // Silently fail backend logging to avoid disrupting user experience
@@ -163,7 +163,7 @@ class Logger {
 
   debug(category: string, message: string, data?: any) {
     if (!this.shouldLog(LogLevel.DEBUG)) return
-    
+
     const entry = this.createLogEntry(LogLevel.DEBUG, category, message, data)
     if (import.meta.env.DEV) {
       console.debug(`[${category}] ${message}`, data || '')
@@ -173,7 +173,7 @@ class Logger {
 
   info(category: string, message: string, data?: any) {
     if (!this.shouldLog(LogLevel.INFO)) return
-    
+
     const entry = this.createLogEntry(LogLevel.INFO, category, message, data)
     if (import.meta.env.DEV) {
       console.info(`[${category}] ${message}`, data || '')
@@ -183,7 +183,7 @@ class Logger {
 
   warn(category: string, message: string, data?: any) {
     if (!this.shouldLog(LogLevel.WARN)) return
-    
+
     const entry = this.createLogEntry(LogLevel.WARN, category, message, data)
     console.warn(`[${category}] ${message}`, data || '')
     this.addLogEntry(entry)
@@ -191,7 +191,7 @@ class Logger {
 
   error(category: string, message: string, data?: any, error?: Error) {
     if (!this.shouldLog(LogLevel.ERROR)) return
-    
+
     const entry = this.createLogEntry(LogLevel.ERROR, category, message, data, error)
     console.error(`[${category}] ${message}`, data || '', error || '')
     this.addLogEntry(entry)
@@ -211,7 +211,7 @@ class Logger {
       data,
       duration
     })
-    
+
     if (import.meta.env.DEV) {
       const logFn = status >= 400 ? console.error : console.debug
       logFn(`[API] ${status} ${method} ${url}${duration ? ` (${duration}ms)` : ''}`, { data })
@@ -230,12 +230,12 @@ class Logger {
   }
 
   // Performance logging
-  performance(metric: string, value: number, unit: string = 'ms') {
+  performance(metric: string, value: number, unit = 'ms') {
     this.debug('Performance', `${metric}: ${value}${unit}`, { metric, value, unit })
   }
 
   // Get recent logs for debugging
-  getRecentLogs(count: number = 50): LogEntry[] {
+  getRecentLogs(count = 50): LogEntry[] {
     return this.logs.slice(-count)
   }
 

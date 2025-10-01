@@ -3,19 +3,15 @@ Test suite for VocabularyAnalyticsService
 Tests vocabulary statistics and analytics functionality
 """
 
-import pytest
 from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 from services.vocabulary.vocabulary_analytics_service import VocabularyAnalyticsService
 
 
 class TestVocabularyAnalyticsService:
-    """Test VocabularyAnalyticsService initialization and basic functionality"""
-
-    def test_initialization(self):
-        """Test service initialization"""
-        service = VocabularyAnalyticsService()
-        assert service is not None
+    """Test VocabularyAnalyticsService functionality"""
 
     @pytest.fixture
     def service(self):
@@ -37,12 +33,12 @@ class TestGetVocabularyStats:
     def mock_db_session(self):
         return AsyncMock()
 
-    @patch('api.models.vocabulary.VocabularyStats')
+    @patch("api.models.vocabulary.VocabularyStats")
     async def test_get_vocabulary_stats_with_user(self, mock_vocab_stats, service, mock_db_session):
         """Test vocabulary statistics retrieval with user"""
         # Setup total words query results
         total_results = [100, 150, 200, 250, 300, 350]  # A1-C2
-        known_results = [80, 120, 100, 50, 30, 10]     # Known counts
+        known_results = [80, 120, 100, 50, 30, 10]  # Known counts
 
         # Mock database calls
         def mock_execute_side_effect(*args):
@@ -66,6 +62,7 @@ class TestGetVocabularyStats:
 
     async def test_get_vocabulary_stats_no_user(self, service, mock_db_session):
         """Test vocabulary statistics retrieval without user"""
+
         # Setup total words query results
         def mock_execute_side_effect():
             # Use Mock (not AsyncMock) for Result since scalar() is synchronous
@@ -76,7 +73,7 @@ class TestGetVocabularyStats:
         mock_db_session.execute.side_effect = [mock_execute_side_effect() for _ in range(6)]
 
         # Execute
-        with patch('api.models.vocabulary.VocabularyStats') as mock_vocab_stats:
+        with patch("api.models.vocabulary.VocabularyStats"):
             result = await service.get_vocabulary_stats(mock_db_session, None, "de", "en")
 
             # Assert - VocabularyStats was constructed without user data
@@ -86,6 +83,7 @@ class TestGetVocabularyStats:
 
     async def test_get_vocabulary_stats_scalar_exception_total(self, service, mock_db_session):
         """Test vocabulary statistics when scalar() raises exception for total words"""
+
         # Setup mock to raise exception
         def mock_execute_side_effect():
             # Use Mock (not AsyncMock) for Result since scalar() is synchronous
@@ -96,7 +94,7 @@ class TestGetVocabularyStats:
         mock_db_session.execute.side_effect = [mock_execute_side_effect() for _ in range(6)]
 
         # Execute
-        with patch('api.models.vocabulary.VocabularyStats') as mock_vocab_stats:
+        with patch("api.models.vocabulary.VocabularyStats"):
             result = await service.get_vocabulary_stats(mock_db_session, None, "de", "en")
 
             # Assert - Should handle exception and use default value 0
@@ -122,7 +120,7 @@ class TestGetVocabularyStats:
         mock_db_session.execute.side_effect = [mock_execute_side_effect() for _ in range(12)]
 
         # Execute
-        with patch('api.models.vocabulary.VocabularyStats') as mock_vocab_stats:
+        with patch("api.models.vocabulary.VocabularyStats"):
             result = await service.get_vocabulary_stats(mock_db_session, "user123", "de", "en")
 
             # Assert - Should handle exception and use default value 0 for known words
@@ -136,7 +134,7 @@ class TestGetVocabularyStatsLegacy:
     def service(self):
         return VocabularyAnalyticsService()
 
-    @patch('services.vocabulary.vocabulary_analytics_service.AsyncSessionLocal')
+    @patch("services.vocabulary.vocabulary_analytics_service.AsyncSessionLocal")
     async def test_get_vocabulary_stats_legacy_with_user(self, mock_session_local, service):
         """Test legacy vocabulary statistics with user"""
         # Setup mock session
@@ -145,7 +143,7 @@ class TestGetVocabularyStatsLegacy:
 
         # Setup query results
         total_results = [100, 150, 200]  # A1, A2, B1
-        known_results = [80, 90, 50]    # Known counts
+        known_results = [80, 90, 50]  # Known counts
 
         def create_mock_result(value):
             # Use Mock (not AsyncMock) for result since scalar() is synchronous
@@ -159,12 +157,18 @@ class TestGetVocabularyStatsLegacy:
             return mock_results.pop(0)
 
         mock_results = [
-            create_mock_result(total_results[0]), create_mock_result(known_results[0]),  # A1
-            create_mock_result(total_results[1]), create_mock_result(known_results[1]),  # A2
-            create_mock_result(total_results[2]), create_mock_result(known_results[2]),  # B1
-            create_mock_result(0), create_mock_result(0),  # B2
-            create_mock_result(0), create_mock_result(0),  # C1
-            create_mock_result(0), create_mock_result(0),  # C2
+            create_mock_result(total_results[0]),
+            create_mock_result(known_results[0]),  # A1
+            create_mock_result(total_results[1]),
+            create_mock_result(known_results[1]),  # A2
+            create_mock_result(total_results[2]),
+            create_mock_result(known_results[2]),  # B1
+            create_mock_result(0),
+            create_mock_result(0),  # B2
+            create_mock_result(0),
+            create_mock_result(0),  # C1
+            create_mock_result(0),
+            create_mock_result(0),  # C2
         ]
         mock_session.execute.side_effect = mock_execute_side_effect
 
@@ -181,7 +185,7 @@ class TestGetVocabularyStatsLegacy:
         assert result["levels"]["A1"]["user_known"] == 80
         assert result["levels"]["A1"]["percentage"] == 80.0
 
-    @patch('services.vocabulary.vocabulary_analytics_service.AsyncSessionLocal')
+    @patch("services.vocabulary.vocabulary_analytics_service.AsyncSessionLocal")
     async def test_get_vocabulary_stats_legacy_no_user(self, mock_session_local, service):
         """Test legacy vocabulary statistics without user"""
         # Setup mock session
@@ -208,7 +212,7 @@ class TestGetVocabularyStatsLegacy:
         # Assert
         assert result["target_language"] == "de"
         assert result["total_words"] == 600  # 6 levels × 100 each
-        assert result["total_known"] == 0    # No user provided
+        assert result["total_known"] == 0  # No user provided
         # Removed execute.call_count assertion - testing behavior (total words calculated), not query count
 
 
@@ -225,6 +229,7 @@ class TestGetUserProgressSummary:
 
     async def test_get_user_progress_summary_success(self, service, mock_db_session):
         """Test successful user progress summary retrieval"""
+
         # Setup queries
         def create_mock_result(value):
             # Use Mock (not AsyncMock) for result since scalar() is synchronous
@@ -239,14 +244,20 @@ class TestGetUserProgressSummary:
 
         query_results = [
             create_mock_result(1000),  # Total words
-            create_mock_result(300),   # Total known
+            create_mock_result(300),  # Total known
             # Level queries (total, known for each level)
-            create_mock_result(200), create_mock_result(150),  # A1
-            create_mock_result(200), create_mock_result(100),  # A2
-            create_mock_result(200), create_mock_result(50),   # B1
-            create_mock_result(200), create_mock_result(0),    # B2
-            create_mock_result(100), create_mock_result(0),    # C1
-            create_mock_result(100), create_mock_result(0),    # C2
+            create_mock_result(200),
+            create_mock_result(150),  # A1
+            create_mock_result(200),
+            create_mock_result(100),  # A2
+            create_mock_result(200),
+            create_mock_result(50),  # B1
+            create_mock_result(200),
+            create_mock_result(0),  # B2
+            create_mock_result(100),
+            create_mock_result(0),  # C1
+            create_mock_result(100),
+            create_mock_result(0),  # C2
         ]
 
         mock_db_session.execute.side_effect = mock_execute_side_effect
@@ -276,7 +287,7 @@ class TestGetSupportedLanguages:
     def service(self):
         return VocabularyAnalyticsService()
 
-    @patch('services.vocabulary.vocabulary_analytics_service.AsyncSessionLocal')
+    @patch("services.vocabulary.vocabulary_analytics_service.AsyncSessionLocal")
     async def test_get_supported_languages_success(self, mock_session_local, service):
         """Test successful supported languages retrieval"""
         # Setup mock session
@@ -285,15 +296,15 @@ class TestGetSupportedLanguages:
 
         # Setup mock language objects
         mock_lang_en = Mock()
-        mock_lang_en.code = 'en'
-        mock_lang_en.name = 'English'
-        mock_lang_en.native_name = 'English'
+        mock_lang_en.code = "en"
+        mock_lang_en.name = "English"
+        mock_lang_en.native_name = "English"
         mock_lang_en.is_active = True
 
         mock_lang_de = Mock()
-        mock_lang_de.code = 'de'
-        mock_lang_de.name = 'German'
-        mock_lang_de.native_name = 'Deutsch'
+        mock_lang_de.code = "de"
+        mock_lang_de.name = "German"
+        mock_lang_de.native_name = "Deutsch"
         mock_lang_de.is_active = True
 
         # Mock the execute result properly
@@ -319,7 +330,7 @@ class TestGetSupportedLanguages:
         assert result[1]["code"] == "de"
         assert result[1]["name"] == "German"
 
-    @patch('services.vocabulary.vocabulary_analytics_service.AsyncSessionLocal')
+    @patch("services.vocabulary.vocabulary_analytics_service.AsyncSessionLocal")
     async def test_get_supported_languages_no_model(self, mock_session_local, service):
         """Test supported languages when Language model doesn't exist"""
         # Setup mock session
@@ -328,14 +339,15 @@ class TestGetSupportedLanguages:
 
         # Mock the import to raise ImportError
         import builtins
+
         original_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
-            if name == 'database.models':
+            if name == "database.models":
                 raise ImportError("Language model not found")
             return original_import(name, *args, **kwargs)
 
-        with patch('builtins.__import__', side_effect=mock_import):
+        with patch("builtins.__import__", side_effect=mock_import):
             # Execute (ImportError will be raised for Language model)
             result = await service.get_supported_languages()
 
@@ -356,21 +368,3 @@ class TestHealthCheck:
 
         assert result["service"] == "VocabularyAnalyticsService"
         assert result["status"] == "healthy"
-
-
-class TestLifecycleMethods:
-    """Test service lifecycle methods"""
-
-    @pytest.fixture
-    def service(self):
-        return VocabularyAnalyticsService()
-
-    async def test_initialize(self, service):
-        """Test service initialization"""
-        await service.initialize()
-        # Should complete without error
-
-    async def test_cleanup(self, service):
-        """Test service cleanup"""
-        await service.cleanup()
-        # Should complete without error

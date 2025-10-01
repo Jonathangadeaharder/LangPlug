@@ -1,4 +1,5 @@
 """Async-first processing contract tests following the protective 80/20 rules."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -6,8 +7,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from tests.auth_helpers import AuthTestHelperAsync
 from tests.assertion_helpers import assert_dict_response, assert_validation_error_response
+from tests.auth_helpers import AuthTestHelperAsync
 
 
 async def _auth_headers(async_client) -> dict[str, str]:
@@ -30,9 +31,7 @@ async def test_WhenFilterSubtitlesCalled_ThenReturnsTaskMetadata(async_client):
         patch("api.routes.processing.settings", mock_settings),
         patch("pathlib.Path.exists", return_value=True),
     ):
-        response = await async_client.post(
-            "/api/process/filter-subtitles", json=payload, headers=headers
-        )
+        response = await async_client.post("/api/process/filter-subtitles", json=payload, headers=headers)
 
     assert_dict_response(response, {200, 202})
 
@@ -43,9 +42,7 @@ async def test_WhenFilterSubtitlesWithoutVideoPath_ThenRejected(async_client):
     """Invalid input: missing video_path is rejected."""
     headers = await _auth_headers(async_client)
 
-    response = await async_client.post(
-        "/api/process/filter-subtitles", json={}, headers=headers
-    )
+    response = await async_client.post("/api/process/filter-subtitles", json={}, headers=headers)
 
     assert_validation_error_response(response)
 
@@ -69,9 +66,7 @@ async def test_WhenTranslateSubtitlesCalled_ThenReturnsTask(async_client):
         mock_service.translate.return_value = "task_456"
         factory.return_value = mock_service
 
-        response = await async_client.post(
-            "/api/process/translate-subtitles", json=payload, headers=headers
-        )
+        response = await async_client.post("/api/process/translate-subtitles", json=payload, headers=headers)
 
     assert_dict_response(response, {200, 202})
 

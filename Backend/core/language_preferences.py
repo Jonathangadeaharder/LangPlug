@@ -1,9 +1,10 @@
 """User language preferences helpers."""
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from .config import settings
 
@@ -50,14 +51,14 @@ def _default_spacy_model(language_code: str) -> str:
 # Verified Helsinki-NLP OPUS model mappings for supported pairs
 OPUS_MODEL_MAP: dict[tuple[str, str], str] = {
     # Format: (source_language, target_language) -> model_name
-    ("de", "es"): "Helsinki-NLP/opus-mt-de-es",      # German -> Spanish
-    ("es", "de"): "Helsinki-NLP/opus-mt-es-de",      # Spanish -> German
-    ("en", "es"): "Helsinki-NLP/opus-mt-en-es",      # English -> Spanish
-    ("es", "en"): "Helsinki-NLP/opus-mt-es-en",      # Spanish -> English
-    ("zh", "en"): "Helsinki-NLP/opus-mt-zh-en",      # Chinese -> English
-    ("en", "zh"): "Helsinki-NLP/opus-mt-en-zh",      # English -> Chinese
-    ("fr", "de"): "Helsinki-NLP/opus-mt-fr-de",      # French -> German
-    ("de", "fr"): "Helsinki-NLP/opus-mt-de-fr",      # German -> French
+    ("de", "es"): "Helsinki-NLP/opus-mt-de-es",  # German -> Spanish
+    ("es", "de"): "Helsinki-NLP/opus-mt-es-de",  # Spanish -> German
+    ("en", "es"): "Helsinki-NLP/opus-mt-en-es",  # English -> Spanish
+    ("es", "en"): "Helsinki-NLP/opus-mt-es-en",  # Spanish -> English
+    ("zh", "en"): "Helsinki-NLP/opus-mt-zh-en",  # Chinese -> English
+    ("en", "zh"): "Helsinki-NLP/opus-mt-en-zh",  # English -> Chinese
+    ("fr", "de"): "Helsinki-NLP/opus-mt-fr-de",  # French -> German
+    ("de", "fr"): "Helsinki-NLP/opus-mt-de-fr",  # German -> French
 }
 
 
@@ -69,6 +70,7 @@ def _preferred_opus_model(source_lang: str, target_lang: str) -> str:
 
     # Fallback to the general pattern (may not exist)
     return f"Helsinki-NLP/opus-mt-{source_lang}-{target_lang}"
+
 
 LANGUAGE_PREFERENCES_FILE = "language_preferences.json"
 DEFAULT_NATIVE_LANGUAGE = "en"
@@ -82,7 +84,7 @@ def _preferences_path(user_id: str) -> Path:
     return user_dir / LANGUAGE_PREFERENCES_FILE
 
 
-def load_language_preferences(user_id: str) -> Tuple[str, str]:
+def load_language_preferences(user_id: str) -> tuple[str, str]:
     """Load persisted language preferences for a user."""
     path = _preferences_path(user_id)
 
@@ -94,7 +96,7 @@ def load_language_preferences(user_id: str) -> Tuple[str, str]:
             target = data.get("target_language", DEFAULT_TARGET_LANGUAGE)
             native = native if native in SUPPORTED_LANGUAGES else DEFAULT_NATIVE_LANGUAGE
             if target not in SUPPORTED_LANGUAGES or target == native:
-                target = DEFAULT_TARGET_LANGUAGE if DEFAULT_TARGET_LANGUAGE != native else DEFAULT_NATIVE_LANGUAGE
+                target = DEFAULT_TARGET_LANGUAGE if native != DEFAULT_TARGET_LANGUAGE else DEFAULT_NATIVE_LANGUAGE
             return native, target
         except Exception:  # pragma: no cover - fallback to defaults on failure
             return DEFAULT_NATIVE_LANGUAGE, DEFAULT_TARGET_LANGUAGE
@@ -126,7 +128,7 @@ def is_translation_pair_supported(native: str, target: str) -> bool:
     return (native, target) in SUPPORTED_TRANSLATION_PAIRS
 
 
-def normalize_language_pair(native: str, target: str) -> Tuple[str, str]:
+def normalize_language_pair(native: str, target: str) -> tuple[str, str]:
     """Normalize language codes to supported ones with fallbacks."""
     native_code = native if native in SUPPORTED_LANGUAGES else DEFAULT_NATIVE_LANGUAGE
     target_code = target if target in SUPPORTED_LANGUAGES else DEFAULT_TARGET_LANGUAGE
@@ -142,13 +144,13 @@ def normalize_language_pair(native: str, target: str) -> Tuple[str, str]:
     return native_code, target_code
 
 
-def resolve_language_runtime_settings(native: str, target: str) -> Dict[str, Any]:
+def resolve_language_runtime_settings(native: str, target: str) -> dict[str, Any]:
     """Derive runtime configuration (models, language metadata) for a language pair."""
     native_code, target_code = normalize_language_pair(native, target)
     source_language = target_code
     target_language = native_code
 
-    runtime: Dict[str, Any] = {
+    runtime: dict[str, Any] = {
         "native": native_code,
         "target": target_code,
         "translation_service": "opus",

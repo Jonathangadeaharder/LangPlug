@@ -1,4 +1,5 @@
 """Video negative-path tests under the 80/20 policy."""
+
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -28,7 +29,10 @@ async def test_Whensubtitle_uploadWithoutsrt_extension_ThenReturnsError(async_cl
         headers=headers,
     )
 
-    assert response.status_code in {400, 422}
+    # Invalid subtitle file should return 422 (validation error)
+    assert (
+        response.status_code == 422
+    ), f"Expected 422 (validation error for wrong file type), got {response.status_code}: {response.text}"
 
 
 @pytest.mark.anyio
@@ -38,13 +42,9 @@ async def test_WhenVideoUploadConflict_ThenReturns409(async_client, monkeypatch,
     headers = await _auth(async_client)
     with patch.object(type(settings), "get_videos_path", return_value=tmp_path):
         files = {"video_file": ("Episode.mp4", b"x", "video/mp4")}
-        first = await async_client.post(
-            "/api/videos/upload/Series", files=files, headers=headers
-        )
+        first = await async_client.post("/api/videos/upload/Series", files=files, headers=headers)
         assert first.status_code == 200
-        second = await async_client.post(
-            "/api/videos/upload/Series", files=files, headers=headers
-        )
+        second = await async_client.post("/api/videos/upload/Series", files=files, headers=headers)
     assert second.status_code == 409
 
 
@@ -54,7 +54,5 @@ async def test_Whenstream_unknown_videoCalled_ThenReturnsnot_found(async_client)
     """Invalid input: requesting an unknown video returns 404."""
     headers = await _auth(async_client)
     with patch("os.path.exists", return_value=False):
-        response = await async_client.get(
-            "/api/videos/unknown/episode", headers=headers
-        )
+        response = await async_client.get("/api/videos/unknown/episode", headers=headers)
     assert response.status_code == 404

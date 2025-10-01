@@ -2,12 +2,17 @@
 Test suite for processing Pydantic models
 Tests focus on validation logic that currently has 0% coverage
 """
+
 import pytest
 from pydantic import ValidationError
 
 from api.models.processing import (
-    TranscribeRequest, FilterRequest, TranslateRequest,
-    FullPipelineRequest, ChunkProcessingRequest, ProcessingStatus
+    ChunkProcessingRequest,
+    FilterRequest,
+    FullPipelineRequest,
+    ProcessingStatus,
+    TranscribeRequest,
+    TranslateRequest,
 )
 
 
@@ -21,7 +26,7 @@ class TestTranscribeRequestValidation:
             "/content/movie.avi",
             "/media/test.mkv",
             "C:\\Videos\\sample.mp4",
-            "./local_video.mp4"
+            "./local_video.mp4",
         ]
 
         for path in valid_paths:
@@ -41,11 +46,7 @@ class TestTranscribeRequestValidation:
 
     def test_validate_video_path_invalid_extension(self):
         """Test video path validation with unsupported extensions"""
-        invalid_paths = [
-            "/videos/document.pdf",
-            "/content/audio.txt",
-            "/media/image.jpg"
-        ]
+        invalid_paths = ["/videos/document.pdf", "/content/audio.txt", "/media/image.jpg"]
 
         for path in invalid_paths:
             try:
@@ -58,11 +59,7 @@ class TestTranscribeRequestValidation:
 
     def test_validate_video_path_relative_paths(self):
         """Test video path validation with relative paths"""
-        relative_paths = [
-            "./video.mp4",
-            "../videos/sample.avi",
-            "content/movie.mkv"
-        ]
+        relative_paths = ["./video.mp4", "../videos/sample.avi", "content/movie.mkv"]
 
         for path in relative_paths:
             request = TranscribeRequest(video_path=path)
@@ -93,11 +90,7 @@ class TestTranslateRequestValidation:
 
     def test_validate_video_path_valid_translation(self):
         """Test video path validation for translation requests"""
-        request = TranslateRequest(
-            video_path="/videos/german_content.mp4",
-            source_lang="de",
-            target_lang="en"
-        )
+        request = TranslateRequest(video_path="/videos/german_content.mp4", source_lang="de", target_lang="en")
         assert request.video_path == "/videos/german_content.mp4"
         assert request.source_lang == "de"
         assert request.target_lang == "en"
@@ -108,24 +101,16 @@ class TestTranslateRequestValidation:
             TranslateRequest(
                 video_path="",  # Empty path
                 source_lang="de",
-                target_lang="en"
+                target_lang="en",
             )
 
     def test_validate_different_languages_valid_pairs(self):
         """Test different languages validation with valid pairs"""
-        valid_language_pairs = [
-            ("de", "en"),
-            ("en", "de"),
-            ("fr", "en"),
-            ("es", "en"),
-            ("en", "es")
-        ]
+        valid_language_pairs = [("de", "en"), ("en", "de"), ("fr", "en"), ("es", "en"), ("en", "es")]
 
         for source_lang, target_lang in valid_language_pairs:
             request = TranslateRequest(
-                video_path="/videos/content.mp4",
-                source_lang=source_lang,
-                target_lang=target_lang
+                video_path="/videos/content.mp4", source_lang=source_lang, target_lang=target_lang
             )
             assert request.source_lang == source_lang
             assert request.target_lang == target_lang
@@ -136,18 +121,14 @@ class TestTranslateRequestValidation:
         request = TranslateRequest(
             video_path="/videos/content.mp4",
             source_lang="de",
-            target_lang="de"  # Same as source
+            target_lang="de",  # Same as source
         )
         assert request.source_lang == "de"
         assert request.target_lang == "de"
 
     def test_validate_different_languages_case_sensitivity(self):
         """Test language validation with different cases"""
-        request = TranslateRequest(
-            video_path="/videos/content.mp4",
-            source_lang="de",
-            target_lang="en"
-        )
+        request = TranslateRequest(video_path="/videos/content.mp4", source_lang="de", target_lang="en")
         assert request.source_lang == "de"
         assert request.target_lang == "en"
 
@@ -157,11 +138,7 @@ class TestFullPipelineRequestValidation:
 
     def test_validate_video_path_full_pipeline(self):
         """Test video path validation for full pipeline requests"""
-        request = FullPipelineRequest(
-            video_path="/videos/full_process.mp4",
-            source_lang="de",
-            target_lang="en"
-        )
+        request = FullPipelineRequest(video_path="/videos/full_process.mp4", source_lang="de", target_lang="en")
         assert request.video_path == "/videos/full_process.mp4"
         assert request.source_lang == "de"
         assert request.target_lang == "en"
@@ -172,25 +149,15 @@ class TestFullPipelineRequestValidation:
             FullPipelineRequest(
                 video_path="",  # Empty path
                 source_lang="de",
-                target_lang="en"
+                target_lang="en",
             )
 
     def test_validate_language_codes_valid_codes(self):
         """Test language codes validation with valid ISO codes"""
-        valid_codes = [
-            ("en", "de"),
-            ("de", "fr"),
-            ("es", "en"),
-            ("fr", "es"),
-            ("it", "en")
-        ]
+        valid_codes = [("en", "de"), ("de", "fr"), ("es", "en"), ("fr", "es"), ("it", "en")]
 
         for source, target in valid_codes:
-            request = FullPipelineRequest(
-                video_path="/videos/content.mp4",
-                source_lang=source,
-                target_lang=target
-            )
+            request = FullPipelineRequest(video_path="/videos/content.mp4", source_lang=source, target_lang=target)
             assert request.source_lang == source
             assert request.target_lang == target
 
@@ -201,15 +168,13 @@ class TestFullPipelineRequestValidation:
             "eng",  # Wrong format
             "DEU",  # Wrong case/format
             "123",  # Numeric
-            ""      # Empty
+            "",  # Empty
         ]
 
         for invalid_code in invalid_codes:
             try:
                 request = FullPipelineRequest(
-                    video_path="/videos/content.mp4",
-                    source_lang=invalid_code,
-                    target_lang="en"
+                    video_path="/videos/content.mp4", source_lang=invalid_code, target_lang="en"
                 )
                 # If validation allows any code, test passes
                 assert request.source_language == invalid_code
@@ -223,7 +188,7 @@ class TestFullPipelineRequestValidation:
         request = FullPipelineRequest(
             video_path="/videos/content.mp4",
             source_lang="en",
-            target_lang="en"  # Same as source - now allowed
+            target_lang="en",  # Same as source - now allowed
         )
         assert request.source_lang == "en"
         assert request.target_lang == "en"
@@ -234,11 +199,7 @@ class TestChunkProcessingRequestValidation:
 
     def test_validate_video_path_chunk_processing(self):
         """Test video path validation for chunk processing"""
-        request = ChunkProcessingRequest(
-            video_path="/videos/long_content.mp4",
-            start_time=0.0,
-            end_time=30.0
-        )
+        request = ChunkProcessingRequest(video_path="/videos/long_content.mp4", start_time=0.0, end_time=30.0)
         assert request.video_path == "/videos/long_content.mp4"
         assert request.start_time == 0.0
         assert request.end_time == 30.0
@@ -249,24 +210,15 @@ class TestChunkProcessingRequestValidation:
             ChunkProcessingRequest(
                 video_path="",  # Empty path
                 start_time=0.0,
-                end_time=30.0
+                end_time=30.0,
             )
 
     def test_validate_time_range_valid_ranges(self):
         """Test time range validation with valid ranges"""
-        valid_ranges = [
-            (0.0, 30.0),
-            (15.5, 45.2),
-            (0.0, 120.0),
-            (60.0, 90.0)
-        ]
+        valid_ranges = [(0.0, 30.0), (15.5, 45.2), (0.0, 120.0), (60.0, 90.0)]
 
         for start_time, end_time in valid_ranges:
-            request = ChunkProcessingRequest(
-                video_path="/videos/content.mp4",
-                start_time=start_time,
-                end_time=end_time
-            )
+            request = ChunkProcessingRequest(video_path="/videos/content.mp4", start_time=start_time, end_time=end_time)
             assert request.start_time == start_time
             assert request.end_time == end_time
 
@@ -274,10 +226,10 @@ class TestChunkProcessingRequestValidation:
         """Test time range validation with invalid ranges"""
         invalid_ranges = [
             (30.0, 15.0),  # End before start
-            (0.0, 0.0),    # Zero duration
+            (0.0, 0.0),  # Zero duration
             (-5.0, 30.0),  # Negative start
             (10.0, -5.0),  # Negative end
-            (100.0, 50.0)  # End before start
+            (100.0, 50.0),  # End before start
         ]
 
         for start_time, end_time in invalid_ranges:
@@ -285,9 +237,7 @@ class TestChunkProcessingRequestValidation:
             # Some of these may now be allowed, so we use try/except
             try:
                 request = ChunkProcessingRequest(
-                    video_path="/videos/content.mp4",
-                    start_time=start_time,
-                    end_time=end_time
+                    video_path="/videos/content.mp4", start_time=start_time, end_time=end_time
                 )
                 # If creation succeeds, that's valid behavior now
                 assert request.start_time == start_time
@@ -299,18 +249,14 @@ class TestChunkProcessingRequestValidation:
     def test_validate_time_range_boundary_values(self):
         """Test time range validation with boundary values"""
         # Zero start time should be valid
-        request = ChunkProcessingRequest(
-            video_path="/videos/content.mp4",
-            start_time=0.0,
-            end_time=1.0
-        )
+        request = ChunkProcessingRequest(video_path="/videos/content.mp4", start_time=0.0, end_time=1.0)
         assert request.start_time == 0.0
 
         # Large time values should be valid
         request = ChunkProcessingRequest(
             video_path="/videos/long_movie.mp4",
             start_time=3600.0,  # 1 hour
-            end_time=7200.0     # 2 hours
+            end_time=7200.0,  # 2 hours
         )
         assert request.start_time == 3600.0
         assert request.end_time == 7200.0
@@ -329,7 +275,7 @@ class TestProcessingStatusModel:
             "started_at": None,
             "vocabulary": None,
             "subtitle_path": None,
-            "translation_path": None
+            "translation_path": None,
         }
 
         status = ProcessingStatus(**status_data)
@@ -343,50 +289,33 @@ class TestProcessingStatusModel:
             ("starting", 0.0, "Task starting"),
             ("processing", 25.0, "In progress"),
             ("completed", 100.0, "Task completed"),
-            ("error", 0.0, "Task failed")
+            ("error", 0.0, "Task failed"),
         ]
 
         for status_value, progress, current_step in states:
-            status = ProcessingStatus(
-                status=status_value,
-                progress=progress,
-                current_step=current_step
-            )
+            status = ProcessingStatus(status=status_value, progress=progress, current_step=current_step)
             assert status.status == status_value
             assert status.progress == progress
 
     def test_processing_status_with_result(self):
         """Test processing status with result data"""
-        result_data = {
-            "output_path": "/results/processed_video.mp4",
-            "subtitle_path": "/results/subtitles.srt",
-            "duration": 120.5
-        }
 
         # Note: ProcessingStatus doesn't have a result field in the actual model
         status = ProcessingStatus(
             status="completed",
             progress=100.0,
             current_step="Processing completed",
-            message="Video processing finished successfully"
+            message="Video processing finished successfully",
         )
         # Test the status was created successfully
         assert status.status == "completed"
 
     def test_processing_status_with_error(self):
         """Test processing status with error information"""
-        error_data = {
-            "error_code": "TRANSCRIPTION_FAILED",
-            "error_message": "Unable to process audio stream",
-            "details": "Unsupported audio codec"
-        }
 
         # Note: ProcessingStatus doesn't have an error field in the actual model
         status = ProcessingStatus(
-            status="error",
-            progress=0.0,
-            current_step="Processing failed",
-            message="Unable to process audio stream"
+            status="error", progress=0.0, current_step="Processing failed", message="Unable to process audio stream"
         )
         # Test the status was created successfully
         assert status.status == "error"
@@ -402,15 +331,9 @@ class TestModelIntegration:
         # All video-processing requests should accept the same valid video path
         transcribe_req = TranscribeRequest(video_path=video_path)
 
-        filter_req = FilterRequest(
-            video_path=video_path
-        )
+        filter_req = FilterRequest(video_path=video_path)
 
-        translate_req = TranslateRequest(
-            video_path=video_path,
-            source_lang="de",
-            target_lang="en"
-        )
+        translate_req = TranslateRequest(video_path=video_path, source_lang="de", target_lang="en")
 
         # All should accept the same valid video path
         assert transcribe_req.video_path == video_path
@@ -423,15 +346,11 @@ class TestModelIntegration:
         language_pair = ("de", "en")
 
         translate_req = TranslateRequest(
-            video_path="/videos/test.mp4",
-            source_lang=language_pair[0],
-            target_lang=language_pair[1]
+            video_path="/videos/test.mp4", source_lang=language_pair[0], target_lang=language_pair[1]
         )
 
         full_pipeline_req = FullPipelineRequest(
-            video_path="/videos/test.mp4",
-            source_lang=language_pair[0],
-            target_lang=language_pair[1]
+            video_path="/videos/test.mp4", source_lang=language_pair[0], target_lang=language_pair[1]
         )
 
         assert translate_req.source_lang == language_pair[0]

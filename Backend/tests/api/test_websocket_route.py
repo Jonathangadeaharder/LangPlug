@@ -2,6 +2,7 @@
 Direct unit tests for websocket route function using a fake WebSocket.
 Exercises missing-token, invalid-token, and happy-path branches without a real server.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -28,6 +29,7 @@ class FakeWS:
         if not self._recv:
             # Simulate client disconnect after first loop
             from fastapi import WebSocketDisconnect
+
             raise WebSocketDisconnect
         return self._recv.pop(0)
 
@@ -38,19 +40,19 @@ class FakeWS:
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
 async def test_Whenws_missing_token_closesCalled_ThenSucceeds(monkeypatch):
-        from api.routes.websocket import websocket_endpoint
-        ws = FakeWS()
-        await websocket_endpoint(ws, token=None)
-        assert ws.closed is True
-        assert ws.close_code == 1008
-        assert "Missing" in (ws.close_reason or "")
+    from api.routes.websocket import websocket_endpoint
+
+    ws = FakeWS()
+    await websocket_endpoint(ws, token=None)
+    assert ws.closed is True
+    assert ws.close_code == 1008
+    assert "Missing" in (ws.close_reason or "")
 
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
 async def test_ws_InvalidToken_closes(monkeypatch):
     from api.routes import websocket as wsmod
-    import core.dependencies as deps
 
     class MockJWTAuthBad:
         async def authenticate(self, token: str, db):
@@ -70,8 +72,6 @@ async def test_ws_InvalidToken_closes(monkeypatch):
 @pytest.mark.timeout(30)
 async def test_Whenws_success_connect_and_disconnectCalled_ThenSucceeds(monkeypatch):
     from api.routes import websocket as wsmod
-    import core.dependencies as deps
-
     from database.models import User
 
     # Create a fake user for authentication
@@ -81,7 +81,7 @@ async def test_Whenws_success_connect_and_disconnectCalled_ThenSucceeds(monkeypa
         hashed_password="fake_hash",
         is_active=True,
         is_superuser=False,
-        is_verified=False
+        is_verified=False,
     )
     fake_user.id = 42  # Set ID directly
 
@@ -99,6 +99,7 @@ async def test_Whenws_success_connect_and_disconnectCalled_ThenSucceeds(monkeypa
     async def fake_handle_message(ws, data):
         # Immediately simulate disconnect by raising the same exception
         from fastapi import WebSocketDisconnect
+
         raise WebSocketDisconnect
 
     def fake_disconnect(ws):
@@ -125,6 +126,7 @@ async def test_Whenws_status_routeCalled_ThenSucceeds(monkeypatch):
     class WS(FakeWS):
         async def receive_text(self):
             from fastapi import WebSocketDisconnect
+
             # trigger a single receive then disconnect
             raise WebSocketDisconnect
 

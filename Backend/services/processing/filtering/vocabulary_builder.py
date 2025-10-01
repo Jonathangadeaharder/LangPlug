@@ -5,7 +5,7 @@ Vocabulary building service for filtering operations
 import logging
 import uuid
 from inspect import isawaitable
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from services.filterservice.interface import FilteredWord
 from services.nlp.lemma_resolver import lemmatize_word
@@ -17,15 +17,12 @@ class VocabularyBuilderService:
     """Builds vocabulary words from blocker words with database lookup and caching"""
 
     def __init__(self):
-        self.concept_cache: Dict[str, Dict[str, Optional[Any]]] = {}
-        self.lemma_cache: Dict[str, Optional[str]] = {}
+        self.concept_cache: dict[str, dict[str, Any | None]] = {}
+        self.lemma_cache: dict[str, str | None] = {}
 
     async def build_vocabulary_words(
-        self,
-        blocker_words: List[FilteredWord],
-        target_language: str,
-        return_dict: bool = True
-    ) -> List[Any]:
+        self, blocker_words: list[FilteredWord], target_language: str, return_dict: bool = True
+    ) -> list[Any]:
         """
         Convert blocker words to VocabularyWord objects with real concept IDs
 
@@ -39,7 +36,7 @@ class VocabularyBuilderService:
         """
         from core.database import AsyncSessionLocal
 
-        vocabulary_words: List[Any] = []
+        vocabulary_words: list[Any] = []
 
         async with AsyncSessionLocal() as session:
             for blocker in blocker_words:
@@ -55,19 +52,13 @@ class VocabularyBuilderService:
                     resolved_lemma = cache_entry.get("resolved_lemma")
                 else:
                     # Get or compute lemma
-                    resolved_lemma = self._get_or_compute_lemma(
-                        word_text, blocker.text, target_language
-                    )
+                    resolved_lemma = self._get_or_compute_lemma(word_text, blocker.text, target_language)
 
                     # Generate candidate forms for lookup
-                    candidate_values = self.generate_candidate_forms(
-                        word_text, resolved_lemma, target_language
-                    )
+                    candidate_values = self.generate_candidate_forms(word_text, resolved_lemma, target_language)
 
                     # Look up concept in database
-                    row = await self._lookup_concept_from_db(
-                        candidate_values, target_language, session
-                    )
+                    row = await self._lookup_concept_from_db(candidate_values, target_language, session)
 
                     # Process lookup result
                     if row:
@@ -81,9 +72,7 @@ class VocabularyBuilderService:
                             row[3],
                             row[1],
                         )
-                        concept_id, cached_level, cached_word, cached_lemma = (
-                            concept_uuid, row[1], row[2], row[3]
-                        )
+                        concept_id, cached_level, cached_word, cached_lemma = (concept_uuid, row[1], row[2], row[3])
                     else:
                         logger.warning(
                             "Concept not found for word '%s' (lemma '%s') in language '%s'",
@@ -91,9 +80,7 @@ class VocabularyBuilderService:
                             resolved_lemma or word_text,
                             target_language,
                         )
-                        concept_id, cached_level, cached_word, cached_lemma = (
-                            None, None, None, None
-                        )
+                        concept_id, cached_level, cached_word, cached_lemma = (None, None, None, None)
 
                     # Cache the result
                     self.concept_cache[word_text] = self._create_cache_entry(
@@ -103,24 +90,13 @@ class VocabularyBuilderService:
                 # Create vocabulary word
                 final_lemma = cached_lemma or resolved_lemma or word_text
                 vocab_word = self._create_vocabulary_word(
-                    blocker.text,
-                    final_lemma,
-                    target_language,
-                    cached_level,
-                    blocker.metadata,
-                    concept_id,
-                    return_dict
+                    blocker.text, final_lemma, target_language, cached_level, blocker.metadata, concept_id, return_dict
                 )
                 vocabulary_words.append(vocab_word)
 
         return vocabulary_words
 
-    def _get_or_compute_lemma(
-        self,
-        word_text: str,
-        blocker_text: str,
-        target_language: str
-    ) -> Optional[str]:
+    def _get_or_compute_lemma(self, word_text: str, blocker_text: str, target_language: str) -> str | None:
         """Get lemma from cache or compute it"""
         resolved_lemma = self.lemma_cache.get(word_text)
         if word_text not in self.lemma_cache:
@@ -129,14 +105,12 @@ class VocabularyBuilderService:
         return resolved_lemma
 
     async def _lookup_concept_from_db(
-        self,
-        candidate_values: Tuple[str, ...],
-        target_language: str,
-        session
-    ) -> Optional[Tuple]:
+        self, candidate_values: tuple[str, ...], target_language: str, session
+    ) -> tuple | None:
         """Look up concept from database by candidate forms"""
-        from database.models import VocabularyWord
         from sqlalchemy import func, or_, select
+
+        from database.models import VocabularyWord
 
         stmt = (
             select(
@@ -163,12 +137,12 @@ class VocabularyBuilderService:
 
     def _create_cache_entry(
         self,
-        concept_id: Optional[Any],
-        level: Optional[str],
-        db_word: Optional[str],
-        db_lemma: Optional[str],
-        resolved_lemma: Optional[str]
-    ) -> Dict[str, Optional[Any]]:
+        concept_id: Any | None,
+        level: str | None,
+        db_word: str | None,
+        db_lemma: str | None,
+        resolved_lemma: str | None,
+    ) -> dict[str, Any | None]:
         """Create cache entry for concept lookup"""
         return {
             "concept_id": concept_id,
@@ -183,10 +157,10 @@ class VocabularyBuilderService:
         blocker_text: str,
         final_lemma: str,
         target_language: str,
-        cached_level: Optional[str],
-        blocker_metadata: Dict,
-        concept_id: Optional[Any],
-        return_dict: bool
+        cached_level: str | None,
+        blocker_metadata: dict,
+        concept_id: Any | None,
+        return_dict: bool,
     ) -> Any:
         """Create VocabularyWord object from blocker and concept info"""
         from database.models import VocabularyWord
@@ -195,12 +169,8 @@ class VocabularyBuilderService:
             word=blocker_text,
             lemma=final_lemma,
             language=target_language,
-            difficulty_level=(
-                cached_level
-                or blocker_metadata.get("difficulty_level")
-                or "C2"
-            ),
-            translation_en=""
+            difficulty_level=(cached_level or blocker_metadata.get("difficulty_level") or "C2"),
+            translation_en="",
         )
 
         if concept_id:
@@ -211,12 +181,12 @@ class VocabularyBuilderService:
     def generate_candidate_forms(
         self,
         word_text: str,
-        resolved_lemma: Optional[str],
+        resolved_lemma: str | None,
         language: str,
-    ) -> Tuple[str, ...]:
+    ) -> tuple[str, ...]:
         """Generate candidate word forms for database lookup"""
         word_text = (word_text or "").strip().lower()
-        forms: Set[str] = {word_text}
+        forms: set[str] = {word_text}
 
         if resolved_lemma:
             forms.add(resolved_lemma.strip().lower())
@@ -227,14 +197,27 @@ class VocabularyBuilderService:
         return tuple(sorted({form for form in forms if form}))
 
     @staticmethod
-    def _german_heuristic_forms(word_text: str) -> Set[str]:
+    def _german_heuristic_forms(word_text: str) -> set[str]:
         """Generate German language-specific word forms"""
-        forms: Set[str] = set()
+        forms: set[str] = set()
 
         # Common adjective/adverb endings
         adjective_suffixes = (
-            "erer", "eren", "erem", "ere", "er", "em", "en", "es", "e",
-            "st", "ste", "sten", "ster", "stes", "stem",
+            "erer",
+            "eren",
+            "erem",
+            "ere",
+            "er",
+            "em",
+            "en",
+            "es",
+            "e",
+            "st",
+            "ste",
+            "sten",
+            "ster",
+            "stes",
+            "stem",
         )
 
         for suffix in adjective_suffixes:

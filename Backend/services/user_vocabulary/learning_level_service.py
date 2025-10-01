@@ -4,6 +4,7 @@ Handles user learning level determination based on vocabulary size
 """
 
 import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .word_status_service import word_status_service

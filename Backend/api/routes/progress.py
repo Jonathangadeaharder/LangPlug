@@ -1,4 +1,5 @@
 """Progress tracking API routes"""
+
 import json
 import logging
 from datetime import datetime, timedelta
@@ -18,6 +19,7 @@ router = APIRouter(tags=["progress"])
 
 class UserProgress(BaseModel):
     """User progress model"""
+
     user_id: str
     total_videos_watched: int = 0
     total_watch_time: float = 0.0  # in minutes
@@ -35,6 +37,7 @@ class UserProgress(BaseModel):
 
 class DailyProgress(BaseModel):
     """Daily progress model"""
+
     date: str
     videos_watched: int = 0
     watch_time: float = 0.0
@@ -44,28 +47,23 @@ class DailyProgress(BaseModel):
 
 
 @router.get("/user", response_model=UserProgress, name="progress_get_user")
-async def get_user_progress(
-    current_user: User = Depends(current_active_user)
-):
+async def get_user_progress(current_user: User = Depends(current_active_user)):
     """Get progress data for the current user"""
     try:
         # Get user progress from database or file system
         user_progress_path = settings.get_data_path() / str(current_user.id) / "progress.json"
 
         # Default progress
-        default_progress = UserProgress(
-            user_id=str(current_user.id),
-            last_activity=datetime.now()
-        )
+        default_progress = UserProgress(user_id=str(current_user.id), last_activity=datetime.now())
 
         if user_progress_path.exists():
             try:
-                with open(user_progress_path, encoding='utf-8') as f:
+                with open(user_progress_path, encoding="utf-8") as f:
                     progress_data = json.load(f)
 
                     # Convert datetime string back to datetime object
-                    if progress_data.get('last_activity'):
-                        progress_data['last_activity'] = datetime.fromisoformat(progress_data['last_activity'])
+                    if progress_data.get("last_activity"):
+                        progress_data["last_activity"] = datetime.fromisoformat(progress_data["last_activity"])
 
                     # Merge with defaults
                     for key, value in progress_data.items():
@@ -90,10 +88,7 @@ async def get_user_progress(
 
 
 @router.post("/update", name="progress_update_user")
-async def update_user_progress(
-    progress_update: dict[str, Any],
-    current_user: User = Depends(current_active_user)
-):
+async def update_user_progress(progress_update: dict[str, Any], current_user: User = Depends(current_active_user)):
     """Update user progress data"""
     try:
         # Get current progress
@@ -116,10 +111,10 @@ async def update_user_progress(
         # Save progress to file
         progress_dict = current_progress.dict()
         # Convert datetime to string for JSON serialization
-        if progress_dict['last_activity']:
-            progress_dict['last_activity'] = progress_dict['last_activity'].isoformat()
+        if progress_dict["last_activity"]:
+            progress_dict["last_activity"] = progress_dict["last_activity"].isoformat()
 
-        with open(user_progress_path, 'w', encoding='utf-8') as f:
+        with open(user_progress_path, "w", encoding="utf-8") as f:
             json.dump(progress_dict, f, indent=2, ensure_ascii=False)
 
         logger.info(f"Updated progress for user {current_user.id}")
@@ -131,10 +126,7 @@ async def update_user_progress(
 
 
 @router.get("/daily", response_model=list[DailyProgress], name="progress_get_daily")
-async def get_daily_progress(
-    days: int = 7,
-    current_user: User = Depends(current_active_user)
-):
+async def get_daily_progress(days: int = 7, current_user: User = Depends(current_active_user)):
     """Get daily progress for the last N days"""
     try:
         # Get daily progress from database or file system
@@ -144,17 +136,14 @@ async def get_daily_progress(
 
         if user_daily_path.exists():
             try:
-                with open(user_daily_path, encoding='utf-8') as f:
+                with open(user_daily_path, encoding="utf-8") as f:
                     daily_data = json.load(f)
 
                     # Get last N days
                     for i in range(days):
-                        date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
+                        date = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
                         day_data = daily_data.get(date, {})
-                        daily_progress.append(DailyProgress(
-                            date=date,
-                            **day_data
-                        ))
+                        daily_progress.append(DailyProgress(date=date, **day_data))
 
             except Exception as e:
                 logger.warning(f"Error loading daily progress: {e!s}")
@@ -162,7 +151,7 @@ async def get_daily_progress(
         # Fill in missing days with empty progress
         if len(daily_progress) < days:
             for i in range(len(daily_progress), days):
-                date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
+                date = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
                 daily_progress.append(DailyProgress(date=date))
 
         # Sort by date (most recent first)

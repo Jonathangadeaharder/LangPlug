@@ -4,16 +4,10 @@ Delegates to focused services while maintaining backward compatibility
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
-from .interface import FilteredSubtitle, FilteredWord, FilteringResult, WordStatus
-from .subtitle_processing import (
-    user_data_loader,
-    word_validator,
-    word_filter,
-    subtitle_processor,
-    srt_file_handler
-)
+from .interface import FilteredSubtitle, FilteringResult
+from .subtitle_processing import srt_file_handler, subtitle_processor, user_data_loader, word_filter, word_validator
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +21,8 @@ class DirectSubtitleProcessor:
     def __init__(self):
         # Import the vocabulary service
         from services.vocabulary_service import VocabularyService
-        self.vocab_service = VocabularyService
+
+        self.vocab_service = VocabularyService()
 
         # Initialize focused services
         self.data_loader = user_data_loader
@@ -37,11 +32,7 @@ class DirectSubtitleProcessor:
         self.file_handler = srt_file_handler
 
     async def process_subtitles(
-        self,
-        subtitles: list[FilteredSubtitle],
-        user_id: int | str,
-        user_level: str = "A1",
-        language: str = "de"
+        self, subtitles: list[FilteredSubtitle], user_id: int | str, user_level: str = "A1", language: str = "de"
     ) -> FilteringResult:
         """
         Process subtitles - delegates to SubtitleProcessor service
@@ -72,13 +63,8 @@ class DirectSubtitleProcessor:
 
         return result
 
-
     async def process_srt_file(
-        self,
-        srt_file_path: str,
-        user_id: int | str,
-        user_level: str = "A1",
-        language: str = "de"
+        self, srt_file_path: str, user_id: int | str, user_level: str = "A1", language: str = "de"
     ) -> dict[str, Any]:
         """
         Process an SRT file - delegates to SRTFileHandler and SubtitleProcessor
@@ -99,18 +85,10 @@ class DirectSubtitleProcessor:
             filtered_subtitles = await self.file_handler.parse_srt_file(srt_file_path)
 
             # Process through filtering pipeline
-            filtering_result = await self.process_subtitles(
-                filtered_subtitles,
-                str(user_id),
-                user_level,
-                language
-            )
+            filtering_result = await self.process_subtitles(filtered_subtitles, str(user_id), user_level, language)
 
             # Format result using file handler
-            result = self.file_handler.format_processing_result(
-                filtering_result,
-                srt_file_path
-            )
+            result = self.file_handler.format_processing_result(filtering_result, srt_file_path)
 
             # Add segments_parsed for backward compatibility
             result["statistics"]["segments_parsed"] = len(filtered_subtitles)
@@ -124,5 +102,5 @@ class DirectSubtitleProcessor:
                 "learning_subtitles": [],
                 "empty_subtitles": [],
                 "filtered_subtitles": [],
-                "statistics": {"error": str(e)}
+                "statistics": {"error": str(e)},
             }

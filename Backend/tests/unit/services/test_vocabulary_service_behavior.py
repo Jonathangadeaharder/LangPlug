@@ -1,19 +1,13 @@
 """Behavior-focused tests for vocabulary service (refactored from implementation-coupled tests)."""
+
 from __future__ import annotations
 
-import pytest
-from unittest.mock import AsyncMock
+from typing import Any
 from uuid import uuid4
-from typing import List, Dict, Any
 
-from tests.helpers import (
-    VocabularyConceptBuilder,
-    VocabularyTranslationBuilder,
-    TestDataSets,
-    CEFRLevel,
-    create_vocabulary_concept,
-    create_vocabulary_translation
-)
+import pytest
+
+from tests.helpers import TestDataSets
 
 
 # Test doubles that represent behavior, not implementation
@@ -21,39 +15,27 @@ class MockVocabularyRepository:
     """Test double for vocabulary repository that focuses on behavior."""
 
     def __init__(self):
-        self.languages: List[Dict[str, Any]] = []
-        self.concepts: Dict[str, Dict[str, Any]] = {}
-        self.translations: Dict[str, List[Dict[str, Any]]] = {}
-        self.user_progress: Dict[str, set] = {}  # user_id -> set of known concept_ids
+        self.languages: list[dict[str, Any]] = []
+        self.concepts: dict[str, dict[str, Any]] = {}
+        self.translations: dict[str, list[dict[str, Any]]] = {}
+        self.user_progress: dict[str, set] = {}  # user_id -> set of known concept_ids
 
     def add_language(self, code: str, name: str, native_name: str, is_active: bool = True):
         """Add a language to the mock repository."""
-        self.languages.append({
-            "code": code,
-            "name": name,
-            "native_name": native_name,
-            "is_active": is_active
-        })
+        self.languages.append({"code": code, "name": name, "native_name": native_name, "is_active": is_active})
 
     def add_concept(self, concept_id: str, word: str, level: str, language_code: str):
         """Add a concept to the mock repository."""
-        self.concepts[concept_id] = {
-            "id": concept_id,
-            "word": word,
-            "level": level,
-            "language_code": language_code
-        }
+        self.concepts[concept_id] = {"id": concept_id, "word": word, "level": level, "language_code": language_code}
 
     def add_translation(self, concept_id: str, translation: str, target_language: str):
         """Add a translation for a concept."""
         if concept_id not in self.translations:
             self.translations[concept_id] = []
 
-        self.translations[concept_id].append({
-            "concept_id": concept_id,
-            "translation": translation,
-            "target_language_code": target_language
-        })
+        self.translations[concept_id].append(
+            {"concept_id": concept_id, "translation": translation, "target_language_code": target_language}
+        )
 
     def mark_user_knows_concept(self, user_id: str, concept_id: str):
         """Mark that a user knows a concept."""
@@ -66,26 +48,24 @@ class MockVocabularyRepository:
         if user_id in self.user_progress:
             self.user_progress[user_id].discard(concept_id)
 
-    def get_supported_languages(self) -> List[Dict[str, Any]]:
+    def get_supported_languages(self) -> list[dict[str, Any]]:
         """Get all supported languages."""
         return [lang for lang in self.languages if lang["is_active"]]
 
-    def get_concepts_by_level(self, level: str, language_code: str) -> List[Dict[str, Any]]:
+    def get_concepts_by_level(self, level: str, language_code: str) -> list[dict[str, Any]]:
         """Get concepts by level and language."""
         return [
-            concept for concept in self.concepts.values()
+            concept
+            for concept in self.concepts.values()
             if concept["level"] == level and concept["language_code"] == language_code
         ]
 
-    def get_translations_for_concept(self, concept_id: str, target_language: str) -> List[Dict[str, Any]]:
+    def get_translations_for_concept(self, concept_id: str, target_language: str) -> list[dict[str, Any]]:
         """Get translations for a concept in target language."""
         if concept_id not in self.translations:
             return []
 
-        return [
-            trans for trans in self.translations[concept_id]
-            if trans["target_language_code"] == target_language
-        ]
+        return [trans for trans in self.translations[concept_id] if trans["target_language_code"] == target_language]
 
     def is_concept_known_by_user(self, user_id: str, concept_id: str) -> bool:
         """Check if user knows a concept."""
@@ -98,10 +78,7 @@ class MockVocabularyRepository:
     def count_known_concepts_by_level(self, user_id: str, level: str, language_code: str) -> int:
         """Count known concepts for user in a level and language."""
         concepts = self.get_concepts_by_level(level, language_code)
-        return len([
-            concept for concept in concepts
-            if self.is_concept_known_by_user(user_id, concept["id"])
-        ])
+        return len([concept for concept in concepts if self.is_concept_known_by_user(user_id, concept["id"])])
 
 
 class MockVocabularyService:
@@ -110,11 +87,13 @@ class MockVocabularyService:
     def __init__(self, repository: MockVocabularyRepository):
         self.repository = repository
 
-    async def get_supported_languages(self) -> List[Dict[str, Any]]:
+    async def get_supported_languages(self) -> list[dict[str, Any]]:
         """Get supported languages."""
         return self.repository.get_supported_languages()
 
-    async def get_vocabulary_stats(self, target_language: str, translation_language: str, user_id: str = None) -> Dict[str, Any]:
+    async def get_vocabulary_stats(
+        self, target_language: str, translation_language: str, user_id: str | None = None
+    ) -> dict[str, Any]:
         """Get vocabulary statistics."""
         levels = ["A1", "A2", "B1", "B2", "C1", "C2"]
         level_stats = {}
@@ -127,10 +106,7 @@ class MockVocabularyService:
             if user_id:
                 known = self.repository.count_known_concepts_by_level(user_id, level, target_language)
 
-            level_stats[level] = {
-                "total_words": total,
-                "user_known": known
-            }
+            level_stats[level] = {"total_words": total, "user_known": known}
             total_words += total
             total_known += known
 
@@ -139,30 +115,26 @@ class MockVocabularyService:
             "translation_language": translation_language,
             "levels": level_stats,
             "total_words": total_words,
-            "total_known": total_known
+            "total_known": total_known,
         }
 
-    async def mark_concept_known(self, user_id: str, concept_id: str, known: bool) -> Dict[str, Any]:
+    async def mark_concept_known(self, user_id: str, concept_id: str, known: bool) -> dict[str, Any]:
         """Mark concept as known or unknown."""
         if known:
             self.repository.mark_user_knows_concept(user_id, concept_id)
         else:
             self.repository.mark_user_unknown_concept(user_id, concept_id)
 
-        return {
-            "success": True,
-            "concept_id": concept_id,
-            "known": known
-        }
+        return {"success": True, "concept_id": concept_id, "known": known}
 
     async def get_vocabulary_level(
         self,
         level: str,
         target_language: str,
         translation_language: str,
-        user_id: str = None,
-        limit: int = None
-    ) -> Dict[str, Any]:
+        user_id: str | None = None,
+        limit: int | None = None,
+    ) -> dict[str, Any]:
         """Get vocabulary for a specific level."""
         concepts = self.repository.get_concepts_by_level(level, target_language)
 
@@ -178,12 +150,9 @@ class MockVocabularyService:
             if user_id:
                 known = self.repository.is_concept_known_by_user(user_id, concept["id"])
 
-            words.append({
-                "concept_id": concept["id"],
-                "word": concept["word"],
-                "translation": translation_text,
-                "known": known
-            })
+            words.append(
+                {"concept_id": concept["id"], "word": concept["word"], "translation": translation_text, "known": known}
+            )
 
         known_count = len([word for word in words if word["known"]])
 
@@ -192,7 +161,7 @@ class MockVocabularyService:
             "target_language": target_language,
             "words": words,
             "total_count": len(words),
-            "known_count": known_count
+            "known_count": known_count,
         }
 
 
@@ -421,7 +390,9 @@ class TestVocabularyServiceEdgeCases:
         assert result["total_count"] == 0
 
     @pytest.mark.anyio
-    async def test_When_concept_without_translation_requested_Then_none_translation_returned(self, vocab_service, vocab_repository):
+    async def test_When_concept_without_translation_requested_Then_none_translation_returned(
+        self, vocab_service, vocab_repository
+    ):
         """Concept without translation in target language should return None for translation."""
         # Arrange - add concept without translation
         concept_id = str(uuid4())

@@ -4,13 +4,15 @@ Game Model Validation Tests
 Tests game session and question model validation logic,
 ensuring proper data structures and business rules.
 """
-import pytest
+
 from datetime import datetime
 from uuid import uuid4
+
+import pytest
 from pydantic import ValidationError
 
 # Import game models from routes since they're defined there
-from api.routes.game import GameSession, GameQuestion
+from api.routes.game import GameQuestion, GameSession
 
 
 class TestGameSessionValidation:
@@ -25,7 +27,7 @@ class TestGameSessionValidation:
             "difficulty": "intermediate",
             "start_time": datetime.now(),
             "status": "active",
-            "total_questions": 10
+            "total_questions": 10,
         }
 
         session = GameSession(**session_data)
@@ -46,7 +48,7 @@ class TestGameSessionValidation:
             "user_id": str(uuid4()),
             "game_type": "listening",
             "video_id": video_id,
-            "start_time": datetime.now()
+            "start_time": datetime.now(),
         }
 
         session = GameSession(**session_data)
@@ -71,7 +73,7 @@ class TestGameSessionValidation:
             "correct_answers": 7,
             "current_question": 8,
             "total_questions": 8,
-            "session_data": {"custom_field": "value"}
+            "session_data": {"custom_field": "value"},
         }
 
         session = GameSession(**session_data)
@@ -89,7 +91,7 @@ class TestGameSessionValidation:
             "session_id": str(uuid4()),
             "user_id": str(uuid4()),
             "game_type": "vocabulary",
-            "start_time": datetime.now()
+            "start_time": datetime.now(),
         }
 
         session = GameSession(**minimal_data)
@@ -110,7 +112,7 @@ class TestGameSessionValidation:
         """Test missing required fields raises validation error"""
         incomplete_data = {
             "session_id": str(uuid4()),
-            "user_id": str(uuid4())
+            "user_id": str(uuid4()),
             # Missing game_type and start_time
         }
 
@@ -129,7 +131,7 @@ class TestGameSessionValidation:
             "session_id": "not-a-uuid",
             "user_id": "also-not-a-uuid",
             "game_type": "vocabulary",
-            "start_time": datetime.now()
+            "start_time": datetime.now(),
         }
 
         # Note: Current model uses str type, but this tests future UUID validation
@@ -149,7 +151,7 @@ class TestGameQuestionValidation:
             "question_text": "What does 'Haus' mean in English?",
             "options": ["House", "Car", "Tree", "Book"],
             "correct_answer": "House",
-            "points": 10
+            "points": 10,
         }
 
         question = GameQuestion(**question_data)
@@ -167,7 +169,7 @@ class TestGameQuestionValidation:
             "question_type": "fill_blank",
             "question_text": "The German word for house is ____",
             "correct_answer": "Haus",
-            "points": 15
+            "points": 15,
         }
 
         question = GameQuestion(**question_data)
@@ -183,7 +185,7 @@ class TestGameQuestionValidation:
             "question_type": "translation",
             "question_text": "Translate: The house is big",
             "correct_answer": "Das Haus ist groß",
-            "points": 20
+            "points": 20,
         }
 
         question = GameQuestion(**question_data)
@@ -202,7 +204,7 @@ class TestGameQuestionValidation:
             "user_answer": "Blue",
             "is_correct": True,
             "points": 10,
-            "timestamp": datetime.now()
+            "timestamp": datetime.now(),
         }
 
         question = GameQuestion(**question_data)
@@ -217,7 +219,7 @@ class TestGameQuestionValidation:
             "question_id": str(uuid4()),
             "question_type": "multiple_choice",
             "question_text": "Sample question",
-            "correct_answer": "Answer"
+            "correct_answer": "Answer",
         }
 
         question = GameQuestion(**minimal_data)
@@ -232,7 +234,7 @@ class TestGameQuestionValidation:
         """Test missing required question fields raises validation error"""
         incomplete_data = {
             "question_id": str(uuid4()),
-            "question_type": "multiple_choice"
+            "question_type": "multiple_choice",
             # Missing question_text and correct_answer
         }
 
@@ -251,13 +253,13 @@ class TestGameQuestionValidation:
             "question_id": str(uuid4()),
             "question_type": "multiple_choice",
             "question_text": "",  # Empty string
-            "correct_answer": "Answer"
+            "correct_answer": "Answer",
         }
 
         with pytest.raises(ValidationError) as exc_info:
             GameQuestion(**invalid_data)
 
-        errors = exc_info.value.errors()
+        exc_info.value.errors()
         # Should validate minimum length for question_text
 
     def test_WhenNegativePoints_ThenAcceptsValue(self):
@@ -267,7 +269,7 @@ class TestGameQuestionValidation:
             "question_type": "multiple_choice",
             "question_text": "Penalty question",
             "correct_answer": "Answer",
-            "points": -5  # Negative points for penalties
+            "points": -5,  # Negative points for penalties
         }
 
         question = GameQuestion(**question_data)
@@ -288,10 +290,7 @@ class TestGameModelBusinessLogic:
             {"correct_answer": "C", "user_answer": "Wrong", "points": 10},
         ]
 
-        total_score = sum(
-            q["points"] for q in questions
-            if q["correct_answer"] == q["user_answer"]
-        )
+        total_score = sum(q["points"] for q in questions if q["correct_answer"] == q["user_answer"])
 
         assert total_score == 25  # 10 + 15 + 0
 
@@ -313,7 +312,7 @@ class TestGameModelBusinessLogic:
             "start_time": datetime.now(),
             "total_questions": 5,
             "questions_answered": 5,
-            "status": "completed"
+            "status": "completed",
         }
 
         session = GameSession(**session_data)

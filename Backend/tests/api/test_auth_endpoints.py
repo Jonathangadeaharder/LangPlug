@@ -5,12 +5,13 @@ Covers the 80/20 protective scenarios for the auth contract:
 - Invalid input rejection
 - Boundary protection for duplicate identities and malformed form data
 """
+
 from __future__ import annotations
 
 import pytest
 
-from tests.auth_helpers import AuthTestHelper
 from tests.assertion_helpers import assert_validation_error_response
+from tests.auth_helpers import AuthTestHelper
 
 
 @pytest.mark.anyio
@@ -24,7 +25,7 @@ async def test_WhenRegisterCalled_ThenCreatesActiveUser(async_http_client):
     assert status_code == 201
     assert payload["username"] == user_data["username"]
     assert payload["email"] == user_data["email"]
-    assert isinstance(payload["id"], str)
+    assert isinstance(payload["id"], int)
     assert payload["is_active"] is True
     assert payload["is_superuser"] is False
 
@@ -79,11 +80,10 @@ async def test_WhenLoginWithWrongPassword_ThenRejects(async_http_client):
 
     await AuthTestHelper.register_user_async(async_http_client, user_data)
 
-    status_code, _ = await AuthTestHelper.login_user_async(
-        async_http_client, user_data["email"], "TotallyWrong123!"
-    )
+    status_code, _ = await AuthTestHelper.login_user_async(async_http_client, user_data["email"], "TotallyWrong123!")
 
     assert status_code == 400
+
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
@@ -92,14 +92,18 @@ async def test_WhenloginWithoutform_encoded_payload_ThenReturnsError(async_http_
     user_data = AuthTestHelper.generate_unique_user_data()
     await AuthTestHelper.register_user_async(async_http_client, user_data)
 
-    response = await async_http_client.post("/api/auth/login", json={
-        "username": user_data["email"],
-        "password": user_data["password"],
-    })
+    response = await async_http_client.post(
+        "/api/auth/login",
+        json={
+            "username": user_data["email"],
+            "password": user_data["password"],
+        },
+    )
 
-    # FastAPI-Users expects form-encoded data, so JSON should fail validation
-    assert response.status_code in {415, 422}
-
+    # FastAPI-Users expects form-encoded data, so JSON should return 422 validation error
+    assert (
+        response.status_code == 422
+    ), f"Expected 422 (validation error for wrong content type), got {response.status_code}: {response.text}"
 
 
 @pytest.mark.anyio
@@ -111,13 +115,13 @@ async def test_WhenLogoutCalled_ThenRevokestoken(async_http_client):
     status_code, _ = await AuthTestHelper.logout_user_async(async_http_client, flow["token"])
 
     assert status_code == 204
+
+
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
 async def test_WhenlogoutWithoutvalid_token_ThenReturnsError(async_http_client):
     """Invalid input: logout without a real token yields 401 unauthorized."""
-    response = await async_http_client.post(
-        "/api/auth/logout", headers={"Authorization": "Bearer invalid-token"}
-    )
+    response = await async_http_client.post("/api/auth/logout", headers={"Authorization": "Bearer invalid-token"})
 
     assert response.status_code == 401
 
@@ -128,9 +132,7 @@ async def test_WhenmeCalled_ThenReturnscurrent_user_profile(async_http_client):
     """Happy path query of /me returns the authenticated user contract payload."""
     flow = await AuthTestHelper.register_and_login_async(async_http_client)
 
-    status_code, payload = await AuthTestHelper.get_current_user_async(
-        async_http_client, flow["token"]
-    )
+    status_code, payload = await AuthTestHelper.get_current_user_async(async_http_client, flow["token"])
 
     assert status_code == 200
     assert payload["username"] == flow["user_data"]["username"]

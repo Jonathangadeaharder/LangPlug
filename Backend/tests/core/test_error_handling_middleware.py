@@ -1,16 +1,18 @@
 """
 Tests for ErrorHandlingMiddleware branches by attaching it to a small FastAPI app.
 """
+
 from __future__ import annotations
 
-import pytest
-import httpx
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
-from core.middleware import ErrorHandlingMiddleware
+import httpx
+import pytest
+from fastapi import FastAPI
+
 from core.exceptions import LangPlugException
-from services.authservice.auth_service import InvalidCredentialsError, UserAlreadyExistsError, SessionExpiredError
+from core.middleware import ErrorHandlingMiddleware
+from services.authservice.auth_service import InvalidCredentialsError, SessionExpiredError, UserAlreadyExistsError
 
 
 @pytest.mark.anyio
@@ -21,6 +23,7 @@ async def test_Whenerror_handling_middleware_maps_exceptionsCalled_ThenSucceeds(
     @asynccontextmanager
     async def no_lifespan(_):
         yield
+
     app.router.lifespan_context = no_lifespan
 
     app.add_middleware(ErrorHandlingMiddleware)

@@ -38,7 +38,7 @@ export const useTaskProgress = () => {
         clearTimer()
       } else if (res?.status === 'failed' || res?.status === 'error') {
         setStatus('failed') // Always set to 'failed' for both 'failed' and 'error' statuses
-        setError(res?.error || res?.message || 'Processing failed')
+        setError((res as any)?.error || res?.message || 'Processing failed')
         clearTimer()
       } else {
         // Unknown status: keep processing
@@ -59,7 +59,7 @@ export const useTaskProgress = () => {
     setProgress(0)
     setResult(null)
     clearTimer()
-    // Start polling every 2 seconds; first poll after 2s to match tests
+    // Start polling every 2 seconds
     intervalRef.current = setInterval(() => poll(id), 2000) as any
   }, [poll, clearTimer])
 

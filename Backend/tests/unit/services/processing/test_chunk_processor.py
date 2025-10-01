@@ -3,11 +3,12 @@ Test suite for ChunkProcessingService
 Tests video chunk processing orchestration and vocabulary filtering
 """
 
-import pytest
-from unittest.mock import AsyncMock, Mock, patch, MagicMock
 from pathlib import Path
+from unittest.mock import AsyncMock, Mock, patch
 
-from services.processing.chunk_processor import ChunkProcessingService, ChunkProcessingError
+import pytest
+
+from services.processing.chunk_processor import ChunkProcessingService
 
 
 class TestChunkProcessingServiceInitialization:
@@ -71,7 +72,7 @@ class TestProcessChunk:
             user_id=1,
             task_id=task_id,
             task_progress=task_progress,
-            session_token="test_token"
+            session_token="test_token",
         )
 
         # Assert - verify orchestration completed successfully
@@ -97,7 +98,7 @@ class TestProcessChunk:
                 end_time=10.0,
                 user_id=1,
                 task_id="test_task",
-                task_progress=task_progress
+                task_progress=task_progress,
             )
 
         # Verify error handling was called
@@ -129,15 +130,16 @@ class TestFilterVocabulary:
         mock_word = {"word": "Haus", "difficulty": "A1", "active": True}
         mock_vocabulary = [mock_word]
 
-        with patch.object(service.vocabulary_filter, 'filter_vocabulary_from_srt', new=AsyncMock(return_value=mock_vocabulary)):
-
+        with patch.object(
+            service.vocabulary_filter, "filter_vocabulary_from_srt", new=AsyncMock(return_value=mock_vocabulary)
+        ):
             # Act
             result = await service._filter_vocabulary(
                 task_id="test_task",
                 task_progress=task_progress,
                 video_file=video_file,
                 user=user,
-                language_preferences=language_prefs
+                language_preferences=language_prefs,
             )
 
             # Assert
@@ -159,15 +161,16 @@ class TestFilterVocabulary:
         # Mock vocabulary_filter service returning empty list
         mock_vocabulary = []
 
-        with patch.object(service.vocabulary_filter, 'filter_vocabulary_from_srt', new=AsyncMock(return_value=mock_vocabulary)):
-
+        with patch.object(
+            service.vocabulary_filter, "filter_vocabulary_from_srt", new=AsyncMock(return_value=mock_vocabulary)
+        ):
             # Act
             result = await service._filter_vocabulary(
                 task_id="test_task",
                 task_progress=task_progress,
                 video_file=video_file,
                 user=user,
-                language_preferences=language_prefs
+                language_preferences=language_prefs,
             )
 
             # Assert
@@ -194,7 +197,7 @@ class TestGenerateFilteredSubtitles:
         video_file.touch()
 
         source_srt = tmp_path / "video_de.srt"
-        source_srt.write_text("1\n00:00:00,000 --> 00:00:02,000\nHallo Welt\n\n", encoding='utf-8')
+        source_srt.write_text("1\n00:00:00,000 --> 00:00:02,000\nHallo Welt\n\n", encoding="utf-8")
 
         service.transcription_service.find_matching_srt_file = Mock(return_value=str(source_srt))
 
@@ -207,7 +210,7 @@ class TestGenerateFilteredSubtitles:
             task_progress=task_progress,
             video_file=video_file,
             vocabulary=vocabulary,
-            language_preferences=language_prefs
+            language_preferences=language_prefs,
         )
 
         # Assert
@@ -215,7 +218,7 @@ class TestGenerateFilteredSubtitles:
         assert Path(result).exists()
 
         # Verify filtered file was created
-        filtered_content = Path(result).read_text(encoding='utf-8')
+        filtered_content = Path(result).read_text(encoding="utf-8")
         assert "Hallo" in filtered_content or "hallo" in filtered_content
 
     @pytest.mark.anyio
@@ -234,7 +237,7 @@ class TestGenerateFilteredSubtitles:
             task_progress=task_progress,
             video_file=video_file,
             vocabulary=vocabulary,
-            language_preferences=language_prefs
+            language_preferences=language_prefs,
         )
 
         # Assert - returns source path when file doesn't exist
@@ -302,7 +305,7 @@ class TestHandleMethod:
             video_path="/video.mp4",
             start_time=0.0,
             end_time=10.0,
-            user_id=1
+            user_id=1,
         )
 
         # Assert - process_chunk was called with parameters
@@ -322,12 +325,7 @@ class TestValidateParameters:
     def test_validate_parameters_all_present(self, service):
         """Test validation with all required parameters"""
         # Act
-        result = service.validate_parameters(
-            video_path="/video.mp4",
-            start_time=0.0,
-            end_time=10.0,
-            user_id=1
-        )
+        result = service.validate_parameters(video_path="/video.mp4", start_time=0.0, end_time=10.0, user_id=1)
 
         # Assert
         assert result is True
@@ -338,7 +336,7 @@ class TestValidateParameters:
         result = service.validate_parameters(
             video_path="/video.mp4",
             start_time=0.0,
-            end_time=10.0
+            end_time=10.0,
             # Missing user_id
         )
 
@@ -348,6 +346,6 @@ class TestValidateParameters:
     def test_validate_parameters_empty(self, service):
         """Test validation with no parameters"""
         # Act
-        result = service.validate_parameters()
+        service.validate_parameters()
 
         # Assert

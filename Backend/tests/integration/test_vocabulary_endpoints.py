@@ -1,4 +1,5 @@
 """Integration checks for vocabulary endpoints."""
+
 from __future__ import annotations
 
 from uuid import uuid4
@@ -29,12 +30,13 @@ async def test_Whenlibrary_levelWithoutvalid_code_ThenReturnsError(async_client)
     flow = await AuthTestHelperAsync.register_and_login_async(async_client)
 
     response = await async_client.get(
-        "/api/vocabulary/library/Z9",
-        params={"target_language": "de"},
-        headers=flow["headers"]
+        "/api/vocabulary/library/Z9", params={"target_language": "de"}, headers=flow["headers"]
     )
 
-    assert response.status_code in {400, 404, 422}
+    # Invalid level parameter should return 422 (validation error)
+    assert (
+        response.status_code == 422
+    ), f"Expected 422 (validation error for invalid level), got {response.status_code}: {response.text}"
 
 
 @pytest.mark.anyio

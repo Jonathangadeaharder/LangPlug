@@ -2,33 +2,32 @@
 Test suite for AuthService using proper dependency injection
 This replaces the problematic direct instantiation approach with FastAPI's DI system
 """
+
+from datetime import datetime
+
 import pytest
-from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock
 
 from services.authservice.models import (
-    AuthenticationError,
-    AuthUser,
     AuthSession,
-    InvalidCredentialsError,
-    SessionExpiredError,
     UserAlreadyExistsError,
 )
+
 # Removed unused import - we instantiate AuthService directly now
 from tests.base import ServiceTestBase
 
 
 class MockUser:
     """Mock User model for testing"""
+
     def __init__(self, **kwargs):
-        self.id = kwargs.get('id', 1)
-        self.username = kwargs.get('username', 'testuser')
-        self.email = kwargs.get('email', 'testuser@example.com')
-        self.hashed_password = kwargs.get('hashed_password', 'fake_hash')
-        self.is_superuser = kwargs.get('is_superuser', False)
-        self.is_active = kwargs.get('is_active', True)
-        self.created_at = kwargs.get('created_at', datetime.now())
-        self.last_login = kwargs.get('last_login', None)
+        self.id = kwargs.get("id", 1)
+        self.username = kwargs.get("username", "testuser")
+        self.email = kwargs.get("email", "testuser@example.com")
+        self.hashed_password = kwargs.get("hashed_password", "fake_hash")
+        self.is_superuser = kwargs.get("is_superuser", False)
+        self.is_active = kwargs.get("is_active", True)
+        self.created_at = kwargs.get("created_at", datetime.now())
+        self.last_login = kwargs.get("last_login")
 
 
 @pytest.fixture
@@ -36,11 +35,11 @@ def mock_user():
     """Create a mock user for testing"""
     return MockUser(
         id=1,
-        username='testuser',
-        email='testuser@example.com',
-        hashed_password='fake_hashed_password',
+        username="testuser",
+        email="testuser@example.com",
+        hashed_password="fake_hashed_password",
         is_superuser=False,
-        is_active=True
+        is_active=True,
     )
 
 
@@ -58,19 +57,23 @@ class TestAuthServiceWithDependencyInjection(ServiceTestBase):
         mock_session = self.create_mock_session()
 
         # Configure to return no existing user (allows registration)
-        self.configure_mock_query_result(mock_session, {
-            'scalar_one_or_none': None  # No existing user
-        })
+        self.configure_mock_query_result(
+            mock_session,
+            {
+                "scalar_one_or_none": None  # No existing user
+            },
+        )
 
         # Mock user ID assignment after database operations
-        mock_session.refresh.side_effect = lambda user: setattr(user, 'id', 1)
+        mock_session.refresh.side_effect = lambda user: setattr(user, "id", 1)
 
         # Create service with mocked session
         from services.authservice.auth_service import AuthService
+
         service = AuthService(mock_session)
 
         # Execute the test - this now uses the mocked session
-        result = await service.register_user('test_success_user', 'ValidPassword123')
+        result = await service.register_user("test_success_user", "ValidPassword123")
 
         # Verify the result
         assert result is not None
@@ -82,17 +85,21 @@ class TestAuthServiceWithDependencyInjection(ServiceTestBase):
         mock_session = self.create_mock_session()
 
         # Configure to return existing user (prevents registration)
-        self.configure_mock_query_result(mock_session, {
-            'scalar_one_or_none': mock_user  # Existing user found
-        })
+        self.configure_mock_query_result(
+            mock_session,
+            {
+                "scalar_one_or_none": mock_user  # Existing user found
+            },
+        )
 
         # Create service with mocked session
         from services.authservice.auth_service import AuthService
+
         service = AuthService(mock_session)
 
         # Execute the test - should raise UserAlreadyExistsError
         with pytest.raises(UserAlreadyExistsError) as exc_info:
-            await service.register_user('testuser', 'ValidPassword123')
+            await service.register_user("testuser", "ValidPassword123")
 
         assert "already exists" in str(exc_info.value)
 
@@ -105,20 +112,24 @@ class TestAuthServiceWithDependencyInjection(ServiceTestBase):
         mock_session = self.create_mock_session()
 
         # Configure to return existing user for login
-        self.configure_mock_query_result(mock_session, {
-            'scalar_one_or_none': mock_user  # User found for login
-        })
+        self.configure_mock_query_result(
+            mock_session,
+            {
+                "scalar_one_or_none": mock_user  # User found for login
+            },
+        )
 
         # Create service with mocked session
         from services.authservice.auth_service import AuthService
+
         service = AuthService(mock_session)
 
         # Mock password verification
-        with patch.object(service, '_verify_password', return_value=True):
-            result = await service.login('testuser', 'validpassword')
+        with patch.object(service, "_verify_password", return_value=True):
+            result = await service.login("testuser", "validpassword")
 
             # Verify result is AuthSession
             assert isinstance(result, AuthSession)
-            assert result.user.username == 'testuser'
+            assert result.user.username == "testuser"
             assert result.session_token is not None
             assert result.expires_at > datetime.now()

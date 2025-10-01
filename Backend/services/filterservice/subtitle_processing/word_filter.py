@@ -4,7 +4,7 @@ Handles filtering logic for words based on user knowledge and difficulty
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ..interface import FilteredWord, WordStatus
 
@@ -15,10 +15,7 @@ class WordFilter:
     """Service for filtering words based on learning criteria"""
 
     def __init__(self):
-        self._level_ranks = {
-            "A1": 1, "A2": 2, "B1": 3,
-            "B2": 4, "C1": 5, "C2": 6
-        }
+        self._level_ranks = {"A1": 1, "A2": 2, "B1": 3, "B2": 4, "C1": 5, "C2": 6}
 
     def filter_word(
         self,
@@ -26,7 +23,7 @@ class WordFilter:
         user_known_words: set[str],
         user_level: str,
         language: str,
-        word_info: Optional[Dict[str, Any]] = None,
+        word_info: dict[str, Any] | None = None,
     ) -> FilteredWord:
         """
         Apply all filtering logic to a single word
@@ -65,17 +62,10 @@ class WordFilter:
 
         # Word passed all filters - it's a learning target
         word.status = WordStatus.ACTIVE
-        word.metadata.update({
-            "user_level": user_level,
-            "language": language
-        })
+        word.metadata.update({"user_level": user_level, "language": language})
         return word
 
-    def _extract_word_data(
-        self,
-        word_text: str,
-        word_info: Optional[Dict[str, Any]]
-    ) -> tuple[str, str]:
+    def _extract_word_data(self, word_text: str, word_info: dict[str, Any] | None) -> tuple[str, str]:
         """
         Extract lemma and difficulty from word info
 
@@ -142,7 +132,7 @@ class WordFilter:
         end_time: float,
         status: WordStatus = WordStatus.ACTIVE,
         filter_reason: str | None = None,
-        metadata: dict | None = None
+        metadata: dict | None = None,
     ) -> FilteredWord:
         """
         Create a FilteredWord with specified properties
@@ -165,7 +155,7 @@ class WordFilter:
             status=status,
             filter_reason=filter_reason,
             confidence=None,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
 

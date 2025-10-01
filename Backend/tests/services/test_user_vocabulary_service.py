@@ -1,10 +1,11 @@
 """Protective tests for multilingual vocabulary service database operations."""
+
 from __future__ import annotations
 
-import pytest
 from contextlib import asynccontextmanager
 from uuid import uuid4
-from sqlalchemy import text
+
+import pytest
 
 from services.vocabulary_service import VocabularyService
 
@@ -16,6 +17,7 @@ def service(app):
 
     # Get the database session override from the app
     from core.database import get_async_session
+
     override_session = app.dependency_overrides[get_async_session]
 
     # Replace the service's session context manager
@@ -52,6 +54,7 @@ async def test_Whenmark_concept_known_persists_entriesCalled_ThenSucceeds(servic
 @pytest.mark.anyio
 async def test_Whenget_vocabulary_level_handles_emptyCalled_ThenSucceeds(service):
     """Boundary path: querying empty level returns proper structure."""
+
     # Mock the get_vocabulary_level method
     async def mock_get_vocabulary_level(level, target_language, translation_language, limit, offset, user_id):
         return {
@@ -60,7 +63,7 @@ async def test_Whenget_vocabulary_level_handles_emptyCalled_ThenSucceeds(service
             "translation_language": translation_language,
             "words": [],
             "total_count": 0,
-            "known_count": 0
+            "known_count": 0,
         }
 
     service.get_vocabulary_level = mock_get_vocabulary_level
@@ -77,17 +80,15 @@ async def test_Whenget_vocabulary_level_handles_emptyCalled_ThenSucceeds(service
 @pytest.mark.anyio
 async def test_Whenget_vocabulary_stats_reports_countsCalled_ThenSucceeds(service):
     """Boundary: statistics reflect multilingual vocabulary data."""
+
     # Mock the get_vocabulary_stats method
     async def mock_get_vocabulary_stats(target_language, translation_language, user_id):
         return {
-            "levels": {
-                "A1": {"total_words": 50, "user_known": 10},
-                "A2": {"total_words": 75, "user_known": 15}
-            },
+            "levels": {"A1": {"total_words": 50, "user_known": 10}, "A2": {"total_words": 75, "user_known": 15}},
             "target_language": target_language,
             "translation_language": translation_language,
             "total_words": 125,
-            "total_known": 25
+            "total_known": 25,
         }
 
     service.get_vocabulary_stats = mock_get_vocabulary_stats

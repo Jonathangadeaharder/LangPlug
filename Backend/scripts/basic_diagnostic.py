@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Basic diagnostic to identify startup issues"""
+
 import os
 import subprocess
 import sys
@@ -8,10 +9,11 @@ from pathlib import Path
 # Force create log in current directory first
 log_path = Path(__file__).parent / "diagnostic_output.txt"
 
+
 def write_log(msg):
-    print(msg)
     with open(log_path, "a", encoding="utf-8") as f:
         f.write(msg + "\n")
+
 
 # Clear log
 with open(log_path, "w", encoding="utf-8") as f:
@@ -29,7 +31,9 @@ write_log(f"Venv python exists: {venv_python.exists()}")
 
 if venv_python.exists():
     try:
-        result = subprocess.run([str(venv_python), "--version"], check=False, capture_output=True, text=True, timeout=10)
+        result = subprocess.run(
+            [str(venv_python), "--version"], check=False, capture_output=True, text=True, timeout=10
+        )
         write_log(f"Venv python version: {result.stdout.strip()}")
     except Exception as e:
         write_log(f"Venv python test failed: {e}")
@@ -69,7 +73,7 @@ except Exception as e:
 # Check port 8000
 try:
     result = subprocess.run(["netstat", "-ano"], check=False, capture_output=True, text=True)
-    port_8000_lines = [line for line in result.stdout.split('\n') if ':8000' in line]
+    port_8000_lines = [line for line in result.stdout.split("\n") if ":8000" in line]
     if port_8000_lines:
         write_log("Port 8000 usage:")
         for line in port_8000_lines:

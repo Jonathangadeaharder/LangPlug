@@ -1,6 +1,6 @@
 /**
  * SRT API Client
- * 
+ *
  * This module provides a TypeScript client for the backend SRT utilities API.
  * It replaces the duplicate SRT parsing logic in the frontend, ensuring the
  * backend is the single source of truth for SRT processing.
@@ -34,13 +34,13 @@ export interface ValidationResult {
 export class SRTApiClient {
   private baseUrl: string
 
-  constructor(baseUrl: string = '/api/srt') {
+  constructor(baseUrl = '/api/srt') {
     this.baseUrl = baseUrl
   }
 
   /**
    * Parse SRT content using the backend API
-   * 
+   *
    * @param content - SRT file content as string
    * @returns Promise with parsed SRT data
    */
@@ -63,7 +63,7 @@ export class SRTApiClient {
 
   /**
    * Parse an SRT file using the backend API
-   * 
+   *
    * @param file - SRT file to upload and parse
    * @returns Promise with parsed SRT data
    */
@@ -86,7 +86,7 @@ export class SRTApiClient {
 
   /**
    * Convert SRT segments back to SRT format
-   * 
+   *
    * @param segments - Array of SRT segments
    * @returns Promise with SRT content as string
    */
@@ -109,7 +109,7 @@ export class SRTApiClient {
 
   /**
    * Validate SRT content
-   * 
+   *
    * @param content - SRT content to validate
    * @returns Promise with validation results
    */
@@ -126,17 +126,17 @@ export class SRTApiClient {
 
   /**
    * Download SRT segments as a file
-   * 
+   *
    * @param segments - Array of SRT segments
    * @param filename - Desired filename for download
    */
-  async downloadAsSRT(segments: SRTSegment[], filename: string = 'subtitles.srt'): Promise<void> {
+  async downloadAsSRT(segments: SRTSegment[], filename = 'subtitles.srt'): Promise<void> {
     const srtContent = await this.convertToSRT(segments)
-    
+
     // Create blob and download
     const blob = new Blob([srtContent], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
-    
+
     const a = document.createElement('a')
     a.href = url
     a.download = filename
@@ -197,7 +197,7 @@ export const srtUtils = {
    * Filter segments by time range
    */
   filterByTimeRange(segments: SRTSegment[], startTime: number, endTime: number): SRTSegment[] {
-    return segments.filter(segment => 
+    return segments.filter(segment =>
       segment.start_time >= startTime && segment.end_time <= endTime
     )
   },
@@ -206,7 +206,7 @@ export const srtUtils = {
    * Find segment at specific time
    */
   findSegmentAtTime(segments: SRTSegment[], time: number): SRTSegment | undefined {
-    return segments.find(segment => 
+    return segments.find(segment =>
       time >= segment.start_time && time <= segment.end_time
     )
   }

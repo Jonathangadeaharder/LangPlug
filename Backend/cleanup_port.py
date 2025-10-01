@@ -4,52 +4,49 @@ Port cleanup utility for Backend startup
 Kills any process using the specified port before starting
 """
 
-import os
-import sys
 import subprocess
+import sys
 
 
 def kill_process_on_port(port):
     """Kill any process using the specified port"""
-    print(f"[CLEANUP] Checking port {port}...")
 
     try:
-        # Windows command to find and kill process on port
-        result = subprocess.run(
-            f'powershell.exe -Command "Get-NetTCPConnection -LocalPort {port} -ErrorAction SilentlyContinue | ForEach-Object {{ Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }}"',
-            shell=True,
+        # Windows command to find and kill process on port (without shell=True)
+        port_str = str(int(port))  # Validate port is an integer
+        command = [
+            "powershell.exe",
+            "-Command",
+            f"Get-NetTCPConnection -LocalPort {port_str} -ErrorAction SilentlyContinue | ForEach-Object {{ Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }}",
+        ]
+        subprocess.run(
+            command,
+            check=False,
+            shell=False,  # Security: avoid shell=True
             capture_output=True,
-            text=True
+            text=True,
         )
 
-        if result.returncode == 0:
-            print(f"[CLEANUP] Port {port} cleared successfully")
-        else:
-            print(f"[CLEANUP] Port {port} was already free")
-
-    except Exception as e:
-        print(f"[CLEANUP] Warning: Could not clear port {port}: {e}")
+    except (ValueError, Exception):
+        # Silently handle errors (port validation or subprocess errors)
+        pass
 
 
 def kill_all_python_processes():
     """Kill all Python processes (more aggressive)"""
-    print("[CLEANUP] Killing all Python processes...")
 
     try:
-        result = subprocess.run(
-            'taskkill /F /IM python.exe',
-            shell=True,
+        command = ["taskkill", "/F", "/IM", "python.exe"]
+        subprocess.run(
+            command,
+            check=False,
+            shell=False,  # Security: avoid shell=True
             capture_output=True,
-            text=True
+            text=True,
         )
 
-        if "SUCCESS" in result.stdout:
-            print("[CLEANUP] Python processes killed")
-        else:
-            print("[CLEANUP] No Python processes found")
-
-    except Exception as e:
-        print(f"[CLEANUP] Warning: {e}")
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":

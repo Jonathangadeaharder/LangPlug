@@ -25,15 +25,17 @@ interface AuthState {
   checkAuth: () => Promise<void>
   clearError: () => void
   setUser: (user: User | null) => void
+  setToken: (token: string | null) => void
   setAuthenticated: (val: boolean) => void
   setRedirectPath: (path: string | null) => void
+  reset: () => void
 }
 
 const mapUser = (user: UserRead | UserResponse): User => ({
   ...user,
   name: user.username,
   is_verified: 'is_verified' in user ? user.is_verified : false,
-})
+} as User)
 
 const extractErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof ApiError) {
@@ -198,8 +200,21 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setUser: (user: User | null) => set({ user }),
+      setToken: (token: string | null) => set({ token }),
       setAuthenticated: (val: boolean) => set({ isAuthenticated: val }),
       setRedirectPath: (path: string | null) => set({ redirectPath: path }),
+
+      reset: () => {
+        localStorage.removeItem('authToken')
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+          redirectPath: null,
+        })
+      },
     }),
     {
       name: 'auth-storage',

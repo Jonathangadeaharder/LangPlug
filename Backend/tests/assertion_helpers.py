@@ -1,12 +1,18 @@
 """Assertion helpers to keep test bodies concise and follow CLAUDE.md rules."""
+
 from __future__ import annotations
 
-from typing import Any, Dict
 
+def assert_successful_response(response, expected_code: int = 200) -> None:
+    """Assert response has successful status code.
 
-def assert_successful_response(response, expected_codes: set[int] = {200}) -> None:
-    """Assert response has successful status code."""
-    assert response.status_code in expected_codes
+    Args:
+        response: HTTP response object
+        expected_code: Single expected status code (default: 200)
+    """
+    assert (
+        response.status_code == expected_code
+    ), f"Expected status code {expected_code}, got {response.status_code}: {response.text[:200]}"
 
 
 def assert_json_response(response) -> None:
@@ -14,7 +20,7 @@ def assert_json_response(response) -> None:
     assert "application/json" in response.headers.get("content-type", "")
 
 
-def assert_validation_error_response(response, field_name: str = None) -> None:
+def assert_validation_error_response(response, field_name: str | None = None) -> None:
     """Assert response is a 422 validation error, optionally for specific field."""
     assert response.status_code == 422
     if field_name:
@@ -35,9 +41,16 @@ def assert_auth_error_response(response) -> None:
     assert "application/json" in response.headers.get("content-type", "")
 
 
-def assert_task_response(response) -> None:
-    """Assert response contains task-related fields for async operations."""
-    assert response.status_code in {200, 202}
+def assert_task_response(response, expected_code: int = 200) -> None:
+    """Assert response contains task-related fields for async operations.
+
+    Args:
+        response: HTTP response object
+        expected_code: Expected status code (200 for sync completion, 202 for async acceptance)
+    """
+    assert (
+        response.status_code == expected_code
+    ), f"Expected status code {expected_code}, got {response.status_code}: {response.text[:200]}"
     body = response.json()
     assert "task" in body or "task_id" in body or "status" in body
 
@@ -51,8 +64,14 @@ def assert_json_error_response(response, expected_status: int) -> None:
     assert "detail" in response_data or ("error" in response_data and "message" in response_data["error"])
 
 
-def assert_dict_response(response, expected_codes: set[int] = {200}) -> None:
-    """Assert response has expected status and returns dict."""
-    assert response.status_code in expected_codes
-    assert isinstance(response.json(), dict)
+def assert_dict_response(response, expected_code: int = 200) -> None:
+    """Assert response has expected status and returns dict.
 
+    Args:
+        response: HTTP response object
+        expected_code: Single expected status code (default: 200)
+    """
+    assert (
+        response.status_code == expected_code
+    ), f"Expected status code {expected_code}, got {response.status_code}: {response.text[:200]}"
+    assert isinstance(response.json(), dict)

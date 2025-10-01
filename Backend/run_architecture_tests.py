@@ -1,7 +1,6 @@
 """Simple architecture test runner that bypasses pytest conftest"""
 
 import sys
-import asyncio
 from pathlib import Path
 
 # Add Backend to path
@@ -11,12 +10,12 @@ sys.path.insert(0, str(backend_dir))
 # Import test classes
 from tests.unit.services.test_direct_subtitle_processor_architecture import (
     TestDirectSubtitleProcessorArchitecture,
-    TestUserDataLoaderService,
-    TestWordValidatorService,
-    TestWordFilterService,
-    TestSubtitleProcessorService,
+    TestServiceSingletons,
     TestSRTFileHandlerService,
-    TestServiceSingletons
+    TestSubtitleProcessorService,
+    TestUserDataLoaderService,
+    TestWordFilterService,
+    TestWordValidatorService,
 )
 
 
@@ -44,114 +43,123 @@ async def run_async_test(test_class, test_method):
 
 def main():
     """Run all architecture tests"""
-    print("=" * 70)
-    print("DirectSubtitleProcessor Architecture Tests")
-    print("=" * 70)
 
     results = []
 
     # Facade tests
-    print("\nFacade Architecture Tests:")
-    results.append(("Facade imports all services",
-                    *run_sync_test(TestDirectSubtitleProcessorArchitecture,
-                                   "test_facade_imports_all_services")))
-    results.append(("Facade does not contain implementation",
-                    *run_sync_test(TestDirectSubtitleProcessorArchitecture,
-                                   "test_facade_does_not_contain_implementation_logic")))
+    results.append(
+        (
+            "Facade imports all services",
+            *run_sync_test(TestDirectSubtitleProcessorArchitecture, "test_facade_imports_all_services"),
+        )
+    )
+    results.append(
+        (
+            "Facade does not contain implementation",
+            *run_sync_test(
+                TestDirectSubtitleProcessorArchitecture, "test_facade_does_not_contain_implementation_logic"
+            ),
+        )
+    )
 
     # UserDataLoader tests
-    print("\nUserDataLoader Service Tests:")
-    results.append(("UserDataLoader exists",
-                    *run_sync_test(TestUserDataLoaderService,
-                                   "test_user_data_loader_exists")))
-    results.append(("UserDataLoader has caching",
-                    *run_sync_test(TestUserDataLoaderService,
-                                   "test_user_data_loader_has_caching")))
+    results.append(("UserDataLoader exists", *run_sync_test(TestUserDataLoaderService, "test_user_data_loader_exists")))
+    results.append(
+        ("UserDataLoader has caching", *run_sync_test(TestUserDataLoaderService, "test_user_data_loader_has_caching"))
+    )
 
     # WordValidator tests
-    print("\nWordValidator Service Tests:")
-    results.append(("WordValidator exists",
-                    *run_sync_test(TestWordValidatorService,
-                                   "test_word_validator_exists")))
-    results.append(("WordValidator validates words",
-                    *run_sync_test(TestWordValidatorService,
-                                   "test_word_validator_validates_vocabulary_words")))
-    results.append(("WordValidator detects interjections",
-                    *run_sync_test(TestWordValidatorService,
-                                   "test_word_validator_detects_interjections")))
-    results.append(("WordValidator supports multiple languages",
-                    *run_sync_test(TestWordValidatorService,
-                                   "test_word_validator_supports_multiple_languages")))
-    results.append(("WordValidator provides validation reasons",
-                    *run_sync_test(TestWordValidatorService,
-                                   "test_word_validator_provides_validation_reasons")))
+    results.append(("WordValidator exists", *run_sync_test(TestWordValidatorService, "test_word_validator_exists")))
+    results.append(
+        (
+            "WordValidator validates words",
+            *run_sync_test(TestWordValidatorService, "test_word_validator_validates_vocabulary_words"),
+        )
+    )
+    results.append(
+        (
+            "WordValidator detects interjections",
+            *run_sync_test(TestWordValidatorService, "test_word_validator_detects_interjections"),
+        )
+    )
+    results.append(
+        (
+            "WordValidator supports multiple languages",
+            *run_sync_test(TestWordValidatorService, "test_word_validator_supports_multiple_languages"),
+        )
+    )
+    results.append(
+        (
+            "WordValidator provides validation reasons",
+            *run_sync_test(TestWordValidatorService, "test_word_validator_provides_validation_reasons"),
+        )
+    )
 
     # WordFilter tests
-    print("\nWordFilter Service Tests:")
-    results.append(("WordFilter exists",
-                    *run_sync_test(TestWordFilterService,
-                                   "test_word_filter_exists")))
-    results.append(("WordFilter filters words",
-                    *run_sync_test(TestWordFilterService,
-                                   "test_word_filter_filters_words")))
-    results.append(("WordFilter checks user knowledge",
-                    *run_sync_test(TestWordFilterService,
-                                   "test_word_filter_checks_user_knowledge")))
-    results.append(("WordFilter has level comparison",
-                    *run_sync_test(TestWordFilterService,
-                                   "test_word_filter_has_level_comparison")))
+    results.append(("WordFilter exists", *run_sync_test(TestWordFilterService, "test_word_filter_exists")))
+    results.append(
+        ("WordFilter filters words", *run_sync_test(TestWordFilterService, "test_word_filter_filters_words"))
+    )
+    results.append(
+        (
+            "WordFilter checks user knowledge",
+            *run_sync_test(TestWordFilterService, "test_word_filter_checks_user_knowledge"),
+        )
+    )
+    results.append(
+        (
+            "WordFilter has level comparison",
+            *run_sync_test(TestWordFilterService, "test_word_filter_has_level_comparison"),
+        )
+    )
 
     # SubtitleProcessor tests
-    print("\nSubtitleProcessor Service Tests:")
-    results.append(("SubtitleProcessor exists",
-                    *run_sync_test(TestSubtitleProcessorService,
-                                   "test_subtitle_processor_exists")))
-    results.append(("SubtitleProcessor has dependencies",
-                    *run_sync_test(TestSubtitleProcessorService,
-                                   "test_subtitle_processor_has_dependencies")))
+    results.append(
+        ("SubtitleProcessor exists", *run_sync_test(TestSubtitleProcessorService, "test_subtitle_processor_exists"))
+    )
+    results.append(
+        (
+            "SubtitleProcessor has dependencies",
+            *run_sync_test(TestSubtitleProcessorService, "test_subtitle_processor_has_dependencies"),
+        )
+    )
 
     # SRTFileHandler tests
-    print("\nSRTFileHandler Service Tests:")
-    results.append(("SRTFileHandler exists",
-                    *run_sync_test(TestSRTFileHandlerService,
-                                   "test_srt_file_handler_exists")))
-    results.append(("SRTFileHandler extracts words",
-                    *run_sync_test(TestSRTFileHandlerService,
-                                   "test_srt_file_handler_extracts_words")))
-    results.append(("SRTFileHandler formats results",
-                    *run_sync_test(TestSRTFileHandlerService,
-                                   "test_srt_file_handler_formats_results")))
+    results.append(("SRTFileHandler exists", *run_sync_test(TestSRTFileHandlerService, "test_srt_file_handler_exists")))
+    results.append(
+        (
+            "SRTFileHandler extracts words",
+            *run_sync_test(TestSRTFileHandlerService, "test_srt_file_handler_extracts_words"),
+        )
+    )
+    results.append(
+        (
+            "SRTFileHandler formats results",
+            *run_sync_test(TestSRTFileHandlerService, "test_srt_file_handler_formats_results"),
+        )
+    )
 
     # Singleton tests
-    print("\nService Singleton Tests:")
-    results.append(("All singletons exist",
-                    *run_sync_test(TestServiceSingletons,
-                                   "test_all_singletons_exist")))
-    results.append(("Singletons are correct instances",
-                    *run_sync_test(TestServiceSingletons,
-                                   "test_singletons_are_service_instances")))
+    results.append(("All singletons exist", *run_sync_test(TestServiceSingletons, "test_all_singletons_exist")))
+    results.append(
+        (
+            "Singletons are correct instances",
+            *run_sync_test(TestServiceSingletons, "test_singletons_are_service_instances"),
+        )
+    )
 
     # Summary
-    print("\n" + "=" * 70)
-    print("TEST SUMMARY")
-    print("=" * 70)
 
     passed = sum(1 for _, success, _ in results if success)
     total = len(results)
 
-    for test_name, success, error in results:
-        status = "[PASS]" if success else "[FAIL]"
-        print(f"{status} {test_name}")
+    for _test_name, success, error in results:
         if error and not success:
-            print(f"       Error: {error}")
-
-    print(f"\nTotal: {passed}/{total} tests passed ({int(passed/total*100)}%)")
+            pass
 
     if passed == total:
-        print("\n[SUCCESS] All architecture tests passed!")
         return 0
     else:
-        print(f"\n[WARNING] {total - passed} test(s) failed")
         return 1
 
 

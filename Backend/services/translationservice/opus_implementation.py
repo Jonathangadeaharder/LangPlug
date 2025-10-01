@@ -4,8 +4,9 @@ Helsinki-NLP's OPUS-MT models for fast, efficient translation
 """
 
 import logging
+
 import torch
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
 
 from .interface import ITranslationService, TranslationResult
 
@@ -19,10 +20,7 @@ class OpusTranslationService(ITranslationService):
     """
 
     def __init__(
-        self,
-        model_name: str = "Helsinki-NLP/opus-mt-de-en",
-        max_length: int = 512,
-        device: str | None = None
+        self, model_name: str = "Helsinki-NLP/opus-mt-de-en", max_length: int = 512, device: str | None = None
     ):
         """
         Initialize OPUS-MT translation service
@@ -70,17 +68,12 @@ class OpusTranslationService(ITranslationService):
                 model=self._model,
                 tokenizer=self._tokenizer,
                 device=0 if self.device == "cuda" else -1,
-                max_length=self.max_length
+                max_length=self.max_length,
             )
 
             logger.info(f"OPUS-MT model loaded: {self.model_name}")
 
-    def translate(
-        self,
-        text: str,
-        source_lang: str,
-        target_lang: str
-    ) -> TranslationResult:
+    def translate(self, text: str, source_lang: str, target_lang: str) -> TranslationResult:
         """Translate a single text"""
         if not self.is_initialized:
             self.initialize()
@@ -93,18 +86,10 @@ class OpusTranslationService(ITranslationService):
             translated_text=result[0]["translation_text"],
             source_language=source_lang,
             target_language=target_lang,
-            metadata={
-                "model": self.model_name,
-                "service": "OPUS-MT"
-            }
+            metadata={"model": self.model_name, "service": "OPUS-MT"},
         )
 
-    def translate_batch(
-        self,
-        texts: list[str],
-        source_lang: str,
-        target_lang: str
-    ) -> list[TranslationResult]:
+    def translate_batch(self, texts: list[str], source_lang: str, target_lang: str) -> list[TranslationResult]:
         """Translate multiple texts in batch"""
         if not self.is_initialized:
             self.initialize()
@@ -121,10 +106,7 @@ class OpusTranslationService(ITranslationService):
                     translated_text=result["translation_text"],
                     source_language=source_lang,
                     target_language=target_lang,
-                    metadata={
-                        "model": self.model_name,
-                        "service": "OPUS-MT"
-                    }
+                    metadata={"model": self.model_name, "service": "OPUS-MT"},
                 )
             )
 

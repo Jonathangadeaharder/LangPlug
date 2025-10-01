@@ -1,6 +1,7 @@
 """Database configuration with SQLAlchemy's built-in connection pooling"""
-from collections.abc import AsyncGenerator
+
 import logging
+from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
@@ -10,9 +11,11 @@ from core.config import settings
 
 logger = logging.getLogger(__name__)
 
+
 # Unified database base class for all models
 class Base(DeclarativeBase):
     """Unified base class for all SQLAlchemy models"""
+
     pass
 
 
@@ -79,17 +82,16 @@ async def init_db():
 
 async def create_default_admin_user():
     """Create default admin user with credentials admin/admin"""
-    from core.auth import User
-    from sqlalchemy import select
     from passlib.context import CryptContext
+    from sqlalchemy import select
+
+    from core.auth import User
 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     async with AsyncSessionLocal() as session:
         # Check if admin user already exists
-        result = await session.execute(
-            select(User).where(User.username == "admin")
-        )
+        result = await session.execute(select(User).where(User.username == "admin"))
         existing_admin = result.scalar_one_or_none()
 
         if not existing_admin:
@@ -101,7 +103,7 @@ async def create_default_admin_user():
                 hashed_password=hashed_password,
                 is_active=True,
                 is_superuser=True,
-                is_verified=True
+                is_verified=True,
             )
             session.add(admin_user)
             await session.commit()

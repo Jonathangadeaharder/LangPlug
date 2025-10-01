@@ -1,4 +1,5 @@
 """Structured logging configuration using structlog"""
+
 import logging
 import sys
 from typing import Any
@@ -21,9 +22,7 @@ def configure_logging():
     # Configure standard library logging
     logs_path = settings.get_logs_path()
     log_file = logs_path / "backend.log"
-    log_handlers: list[logging.Handler] = [
-        logging.FileHandler(log_file, encoding="utf-8")
-    ]
+    log_handlers: list[logging.Handler] = [logging.FileHandler(log_file, encoding="utf-8")]
 
     # Always show startup progress and errors on console
     console_handler = logging.StreamHandler(sys.stderr)
@@ -89,70 +88,53 @@ class JSONFormatter(logging.Formatter):
         # Add any extra attributes
         for key, value in record.__dict__.items():
             if key not in {
-                'name', 'msg', 'args', 'levelname', 'levelno', 'pathname',
-                'filename', 'module', 'lineno', 'funcName', 'created',
-                'msecs', 'relativeCreated', 'thread', 'threadName',
-                'processName', 'process', 'getMessage', 'exc_info',
-                'exc_text', 'stack_info'
+                "name",
+                "msg",
+                "args",
+                "levelname",
+                "levelno",
+                "pathname",
+                "filename",
+                "module",
+                "lineno",
+                "funcName",
+                "created",
+                "msecs",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "processName",
+                "process",
+                "getMessage",
+                "exc_info",
+                "exc_text",
+                "stack_info",
             }:
                 log_data[key] = value
 
         import json
+
         return json.dumps(log_data)
 
 
-def log_auth_event(
-    logger: structlog.stdlib.BoundLogger,
-    event_type: str,
-    user_id: str,
-    success: bool,
-    **kwargs
-):
+def log_auth_event(logger: structlog.stdlib.BoundLogger, event_type: str, user_id: str, success: bool, **kwargs):
     """Log authentication events with structured data"""
-    logger.info(
-        "Authentication event",
-        event_type=event_type,
-        user_id=user_id,
-        success=success,
-        **kwargs
-    )
+    logger.info("Authentication event", event_type=event_type, user_id=user_id, success=success, **kwargs)
 
 
 def log_user_action(
-    logger: structlog.stdlib.BoundLogger,
-    user_id: str,
-    action: str,
-    resource: str,
-    success: bool,
-    **kwargs
+    logger: structlog.stdlib.BoundLogger, user_id: str, action: str, resource: str, success: bool, **kwargs
 ):
     """Log user actions with structured data"""
-    logger.info(
-        "User action",
-        user_id=user_id,
-        action=action,
-        resource=resource,
-        success=success,
-        **kwargs
-    )
+    logger.info("User action", user_id=user_id, action=action, resource=resource, success=success, **kwargs)
 
 
 def log_database_operation(
-    logger: structlog.stdlib.BoundLogger,
-    operation: str,
-    table: str,
-    duration_ms: float,
-    success: bool,
-    **kwargs
+    logger: structlog.stdlib.BoundLogger, operation: str, table: str, duration_ms: float, success: bool, **kwargs
 ):
     """Log database operations with structured data"""
     logger.info(
-        "Database operation",
-        operation=operation,
-        table=table,
-        duration_ms=duration_ms,
-        success=success,
-        **kwargs
+        "Database operation", operation=operation, table=table, duration_ms=duration_ms, success=success, **kwargs
     )
 
 
@@ -162,8 +144,8 @@ def log_filter_operation(
     words_processed: int,
     words_filtered: int,
     duration_ms: float,
-    user_id: str = None,
-    **kwargs
+    user_id: str | None = None,
+    **kwargs,
 ):
     """Log filter operations with structured data"""
     logger.info(
@@ -173,16 +155,11 @@ def log_filter_operation(
         words_filtered=words_filtered,
         duration_ms=duration_ms,
         user_id=user_id,
-        **kwargs
+        **kwargs,
     )
 
 
-def log_error(
-    logger: structlog.stdlib.BoundLogger,
-    error: Exception,
-    context: dict[str, Any] = None,
-    **kwargs
-):
+def log_error(logger: structlog.stdlib.BoundLogger, error: Exception, context: dict[str, Any] | None = None, **kwargs):
     """Log errors with structured data and context"""
     logger.error(
         "Error occurred",
@@ -190,5 +167,5 @@ def log_error(
         error_message=str(error),
         context=context or {},
         **kwargs,
-        exc_info=True
+        exc_info=True,
     )

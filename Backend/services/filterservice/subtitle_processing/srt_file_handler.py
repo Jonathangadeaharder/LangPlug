@@ -8,6 +8,7 @@ import re
 from typing import Any
 
 from utils.srt_parser import SRTParser
+
 from ..interface import FilteredSubtitle, FilteredWord, FilteringResult, WordStatus
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ class SRTFileHandler:
     """Service for handling SRT file operations"""
 
     def __init__(self):
-        self._word_pattern = re.compile(r'\b\w+\b')
+        self._word_pattern = re.compile(r"\b\w+\b")
 
     async def parse_srt_file(self, srt_file_path: str) -> list[FilteredSubtitle]:
         """
@@ -38,26 +39,16 @@ class SRTFileHandler:
         # Convert to FilteredSubtitle objects
         filtered_subtitles = []
         for segment in srt_segments:
-            words = self.extract_words_from_text(
-                segment.text, segment.start_time, segment.end_time
-            )
+            words = self.extract_words_from_text(segment.text, segment.start_time, segment.end_time)
 
             filtered_subtitle = FilteredSubtitle(
-                original_text=segment.text,
-                start_time=segment.start_time,
-                end_time=segment.end_time,
-                words=words
+                original_text=segment.text, start_time=segment.start_time, end_time=segment.end_time, words=words
             )
             filtered_subtitles.append(filtered_subtitle)
 
         return filtered_subtitles
 
-    def extract_words_from_text(
-        self,
-        text: str,
-        start_time: float,
-        end_time: float
-    ) -> list[FilteredWord]:
+    def extract_words_from_text(self, text: str, start_time: float, end_time: float) -> list[FilteredWord]:
         """
         Extract words from subtitle text and create FilteredWord objects
 
@@ -88,17 +79,13 @@ class SRTFileHandler:
                 status=WordStatus.ACTIVE,
                 filter_reason=None,
                 confidence=None,
-                metadata={}
+                metadata={},
             )
             words.append(filtered_word)
 
         return words
 
-    def format_processing_result(
-        self,
-        filtering_result: FilteringResult,
-        srt_file_path: str
-    ) -> dict[str, Any]:
+    def format_processing_result(self, filtering_result: FilteringResult, srt_file_path: str) -> dict[str, Any]:
         """
         Format FilteringResult into expected output format
 
@@ -120,7 +107,7 @@ class SRTFileHandler:
                 lemma=word.metadata.get("lemma", word.text.lower()),
                 translation="",
                 difficulty_level=word.metadata.get("difficulty_level", "C2"),
-                known=False
+                known=False,
             )
             blocking_words.append(vocab_word)
 
@@ -129,19 +116,14 @@ class SRTFileHandler:
             "learning_subtitles": filtering_result.learning_subtitles,
             "empty_subtitles": filtering_result.empty_subtitles,
             "filtered_subtitles": (
-                filtering_result.learning_subtitles +
-                [FilteredSubtitle(
-                    original_text="",
-                    start_time=0,
-                    end_time=0,
-                    words=[w]
-                ) for w in filtering_result.blocker_words] +
-                filtering_result.empty_subtitles
+                filtering_result.learning_subtitles
+                + [
+                    FilteredSubtitle(original_text="", start_time=0, end_time=0, words=[w])
+                    for w in filtering_result.blocker_words
+                ]
+                + filtering_result.empty_subtitles
             ),
-            "statistics": {
-                **filtering_result.statistics,
-                "file_processed": srt_file_path
-            }
+            "statistics": {**filtering_result.statistics, "file_processed": srt_file_path},
         }
 
 

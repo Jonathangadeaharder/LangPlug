@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 class ApiVersion(str, Enum):
     """Supported API versions."""
+
     V1_0 = "1.0"
     V1_1 = "1.1"
     V2_0 = "2.0"
@@ -18,6 +19,7 @@ class ApiVersion(str, Enum):
 
 class VersioningStrategy(str, Enum):
     """API versioning strategies."""
+
     HEADER = "header"
     URL_PATH = "url_path"
     QUERY_PARAM = "query_param"
@@ -25,6 +27,7 @@ class VersioningStrategy(str, Enum):
 
 class VersionInfo(BaseModel):
     """Version information model."""
+
     version: str
     deprecated: bool = False
     sunset_date: str | None = None
@@ -38,14 +41,10 @@ class ApiVersionManager:
     def __init__(self):
         self.versions: dict[str, VersionInfo] = {
             ApiVersion.V1_0: VersionInfo(
-                version="1.0",
-                description="Initial API version with basic auth and video features",
-                deprecated=False
+                version="1.0", description="Initial API version with basic auth and video features", deprecated=False
             ),
             ApiVersion.V1_1: VersionInfo(
-                version="1.1",
-                description="Enhanced API with improved error handling",
-                deprecated=False
+                version="1.1", description="Enhanced API with improved error handling", deprecated=False
             ),
             ApiVersion.V2_0: VersionInfo(
                 version="2.0",
@@ -54,9 +53,9 @@ class ApiVersionManager:
                 breaking_changes=[
                     "Changed authentication response format",
                     "Updated error response structure",
-                    "Modified user profile fields"
-                ]
-            )
+                    "Modified user profile fields",
+                ],
+            ),
         }
         self.default_version = ApiVersion.V1_0
         self.latest_version = ApiVersion.V2_0
@@ -91,10 +90,10 @@ class ApiVersionManager:
     def _normalize_version(self, version: str) -> str:
         """Normalize version string to standard format."""
         # Remove 'v' prefix if present
-        version = version.lstrip('v')
+        version = version.lstrip("v")
 
         # Ensure major.minor format
-        if '.' not in version:
+        if "." not in version:
             version = f"{version}.0"
 
         return version
@@ -136,8 +135,8 @@ def get_api_version(request: Request) -> str:
                 "error": "unsupported_api_version",
                 "message": f"API version '{version}' is not supported",
                 "supported_versions": version_manager.get_supported_versions(),
-                "latest_version": version_manager.get_latest_version()
-            }
+                "latest_version": version_manager.get_latest_version(),
+            },
         )
 
     return version
@@ -161,8 +160,8 @@ class VersionedRoute(APIRoute):
     """Custom route class that handles API versioning."""
 
     def __init__(self, *args, **kwargs):
-        self.min_version = kwargs.pop('min_version', ApiVersion.V1_0)
-        self.max_version = kwargs.pop('max_version', None)
+        self.min_version = kwargs.pop("min_version", ApiVersion.V1_0)
+        self.max_version = kwargs.pop("max_version", None)
         super().__init__(*args, **kwargs)
 
     def matches(self, scope: dict[str, Any]) -> tuple:
@@ -192,8 +191,8 @@ class VersionedRoute(APIRoute):
 
     def _compare_versions(self, v1: str, v2: str) -> int:
         """Compare two version strings. Returns -1, 0, or 1."""
-        v1_parts = [int(x) for x in v1.split('.')]
-        v2_parts = [int(x) for x in v2.split('.')]
+        v1_parts = [int(x) for x in v1.split(".")]
+        v2_parts = [int(x) for x in v2.split(".")]
 
         # Pad shorter version with zeros
         max_len = max(len(v1_parts), len(v2_parts))
@@ -211,10 +210,12 @@ class VersionedRoute(APIRoute):
 
 def versioned_endpoint(min_version: str = ApiVersion.V1_0, max_version: str | None = None):
     """Decorator for versioned endpoints."""
+
     def decorator(func):
         func._min_version = min_version
         func._max_version = max_version
         return func
+
     return decorator
 
 
@@ -234,16 +235,16 @@ def format_response_contract(response_data: dict[str, Any], version: str) -> dic
         return response_data
     elif version == ApiVersion.V1_1:
         # V1.1 format - enhanced error handling
-        if 'error' in response_data:
-            response_data['error_code'] = response_data.get('error', 'unknown_error')
+        if "error" in response_data:
+            response_data["error_code"] = response_data.get("error", "unknown_error")
         return response_data
     elif version == ApiVersion.V2_0:
         # V2.0 format - new structure
-        if 'user' in response_data:
-            user_data = response_data['user']
+        if "user" in response_data:
+            user_data = response_data["user"]
             # Transform user data for v2.0
-            if 'created_at' in user_data:
-                user_data['created_timestamp'] = user_data['created_at']
+            if "created_at" in user_data:
+                user_data["created_timestamp"] = user_data["created_at"]
         return response_data
 
     return response_data

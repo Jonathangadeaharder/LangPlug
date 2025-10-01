@@ -24,7 +24,6 @@ class TranslationServiceFactory:
         "nllb-3.3b": "services.translationservice.nllb_implementation.NLLBTranslationService",
         "nllb-54b": "services.translationservice.nllb_implementation.NLLBTranslationService",
         "nllb-distilled-600m": "services.translationservice.nllb_implementation.NLLBTranslationService",
-
         # OPUS-MT models - fast and efficient for specific language pairs
         "opus": "services.translationservice.opus_implementation.OpusTranslationService",
         "opus-de-en": "services.translationservice.opus_implementation.OpusTranslationService",
@@ -41,7 +40,6 @@ class TranslationServiceFactory:
         "nllb-3.3b": {"model_name": "facebook/nllb-200-3.3B"},
         "nllb-54b": {"model_name": "facebook/nllb-moe-54b"},
         "nllb-distilled-600m": {"model_name": "facebook/nllb-200-distilled-600M"},
-
         # OPUS-MT configurations
         "opus": {"model_name": "Helsinki-NLP/opus-mt-de-en"},  # Fast default
         "opus-de-en": {"model_name": "Helsinki-NLP/opus-mt-de-en"},
@@ -53,14 +51,10 @@ class TranslationServiceFactory:
     _instances: dict[str, ITranslationService] = {}
 
     @classmethod
-    def register_service(
-        cls,
-        name: str,
-        service_class: type[ITranslationService]
-    ) -> None:
+    def register_service(cls, name: str, service_class: type[ITranslationService]) -> None:
         """
         Register a new translation service
-        
+
         Args:
             name: Name to register the service under
             service_class: Class implementing ITranslationService
@@ -71,21 +65,17 @@ class TranslationServiceFactory:
         cls._services[name.lower()] = service_class
 
     @classmethod
-    def create_service(
-        cls,
-        service_name: str = "nllb",
-        **kwargs
-    ) -> ITranslationService:
+    def create_service(cls, service_name: str = "nllb", **kwargs) -> ITranslationService:
         """
         Create a translation service instance
-        
+
         Args:
             service_name: Name of the service to create
             **kwargs: Additional arguments to pass to the service constructor
-            
+
         Returns:
             Instance of the requested translation service
-            
+
         Raises:
             ValueError: If service_name is not registered
         """
@@ -93,10 +83,7 @@ class TranslationServiceFactory:
 
         if service_name not in cls._services:
             available = ", ".join(cls._services.keys())
-            raise ValueError(
-                f"Unknown translation service: {service_name}. "
-                f"Available services: {available}"
-            )
+            raise ValueError(f"Unknown translation service: {service_name}. Available services: {available}")
 
         # Resolve class lazily if necessary
         cls_or_path = cls._services[service_name]
@@ -116,14 +103,18 @@ class TranslationServiceFactory:
         else:
             config = kwargs
 
+        # Filter out parameters that are not constructor arguments
+        # source_lang and target_lang are used at translation time, not init time
+        filtered_config = {k: v for k, v in config.items() if k not in ("source_lang", "target_lang", "quality")}
+
         # Check if we already have an instance
-        cache_key = f"{service_name}_{config!s}"
+        cache_key = f"{service_name}_{filtered_config!s}"
         if cache_key in cls._instances:
             return cls._instances[cache_key]
 
         # Create new instance
         service_class = cls._services[service_name]
-        instance = service_class(**config)
+        instance = service_class(**filtered_config)
 
         # Cache the instance
         cls._instances[cache_key] = instance
@@ -146,12 +137,11 @@ class TranslationServiceFactory:
             "nllb-3.3b": "NLLB-200 3.3B - High quality, slow",
             "nllb-54b": "NLLB-MoE 54B - Highest quality, very slow",
             "nllb-distilled-600m": "NLLB-200 Distilled 600M - Fast inference",
-
             # OPUS-MT models - language-pair specific, fast
             "opus": "OPUS-MT DE-EN - Fast, efficient",
             "opus-de-en": "OPUS-MT DE-EN - Fast German to English",
             "opus-de-es": "OPUS-MT DE-ES - Fast German to Spanish (testing)",
-            "opus-de-es-big": "OPUS-MT DE-ES Big - High quality German to Spanish (production)"
+            "opus-de-es-big": "OPUS-MT DE-ES Big - High quality German to Spanish (production)",
         }
 
     @classmethod
@@ -164,17 +154,14 @@ class TranslationServiceFactory:
 
 
 # Convenience function for quick service creation
-def get_translation_service(
-    name: str = "nllb",
-    **kwargs
-) -> ITranslationService:
+def get_translation_service(name: str = "nllb", **kwargs) -> ITranslationService:
     """
     Get a translation service instance
-    
+
     Args:
         name: Name of the service
         **kwargs: Service-specific configuration
-        
+
     Returns:
         Translation service instance
     """

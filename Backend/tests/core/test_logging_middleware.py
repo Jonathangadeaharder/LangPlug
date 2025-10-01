@@ -1,13 +1,15 @@
 """
 Unit tests for LoggingMiddleware to ensure header is added and no body consumption.
 """
+
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+
+import httpx
 import pytest
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-import httpx
-from contextlib import asynccontextmanager
 
 from core.middleware import LoggingMiddleware
 
@@ -20,6 +22,7 @@ async def test_Whenlogging_middleware_adds_headerCalled_ThenSucceeds():
     @asynccontextmanager
     async def no_lifespan(_app):
         yield
+
     app.router.lifespan_context = no_lifespan
 
     app.add_middleware(LoggingMiddleware)

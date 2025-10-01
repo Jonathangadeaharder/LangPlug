@@ -11,15 +11,17 @@ from typing import Any
 
 class WordStatus(Enum):
     """Status of a word during filtering"""
-    ACTIVE = "active"           # Word should be shown/learned
-    FILTERED_INVALID = "invalid" # Not proper vocabulary (oh, ah, names)
-    FILTERED_KNOWN = "known"     # User already knows this word
-    FILTERED_OTHER = "other"     # Other filtering reasons
+
+    ACTIVE = "active"  # Word should be shown/learned
+    FILTERED_INVALID = "invalid"  # Not proper vocabulary (oh, ah, names)
+    FILTERED_KNOWN = "known"  # User already knows this word
+    FILTERED_OTHER = "other"  # Other filtering reasons
 
 
 @dataclass
 class FilteredWord:
     """A word with its filtering status"""
+
     text: str
     start_time: float
     end_time: float
@@ -32,6 +34,7 @@ class FilteredWord:
 @dataclass
 class FilteredSubtitle:
     """A subtitle with filtered words"""
+
     original_text: str
     start_time: float
     end_time: float
@@ -66,9 +69,10 @@ class FilteredSubtitle:
 @dataclass
 class FilteringResult:
     """Result of subtitle filtering process"""
+
     learning_subtitles: list[FilteredSubtitle]  # Subtitles with 2+ active words
-    blocker_words: list[FilteredWord]           # Single words that block learning
-    empty_subtitles: list[FilteredSubtitle]     # Completely filtered subtitles
+    blocker_words: list[FilteredWord]  # Single words that block learning
+    empty_subtitles: list[FilteredSubtitle]  # Completely filtered subtitles
     statistics: dict[str, Any] = field(default_factory=dict)
 
 
@@ -82,10 +86,10 @@ class ISubtitleFilter(ABC):
     def filter(self, subtitles: list[FilteredSubtitle]) -> list[FilteredSubtitle]:
         """
         Apply this filter to the subtitles
-        
+
         Args:
             subtitles: List of subtitles to filter
-            
+
         Returns:
             Processed subtitles (may modify word statuses)
         """
@@ -112,16 +116,16 @@ class IUserVocabularyService(ABC):
     def is_word_known(self, session_token: str, user_id: str, word: str, language: str = "en") -> bool:
         """
         Check if user knows a specific word
-        
+
         Args:
             session_token: Authentication session token
             user_id: User identifier
             word: Word to check
             language: Language code
-            
+
         Returns:
             True if user knows the word
-            
+
         Raises:
             AuthenticationError: If session is invalid or user lacks permission
         """
@@ -131,15 +135,15 @@ class IUserVocabularyService(ABC):
     def get_known_words(self, session_token: str, user_id: str, language: str = "en") -> set[str]:
         """
         Get all words known by user
-        
+
         Args:
             session_token: Authentication session token
             user_id: User identifier
             language: Language code
-            
+
         Returns:
             Set of known words
-            
+
         Raises:
             AuthenticationError: If session is invalid or user lacks permission
         """
@@ -149,16 +153,16 @@ class IUserVocabularyService(ABC):
     def mark_word_learned(self, session_token: str, user_id: str, word: str, language: str = "en") -> bool:
         """
         Mark word as learned by user
-        
+
         Args:
             session_token: Authentication session token
             user_id: User identifier
             word: Word to mark as learned
             language: Language code
-            
+
         Returns:
             Success status
-            
+
         Raises:
             AuthenticationError: If session is invalid or user lacks permission
         """
@@ -168,14 +172,14 @@ class IUserVocabularyService(ABC):
     def get_learning_level(self, session_token: str, user_id: str) -> str:
         """
         Get user's current learning level (A1, A2, B1, etc.)
-        
+
         Args:
             session_token: Authentication session token
             user_id: User identifier
-            
+
         Returns:
             Learning level code
-            
+
         Raises:
             AuthenticationError: If session is invalid or user lacks permission
         """
@@ -186,10 +190,10 @@ class IUserVocabularyService(ABC):
 def create_filtered_subtitle_from_segment(segment) -> FilteredSubtitle:
     """
     Create FilteredSubtitle from transcription segment
-    
+
     Args:
         segment: Transcription segment with start_time, end_time, text
-        
+
     Returns:
         FilteredSubtitle with words marked as ACTIVE initially
     """
@@ -205,16 +209,10 @@ def create_filtered_subtitle_from_segment(segment) -> FilteredSubtitle:
         word_start = segment.start_time + (i * word_duration)
         word_end = word_start + word_duration
 
-        filtered_words.append(FilteredWord(
-            text=clean_word,
-            start_time=word_start,
-            end_time=word_end,
-            status=WordStatus.ACTIVE
-        ))
+        filtered_words.append(
+            FilteredWord(text=clean_word, start_time=word_start, end_time=word_end, status=WordStatus.ACTIVE)
+        )
 
     return FilteredSubtitle(
-        original_text=segment.text,
-        start_time=segment.start_time,
-        end_time=segment.end_time,
-        words=filtered_words
+        original_text=segment.text, start_time=segment.start_time, end_time=segment.end_time, words=filtered_words
     )

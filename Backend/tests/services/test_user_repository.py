@@ -1,10 +1,11 @@
 """Targeted behavior tests for `UserRepository`."""
+
 from __future__ import annotations
 
+import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
-import uuid
 
 import pytest
 
@@ -54,7 +55,7 @@ def user_data() -> dict[str, str]:
 async def test_Whenfind_by_usernameCalled_ThenReturnsuser(repository, session_double, user_data):
     """Happy path: repository maps DB rows into the domain model."""
     expected_user = User(**user_data)
-    
+
     # Create a mock result that behaves like SQLAlchemy result
     result_mock = MagicMock()
     result_mock.scalar_one_or_none.return_value = expected_user
@@ -68,7 +69,7 @@ async def test_Whenfind_by_usernameCalled_ThenReturnsuser(repository, session_do
 
 
 @pytest.mark.timeout(30)
-@pytest.mark.asyncio 
+@pytest.mark.asyncio
 async def test_Whenfind_by_username_missingCalled_ThenReturnsnone(repository, session_double):
     """Invalid input: missing row returns `None` without raising."""
     result_mock = MagicMock()
@@ -84,7 +85,7 @@ def test_Whenupdate_language_preferenceCalled_ThenUpdatesrow(repository):
     """Happy/boundary: language update returns True when rows were affected."""
     # This method returns True for the simplified implementation
     assert repository.update_language_preference(1, "en", "es") is True
-    
+
     # For the test expectation, let's expect False when no changes would occur
     # But the current implementation always returns True
     # So we'll test the actual behavior
@@ -100,7 +101,7 @@ async def test_Whenemail_exists_checks_with_optional_exclusionCalled_ThenSucceed
     result_mock = MagicMock()
     result_mock.scalar_one_or_none.return_value = existing_user
     session_double.execute.return_value = result_mock
-    
+
     result = await repository.email_exists("tester@example.com")
     assert result is True
 

@@ -9,16 +9,18 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Optional
 
-# Sub-services
-from services.logging.log_formatter import log_formatter_service, StructuredLogFormatter
-from services.logging.log_handlers import log_handler_service
 from services.logging.domain_logger import DomainLoggerService
-from services.logging.log_manager import LogManagerService
 from services.logging.log_config_manager import LogConfigManagerService
+
+# Sub-services
+from services.logging.log_formatter import log_formatter_service
+from services.logging.log_handlers import log_handler_service
+from services.logging.log_manager import LogManagerService
 
 
 class LogLevel(Enum):
     """Log level enumeration"""
+
     DEBUG = logging.DEBUG
     INFO = logging.INFO
     WARNING = logging.WARNING
@@ -28,6 +30,7 @@ class LogLevel(Enum):
 
 class LogFormat(Enum):
     """Log format enumeration"""
+
     SIMPLE = "simple"
     DETAILED = "detailed"
     JSON = "json"
@@ -37,6 +40,7 @@ class LogFormat(Enum):
 @dataclass
 class LogConfig:
     """Configuration for logging service"""
+
     # Basic settings
     level: LogLevel = LogLevel.INFO
     format_type: LogFormat = LogFormat.DETAILED
@@ -67,23 +71,25 @@ class LogConfig:
 @dataclass
 class LogContext:
     """Context information for structured logging"""
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    request_id: Optional[str] = None
-    correlation_id: Optional[str] = None
+
+    user_id: str | None = None
+    session_id: str | None = None
+    request_id: str | None = None
+    correlation_id: str | None = None
 
 
 @dataclass
 class LogRecord:
     """Custom log record for structured logging"""
+
     timestamp: Any
     level: str
     message: str
-    module: Optional[str] = None
-    function: Optional[str] = None
-    line: Optional[int] = None
-    context: Optional[LogContext] = None
-    extra_data: Optional[dict] = None
+    module: str | None = None
+    function: str | None = None
+    line: int | None = None
+    context: LogContext | None = None
+    extra_data: dict | None = None
 
 
 class LoggingService:
@@ -92,13 +98,14 @@ class LoggingService:
     Delegates to specialized sub-services following Single Responsibility Principle
     """
 
-    _instance: Optional['LoggingService'] = None
+    _instance: Optional["LoggingService"] = None
     _initialized: bool = False
 
     def __init__(self, config: LogConfig | None = None):
         # Allow direct instantiation during testing
         import sys
-        if 'pytest' not in sys.modules and LoggingService._initialized and LoggingService._instance:
+
+        if "pytest" not in sys.modules and LoggingService._initialized and LoggingService._instance:
             raise RuntimeError("LoggingService is a singleton. Use get_instance() instead.")
 
         self.config = config or LogConfig()
@@ -117,7 +124,7 @@ class LoggingService:
         LoggingService._initialized = True
 
     @classmethod
-    def get_instance(cls, config: LogConfig | None = None) -> 'LoggingService':
+    def get_instance(cls, config: LogConfig | None = None) -> "LoggingService":
         """Get singleton instance of logging service"""
         if not cls._instance:
             cls._instance = cls(config)
@@ -152,7 +159,7 @@ class LoggingService:
                 self.config.level.value,
                 formatter,
                 self.config.max_file_size_mb,
-                self.config.backup_count
+                self.config.backup_count,
             )
 
     def get_logger(self, name: str) -> logging.Logger:
@@ -177,24 +184,37 @@ class LoggingService:
         return self.log_manager.get_stats()
 
     # Domain-Specific Logging (delegate to domain_logger)
-    def log_authentication_event(self, event_type: str, user_id: str, success: bool,
-                                additional_info: dict[str, Any] | None = None):
+    def log_authentication_event(
+        self, event_type: str, user_id: str, success: bool, additional_info: dict[str, Any] | None = None
+    ):
         """Log authentication-related events"""
         self.domain_logger.log_authentication_event(event_type, user_id, success, additional_info)
 
-    def log_user_action(self, user_id: str, action: str, resource: str,
-                       success: bool, additional_info: dict[str, Any] | None = None):
+    def log_user_action(
+        self, user_id: str, action: str, resource: str, success: bool, additional_info: dict[str, Any] | None = None
+    ):
         """Log user actions for audit trails"""
         self.domain_logger.log_user_action(user_id, action, resource, success, additional_info)
 
-    def log_database_operation(self, operation: str, table: str, duration_ms: float,
-                              success: bool, additional_info: dict[str, Any] | None = None):
+    def log_database_operation(
+        self,
+        operation: str,
+        table: str,
+        duration_ms: float,
+        success: bool,
+        additional_info: dict[str, Any] | None = None,
+    ):
         """Log database operations for performance monitoring"""
         self.domain_logger.log_database_operation(operation, table, duration_ms, success, additional_info)
 
-    def log_filter_operation(self, filter_name: str, words_processed: int,
-                           words_filtered: int, duration_ms: float,
-                           user_id: str | None = None):
+    def log_filter_operation(
+        self,
+        filter_name: str,
+        words_processed: int,
+        words_filtered: int,
+        duration_ms: float,
+        user_id: str | None = None,
+    ):
         """Log filter operations for performance and effectiveness monitoring"""
         self.domain_logger.log_filter_operation(filter_name, words_processed, words_filtered, duration_ms, user_id)
 
@@ -207,7 +227,7 @@ class LoggingService:
         """Log a message with context information"""
         self.log_manager.log_with_context(message, level, context)
 
-    def log_error(self, message: str, exception: Exception = None):
+    def log_error(self, message: str, exception: Exception | None = None):
         """Log an error message with optional exception"""
         self.log_manager.log_error(message, exception)
 
@@ -215,7 +235,7 @@ class LoggingService:
         """Log errors with full context and stack traces"""
         self.log_manager.log_exception(logger_name, error, context)
 
-    def log_performance(self, operation: str, duration_ms: float, success: bool, metadata: dict = None):
+    def log_performance(self, operation: str, duration_ms: float, success: bool, metadata: dict | None = None):
         """Log performance metrics"""
         self.log_manager.log_performance(operation, duration_ms, success, metadata)
 
@@ -258,7 +278,9 @@ class LoggingService:
         self.flush_logs()
 
     # Internal methods delegated to sub-services
-    def _create_log_record(self, level: LogLevel, message: str, context: LogContext = None, extra_data: dict = None) -> LogRecord:
+    def _create_log_record(
+        self, level: LogLevel, message: str, context: LogContext = None, extra_data: dict | None = None
+    ) -> LogRecord:
         """Create a log record structure"""
         return self.log_manager._create_log_record(level, message, context, extra_data)
 

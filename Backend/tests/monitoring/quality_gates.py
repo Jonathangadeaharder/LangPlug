@@ -2,18 +2,18 @@
 Infrastructure Quality Gates System
 Enforces test quality standards and prevents degradation
 """
+
 import json
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
-import subprocess
 
 
 @dataclass
 class QualityThreshold:
     """Quality threshold configuration"""
+
     name: str
     current_value: float
     threshold_value: float
@@ -25,6 +25,7 @@ class QualityThreshold:
 @dataclass
 class QualityViolation:
     """Quality gate violation"""
+
     gate_name: str
     threshold: QualityThreshold
     current_value: float
@@ -36,198 +37,212 @@ class QualityViolation:
 class QualityGateChecker:
     """Automated quality gate enforcement system"""
 
-    def __init__(self, project_root: Path = None):
+    def __init__(self, project_root: Path | None = None):
         self.project_root = project_root or Path(__file__).parent.parent.parent
         self.reports_dir = Path(self.project_root) / "tests" / "reports"
 
         # Define quality gates with thresholds
         self.quality_gates = {
-            'minimum_coverage': QualityThreshold(
+            "minimum_coverage": QualityThreshold(
                 name="Minimum Test Coverage",
                 current_value=0.0,  # Will be updated dynamically
                 threshold_value=25.0,
-                direction='above',
-                severity='error',
-                message="Overall test coverage must be at least 25%"
+                direction="above",
+                severity="error",
+                message="Overall test coverage must be at least 25%",
             ),
-            'critical_service_coverage': QualityThreshold(
+            "critical_service_coverage": QualityThreshold(
                 name="Critical Service Coverage",
                 current_value=0.0,
                 threshold_value=30.0,
-                direction='above',
-                severity='warning',
-                message="Critical services should have at least 30% coverage"
+                direction="above",
+                severity="warning",
+                message="Critical services should have at least 30% coverage",
             ),
-            'test_success_rate': QualityThreshold(
+            "test_success_rate": QualityThreshold(
                 name="Test Success Rate",
                 current_value=0.0,
                 threshold_value=95.0,
-                direction='above',
-                severity='error',
-                message="Test success rate must be at least 95%"
+                direction="above",
+                severity="error",
+                message="Test success rate must be at least 95%",
             ),
-            'max_test_execution_time': QualityThreshold(
+            "max_test_execution_time": QualityThreshold(
                 name="Test Execution Performance",
                 current_value=0.0,
                 threshold_value=120.0,  # 2 minutes
-                direction='below',
-                severity='warning',
-                message="Test suite should complete within 2 minutes"
+                direction="below",
+                severity="warning",
+                message="Test suite should complete within 2 minutes",
             ),
-            'no_test_pollution': QualityThreshold(
+            "no_test_pollution": QualityThreshold(
                 name="Test Isolation",
                 current_value=0.0,  # 0 = clean, 1 = polluted
                 threshold_value=0.0,
-                direction='below',
-                severity='error',
-                message="No test pollution or mock isolation issues allowed"
+                direction="below",
+                severity="error",
+                message="No test pollution or mock isolation issues allowed",
             ),
-            'mock_isolation_compliance': QualityThreshold(
+            "mock_isolation_compliance": QualityThreshold(
                 name="Mock Isolation",
                 current_value=0.0,
                 threshold_value=0.0,
-                direction='below',
-                severity='error',
-                message="All tests must have proper mock isolation"
-            )
+                direction="below",
+                severity="error",
+                message="All tests must have proper mock isolation",
+            ),
         }
 
         # Critical services that must meet higher standards
-        self.critical_services = [
-            'AuthService', 'VideoService', 'UserVocabularyService'
-        ]
+        self.critical_services = ["AuthService", "VideoService", "UserVocabularyService"]
 
-    def check_coverage_gates(self) -> List[QualityViolation]:
+    def check_coverage_gates(self) -> list[QualityViolation]:
         """Check coverage-related quality gates"""
         violations = []
 
         # Load latest coverage report
         coverage_report = self._load_latest_coverage_report()
         if not coverage_report:
-            violations.append(QualityViolation(
-                gate_name="coverage_data",
-                threshold=self.quality_gates['minimum_coverage'],
-                current_value=0.0,
-                expected_value=25.0,
-                severity='error',
-                message="No coverage data available - tests may not be running"
-            ))
+            violations.append(
+                QualityViolation(
+                    gate_name="coverage_data",
+                    threshold=self.quality_gates["minimum_coverage"],
+                    current_value=0.0,
+                    expected_value=25.0,
+                    severity="error",
+                    message="No coverage data available - tests may not be running",
+                )
+            )
             return violations
 
         # Check overall coverage
-        total_coverage = coverage_report.get('total_coverage', 0.0)
-        min_coverage_gate = self.quality_gates['minimum_coverage']
+        total_coverage = coverage_report.get("total_coverage", 0.0)
+        min_coverage_gate = self.quality_gates["minimum_coverage"]
         min_coverage_gate.current_value = total_coverage
 
         if total_coverage < min_coverage_gate.threshold_value:
-            violations.append(QualityViolation(
-                gate_name="minimum_coverage",
-                threshold=min_coverage_gate,
-                current_value=total_coverage,
-                expected_value=min_coverage_gate.threshold_value,
-                severity=min_coverage_gate.severity,
-                message=f"Coverage {total_coverage:.1f}% is below minimum {min_coverage_gate.threshold_value}%"
-            ))
+            violations.append(
+                QualityViolation(
+                    gate_name="minimum_coverage",
+                    threshold=min_coverage_gate,
+                    current_value=total_coverage,
+                    expected_value=min_coverage_gate.threshold_value,
+                    severity=min_coverage_gate.severity,
+                    message=f"Coverage {total_coverage:.1f}% is below minimum {min_coverage_gate.threshold_value}%",
+                )
+            )
 
         # Check critical service coverage
-        service_coverage = coverage_report.get('service_coverage', [])
-        critical_gate = self.quality_gates['critical_service_coverage']
+        service_coverage = coverage_report.get("service_coverage", [])
+        critical_gate = self.quality_gates["critical_service_coverage"]
 
         for service in service_coverage:
-            if service['service_name'] in self.critical_services:
-                coverage_pct = service['coverage_percentage']
+            if service["service_name"] in self.critical_services:
+                coverage_pct = service["coverage_percentage"]
                 if coverage_pct < critical_gate.threshold_value:
-                    violations.append(QualityViolation(
-                        gate_name="critical_service_coverage",
-                        threshold=critical_gate,
-                        current_value=coverage_pct,
-                        expected_value=critical_gate.threshold_value,
-                        severity=critical_gate.severity,
-                        message=f"{service['service_name']} coverage {coverage_pct:.1f}% below critical threshold {critical_gate.threshold_value}%"
-                    ))
+                    violations.append(
+                        QualityViolation(
+                            gate_name="critical_service_coverage",
+                            threshold=critical_gate,
+                            current_value=coverage_pct,
+                            expected_value=critical_gate.threshold_value,
+                            severity=critical_gate.severity,
+                            message=f"{service['service_name']} coverage {coverage_pct:.1f}% below critical threshold {critical_gate.threshold_value}%",
+                        )
+                    )
 
         return violations
 
-    def check_health_gates(self) -> List[QualityViolation]:
+    def check_health_gates(self) -> list[QualityViolation]:
         """Check health-related quality gates"""
         violations = []
 
         # Load latest health metrics
         health_metrics = self._load_latest_health_metrics()
         if not health_metrics:
-            violations.append(QualityViolation(
-                gate_name="health_data",
-                threshold=self.quality_gates['test_success_rate'],
-                current_value=0.0,
-                expected_value=95.0,
-                severity='error',
-                message="No health metrics available - tests may not be running"
-            ))
+            violations.append(
+                QualityViolation(
+                    gate_name="health_data",
+                    threshold=self.quality_gates["test_success_rate"],
+                    current_value=0.0,
+                    expected_value=95.0,
+                    severity="error",
+                    message="No health metrics available - tests may not be running",
+                )
+            )
             return violations
 
         # Check test success rate
-        success_rate = health_metrics.get('success_rate', 0.0)
-        success_gate = self.quality_gates['test_success_rate']
+        success_rate = health_metrics.get("success_rate", 0.0)
+        success_gate = self.quality_gates["test_success_rate"]
         success_gate.current_value = success_rate
 
         if success_rate < success_gate.threshold_value:
-            violations.append(QualityViolation(
-                gate_name="test_success_rate",
-                threshold=success_gate,
-                current_value=success_rate,
-                expected_value=success_gate.threshold_value,
-                severity=success_gate.severity,
-                message=f"Test success rate {success_rate:.1f}% is below required {success_gate.threshold_value}%"
-            ))
+            violations.append(
+                QualityViolation(
+                    gate_name="test_success_rate",
+                    threshold=success_gate,
+                    current_value=success_rate,
+                    expected_value=success_gate.threshold_value,
+                    severity=success_gate.severity,
+                    message=f"Test success rate {success_rate:.1f}% is below required {success_gate.threshold_value}%",
+                )
+            )
 
         # Check test execution time
-        execution_time = health_metrics.get('total_duration', 0.0)
-        time_gate = self.quality_gates['max_test_execution_time']
+        execution_time = health_metrics.get("total_duration", 0.0)
+        time_gate = self.quality_gates["max_test_execution_time"]
         time_gate.current_value = execution_time
 
         if execution_time > time_gate.threshold_value:
-            violations.append(QualityViolation(
-                gate_name="max_test_execution_time",
-                threshold=time_gate,
-                current_value=execution_time,
-                expected_value=time_gate.threshold_value,
-                severity=time_gate.severity,
-                message=f"Test execution time {execution_time:.1f}s exceeds limit {time_gate.threshold_value}s"
-            ))
+            violations.append(
+                QualityViolation(
+                    gate_name="max_test_execution_time",
+                    threshold=time_gate,
+                    current_value=execution_time,
+                    expected_value=time_gate.threshold_value,
+                    severity=time_gate.severity,
+                    message=f"Test execution time {execution_time:.1f}s exceeds limit {time_gate.threshold_value}s",
+                )
+            )
 
         # Check for test pollution
-        pollution_detected = health_metrics.get('pollution_detected', False)
-        pollution_gate = self.quality_gates['no_test_pollution']
+        pollution_detected = health_metrics.get("pollution_detected", False)
+        pollution_gate = self.quality_gates["no_test_pollution"]
         pollution_gate.current_value = 1.0 if pollution_detected else 0.0
 
         if pollution_detected:
-            violations.append(QualityViolation(
-                gate_name="no_test_pollution",
-                threshold=pollution_gate,
-                current_value=1.0,
-                expected_value=0.0,
-                severity=pollution_gate.severity,
-                message="Test pollution detected - database state or mock leakage found"
-            ))
+            violations.append(
+                QualityViolation(
+                    gate_name="no_test_pollution",
+                    threshold=pollution_gate,
+                    current_value=1.0,
+                    expected_value=0.0,
+                    severity=pollution_gate.severity,
+                    message="Test pollution detected - database state or mock leakage found",
+                )
+            )
 
         # Check mock isolation issues
-        isolation_issues = health_metrics.get('mock_isolation_issues', [])
-        isolation_gate = self.quality_gates['mock_isolation_compliance']
+        isolation_issues = health_metrics.get("mock_isolation_issues", [])
+        isolation_gate = self.quality_gates["mock_isolation_compliance"]
         isolation_gate.current_value = len(isolation_issues)
 
         if isolation_issues:
-            violations.append(QualityViolation(
-                gate_name="mock_isolation_compliance",
-                threshold=isolation_gate,
-                current_value=len(isolation_issues),
-                expected_value=0.0,
-                severity=isolation_gate.severity,
-                message=f"Mock isolation issues detected: {', '.join(isolation_issues)}"
-            ))
+            violations.append(
+                QualityViolation(
+                    gate_name="mock_isolation_compliance",
+                    threshold=isolation_gate,
+                    current_value=len(isolation_issues),
+                    expected_value=0.0,
+                    severity=isolation_gate.severity,
+                    message=f"Mock isolation issues detected: {', '.join(isolation_issues)}",
+                )
+            )
 
         return violations
 
-    def check_regression_gates(self) -> List[QualityViolation]:
+    def check_regression_gates(self) -> list[QualityViolation]:
         """Check for quality regressions compared to previous runs"""
         violations = []
 
@@ -236,63 +251,65 @@ class QualityGateChecker:
         previous_coverage = self._load_previous_coverage_report()
 
         if current_coverage and previous_coverage:
-            current_total = current_coverage.get('total_coverage', 0.0)
-            previous_total = previous_coverage.get('total_coverage', 0.0)
+            current_total = current_coverage.get("total_coverage", 0.0)
+            previous_total = previous_coverage.get("total_coverage", 0.0)
 
             # Check for significant coverage regression (>5% drop)
             if current_total < previous_total - 5.0:
-                violations.append(QualityViolation(
-                    gate_name="coverage_regression",
-                    threshold=QualityThreshold(
-                        name="Coverage Regression",
+                violations.append(
+                    QualityViolation(
+                        gate_name="coverage_regression",
+                        threshold=QualityThreshold(
+                            name="Coverage Regression",
+                            current_value=current_total,
+                            threshold_value=previous_total - 5.0,
+                            direction="above",
+                            severity="warning",
+                            message="Coverage regression exceeds acceptable threshold",
+                        ),
                         current_value=current_total,
-                        threshold_value=previous_total - 5.0,
-                        direction='above',
-                        severity='warning',
-                        message="Coverage regression exceeds acceptable threshold"
-                    ),
-                    current_value=current_total,
-                    expected_value=previous_total - 5.0,
-                    severity='warning',
-                    message=f"Coverage dropped from {previous_total:.1f}% to {current_total:.1f}% (>{5.0}% regression)"
-                ))
+                        expected_value=previous_total - 5.0,
+                        severity="warning",
+                        message=f"Coverage dropped from {previous_total:.1f}% to {current_total:.1f}% (>{5.0}% regression)",
+                    )
+                )
 
         return violations
 
-    def _load_latest_coverage_report(self) -> Optional[Dict]:
+    def _load_latest_coverage_report(self) -> dict | None:
         """Load the most recent coverage report"""
         try:
             coverage_files = sorted(self.reports_dir.glob("coverage_snapshot_*.json"))
             if coverage_files:
-                with open(coverage_files[-1], 'r') as f:
+                with open(coverage_files[-1]) as f:
                     return json.load(f)
         except Exception as e:
             print(f"[WARN] Could not load coverage report: {e}")
         return None
 
-    def _load_previous_coverage_report(self) -> Optional[Dict]:
+    def _load_previous_coverage_report(self) -> dict | None:
         """Load the second most recent coverage report"""
         try:
             coverage_files = sorted(self.reports_dir.glob("coverage_snapshot_*.json"))
             if len(coverage_files) >= 2:
-                with open(coverage_files[-2], 'r') as f:
+                with open(coverage_files[-2]) as f:
                     return json.load(f)
         except Exception as e:
             print(f"[WARN] Could not load previous coverage report: {e}")
         return None
 
-    def _load_latest_health_metrics(self) -> Optional[Dict]:
+    def _load_latest_health_metrics(self) -> dict | None:
         """Load the most recent health metrics"""
         try:
             health_files = sorted(self.reports_dir.glob("health_metrics_*.json"))
             if health_files:
-                with open(health_files[-1], 'r') as f:
+                with open(health_files[-1]) as f:
                     return json.load(f)
         except Exception as e:
             print(f"[WARN] Could not load health metrics: {e}")
         return None
 
-    def run_all_gates(self) -> Tuple[List[QualityViolation], bool]:
+    def run_all_gates(self) -> tuple[list[QualityViolation], bool]:
         """Run all quality gates and return violations with overall pass/fail"""
         print("[INFO] Running quality gate checks...")
 
@@ -311,12 +328,12 @@ class QualityGateChecker:
         violations.extend(regression_violations)
 
         # Determine overall pass/fail
-        error_violations = [v for v in violations if v.severity == 'error']
+        error_violations = [v for v in violations if v.severity == "error"]
         gates_passed = len(error_violations) == 0
 
         return violations, gates_passed
 
-    def generate_gate_report(self, violations: List[QualityViolation], gates_passed: bool) -> str:
+    def generate_gate_report(self, violations: list[QualityViolation], gates_passed: bool) -> str:
         """Generate quality gate report"""
         status = "[PASSED]" if gates_passed else "[FAILED]"
         timestamp = datetime.now().isoformat()
@@ -328,8 +345,8 @@ Status: {status}
 ## Summary
 - **Overall Status**: {"PASSED" if gates_passed else "FAILED"}
 - **Total Violations**: {len(violations)}
-- **Error Violations**: {len([v for v in violations if v.severity == 'error'])}
-- **Warning Violations**: {len([v for v in violations if v.severity == 'warning'])}
+- **Error Violations**: {len([v for v in violations if v.severity == "error"])}
+- **Warning Violations**: {len([v for v in violations if v.severity == "warning"])}
 
 ## Gate Results
 """
@@ -351,8 +368,8 @@ Status: {status}
         if violations:
             report += "\n## Violation Details\n"
 
-            error_violations = [v for v in violations if v.severity == 'error']
-            warning_violations = [v for v in violations if v.severity == 'warning']
+            error_violations = [v for v in violations if v.severity == "error"]
+            warning_violations = [v for v in violations if v.severity == "warning"]
 
             if error_violations:
                 report += "\n### [ERROR] Critical Issues\n"
@@ -380,19 +397,19 @@ Status: {status}
         else:
             report += "\n## [BLOCKED] Quality Gates Failed\n"
             report += "The following issues must be resolved before proceeding:\n"
-            for violation in [v for v in violations if v.severity == 'error']:
+            for violation in [v for v in violations if v.severity == "error"]:
                 report += f"- {violation.message}\n"
 
         report += f"\n---\n*Report generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*"
 
         return report
 
-    def save_gate_report(self, violations: List[QualityViolation], gates_passed: bool) -> Path:
+    def save_gate_report(self, violations: list[QualityViolation], gates_passed: bool) -> Path:
         """Save quality gate report to disk"""
         report = self.generate_gate_report(violations, gates_passed)
         report_file = self.reports_dir / "quality_gates_report.md"
 
-        with open(report_file, 'w', encoding='utf-8') as f:
+        with open(report_file, "w", encoding="utf-8") as f:
             f.write(report)
 
         print(f"[INFO] Quality gate report saved: {report_file}")
@@ -410,14 +427,14 @@ def main():
     checker.save_gate_report(violations, gates_passed)
 
     # Print summary
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"QUALITY GATES: {'PASSED' if gates_passed else 'FAILED'}")
     print(f"Violations: {len(violations)} ({len([v for v in violations if v.severity == 'error'])} errors)")
 
     if violations:
         print("\nViolation Summary:")
         for violation in violations:
-            severity_indicator = "[ERROR]" if violation.severity == 'error' else "[WARN]"
+            severity_indicator = "[ERROR]" if violation.severity == "error" else "[WARN]"
             print(f"  {severity_indicator} {violation.gate_name}: {violation.message}")
 
     # Exit with appropriate code for CI/CD integration

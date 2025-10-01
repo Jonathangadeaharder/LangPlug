@@ -52,14 +52,11 @@ class NLLBTranslationService(ITranslationService):
     }
 
     def __init__(
-        self,
-        model_name: str = "facebook/nllb-200-distilled-600M",
-        device: str | None = None,
-        max_length: int = 512
+        self, model_name: str = "facebook/nllb-200-distilled-600M", device: str | None = None, max_length: int = 512
     ):
         """
         Initialize NLLB translation service
-        
+
         Args:
             model_name: HuggingFace model name
             device: Device to use ('cuda', 'cpu', or None for auto)
@@ -89,7 +86,7 @@ class NLLBTranslationService(ITranslationService):
             self._model = AutoModelForSeq2SeqLM.from_pretrained(
                 self.model_name,
                 torch_dtype=torch.float16 if self.device_str == "cuda" else torch.float32,
-                low_cpu_mem_usage=True
+                low_cpu_mem_usage=True,
             )
 
             # Create pipeline
@@ -98,17 +95,12 @@ class NLLBTranslationService(ITranslationService):
                 model=self._model,
                 tokenizer=self._tokenizer,
                 device=self.device,
-                max_length=self.max_length
+                max_length=self.max_length,
             )
 
             logger.info(f"NLLB model loaded on {self.device_str}")
 
-    def translate(
-        self,
-        text: str,
-        source_lang: str,
-        target_lang: str
-    ) -> TranslationResult:
+    def translate(self, text: str, source_lang: str, target_lang: str) -> TranslationResult:
         """Translate a single text"""
         if not self.is_initialized:
             self.initialize()
@@ -118,29 +110,17 @@ class NLLBTranslationService(ITranslationService):
         tgt_lang = self.LANGUAGE_CODES.get(target_lang, target_lang)
 
         # Perform translation
-        result = self._translator(
-            text,
-            src_lang=src_lang,
-            tgt_lang=tgt_lang
-        )
+        result = self._translator(text, src_lang=src_lang, tgt_lang=tgt_lang)
 
         return TranslationResult(
             original_text=text,
             translated_text=result[0]["translation_text"],
             source_language=source_lang,
             target_language=target_lang,
-            metadata={
-                "model": self.model_name,
-                "device": self.device_str
-            }
+            metadata={"model": self.model_name, "device": self.device_str},
         )
 
-    def translate_batch(
-        self,
-        texts: list[str],
-        source_lang: str,
-        target_lang: str
-    ) -> list[TranslationResult]:
+    def translate_batch(self, texts: list[str], source_lang: str, target_lang: str) -> list[TranslationResult]:
         """Translate multiple texts in batch"""
         if not self.is_initialized:
             self.initialize()
@@ -150,11 +130,7 @@ class NLLBTranslationService(ITranslationService):
         tgt_lang = self.LANGUAGE_CODES.get(target_lang, target_lang)
 
         # Perform batch translation
-        results = self._translator(
-            texts,
-            src_lang=src_lang,
-            tgt_lang=tgt_lang
-        )
+        results = self._translator(texts, src_lang=src_lang, tgt_lang=tgt_lang)
 
         # Create TranslationResult objects
         translation_results = []
@@ -165,10 +141,7 @@ class NLLBTranslationService(ITranslationService):
                     translated_text=result["translation_text"],
                     source_language=source_lang,
                     target_language=target_lang,
-                    metadata={
-                        "model": self.model_name,
-                        "device": self.device_str
-                    }
+                    metadata={"model": self.model_name, "device": self.device_str},
                 )
             )
 
@@ -203,7 +176,7 @@ class NLLBTranslationService(ITranslationService):
             "th": "Thai",
             "vi": "Vietnamese",
             "id": "Indonesian",
-            "ms": "Malay"
+            "ms": "Malay",
         }
 
     def is_language_supported(self, lang_code: str) -> bool:

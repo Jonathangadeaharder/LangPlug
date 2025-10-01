@@ -1,28 +1,31 @@
 """
 Vocabulary domain models and DTOs
 """
+
 from datetime import datetime
-from typing import List, Optional
+
 from pydantic import BaseModel, ConfigDict
 
 
 class VocabularyWordBase(BaseModel):
     """Base vocabulary word model"""
+
     word: str
     lemma: str
     language: str = "de"
     difficulty_level: str
-    part_of_speech: Optional[str] = None
-    gender: Optional[str] = None
-    translation_en: Optional[str] = None
-    translation_native: Optional[str] = None
-    pronunciation: Optional[str] = None
-    notes: Optional[str] = None
-    frequency_rank: Optional[int] = None
+    part_of_speech: str | None = None
+    gender: str | None = None
+    translation_en: str | None = None
+    translation_native: str | None = None
+    pronunciation: str | None = None
+    notes: str | None = None
+    frequency_rank: int | None = None
 
 
 class VocabularyWordResponse(VocabularyWordBase):
     """Vocabulary word response model"""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -32,6 +35,7 @@ class VocabularyWordResponse(VocabularyWordBase):
 
 class UserVocabularyProgressBase(BaseModel):
     """Base user vocabulary progress model"""
+
     is_known: bool
     confidence_level: int = 0
     review_count: int = 0
@@ -39,6 +43,7 @@ class UserVocabularyProgressBase(BaseModel):
 
 class UserVocabularyProgressResponse(UserVocabularyProgressBase):
     """User vocabulary progress response model"""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -47,12 +52,13 @@ class UserVocabularyProgressResponse(UserVocabularyProgressBase):
     lemma: str
     language: str
     first_seen_at: datetime
-    last_reviewed_at: Optional[datetime] = None
-    vocabulary: Optional[VocabularyWordResponse] = None
+    last_reviewed_at: datetime | None = None
+    vocabulary: VocabularyWordResponse | None = None
 
 
 class VocabularySearchRequest(BaseModel):
     """Vocabulary search request"""
+
     query: str
     language: str = "de"
     limit: int = 20
@@ -60,6 +66,7 @@ class VocabularySearchRequest(BaseModel):
 
 class VocabularyByLevelRequest(BaseModel):
     """Request vocabulary by difficulty level"""
+
     level: str
     language: str = "de"
     skip: int = 0
@@ -68,28 +75,32 @@ class VocabularyByLevelRequest(BaseModel):
 
 class MarkWordRequest(BaseModel):
     """Mark word as known/unknown request"""
+
     vocabulary_id: int
     is_known: bool
 
 
 class BulkMarkWordsRequest(BaseModel):
     """Bulk mark words request"""
-    vocabulary_ids: List[int]
+
+    vocabulary_ids: list[int]
     is_known: bool
 
 
 class VocabularyStatsResponse(BaseModel):
     """Vocabulary statistics response"""
+
     total_reviewed: int
     known_words: int
     unknown_words: int
     percentage_known: float
-    level_breakdown: Optional[dict] = None
+    level_breakdown: dict | None = None
 
 
 class WordNotFoundRequest(BaseModel):
     """Report word not found in vocabulary"""
+
     word: str
-    lemma: Optional[str] = None
+    lemma: str | None = None
     language: str = "de"
-    context: Optional[str] = None
+    context: str | None = None

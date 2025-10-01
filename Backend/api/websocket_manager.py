@@ -3,6 +3,7 @@ WebSocket connection manager for real-time updates
 """
 
 import asyncio
+import contextlib
 import logging
 from datetime import datetime
 
@@ -36,19 +37,14 @@ class ConnectionManager:
         self.connection_info[websocket] = {
             "user_id": user_id,
             "connected_at": datetime.now(),
-            "last_ping": datetime.now()
+            "last_ping": datetime.now(),
         }
 
         logger.info(f"WebSocket connected for user {user_id}")
 
         # Send initial connection confirmation
         await self.send_personal_message(
-            websocket,
-            {
-                "type": "connection",
-                "status": "connected",
-                "timestamp": datetime.now().isoformat()
-            }
+            websocket, {"type": "connection", "status": "connected", "timestamp": datetime.now().isoformat()}
         )
 
     def disconnect(self, websocket: WebSocket):
@@ -123,18 +119,13 @@ class ConnectionManager:
             "task_id": task_id,
             "progress": progress,
             "status": status,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
         await self.send_user_message(user_id, message)
 
     async def send_error(self, user_id: str, error: str, task_id: str | None = None):
         """Send error message to user"""
-        message = {
-            "type": "error",
-            "error": error,
-            "task_id": task_id,
-            "timestamp": datetime.now().isoformat()
-        }
+        message = {"type": "error", "error": error, "task_id": task_id, "timestamp": datetime.now().isoformat()}
         await self.send_user_message(user_id, message)
 
     async def handle_message(self, websocket: WebSocket, data: dict):
@@ -150,13 +141,7 @@ class ConnectionManager:
             info["last_ping"] = datetime.now()
 
             # Send pong response
-            await self.send_personal_message(
-                websocket,
-                {
-                    "type": "pong",
-                    "timestamp": datetime.now().isoformat()
-                }
-            )
+            await self.send_personal_message(websocket, {"type": "pong", "timestamp": datetime.now().isoformat()})
 
         elif message_type == "subscribe":
             # Handle subscription to specific events
@@ -168,6 +153,7 @@ class ConnectionManager:
 
     async def start_health_checks(self):
         """Start background task to check connection health"""
+
         async def check_connections():
             while True:
                 try:
@@ -186,10 +172,7 @@ class ConnectionManager:
                         else:
                             # Send heartbeat
                             try:
-                                await websocket.send_json({
-                                    "type": "heartbeat",
-                                    "timestamp": current_time.isoformat()
-                                })
+                                await websocket.send_json({"type": "heartbeat", "timestamp": current_time.isoformat()})
                             except (ConnectionClosed, RuntimeError, Exception) as e:
                                 logger.warning(f"Failed to send heartbeat to websocket: {e}")
                                 disconnected.append(websocket)
@@ -207,10 +190,8 @@ class ConnectionManager:
         """Stop the health check background task"""
         if self.health_check_task:
             self.health_check_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self.health_check_task
-            except asyncio.CancelledError:
-                pass
 
     def get_connection_count(self) -> int:
         """Get total number of active connections"""

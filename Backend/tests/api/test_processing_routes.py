@@ -1,7 +1,7 @@
 """Processing route smoke tests adhering to the 80/20 contract coverage."""
+
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -30,7 +30,10 @@ async def test_WhenChunkEndpointProcessesExistingVideo_ThenSucceeds(async_client
             headers=headers,
         )
 
-    assert response.status_code in {200, 202}
+    # Async processing should return 202 (Accepted)
+    assert (
+        response.status_code == 202
+    ), f"Expected 202 (async task accepted), got {response.status_code}: {response.text}"
     assert "task" in response.text or "task_id" in response.text
 
 

@@ -3,6 +3,7 @@ In-memory pytest configuration for fast, reliable backend tests.
 This configuration uses FastAPI's TestClient/httpx with dependency overrides
 to run tests entirely in process (no external server).
 """
+
 import os
 import sys
 import uuid
@@ -27,23 +28,24 @@ if str(BACKEND_ROOT) not in sys.path:
 from core.app import create_app
 
 # Import fast fixtures (autouse fixtures will be applied automatically)
-from tests.fixtures.fast_auth import *  # noqa: F403,F401
-from tests.fixtures.mock_services import *  # noqa: F403,F401
+from tests.fixtures.fast_auth import *  # noqa: F403
+from tests.fixtures.mock_services import *  # noqa: F403
 
 # Force test mode and asyncio backend only in tests
-import os
 os.environ["TESTING"] = "1"
 os.environ["ANYIO_BACKEND"] = "asyncio"
+
 
 # Override anyio backend selection to force asyncio
 @pytest.fixture(autouse=True)
 def force_asyncio_backend():
     """Force asyncio backend for all tests to eliminate trio duplicates"""
     import anyio
-    if hasattr(anyio, 'BACKENDS'):
+
+    if hasattr(anyio, "BACKENDS"):
         # Force asyncio as the only backend
         original_backends = anyio.BACKENDS
-        anyio.BACKENDS = {'asyncio': anyio.BACKENDS['asyncio']}
+        anyio.BACKENDS = {"asyncio": anyio.BACKENDS["asyncio"]}
         yield
         anyio.BACKENDS = original_backends
     else:
@@ -61,32 +63,36 @@ def clear_service_caches():
 
     Critical for preventing "passes individually, fails in suite" flaky tests.
     """
+
     def safe_clear_caches():
         """Clear known lru_cache decorated functions."""
         # Import and clear specific known cached functions
         cleared_count = 0
         try:
             from services.service_factory import get_service_registry
-            if hasattr(get_service_registry, 'cache_clear'):
+
+            if hasattr(get_service_registry, "cache_clear"):
                 get_service_registry.cache_clear()
                 cleared_count += 1
-        except Exception as e:
+        except Exception:
             pass
 
         try:
             from core.task_dependencies import get_task_progress_registry
-            if hasattr(get_task_progress_registry, 'cache_clear'):
+
+            if hasattr(get_task_progress_registry, "cache_clear"):
                 get_task_progress_registry.cache_clear()
                 cleared_count += 1
-        except Exception as e:
+        except Exception:
             pass
 
         try:
             from core.service_dependencies import get_translation_service
-            if hasattr(get_translation_service, 'cache_clear'):
+
+            if hasattr(get_translation_service, "cache_clear"):
                 get_translation_service.cache_clear()
                 cleared_count += 1
-        except Exception as e:
+        except Exception:
             pass
 
         return cleared_count
@@ -100,6 +106,7 @@ def clear_service_caches():
 
     # Clear all caches after test
     safe_clear_caches()
+
 
 # Ensure testing mode
 os.environ["TESTING"] = "1"
@@ -118,6 +125,7 @@ class SimpleURLBuilder:
     """Minimal URL builder for tests that referenced http_url_builder.
     Avoids network calls and OpenAPI discovery by using a static mapping.
     """
+
     _routes = {
         # Auth
         "auth_register": "/api/auth/register",
@@ -172,6 +180,7 @@ def app(tmp_path: Path) -> Generator[FastAPI, None, None]:
     """Create FastAPI app with per-test in-memory DB for maximum speed."""
     # Override settings before creating app to enable debug mode for tests
     from core.config import settings
+
     original_debug = settings.debug
     settings.debug = True
 
@@ -182,7 +191,8 @@ def app(tmp_path: Path) -> Generator[FastAPI, None, None]:
         # Use temporary file-based SQLite with shared cache for maximum speed
         # In-memory databases don't share state between sync and async connections
         import tempfile
-        db_file = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+
+        db_file = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
         sync_url = f"sqlite:///{db_file.name}?cache=shared"
         async_url = f"sqlite+aiosqlite:///{db_file.name}?cache=shared"
 
@@ -212,6 +222,7 @@ def app(tmp_path: Path) -> Generator[FastAPI, None, None]:
 
         # Apply dependency override
         import core.database as core_db
+
         application.dependency_overrides[core_db.get_async_session] = override_get_async_session
 
         # Store session factory for advanced test fixtures
@@ -224,6 +235,7 @@ def app(tmp_path: Path) -> Generator[FastAPI, None, None]:
     finally:
         # Cleanup: close engine and remove temp file
         import asyncio
+
         try:
             asyncio.run(async_engine.dispose())
         except:
@@ -231,6 +243,7 @@ def app(tmp_path: Path) -> Generator[FastAPI, None, None]:
 
         # Clean up temporary database file
         import os
+
         try:
             os.unlink(db_file.name)
         except:
@@ -302,22 +315,14 @@ def sample_vocabulary_concepts() -> list[dict]:
             "difficulty_level": "A1",
             "semantic_category": "noun",
             "domain": "greeting",
-            "translations": {
-                "de": "Hallo",
-                "es": "Hola",
-                "en": "Hello"
-            }
+            "translations": {"de": "Hallo", "es": "Hola", "en": "Hello"},
         },
         {
             "id": concept_2,
             "difficulty_level": "A2",
             "semantic_category": "verb",
             "domain": "communication",
-            "translations": {
-                "de": "sprechen",
-                "es": "hablar",
-                "en": "speak"
-            }
+            "translations": {"de": "sprechen", "es": "hablar", "en": "speak"},
         },
         {
             "id": concept_3,
@@ -325,12 +330,8 @@ def sample_vocabulary_concepts() -> list[dict]:
             "semantic_category": "noun",
             "domain": "family",
             "gender": "das",
-            "translations": {
-                "de": "Mädchen",
-                "es": "niña",
-                "en": "girl"
-            }
-        }
+            "translations": {"de": "Mädchen", "es": "niña", "en": "girl"},
+        },
     ]
 
 
@@ -338,38 +339,18 @@ def sample_vocabulary_concepts() -> list[dict]:
 def sample_languages() -> list[dict]:
     """Sample supported languages for testing."""
     return [
-        {
-            "code": "de",
-            "name": "German",
-            "native_name": "Deutsch",
-            "is_active": True
-        },
-        {
-            "code": "es",
-            "name": "Spanish",
-            "native_name": "Español",
-            "is_active": True
-        },
-        {
-            "code": "en",
-            "name": "English",
-            "native_name": "English",
-            "is_active": True
-        },
-        {
-            "code": "fr",
-            "name": "French",
-            "native_name": "Français",
-            "is_active": False
-        }
+        {"code": "de", "name": "German", "native_name": "Deutsch", "is_active": True},
+        {"code": "es", "name": "Spanish", "native_name": "Español", "is_active": True},
+        {"code": "en", "name": "English", "native_name": "English", "is_active": True},
+        {"code": "fr", "name": "French", "native_name": "Français", "is_active": False},
     ]
 
 
 @pytest.fixture
 def sample_user_progress() -> dict:
     """Sample user learning progress for testing."""
-    from uuid import uuid4
     from datetime import datetime
+    from uuid import uuid4
 
     concept_1 = str(uuid4())
     concept_2 = str(uuid4())
@@ -382,10 +363,10 @@ def sample_user_progress() -> dict:
                 "confidence_level": 5,
                 "learned_at": datetime.utcnow().isoformat(),
                 "review_count": 3,
-                "last_reviewed": datetime.utcnow().isoformat()
+                "last_reviewed": datetime.utcnow().isoformat(),
             }
         ],
-        "unknown_concepts": [concept_2]
+        "unknown_concepts": [concept_2],
     }
 
 
@@ -399,12 +380,12 @@ def multilingual_vocabulary_stats() -> dict:
             "B1": {"total_words": 200, "user_known": 20},
             "B2": {"total_words": 250, "user_known": 10},
             "C1": {"total_words": 300, "user_known": 5},
-            "C2": {"total_words": 350, "user_known": 2}
+            "C2": {"total_words": 350, "user_known": 2},
         },
         "target_language": "de",
         "translation_language": "es",
         "total_words": 1350,
-        "total_known": 92
+        "total_known": 92,
     }
 
 
@@ -429,7 +410,7 @@ def vocabulary_level_response() -> dict:
                 "difficulty_level": "A1",
                 "semantic_category": "noun",
                 "domain": "greeting",
-                "known": False
+                "known": False,
             },
             {
                 "concept_id": concept_2,
@@ -439,11 +420,11 @@ def vocabulary_level_response() -> dict:
                 "difficulty_level": "A1",
                 "semantic_category": "noun",
                 "domain": "geography",
-                "known": True
-            }
+                "known": True,
+            },
         ],
         "total_count": 100,
-        "known_count": 25
+        "known_count": 25,
     }
 
 
@@ -476,11 +457,13 @@ def db_session_override(app: FastAPI, isolated_db_session: AsyncSession):
 
     Use this fixture in tests that need guaranteed database isolation.
     """
+
     async def override_get_isolated_session():
         yield isolated_db_session
 
     # Override the database dependency
     import core.database as core_db
+
     original_override = app.dependency_overrides.get(core_db.get_async_session)
     app.dependency_overrides[core_db.get_async_session] = override_get_isolated_session
 
@@ -506,7 +489,7 @@ def test_pollution_detector():
     import os
 
     # Skip expensive pollution detection unless explicitly enabled
-    if not os.environ.get("PYTEST_DETECT_POLLUTION", "").lower() in ("1", "true", "yes"):
+    if os.environ.get("PYTEST_DETECT_POLLUTION", "").lower() not in ("1", "true", "yes"):
         yield
         return
 
@@ -514,22 +497,19 @@ def test_pollution_detector():
     import warnings
 
     # Store initial state - count mock objects (expensive operation)
-    initial_mock_state = len([obj for obj in gc.get_objects()
-                             if isinstance(obj, (MagicMock, AsyncMock))])
+    initial_mock_state = len([obj for obj in gc.get_objects() if isinstance(obj, (MagicMock, AsyncMock))])
 
     yield
 
     # Check for mock pollution after test (expensive operation)
-    final_mock_state = len([obj for obj in gc.get_objects()
-                           if isinstance(obj, (MagicMock, AsyncMock))])
+    final_mock_state = len([obj for obj in gc.get_objects() if isinstance(obj, (MagicMock, AsyncMock))])
 
     # Warn if significant mock object increase (potential pollution)
     if final_mock_state > initial_mock_state + 50:
         warnings.warn(
-            f"Potential mock pollution detected: "
-            f"{final_mock_state - initial_mock_state} mock objects created",
+            f"Potential mock pollution detected: {final_mock_state - initial_mock_state} mock objects created",
             category=UserWarning,
-            stacklevel=2
+            stacklevel=2,
         )
 
 
@@ -572,7 +552,7 @@ async def clean_database(app: FastAPI):
 
             try:
                 # Disable foreign key constraints for cleanup (SQLite specific)
-                if 'sqlite' in str(session.bind.url):
+                if "sqlite" in str(session.bind.url):
                     await session.execute("PRAGMA foreign_keys = OFF")
 
                 # Truncate all tables
@@ -582,13 +562,14 @@ async def clean_database(app: FastAPI):
                 await session.commit()
 
                 # Re-enable foreign key constraints
-                if 'sqlite' in str(session.bind.url):
+                if "sqlite" in str(session.bind.url):
                     await session.execute("PRAGMA foreign_keys = ON")
 
             except Exception as e:
                 await session.rollback()
                 import warnings
-                warnings.warn(f"Database cleanup failed: {e}", UserWarning)
+
+                warnings.warn(f"Database cleanup failed: {e}", UserWarning, stacklevel=2)
 
     # Clean before test
     await cleanup_all_tables()
@@ -610,8 +591,9 @@ async def seeded_database(clean_database, app: FastAPI):
     session_factory = app.state._test_session_factory
 
     async with session_factory() as session:
-        from core.auth import User
         from datetime import datetime
+
+        from core.auth import User
 
         # Create test users
         test_users = [
@@ -622,7 +604,7 @@ async def seeded_database(clean_database, app: FastAPI):
                 is_active=True,
                 is_superuser=False,
                 is_verified=True,
-                created_at=datetime.now()
+                created_at=datetime.now(),
             ),
             User(
                 email="testuser2@example.com",
@@ -631,7 +613,7 @@ async def seeded_database(clean_database, app: FastAPI):
                 is_active=True,
                 is_superuser=False,
                 is_verified=True,
-                created_at=datetime.now()
+                created_at=datetime.now(),
             ),
             User(
                 email="admin@example.com",
@@ -640,8 +622,8 @@ async def seeded_database(clean_database, app: FastAPI):
                 is_active=True,
                 is_superuser=True,
                 is_verified=True,
-                created_at=datetime.now()
-            )
+                created_at=datetime.now(),
+            ),
         ]
 
         for user in test_users:
@@ -652,7 +634,8 @@ async def seeded_database(clean_database, app: FastAPI):
         except Exception as e:
             await session.rollback()
             import warnings
-            warnings.warn(f"Database seeding failed: {e}", UserWarning)
+
+            warnings.warn(f"Database seeding failed: {e}", UserWarning, stacklevel=2)
 
     yield
 
@@ -665,6 +648,7 @@ def database_state_validator():
     This fixture can detect database state corruption and inconsistencies
     that might affect test reliability.
     """
+
     async def validate_state(app: FastAPI, description: str = ""):
         """Validate current database state."""
         session_factory = app.state._test_session_factory
@@ -675,14 +659,14 @@ def database_state_validator():
                 await session.execute("SELECT 1")
 
                 # Validate foreign key consistency (SQLite specific)
-                if 'sqlite' in str(session.bind.url):
+                if "sqlite" in str(session.bind.url):
                     result = await session.execute("PRAGMA foreign_key_check")
                     violations = result.fetchall()
                     if violations:
                         import warnings
+
                         warnings.warn(
-                            f"Foreign key violations detected {description}: {violations}",
-                            UserWarning
+                            f"Foreign key violations detected {description}: {violations}", UserWarning, stacklevel=2
                         )
 
                 # Check for unexpected table locks or transactions
@@ -690,10 +674,8 @@ def database_state_validator():
 
             except Exception as e:
                 import warnings
-                warnings.warn(
-                    f"Database state validation failed {description}: {e}",
-                    UserWarning
-                )
+
+                warnings.warn(f"Database state validation failed {description}: {e}", UserWarning, stacklevel=2)
 
     return validate_state
 
@@ -726,9 +708,7 @@ class TestSessionFactory:
         """
         from tests.base import DatabaseTestBase
 
-        if isolation_level == "minimal":
-            return DatabaseTestBase.create_mock_session()
-        elif isolation_level == "standard":
+        if isolation_level in {"minimal", "standard"}:
             return DatabaseTestBase.create_mock_session()
         elif isolation_level == "enhanced":
             return DatabaseTestBase.create_isolated_mock_session()

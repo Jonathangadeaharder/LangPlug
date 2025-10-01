@@ -6,14 +6,12 @@ NOTE: Private methods moved to sub-services in services/processing/filtering/
 These should be tested in their respective sub-service test files.
 """
 
-import pytest
-from unittest.mock import AsyncMock, Mock, patch, MagicMock
-from pathlib import Path
-import json
+from unittest.mock import AsyncMock, Mock, patch
 
-from services.processing.filtering_handler import FilteringHandler
-from services.filterservice.interface import FilteredSubtitle, FilteredWord, FilteringResult, WordStatus
+import pytest
+
 from api.models.processing import VocabularyWord
+from services.processing.filtering_handler import FilteringHandler
 
 
 class TestFilteringHandlerInitialization:
@@ -60,10 +58,7 @@ class TestValidateParameters:
 
     def test_validate_parameters_all_present(self, handler):
         """Test validation with all required parameters"""
-        result = handler.validate_parameters(
-            srt_path="/path/to/file.srt",
-            user_id="user123"
-        )
+        result = handler.validate_parameters(srt_path="/path/to/file.srt", user_id="user123")
 
         assert result is True
 
@@ -81,11 +76,7 @@ class TestValidateParameters:
 
     def test_validate_parameters_extra_params_ok(self, handler):
         """Test validation ignores extra parameters"""
-        result = handler.validate_parameters(
-            srt_path="/path/to/file.srt",
-            user_id="user123",
-            extra_param="ignored"
-        )
+        result = handler.validate_parameters(srt_path="/path/to/file.srt", user_id="user123", extra_param="ignored")
 
         assert result is True
 
@@ -103,20 +94,19 @@ class TestHandle:
         # Arrange
         expected_result = {"status": "success"}
 
-        with patch.object(handler, 'filter_subtitles', new_callable=AsyncMock, return_value=expected_result):
+        with patch.object(handler, "filter_subtitles", new_callable=AsyncMock, return_value=expected_result):
             # Act
-            result = await handler.handle(
+            await handler.handle(
                 task_id="test_task",
                 task_progress={},
                 srt_path="/path/to/file.srt",
                 user_id="user123",
                 user_level="A1",
-                target_language="de"
+                target_language="de",
             )
 
             # Assert - handle returns None but delegates correctly
             handler.filter_subtitles.assert_called_once()
-
 
 
 class TestExtractBlockingWords:
@@ -136,16 +126,16 @@ class TestExtractBlockingWords:
                 word="schwierig",
                 translation="difficult",
                 difficulty_level="B2",
-                known=False
+                known=False,
             )
         ]
 
-        with patch.object(handler.coordinator, 'extract_blocking_words', new_callable=AsyncMock, return_value=expected_vocab):
+        with patch.object(
+            handler.coordinator, "extract_blocking_words", new_callable=AsyncMock, return_value=expected_vocab
+        ):
             # Act
             result = await handler.extract_blocking_words(
-                srt_path="/path/to/file.srt",
-                user_id="user123",
-                user_level="A1"
+                srt_path="/path/to/file.srt", user_id="user123", user_level="A1"
             )
 
             # Assert
@@ -166,20 +156,18 @@ class TestRefilterForTranslations:
     async def test_refilter_for_translations(self, handler):
         """Test refiltering after user marks words as known"""
         # Arrange
-        expected_result = {
-            "total_subtitles": 10,
-            "translation_count": 5,
-            "needs_translation": [0, 2, 4, 6, 8]
-        }
+        expected_result = {"total_subtitles": 10, "translation_count": 5, "needs_translation": [0, 2, 4, 6, 8]}
 
-        with patch.object(handler.coordinator, 'refilter_for_translations', new_callable=AsyncMock, return_value=expected_result):
+        with patch.object(
+            handler.coordinator, "refilter_for_translations", new_callable=AsyncMock, return_value=expected_result
+        ):
             # Act
             result = await handler.refilter_for_translations(
                 srt_path="/path/to/file.srt",
                 user_id="user123",
                 known_words=["hund", "katze"],
                 user_level="A1",
-                target_language="de"
+                target_language="de",
             )
 
             # Assert
@@ -192,20 +180,18 @@ class TestRefilterForTranslations:
     async def test_refilter_for_translations_all_known(self, handler):
         """Test refiltering when all blocking words are known"""
         # Arrange
-        expected_result = {
-            "total_subtitles": 10,
-            "translation_count": 0,
-            "needs_translation": []
-        }
+        expected_result = {"total_subtitles": 10, "translation_count": 0, "needs_translation": []}
 
-        with patch.object(handler.coordinator, 'refilter_for_translations', new_callable=AsyncMock, return_value=expected_result):
+        with patch.object(
+            handler.coordinator, "refilter_for_translations", new_callable=AsyncMock, return_value=expected_result
+        ):
             # Act
             result = await handler.refilter_for_translations(
                 srt_path="/path/to/file.srt",
                 user_id="user123",
                 known_words=["all", "blocking", "words"],
                 user_level="A1",
-                target_language="de"
+                target_language="de",
             )
 
             # Assert
@@ -223,7 +209,7 @@ class TestEstimateDuration:
     def test_estimate_duration(self, handler):
         """Test estimating task duration - delegates to loader"""
         # Arrange
-        with patch.object(handler.loader, 'estimate_duration', return_value=120):
+        with patch.object(handler.loader, "estimate_duration", return_value=120):
             # Act
             result = handler.estimate_duration("/path/to/file.srt")
 

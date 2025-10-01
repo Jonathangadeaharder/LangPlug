@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
-import { ChevronRightIcon, PlayIcon, UserCircleIcon } from '@heroicons/react/24/solid'
+import { ChevronRightIcon, PlayIcon } from '@heroicons/react/24/solid'
 import { toast } from 'react-hot-toast'
 import { Container, Grid, NetflixButton, ErrorMessage } from '@/styles/GlobalStyles'
 import { handleApiError } from '@/services/api'
@@ -43,7 +43,7 @@ const NavLink = styled.button`
   font-weight: 500;
   cursor: pointer;
   transition: color 0.3s ease;
-  
+
   &:hover {
     color: white;
   }
@@ -96,7 +96,7 @@ const HeroTitle = styled.h1`
   font-weight: bold;
   margin-bottom: 16px;
   color: white;
-  
+
   @media (max-width: 768px) {
     font-size: 32px;
   }
@@ -109,7 +109,7 @@ const HeroSubtitle = styled.p`
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
-  
+
   @media (max-width: 768px) {
     font-size: 16px;
   }
@@ -133,7 +133,7 @@ const SeriesCard = styled.div`
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px solid transparent;
-  
+
   &:hover {
     transform: scale(1.05);
     border-color: #e50914;
@@ -150,7 +150,7 @@ const CardImage = styled.div<{ $bgImage?: string }>`
   align-items: center;
   justify-content: center;
   position: relative;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -169,7 +169,7 @@ const PlayButton = styled.div`
   justify-content: center;
   z-index: 1;
   transition: all 0.3s ease;
-  
+
   ${SeriesCard}:hover & {
     background: white;
     transform: scale(1.1);
@@ -228,13 +228,13 @@ const EmptyState = styled.div`
   text-align: center;
   padding: 60px 20px;
   color: #b3b3b3;
-  
+
   h3 {
     font-size: 24px;
     margin-bottom: 16px;
     color: white;
   }
-  
+
   p {
     font-size: 16px;
     margin-bottom: 24px;
@@ -245,7 +245,7 @@ export const VideoSelection: React.FC = () => {
   const [videos, setVideos] = useState<VideoInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  
+
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
 
@@ -323,7 +323,6 @@ export const VideoSelection: React.FC = () => {
             <UserSection>
               <UserName>Welcome, {user?.username}</UserName>
               <ProfileButton onClick={() => navigate('/profile')} data-testid="profile-button">
-                <UserCircleIcon />
                 Profile
               </ProfileButton>
               <LogoutButton variant="secondary" onClick={handleLogout} data-testid="logout-button">
@@ -346,15 +345,15 @@ export const VideoSelection: React.FC = () => {
       <Section>
         <Container>
           <SectionTitle>Available Series</SectionTitle>
-          
+
           {loading && (
             <LoadingContainer>
               <div className="loading-spinner" />
             </LoadingContainer>
           )}
-          
+
           {error && <ErrorMessage>{error}</ErrorMessage>}
-          
+
           {!loading && !error && seriesList.length === 0 && (
             <EmptyState>
               <h3>No Series Available</h3>
@@ -362,7 +361,7 @@ export const VideoSelection: React.FC = () => {
               <NetflixButton onClick={loadVideos} data-testid="refresh-videos-button">Refresh</NetflixButton>
             </EmptyState>
           )}
-          
+
           {!loading && !error && seriesList.length > 0 && (
             <Grid columns={3}>
               {seriesList.map((series) => (
@@ -376,13 +375,13 @@ export const VideoSelection: React.FC = () => {
                       <PlayIcon className="w-6 h-6 text-gray-800" />
                     </PlayButton>
                   </CardImage>
-                  
+
                   <CardContent>
                     <CardTitle>
                       {series.name}
                       <ChevronRightIcon className="w-5 h-5" />
                     </CardTitle>
-                    
+
                     <CardMeta>
                       <EpisodeCount>
                         {series.episodes.length} episode{series.episodes.length !== 1 ? 's' : ''}
@@ -391,7 +390,7 @@ export const VideoSelection: React.FC = () => {
                         {series.hasSubtitles ? 'Subtitles' : 'Auto-Generate'}
                       </SubtitleBadge>
                     </CardMeta>
-                    
+
                     <CardDescription>{series.description}</CardDescription>
                   </CardContent>
                 </SeriesCard>

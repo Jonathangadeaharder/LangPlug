@@ -1,7 +1,7 @@
 """Processing pipeline API tests."""
+
 from __future__ import annotations
 
-import asyncio
 import pytest
 
 from tests.auth_helpers import AuthTestHelperAsync
@@ -32,11 +32,7 @@ async def test_Whenfull_pipeline_started_ThenReturnsTaskId(async_client, monkeyp
         "target_lang": "en",
     }
 
-    response = await async_client.post(
-        "/api/process/full-pipeline",
-        json=request_body,
-        headers=auth["headers"]
-    )
+    response = await async_client.post("/api/process/full-pipeline", json=request_body, headers=auth["headers"])
 
     assert response.status_code == 200
     assert "task_id" in response.json()
@@ -68,21 +64,11 @@ async def test_Whenpipeline_progress_requested_ThenReturnsStatus(async_client, m
         "target_lang": "en",
     }
 
-    response = await async_client.post(
-        "/api/process/full-pipeline",
-        json=request_body,
-        headers=auth["headers"]
-    )
+    response = await async_client.post("/api/process/full-pipeline", json=request_body, headers=auth["headers"])
     task_id = response.json()["task_id"]
 
-    # Allow processing to complete
-    await asyncio.sleep(0.1)
-
-    # Check progress
-    progress_response = await async_client.get(
-        f"/api/process/progress/{task_id}",
-        headers=auth["headers"]
-    )
+    # Mock completes synchronously - check progress immediately
+    progress_response = await async_client.get(f"/api/process/progress/{task_id}", headers=auth["headers"])
 
     assert progress_response.status_code == 200
     progress_data = progress_response.json()

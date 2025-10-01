@@ -23,21 +23,28 @@ python-jose[cryptography]>=3.3.0
 
 # Development dependencies for LangPlug backend
 # Core development tools
-pytest>=7.0.0
-pytest-asyncio>=0.21.0
-pytest-cov>=4.0.0
-pytest-xdist>=3.0.0
-pytest-timeout>=2.0.0
-hypothesis>=6.0.0
-pre-commit>=3.0.0
-black>=23.0.0
-flake8>=6.0.0
-mypy>=1.0.0
-bandit>=1.7.0
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
+pytest-cov>=6.0.0
+pytest-xdist>=3.6.0
+pytest-timeout>=2.3.0
+hypothesis>=6.122.0
+pytest-env>=1.1.5
 
-# Type checking and linting
-types-requests>=2.0.0
+# Code quality and security tools
+pre-commit>=4.0.0
+ruff>=0.8.0              # Fast linter + formatter (replaces flake8, isort, black)
+mypy>=1.13.0             # Static type checker
+bandit[toml]>=1.7.10     # Security linter
+detect-secrets>=1.5.0    # Secret detection
+radon>=6.0.0             # Code complexity metrics (cyclomatic, cognitive, maintainability)
+wily>=1.25.0             # Complexity tracking over time
+lizard>=1.17.0           # Multi-language complexity analysis
+
+# Type checking stubs
+types-requests>=2.32.0
 types-PyYAML>=6.0.0
+sqlalchemy[mypy]>=2.0.0
 
 # Database drivers for testing
 aiosqlite>=0.19.0
@@ -57,4 +64,3 @@ responses>=0.23.0
 
 # Linting and formatting
 ruff>=0.7.0
-

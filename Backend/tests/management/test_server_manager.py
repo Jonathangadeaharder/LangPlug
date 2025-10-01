@@ -1,13 +1,13 @@
 """Behavior-first tests for the professional server manager."""
+
 from __future__ import annotations
 
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Iterable, Iterator
 
 import pytest
-
 from management.config import ServerStatus
 from management.server_manager import ProfessionalServerManager
 
@@ -45,7 +45,9 @@ class StubManagedServer:
 
 
 @pytest.fixture
-def manager_env(monkeypatch: pytest.MonkeyPatch, tmp_path) -> tuple[
+def manager_env(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> tuple[
     ProfessionalServerManager,
     StubManagedServer,
     StubManagedServer,

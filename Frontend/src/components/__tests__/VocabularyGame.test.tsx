@@ -209,9 +209,9 @@ describe('VocabularyGame Component', () => {
         fireEvent.click(skipButton);
       });
 
-      // Skip should process remaining words as unknown
+      // Skip should call onComplete with current progress (no words answered yet)
       await waitFor(() => {
-        expect(mockOnWordAnswered).toHaveBeenCalled();
+        expect(mockOnComplete).toHaveBeenCalledWith([], []);
       }, { timeout: 1000 });
     });
 

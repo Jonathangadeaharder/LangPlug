@@ -1,10 +1,10 @@
 """Contract-centric tests for the process controller utilities."""
+
 from __future__ import annotations
 
 from types import SimpleNamespace
 
 import pytest
-
 from management.process_controller import ProcessController
 
 
@@ -74,5 +74,6 @@ def test_Whenstart_processCalled_ThenReturnspopen_handle(monkeypatch: pytest.Mon
     assert captured["cwd"] == "/tmp"
     # On Windows, creationflags is set to CREATE_NEW_PROCESS_GROUP (512), on Unix it's 0
     import os
-    expected_flags = 512 if os.name == 'nt' else 0
+
+    expected_flags = 512 if os.name == "nt" else 0
     assert captured["creationflags"] == expected_flags

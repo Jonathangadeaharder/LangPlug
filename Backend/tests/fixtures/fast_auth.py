@@ -2,13 +2,13 @@
 Fast authentication fixtures for testing.
 Replaces slow bcrypt operations with instant mocks.
 """
-import uuid
+
 import random
-from unittest.mock import Mock, patch
-from typing import Generator
+import uuid
+from unittest.mock import patch
+
 import pytest
 from passlib.context import CryptContext
-
 
 # Pre-hashed password for testing (actual bcrypt hash of "TestPassword123!")
 FAST_PASSWORD_HASH = "$2b$12$8K1p/yXt5b0eMHXQ4qzKNOJ6QzVZG9C5F8YqRlhDmZq3Dv4tFzRuy"
@@ -63,23 +63,26 @@ def fast_passwords():
         # For real bcrypt hashes, use real verification (backward compatibility)
         try:
             from passlib.context import CryptContext
+
             real_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
             return real_context.verify(password, hashed)
         except:
             return False
 
     # Patch FastAPI-Users PasswordHelper methods directly
-    with patch('fastapi_users.password.PasswordHelper.hash') as mock_hash:
-        with patch('fastapi_users.password.PasswordHelper.verify_and_update') as mock_verify:
+    with patch("fastapi_users.password.PasswordHelper.hash") as mock_hash:
+        with patch("fastapi_users.password.PasswordHelper.verify_and_update") as mock_verify:
             mock_hash.side_effect = fast_hash
+
             # verify_and_update returns (is_valid, updated_password_hash) tuple
             def fast_verify_and_update(password: str, hashed: str):
                 is_valid = fast_verify(password, hashed)
                 return is_valid, None  # No update needed for our fast hashes
+
             mock_verify.side_effect = fast_verify_and_update
 
             # Also patch any direct service imports
-            with patch('services.authservice.auth_service.CryptContext') as mock_auth_crypto:
+            with patch("services.authservice.auth_service.CryptContext") as mock_auth_crypto:
                 fast_context = FastCryptContext()
                 mock_auth_crypto.return_value = fast_context
 
@@ -94,7 +97,7 @@ def fast_user_data():
         "username": f"fastuser_{unique_id}",
         "email": f"fastuser_{unique_id}@example.com",
         "password": "TestPassword123!",
-        "hashed_password": f"$fast_hash${hash('TestPassword123!')}"
+        "hashed_password": f"$fast_hash${hash('TestPassword123!')}",
     }
 
 
@@ -105,17 +108,14 @@ async def fast_authenticated_user(async_client, fast_user_data):
     register_data = {
         "username": fast_user_data["username"],
         "email": fast_user_data["email"],
-        "password": fast_user_data["password"]
+        "password": fast_user_data["password"],
     }
 
     register_response = await async_client.post("/api/auth/register", json=register_data)
     assert register_response.status_code == 201
 
     # Login user
-    login_data = {
-        "username": fast_user_data["email"],
-        "password": fast_user_data["password"]
-    }
+    login_data = {"username": fast_user_data["email"], "password": fast_user_data["password"]}
 
     login_response = await async_client.post("/api/auth/login", data=login_data)
     assert login_response.status_code == 200
@@ -123,8 +123,4 @@ async def fast_authenticated_user(async_client, fast_user_data):
     token = login_response.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
-    return {
-        "user_data": fast_user_data,
-        "token": token,
-        "headers": headers
-    }
+    return {"user_data": fast_user_data, "token": token, "headers": headers}

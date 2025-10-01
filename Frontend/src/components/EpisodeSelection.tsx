@@ -12,7 +12,6 @@ import {
   translateSubtitlesApiProcessTranslateSubtitlesPost,
 } from '@/client/services.gen'
 import { useAuthStore } from '@/store/useAuthStore'
-import { ProcessingScreen } from '@/components/ProcessingScreen'
 import type { VideoInfo, ProcessingStatus } from '@/types'
 
 const Header = styled.header`
@@ -39,7 +38,7 @@ const BackButton = styled.button`
   font-size: 16px;
   cursor: pointer;
   transition: color 0.3s ease;
-  
+
   &:hover {
     color: #e50914;
   }
@@ -67,7 +66,7 @@ const SeriesTitle = styled.h1`
   font-weight: bold;
   margin-bottom: 16px;
   color: white;
-  
+
   @media (max-width: 768px) {
     font-size: 28px;
   }
@@ -81,7 +80,7 @@ const SeriesInfo = styled.div`
   color: #b3b3b3;
   font-size: 16px;
   margin-bottom: 24px;
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 12px;
@@ -118,13 +117,13 @@ const EpisodeCard = styled.div`
   overflow: hidden;
   transition: all 0.3s ease;
   border: 2px solid transparent;
-  
+
   &:hover {
     background: rgba(0, 0, 0, 0.8);
     border-color: #e50914;
     transform: translateY(-2px);
   }
-  
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -138,7 +137,7 @@ const EpisodeThumbnail = styled.div`
   align-items: center;
   justify-content: center;
   position: relative;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -209,37 +208,6 @@ const PlayButton = styled(NetflixButton)`
   min-width: 120px;
 `
 
-const StatusBadge = styled.div<{ $status: 'available' | 'processing' | 'ready' }>`
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  text-align: center;
-  
-  ${props => {
-    switch (props.$status) {
-      case 'ready':
-        return `
-          background: rgba(70, 211, 105, 0.2);
-          color: #46d369;
-          border: 1px solid #46d369;
-        `
-      case 'processing':
-        return `
-          background: rgba(232, 124, 3, 0.2);
-          color: #e87c03;
-          border: 1px solid #e87c03;
-        `
-      default:
-        return `
-          background: rgba(255, 255, 255, 0.1);
-          color: #b3b3b3;
-          border: 1px solid #333;
-        `
-    }
-  }}
-`
-
 const LoadingContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -254,8 +222,8 @@ export const EpisodeSelection: React.FC = () => {
   const [error, setError] = useState('')
   const [processingTasks, setProcessingTasks] = useState<Set<string>>(new Set())
   const [progressData, setProgressData] = useState<Record<string, ProcessingStatus>>({})
-  
-  const { user } = useAuthStore()
+
+  const { user: _user } = useAuthStore()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -269,14 +237,14 @@ export const EpisodeSelection: React.FC = () => {
       setLoading(true)
       const videoList = await getVideosApiVideosGet()
       const seriesEpisodes = videoList.filter(video => video.series === series)
-      
+
       // Sort episodes by episode number
       const sortedEpisodes = seriesEpisodes.sort((a, b) => {
         const aNum = parseInt(a.episode.match(/\d+/)?.[0] || '0')
         const bNum = parseInt(b.episode.match(/\d+/)?.[0] || '0')
         return aNum - bNum
       })
-      
+
       setEpisodes(sortedEpisodes)
     } catch (error) {
       handleApiError(error, 'EpisodeSelection.loadEpisodes')
@@ -286,14 +254,15 @@ export const EpisodeSelection: React.FC = () => {
     }
   }
 
-  // Poll for progress updates
+  // Poll for progress updates with exponential backoff
   const pollProgress = async (taskId: string, episodePath: string, taskType: 'transcription' | 'filtering' | 'translation' = 'transcription') => {
-    const maxAttempts = 180 // 15 minutes max
+    const maxAttempts = 120 // Reduced from 180, with longer intervals
     let attempts = 0
+    let pollInterval = 5000 // Start at 5 seconds
 
     const poll = async () => {
       try {
-        const progress = await getTaskProgressApiProcessProgressTaskIdGet({ taskId })
+        const progress = await getTaskProgressApiProcessProgressTaskIdGet({ taskId }) as ProcessingStatus
         setProgressData(prev => ({ ...prev, [episodePath]: progress }))
 
         if (progress.status === 'completed') {
@@ -308,7 +277,9 @@ export const EpisodeSelection: React.FC = () => {
 
         attempts++
         if (attempts < maxAttempts) {
-          setTimeout(poll, 5000) // Poll every 5 seconds
+          // Exponential backoff: increase interval each time, max 30 seconds
+          pollInterval = Math.min(pollInterval * 1.5, 30000)
+          setTimeout(poll, pollInterval)
         } else {
           handleTaskError(episodePath, 'Processing timeout')
         }
@@ -316,7 +287,9 @@ export const EpisodeSelection: React.FC = () => {
         console.error('Error polling progress:', error)
         attempts++
         if (attempts < maxAttempts) {
-          setTimeout(poll, 5000)
+          // Exponential backoff on error
+          pollInterval = Math.min(pollInterval * 1.5, 30000)
+          setTimeout(poll, pollInterval)
         } else {
           handleTaskError(episodePath, 'Failed to get progress')
         }
@@ -345,7 +318,7 @@ export const EpisodeSelection: React.FC = () => {
     if (taskType === 'transcription') {
       toast.success('Episode is ready for learning!', { id: 'transcription' })
       // Update episode status
-      setEpisodes(prev => prev.map(ep => 
+      setEpisodes(prev => prev.map(ep =>
         ep.path === episodePath ? { ...ep, has_subtitles: true } : ep
       ))
     } else if (taskType === 'filtering') {
@@ -381,16 +354,16 @@ export const EpisodeSelection: React.FC = () => {
     })
   }
 
-  const handleFilterEpisode = async (episode: VideoInfo) => {
+  const _handleFilterEpisode = async (episode: VideoInfo) => {
     try {
       setProcessingTasks(prev => new Set(prev).add(episode.path))
       toast.loading('Filtering episode subtitles...', { id: 'filtering' })
-      
+
       // Start filtering
       const result = await filterSubtitlesApiProcessFilterSubtitlesPost({
         requestBody: { video_path: episode.path },
       }) as { task_id: string }
-      
+
       // Start polling progress
       pollProgress(result.task_id, episode.path, 'filtering')
     } catch (error) {
@@ -404,11 +377,11 @@ export const EpisodeSelection: React.FC = () => {
     }
   }
 
-  const handleTranslateEpisode = async (episode: VideoInfo) => {
+  const _handleTranslateEpisode = async (episode: VideoInfo) => {
     try {
       setProcessingTasks(prev => new Set(prev).add(episode.path))
       toast.loading('Translating episode subtitles...', { id: 'translating' })
-      
+
       // Start translation (for now, we'll use German as source and English as target)
       // In a real implementation, these would be configurable
       const result = await translateSubtitlesApiProcessTranslateSubtitlesPost({
@@ -418,7 +391,7 @@ export const EpisodeSelection: React.FC = () => {
           target_lang: 'en',
         },
       }) as { task_id: string }
-      
+
       // Start polling progress
       pollProgress(result.task_id, episode.path, 'translation')
     } catch (error) {
@@ -432,7 +405,7 @@ export const EpisodeSelection: React.FC = () => {
     }
   }
 
-  const handleRunFullPipeline = (episode: VideoInfo) => {
+  const _handleRunFullPipeline = (episode: VideoInfo) => {
     // Navigate to the dedicated pipeline page
     navigate(`/pipeline/${encodeURIComponent(series || '')}/${encodeURIComponent(episode.episode)}`)
   }
@@ -443,7 +416,7 @@ export const EpisodeSelection: React.FC = () => {
     return 'available'
   }
 
-  const getStatusText = (status: string) => {
+  const _getStatusText = (status: string) => {
     switch (status) {
       case 'ready': return 'Ready to Learn'
       case 'processing': return 'Processing...'
@@ -451,7 +424,7 @@ export const EpisodeSelection: React.FC = () => {
     }
   }
 
-  const getProgressData = (episode: VideoInfo): ProcessingStatus | null => {
+  const _getProgressData = (episode: VideoInfo): ProcessingStatus | null => {
     return progressData[episode.path] || null
   }
 
@@ -490,7 +463,7 @@ export const EpisodeSelection: React.FC = () => {
             </InfoItem>
           </SeriesInfo>
           <SeriesDescription>
-            Learn German through engaging TV episodes. Our interactive system will help you master new vocabulary 
+            Learn German through engaging TV episodes. Our interactive system will help you master new vocabulary
             by focusing on the most challenging words for your level.
           </SeriesDescription>
         </Container>
@@ -503,15 +476,15 @@ export const EpisodeSelection: React.FC = () => {
               <div className="loading-spinner" />
             </LoadingContainer>
           )}
-          
+
           {error && <ErrorMessage>{error}</ErrorMessage>}
-          
+
           {!loading && !error && episodes.length > 0 && (
             <EpisodeGrid>
               {episodes.map((episode, index) => {
                 const status = getEpisodeStatus(episode)
                 const isProcessing = status === 'processing'
-                
+
                 return (
                   <EpisodeCard key={episode.path}>
                     <EpisodeThumbnail>
@@ -519,7 +492,7 @@ export const EpisodeSelection: React.FC = () => {
                         <PlayIcon className="w-4 h-4 text-gray-800" />
                       </PlayIconOverlay>
                     </EpisodeThumbnail>
-                    
+
                     <EpisodeInfo>
                       <EpisodeNumber>Episode {index + 1}</EpisodeNumber>
                       <EpisodeTitle>{episode.title}</EpisodeTitle>
@@ -535,11 +508,11 @@ export const EpisodeSelection: React.FC = () => {
                         )}
                       </EpisodeMeta>
                       <EpisodeDescription>
-                        Interactive German learning experience with vocabulary games 
+                        Interactive German learning experience with vocabulary games
                         and subtitle-based comprehension exercises.
                       </EpisodeDescription>
                     </EpisodeInfo>
-                    
+
                     <EpisodeActions>
                       <PlayButton
                         onClick={() => handlePlayEpisode(episode)}

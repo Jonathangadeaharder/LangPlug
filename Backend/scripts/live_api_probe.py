@@ -8,6 +8,8 @@ Live API probe without GUI (stdlib only):
 - Fetches subtitles via /videos/subtitles
 - Writes a detailed report to Backend/logs/live_api_probe_report.txt
 """
+
+import contextlib
 import datetime as dt
 import json
 import time
@@ -26,9 +28,7 @@ CHUNK_END = 600
 
 
 def write_line(f, line: str):
-    try:
-        print(line)
-    except Exception:
+    with contextlib.suppress(Exception):
         pass
     f.write(line + "\n")
     f.flush()  # Ensure immediate write to disk
@@ -104,7 +104,7 @@ def main():
             time.sleep(1)
             try:
                 code, text = http_get(f"/process/progress/{task_id}", headers=headers)
-                write_line(f, f"Progress poll {i+1}: {code}")
+                write_line(f, f"Progress poll {i + 1}: {code}")
                 data = json.loads(text)
                 status = data.get("status")
                 write_line(f, f"status={status}, progress={data.get('progress')}, step={data.get('current_step')}")
@@ -142,7 +142,7 @@ def main():
             if size:
                 try:
                     snippet = disk_path.read_text(encoding="utf-8", errors="replace")[:200]
-                    escaped_snippet = snippet.replace('\n', '\\n')
+                    escaped_snippet = snippet.replace("\n", "\\n")
                     write_line(f, f"Disk first 200 chars: {escaped_snippet}")
                 except Exception as e:
                     write_line(f, f"Disk read error: {e}")

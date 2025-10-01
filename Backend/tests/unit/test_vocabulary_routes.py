@@ -1,13 +1,16 @@
 """Comprehensive tests for vocabulary API routes with improved coverage."""
+
 from __future__ import annotations
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
-from fastapi import HTTPException
+
+import pytest
 
 from tests.auth_helpers import AuthTestHelperAsync
-from tests.base import RouteTestBase
+
+# Force asyncio-only to prevent trio backend interference in full test suite
+pytestmark = pytest.mark.anyio(backends=["asyncio"])
 
 
 class TestVocabularyRoutesCore:
@@ -20,10 +23,7 @@ class TestVocabularyRoutesCore:
 
         # Since the actual endpoint works, let's test the real functionality
         # This will test the actual database integration
-        response = await async_client.get(
-            "/api/vocabulary/languages",
-            headers=flow["headers"]
-        )
+        response = await async_client.get("/api/vocabulary/languages", headers=flow["headers"])
 
         # The endpoint should work correctly with expected success
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
@@ -46,13 +46,11 @@ class TestVocabularyRoutesCore:
 
         # Use FastAPI's dependency override system (the correct way)
         from core.database import get_async_session
+
         app.dependency_overrides[get_async_session] = mock_get_async_session
 
         try:
-            response = await async_client.get(
-                "/api/vocabulary/languages",
-                headers=flow["headers"]
-            )
+            response = await async_client.get("/api/vocabulary/languages", headers=flow["headers"])
 
             assert response.status_code == 500
             assert "Error retrieving languages" in response.json()["detail"]
@@ -68,7 +66,7 @@ class TestVocabularyRoutesCore:
         response = await async_client.get(
             "/api/vocabulary/stats",
             params={"target_language": "de", "translation_language": "es"},
-            headers=flow["headers"]
+            headers=flow["headers"],
         )
 
         # Should work correctly with expected success
@@ -97,7 +95,7 @@ class TestVocabularyRoutesCore:
         response = await async_client.get(
             "/api/vocabulary/library/A1",
             params={"target_language": "de", "translation_language": "es", "limit": 50},
-            headers=flow["headers"]
+            headers=flow["headers"],
         )
 
         # Should succeed with proper response structure
@@ -116,9 +114,7 @@ class TestVocabularyRoutesCore:
         flow = await AuthTestHelperAsync.register_and_login_async(async_client)
 
         response = await async_client.get(
-            "/api/vocabulary/library/Z9",
-            params={"target_language": "de"},
-            headers=flow["headers"]
+            "/api/vocabulary/library/Z9", params={"target_language": "de"}, headers=flow["headers"]
         )
 
         assert response.status_code == 422
@@ -131,7 +127,7 @@ class TestVocabularyRoutesCore:
 
         concept_id = uuid4()
 
-        with patch('api.routes.vocabulary.get_async_session') as mock_get_session:
+        with patch("api.routes.vocabulary.get_async_session") as mock_get_session:
             mock_session = AsyncMock()
             mock_get_session.return_value.__aenter__.return_value = mock_session
 
@@ -143,7 +139,7 @@ class TestVocabularyRoutesCore:
             response = await async_client.post(
                 "/api/vocabulary/mark-known",
                 json={"concept_id": str(concept_id), "known": True},
-                headers=flow["headers"]
+                headers=flow["headers"],
             )
 
             assert response.status_code == 200
@@ -160,9 +156,7 @@ class TestVocabularyRoutesCore:
 
         # Test real endpoint behavior - focus on API contract, not implementation
         response = await async_client.post(
-            "/api/vocabulary/mark-known",
-            json={"concept_id": str(concept_id), "known": False},
-            headers=flow["headers"]
+            "/api/vocabulary/mark-known", json={"concept_id": str(concept_id), "known": False}, headers=flow["headers"]
         )
 
         assert response.status_code == 200
@@ -180,7 +174,7 @@ class TestVocabularyRoutesCore:
         response = await async_client.post(
             "/api/vocabulary/library/bulk-mark",
             json={"level": "A1", "target_language": "de", "known": True},
-            headers=flow["headers"]
+            headers=flow["headers"],
         )
 
         assert response.status_code == 200
@@ -200,7 +194,7 @@ class TestVocabularyRoutesCore:
         response = await async_client.post(
             "/api/vocabulary/library/bulk-mark",
             json={"level": "Z9", "target_language": "de", "known": True},
-            headers=flow["headers"]
+            headers=flow["headers"],
         )
 
         assert response.status_code == 422
@@ -218,10 +212,7 @@ class TestVocabularyRoutesCore:
         flow = await AuthTestHelperAsync.register_and_login_async(async_client)
 
         # Test real endpoint - should work regardless of database state
-        response = await async_client.get(
-            "/api/vocabulary/test-data",
-            headers=flow["headers"]
-        )
+        response = await async_client.get("/api/vocabulary/test-data", headers=flow["headers"])
 
         assert response.status_code == 200
         data = response.json()
@@ -238,17 +229,16 @@ class TestVocabularyRoutesCore:
         """Test blocking words endpoint with missing SRT file"""
         flow = await AuthTestHelperAsync.register_and_login_async(async_client)
 
-        with patch('api.routes.vocabulary.settings') as mock_settings:
+        with patch("api.routes.vocabulary.settings") as mock_settings:
             from pathlib import Path
+
             mock_videos_path = Path("/fake/videos")
             mock_settings.get_videos_path.return_value = mock_videos_path
 
             # Mock non-existent SRT file
-            with patch.object(Path, 'exists', return_value=False):
+            with patch.object(Path, "exists", return_value=False):
                 response = await async_client.get(
-                    "/api/vocabulary/blocking-words",
-                    params={"video_path": "test.mp4"},
-                    headers=flow["headers"]
+                    "/api/vocabulary/blocking-words", params={"video_path": "test.mp4"}, headers=flow["headers"]
                 )
 
                 assert response.status_code == 404
@@ -259,17 +249,16 @@ class TestVocabularyRoutesCore:
         """Test blocking words endpoint success"""
         flow = await AuthTestHelperAsync.register_and_login_async(async_client)
 
-        with patch('api.routes.vocabulary.settings') as mock_settings:
+        with patch("api.routes.vocabulary.settings") as mock_settings:
             from pathlib import Path
+
             mock_videos_path = Path("/fake/videos")
             mock_settings.get_videos_path.return_value = mock_videos_path
 
             # Mock existing SRT file
-            with patch.object(Path, 'exists', return_value=True):
+            with patch.object(Path, "exists", return_value=True):
                 response = await async_client.get(
-                    "/api/vocabulary/blocking-words",
-                    params={"video_path": "test.mp4"},
-                    headers=flow["headers"]
+                    "/api/vocabulary/blocking-words", params={"video_path": "test.mp4"}, headers=flow["headers"]
                 )
 
                 assert response.status_code == 200
@@ -291,7 +280,7 @@ class TestVocabularyRoutesErrorHandling:
         response = await async_client.get(
             "/api/vocabulary/stats",
             params={"target_language": "xx"},  # Valid format but non-existent language
-            headers=flow["headers"]
+            headers=flow["headers"],
         )
 
         # Should succeed but return empty stats (real system behavior)
@@ -312,9 +301,7 @@ class TestVocabularyRoutesErrorHandling:
         # Test with valid UUID - should succeed even if concept doesn't exist in DB
         # This tests graceful handling of missing concepts
         response = await async_client.post(
-            "/api/vocabulary/mark-known",
-            json={"concept_id": str(uuid4()), "known": True},
-            headers=flow["headers"]
+            "/api/vocabulary/mark-known", json={"concept_id": str(uuid4()), "known": True}, headers=flow["headers"]
         )
 
         # Should succeed - system gracefully handles non-existent concepts
@@ -333,7 +320,7 @@ class TestVocabularyRoutesErrorHandling:
         response = await async_client.get(
             "/api/vocabulary/library/A1",
             params={"target_language": "xx"},  # Valid format but non-existent language
-            headers=flow["headers"]
+            headers=flow["headers"],
         )
 
         # Should succeed but return empty word list
@@ -354,9 +341,7 @@ class TestVocabularyRoutesValidation:
         flow = await AuthTestHelperAsync.register_and_login_async(async_client)
 
         response = await async_client.post(
-            "/api/vocabulary/mark-known",
-            json={"concept_id": "not-a-uuid", "known": True},
-            headers=flow["headers"]
+            "/api/vocabulary/mark-known", json={"concept_id": "not-a-uuid", "known": True}, headers=flow["headers"]
         )
 
         assert response.status_code == 422
@@ -369,7 +354,7 @@ class TestVocabularyRoutesValidation:
         response = await async_client.post(
             "/api/vocabulary/library/bulk-mark",
             json={"level": "A1"},  # Missing target_language and known
-            headers=flow["headers"]
+            headers=flow["headers"],
         )
 
         assert response.status_code == 422
@@ -379,7 +364,7 @@ class TestVocabularyRoutesValidation:
         """Test vocabulary level with various query parameters"""
         flow = await AuthTestHelperAsync.register_and_login_async(async_client)
 
-        with patch('api.routes.vocabulary.get_async_session') as mock_get_session:
+        with patch("api.routes.vocabulary.get_async_session") as mock_get_session:
             mock_session = AsyncMock()
             mock_get_session.return_value.__aenter__.return_value = mock_session
 
@@ -390,12 +375,8 @@ class TestVocabularyRoutesValidation:
 
             response = await async_client.get(
                 "/api/vocabulary/library/B2",
-                params={
-                    "target_language": "es",
-                    "translation_language": "en",
-                    "limit": 100
-                },
-                headers=flow["headers"]
+                params={"target_language": "es", "translation_language": "en", "limit": 100},
+                headers=flow["headers"],
             )
 
             assert response.status_code == 200

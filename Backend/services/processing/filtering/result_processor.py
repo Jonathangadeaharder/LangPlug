@@ -5,7 +5,7 @@ Result processing service for filtering operations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from services.filterservice.interface import FilteringResult
 
@@ -16,10 +16,8 @@ class ResultProcessorService:
     """Processes and formats filtering results"""
 
     async def process_filtering_results(
-        self,
-        filtering_result: FilteringResult,
-        vocabulary_words: list
-    ) -> Dict[str, Any]:
+        self, filtering_result: FilteringResult, vocabulary_words: list
+    ) -> dict[str, Any]:
         """
         Process and format filtering results
 
@@ -36,17 +34,14 @@ class ResultProcessorService:
             "total_words": filtering_result.statistics.get("total_words", 0),
             "active_words": filtering_result.statistics.get("active_words", 0),
             "filter_rate": filtering_result.statistics.get("filter_rate", 0),
-            "statistics": filtering_result.statistics
+            "statistics": filtering_result.statistics,
         }
 
         return results
 
     def format_results(
-        self,
-        vocabulary_words: list,
-        learning_subtitles_count: int,
-        statistics: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, vocabulary_words: list, learning_subtitles_count: int, statistics: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Format results into standard structure
 
@@ -64,14 +59,10 @@ class ResultProcessorService:
             "total_words": statistics.get("total_words", 0),
             "active_words": statistics.get("active_words", 0),
             "filter_rate": statistics.get("filter_rate", 0),
-            "statistics": statistics
+            "statistics": statistics,
         }
 
-    async def save_to_file(
-        self,
-        results: Dict[str, Any],
-        srt_path: str
-    ) -> str:
+    async def save_to_file(self, results: dict[str, Any], srt_path: str) -> str:
         """
         Save filtered results to JSON file
 
@@ -82,9 +73,9 @@ class ResultProcessorService:
         Returns:
             Path to saved file
         """
-        output_path = Path(srt_path).with_suffix('.vocabulary.json')
+        output_path = Path(srt_path).with_suffix(".vocabulary.json")
 
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
 
         logger.info(f"Saved filtering results to {output_path}")

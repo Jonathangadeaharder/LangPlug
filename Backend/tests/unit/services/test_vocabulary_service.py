@@ -3,12 +3,12 @@ Comprehensive test suite for VocabularyService
 Tests multilingual vocabulary operations, user progress tracking, and database interactions
 """
 
-import pytest
 from unittest.mock import AsyncMock, Mock, patch
-from uuid import UUID, uuid4
+from uuid import uuid4
+
+import pytest
 
 from services.vocabulary_service import VocabularyService, get_vocabulary_service
-from database.models import VocabularyWord, Language, UserVocabularyProgress
 
 
 class TestVocabularyService:
@@ -36,25 +36,25 @@ class TestGetSupportedLanguages:
         """Test successful retrieval of supported languages"""
         # Mock the stats service's get_supported_languages method
         expected_result = [
-            {'code': 'en', 'name': 'English', 'native_name': 'English', 'is_active': True},
-            {'code': 'de', 'name': 'German', 'native_name': 'Deutsch', 'is_active': True},
-            {'code': 'es', 'name': 'Spanish', 'native_name': 'Español', 'is_active': True}
+            {"code": "en", "name": "English", "native_name": "English", "is_active": True},
+            {"code": "de", "name": "German", "native_name": "Deutsch", "is_active": True},
+            {"code": "es", "name": "Spanish", "native_name": "Español", "is_active": True},
         ]
 
-        with patch.object(service.stats_service, 'get_supported_languages', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.stats_service, "get_supported_languages", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = expected_result
             result = await service.get_supported_languages()
 
         # Verify result structure
         assert len(result) == 3
-        assert result[0]['code'] == 'en'
-        assert result[0]['name'] == 'English'
-        assert result[0]['native_name'] == 'English'
-        assert result[0]['is_active'] is True
+        assert result[0]["code"] == "en"
+        assert result[0]["name"] == "English"
+        assert result[0]["native_name"] == "English"
+        assert result[0]["is_active"] is True
 
     async def test_get_supported_languages_empty(self, service):
         """Test retrieval when no languages are active"""
-        with patch.object(service.stats_service, 'get_supported_languages', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.stats_service, "get_supported_languages", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = []
             result = await service.get_supported_languages()
 
@@ -62,7 +62,7 @@ class TestGetSupportedLanguages:
 
     async def test_get_supported_languages_database_error(self, service):
         """Test database error handling"""
-        with patch.object(service.stats_service, 'get_supported_languages', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.stats_service, "get_supported_languages", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Database connection error")
 
             with pytest.raises(Exception, match="Database connection error"):
@@ -87,13 +87,13 @@ class TestGetVocabularyStats:
                 "B1": {"total_words": 200, "user_known": 0},
                 "B2": {"total_words": 250, "user_known": 0},
                 "C1": {"total_words": 180, "user_known": 0},
-                "C2": {"total_words": 120, "user_known": 0}
+                "C2": {"total_words": 120, "user_known": 0},
             },
             "total_words": 1000,
-            "total_known": 0
+            "total_known": 0,
         }
 
-        with patch.object(service.stats_service, 'get_vocabulary_stats', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.stats_service, "get_vocabulary_stats", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = expected_stats
             result = await service.get_vocabulary_stats(target_language="de")
 
@@ -121,13 +121,13 @@ class TestGetVocabularyStats:
                 "B1": {"total_words": 200, "user_known": 40},
                 "B2": {"total_words": 250, "user_known": 50},
                 "C1": {"total_words": 180, "user_known": 35},
-                "C2": {"total_words": 120, "user_known": 20}
+                "C2": {"total_words": 120, "user_known": 20},
             },
             "total_words": 1000,
-            "total_known": 200
+            "total_known": 200,
         }
 
-        with patch.object(service.stats_service, 'get_vocabulary_stats', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.stats_service, "get_vocabulary_stats", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = expected_stats
             result = await service.get_vocabulary_stats(target_language="de", user_id=123)
 
@@ -140,7 +140,7 @@ class TestGetVocabularyStats:
 
     async def test_get_vocabulary_stats_database_error(self, service):
         """Test database error handling in stats"""
-        with patch.object(service.stats_service, 'get_vocabulary_stats', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.stats_service, "get_vocabulary_stats", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Database error")
 
             with pytest.raises(Exception, match="Database error"):
@@ -162,15 +162,17 @@ class TestGetVocabularyStats:
                     "plural_form": "Hunde",
                     "pronunciation": "/hʊnt/",
                     "is_known": False,
-                    "concept_id": concept_id
+                    "concept_id": concept_id,
                 }
             ],
-            "total_count": 1
+            "total_count": 1,
         }
 
-        with patch.object(service, 'get_vocabulary_library', new_callable=AsyncMock) as mock_method:
+        with patch.object(service, "get_vocabulary_library", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = mock_library
-            result = await service.get_vocabulary_level("A1", target_language="de", translation_language="es", user_id=123)
+            result = await service.get_vocabulary_level(
+                "A1", target_language="de", translation_language="es", user_id=123
+            )
 
         # Verify result structure
         assert result["level"] == "A1"
@@ -194,13 +196,13 @@ class TestGetVocabularyStats:
                     "language": "de",
                     "difficulty_level": "A1",
                     "is_known": True,
-                    "concept_id": concept_id
+                    "concept_id": concept_id,
                 }
             ],
-            "total_count": 1
+            "total_count": 1,
         }
 
-        with patch.object(service, 'get_vocabulary_library', new_callable=AsyncMock) as mock_method:
+        with patch.object(service, "get_vocabulary_library", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = mock_library
             result = await service.get_vocabulary_level("A1", user_id=123)
 
@@ -210,12 +212,9 @@ class TestGetVocabularyStats:
     async def test_get_vocabulary_level_no_target_translation(self, service):
         """Test filtering out concepts without target language translation"""
         # Mock empty library (filtering already done by query service)
-        mock_library = {
-            "words": [],
-            "total_count": 0
-        }
+        mock_library = {"words": [], "total_count": 0}
 
-        with patch.object(service, 'get_vocabulary_library', new_callable=AsyncMock) as mock_method:
+        with patch.object(service, "get_vocabulary_library", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = mock_library
             result = await service.get_vocabulary_level("A1", target_language="de")
 
@@ -224,7 +223,7 @@ class TestGetVocabularyStats:
 
     async def test_get_vocabulary_level_database_error(self, service):
         """Test database error handling"""
-        with patch.object(service, 'get_vocabulary_library', new_callable=AsyncMock) as mock_method:
+        with patch.object(service, "get_vocabulary_library", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Database error")
 
             with pytest.raises(Exception, match="Database error"):
@@ -236,6 +235,7 @@ class TestGetVocabularyStats:
 def service():
     """Service fixture available to all test classes"""
     return VocabularyService()
+
 
 @pytest.fixture
 async def mock_session_with_vocab_data():
@@ -269,7 +269,7 @@ async def mock_session_with_vocab_data():
     def mock_execute(query):
         result = Mock()
         query_str = str(query)
-        if 'vocabulary_concepts' in query_str and 'user_learning_progress' not in query_str:
+        if "vocabulary_concepts" in query_str and "user_learning_progress" not in query_str:
             # Concept query - need proper scalars().all() chain
             scalars_mock = Mock()
             # Return current contents of mock_concepts list (allowing dynamic modification)
@@ -283,7 +283,7 @@ async def mock_session_with_vocab_data():
 
     mock_session.execute.side_effect = mock_execute
 
-    with patch('services.vocabulary_service.AsyncSessionLocal') as mock_session_local:
+    with patch("services.vocabulary_service.AsyncSessionLocal") as mock_session_local:
         mock_session_local.return_value.__aenter__.return_value = mock_session
         yield mock_session, mock_concepts, user_progress
 
@@ -346,14 +346,9 @@ class TestBulkMarkLevel:
         mock_session = AsyncMock()
 
         # Mock the progress service's bulk_mark_level method
-        expected_result = {
-            "success": True,
-            "level": "A1",
-            "is_known": True,
-            "updated_count": 3
-        }
+        expected_result = {"success": True, "level": "A1", "is_known": True, "updated_count": 3}
 
-        with patch.object(service.progress_service, 'bulk_mark_level', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.progress_service, "bulk_mark_level", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = expected_result
             result = await service.bulk_mark_level(mock_session, 123, "de", "A1", True)
 
@@ -367,14 +362,9 @@ class TestBulkMarkLevel:
         mock_session = AsyncMock()
 
         # Mock the progress service's bulk_mark_level method
-        expected_result = {
-            "success": True,
-            "level": "A1",
-            "is_known": False,
-            "updated_count": 2
-        }
+        expected_result = {"success": True, "level": "A1", "is_known": False, "updated_count": 2}
 
-        with patch.object(service.progress_service, 'bulk_mark_level', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.progress_service, "bulk_mark_level", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = expected_result
             result = await service.bulk_mark_level(mock_session, 123, "de", "A1", False)
 
@@ -387,14 +377,9 @@ class TestBulkMarkLevel:
         mock_session = AsyncMock()
 
         # Mock the progress service's bulk_mark_level method
-        expected_result = {
-            "success": True,
-            "level": "A1",
-            "is_known": True,
-            "updated_count": 2
-        }
+        expected_result = {"success": True, "level": "A1", "is_known": True, "updated_count": 2}
 
-        with patch.object(service.progress_service, 'bulk_mark_level', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.progress_service, "bulk_mark_level", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = expected_result
             result = await service.bulk_mark_level(mock_session, 123, "de", "A1", True)
 
@@ -405,7 +390,7 @@ class TestBulkMarkLevel:
         """Test database error handling"""
         mock_session = AsyncMock()
 
-        with patch.object(service.progress_service, 'bulk_mark_level', new_callable=AsyncMock) as mock_method:
+        with patch.object(service.progress_service, "bulk_mark_level", new_callable=AsyncMock) as mock_method:
             mock_method.side_effect = Exception("Database error")
 
             with pytest.raises(Exception, match="Database error"):
@@ -432,7 +417,7 @@ class TestGetUserKnownConcepts:
                     "difficulty_level": "A1",
                     "gender": "der",
                     "is_known": True,
-                    "concept_id": known_concept_id
+                    "concept_id": known_concept_id,
                 },
                 {
                     "id": 2,
@@ -441,16 +426,17 @@ class TestGetUserKnownConcepts:
                     "language": "de",
                     "difficulty_level": "A1",
                     "is_known": False,
-                    "concept_id": str(uuid4())
-                }
+                    "concept_id": str(uuid4()),
+                },
             ],
-            "total_count": 2
+            "total_count": 2,
         }
 
-        with patch.object(service, 'get_vocabulary_library', new_callable=AsyncMock) as mock_method:
+        with patch.object(service, "get_vocabulary_library", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = mock_library
-            result = await service.get_vocabulary_level("A1", target_language="de",
-                                                       translation_language="es", user_id=123)
+            result = await service.get_vocabulary_level(
+                "A1", target_language="de", translation_language="es", user_id=123
+            )
 
         # Verify business logic: known words are marked correctly
         known_words = [w for w in result["words"] if w["is_known"] is True]
@@ -468,16 +454,17 @@ class TestGetUserKnownConcepts:
                     "language": "de",
                     "difficulty_level": "A1",
                     "is_known": False,
-                    "concept_id": str(uuid4())
+                    "concept_id": str(uuid4()),
                 }
             ],
-            "total_count": 1
+            "total_count": 1,
         }
 
-        with patch.object(service, 'get_vocabulary_library', new_callable=AsyncMock) as mock_method:
+        with patch.object(service, "get_vocabulary_library", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = mock_library
-            result = await service.get_vocabulary_level("A1", target_language="de",
-                                                       translation_language="es", user_id=123)
+            result = await service.get_vocabulary_level(
+                "A1", target_language="de", translation_language="es", user_id=123
+            )
 
         # Verify business logic: no words marked as known
         assert all(word["is_known"] is False for word in result["words"])
@@ -487,15 +474,13 @@ class TestGetUserKnownConcepts:
 
     async def test_get_vocabulary_level_empty_level(self, service):
         """Test vocabulary level retrieval for level with no vocabulary"""
-        mock_library = {
-            "words": [],
-            "total_count": 0
-        }
+        mock_library = {"words": [], "total_count": 0}
 
-        with patch.object(service, 'get_vocabulary_library', new_callable=AsyncMock) as mock_method:
+        with patch.object(service, "get_vocabulary_library", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = mock_library
-            result = await service.get_vocabulary_level("C2", target_language="de",
-                                                       translation_language="es", user_id=123)
+            result = await service.get_vocabulary_level(
+                "C2", target_language="de", translation_language="es", user_id=123
+            )
 
         # Verify business logic: empty results handled gracefully
         assert result["words"] == []
@@ -528,12 +513,9 @@ class TestEdgeCases:
 
     async def test_get_vocabulary_level_pagination(self, service):
         """Test pagination parameters in vocabulary level"""
-        mock_library = {
-            "words": [],
-            "total_count": 0
-        }
+        mock_library = {"words": [], "total_count": 0}
 
-        with patch.object(service, 'get_vocabulary_library', new_callable=AsyncMock) as mock_method:
+        with patch.object(service, "get_vocabulary_library", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = mock_library
             await service.get_vocabulary_level("A1", limit=10, offset=20)
 
@@ -541,17 +523,14 @@ class TestEdgeCases:
         # Verify pagination parameters were passed
         mock_method.assert_called_once()
         call_kwargs = mock_method.call_args.kwargs
-        assert call_kwargs['limit'] == 10
-        assert call_kwargs['offset'] == 20
+        assert call_kwargs["limit"] == 10
+        assert call_kwargs["offset"] == 20
 
     async def test_case_insensitive_level_handling(self, service):
         """Test that level parameters are handled case-insensitively"""
-        mock_library = {
-            "words": [],
-            "total_count": 0
-        }
+        mock_library = {"words": [], "total_count": 0}
 
-        with patch.object(service, 'get_vocabulary_library', new_callable=AsyncMock) as mock_method:
+        with patch.object(service, "get_vocabulary_library", new_callable=AsyncMock) as mock_method:
             mock_method.return_value = mock_library
             result = await service.get_vocabulary_level("a1")  # lowercase input
 

@@ -36,7 +36,7 @@ const BackButton = styled.button`
   font-size: 16px;
   cursor: pointer;
   transition: color 0.3s ease;
-  
+
   &:hover {
     color: #e50914;
   }
@@ -104,7 +104,7 @@ const ActionButton = styled(NetflixButton)`
 export const PipelineProgress: React.FC = () => {
   const { series, episode: episodeParam } = useParams<{ series: string; episode: string }>()
   const navigate = useNavigate()
-  
+
   const [episode, setEpisode] = useState<VideoInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -118,12 +118,12 @@ export const PipelineProgress: React.FC = () => {
         setLoading(true)
         const videoList = await getVideosApiVideosGet()
         const seriesEpisodes = videoList.filter(video => video.series === series)
-        
+
         // Find the specific episode
-        const foundEpisode = seriesEpisodes.find(ep => 
+        const foundEpisode = seriesEpisodes.find(ep =>
           ep.episode === episodeParam
         )
-        
+
         if (foundEpisode) {
           setEpisode(foundEpisode)
         } else {
@@ -136,7 +136,7 @@ export const PipelineProgress: React.FC = () => {
         setLoading(false)
       }
     }
-    
+
     if (series && episodeParam) {
       loadEpisode()
     }
@@ -144,7 +144,7 @@ export const PipelineProgress: React.FC = () => {
 
   const handleStartPipeline = async () => {
     if (!episode) return
-    
+
     try {
       setIsRunning(true)
       const result = await prepareEpisodeApiProcessPrepareEpisodePost({
@@ -230,20 +230,20 @@ export const PipelineProgress: React.FC = () => {
           </ActionButton>
         ) : (
           <>
-            {status !== 'idle' && <ProcessingScreen status={{ status, progress, message: progressError || undefined }} />}
-            
+            {status !== 'idle' && <ProcessingScreen status={{ status, progress, message: progressError || undefined, current_step: status }} />}
+
             {status === 'completed' && (
               <ActionButton onClick={handleViewEpisode}>
                 Start Learning
               </ActionButton>
             )}
-            
+
             {(progressError || status === 'failed' || status === 'error') && (
               <ErrorMessage>
                 Failed to process episode: {progressError}
                 <br />
-                <NetflixButton 
-                  variant="secondary" 
+                <NetflixButton
+                  variant="secondary"
                   onClick={handleStartPipeline}
                   style={{ marginTop: '10px' }}
                 >

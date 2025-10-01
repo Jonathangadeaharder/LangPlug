@@ -3,6 +3,7 @@
 Pre-commit hook integration for quality gates
 Automatically runs quality checks before commits
 """
+
 import subprocess
 import sys
 from pathlib import Path
@@ -16,10 +17,13 @@ def run_quality_gates():
         backend_root = script_path.parent.parent.parent
 
         # Run quality gates
-        result = subprocess.run([
-            sys.executable,
-            str(backend_root / "tests" / "monitoring" / "quality_gates.py")
-        ], cwd=backend_root, capture_output=True, text=True)
+        result = subprocess.run(
+            [sys.executable, str(backend_root / "tests" / "monitoring" / "quality_gates.py")],
+            check=False,
+            cwd=backend_root,
+            capture_output=True,
+            text=True,
+        )
 
         if result.returncode == 0:
             print("[SUCCESS] Quality gates passed - commit allowed")
@@ -41,22 +45,19 @@ def install_git_hook():
     """Install this script as a Git pre-commit hook"""
     try:
         # Find Git hooks directory
-        git_root = subprocess.check_output(
-            ["git", "rev-parse", "--git-dir"],
-            text=True
-        ).strip()
+        git_root = subprocess.check_output(["git", "rev-parse", "--git-dir"], text=True).strip()
         hooks_dir = Path(git_root) / "hooks"
         hook_file = hooks_dir / "pre-commit"
 
         # Create hook script content
-        hook_content = f"""#!/bin/bash
+        hook_content = """#!/bin/bash
 # Auto-generated pre-commit hook for quality gates
 cd "$(git rev-parse --show-toplevel)/Backend"
 python tests/monitoring/pre_commit_hook.py
 """
 
         # Write hook file
-        with open(hook_file, 'w') as f:
+        with open(hook_file, "w") as f:
             f.write(hook_content)
 
         # Make executable (on Unix systems)

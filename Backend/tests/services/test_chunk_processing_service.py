@@ -1,7 +1,7 @@
 """Behavior-first tests for `ChunkProcessingService`."""
+
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -73,26 +73,30 @@ async def test_Whenprocess_chunk_happy_pathCalled_ThenSucceeds(service, task_pro
     mock_user = Mock()
     mock_user.username = "testuser"
     mock_user.id = 1
-    
+
     # Create a proper AsyncMock for the database session
     mock_result = Mock()
     mock_result.scalar_one_or_none = Mock(return_value=mock_user)
     service.db_session.execute = AsyncMock(return_value=mock_result)
-    
+
     # Mock JWT authentication
     mock_authenticated_user = Mock()
     mock_authenticated_user.id = 1  # Match the user_id in the test call
     jwt_auth_mock = AsyncMock(return_value=mock_authenticated_user)
     monkeypatch.setattr("services.processing.chunk_processor.jwt_authentication.authenticate", jwt_auth_mock)
-    
+
     # Mock the subtitle processor instead of get_user_filter_chain
     subtitle_processor = Mock()
-    subtitle_processor.process_srt_file = AsyncMock(return_value={
-        "blocking_words": [Mock(word="schwer")],
-        "learning_subtitles": [],
-        "statistics": {"segments_parsed": 1},
-    })
-    monkeypatch.setattr("services.processing.chunk_processor.get_subtitle_processor", lambda db_session: subtitle_processor)
+    subtitle_processor.process_srt_file = AsyncMock(
+        return_value={
+            "blocking_words": [Mock(word="schwer")],
+            "learning_subtitles": [],
+            "statistics": {"segments_parsed": 1},
+        }
+    )
+    monkeypatch.setattr(
+        "services.processing.chunk_processor.get_subtitle_processor", lambda db_session: subtitle_processor
+    )
 
     # Create mock SRT segments for testing
     mock_segments = [
@@ -118,8 +122,10 @@ async def test_Whenprocess_chunk_happy_pathCalled_ThenSucceeds(service, task_pro
             return video_file
         return Mock()
 
-    with patch("services.processing.chunk_processor.Path", side_effect=mock_path_constructor) as path_patch, \
-         patch.object(service, '_find_matching_srt_file', return_value="episode.srt") as srt_patch:
+    with (
+        patch("services.processing.chunk_processor.Path", side_effect=mock_path_constructor),
+        patch.object(service, "_find_matching_srt_file", return_value="episode.srt"),
+    ):
         await service.process_chunk(
             task_id="task",
             task_progress=task_progress,
@@ -127,7 +133,7 @@ async def test_Whenprocess_chunk_happy_pathCalled_ThenSucceeds(service, task_pro
             start_time=0,
             end_time=5,
             user_id=1,
-            session_token="test_token"
+            session_token="test_token",
         )
 
     status = task_progress["task"]
@@ -141,21 +147,25 @@ async def test_Whenprocess_chunk_happy_pathCalled_ThenSucceeds(service, task_pro
 @pytest.mark.timeout(30)
 async def test_Whenprocess_chunk_missing_srt_sets_errorCalled_ThenSucceeds(service, task_progress, monkeypatch):
     """Invalid input: when no subtitle file exists, task ends in error state."""
-    monkeypatch.setattr("services.processing.chunk_processor.get_transcription_service", lambda: Mock(is_initialized=True))
+    monkeypatch.setattr(
+        "services.processing.chunk_processor.get_transcription_service", lambda: Mock(is_initialized=True)
+    )
     # Mock the database user lookup instead of auth service
     mock_user = Mock()
     mock_user.username = "testuser"
     mock_user.id = 1
-    
+
     # Create a proper AsyncMock for the database session
     mock_result = Mock()
     mock_result.scalar_one_or_none = Mock(return_value=mock_user)
     service.db_session.execute = AsyncMock(return_value=mock_result)
-    
+
     # Mock the subtitle processor
     subtitle_processor = Mock()
     subtitle_processor.process_file = AsyncMock(return_value={})
-    monkeypatch.setattr("services.processing.chunk_processor.get_subtitle_processor", lambda db_session: subtitle_processor)
+    monkeypatch.setattr(
+        "services.processing.chunk_processor.get_subtitle_processor", lambda db_session: subtitle_processor
+    )
 
     # Set up mock video file structure with no SRT files
     video_file = _setup_mock_video_path(srt_files=[])
@@ -170,25 +180,27 @@ async def test_Whenprocess_chunk_missing_srt_sets_errorCalled_ThenSucceeds(servi
                 start_time=0.0,
                 end_time=10.0,
                 user_id=1,
-                session_token=None
+                session_token=None,
             )
 
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenprocess_chunk_transcription_unavailable_records_errorCalled_ThenSucceeds(service, task_progress, monkeypatch):
+async def test_Whenprocess_chunk_transcription_unavailable_records_errorCalled_ThenSucceeds(
+    service, task_progress, monkeypatch
+):
     """Boundary: missing transcription service records an error status."""
     monkeypatch.setattr("services.processing.chunk_processor.get_transcription_service", lambda: None)
     # Mock the database user lookup
     mock_user = Mock()
     mock_user.username = "testuser"
     mock_user.id = 1
-    
+
     # Create a proper AsyncMock for the database session
     mock_result = Mock()
     mock_result.scalar_one_or_none = Mock(return_value=mock_user)
     service.db_session.execute = AsyncMock(return_value=mock_result)
-    
+
     # Set up mock video file structure
     video_file = _setup_mock_video_path(srt_files=["episode"])
 
@@ -202,7 +214,7 @@ async def test_Whenprocess_chunk_transcription_unavailable_records_errorCalled_T
                 start_time=0,
                 end_time=5,
                 user_id=1,
-                session_token=None
+                session_token=None,
             )
 
 
@@ -233,8 +245,12 @@ async def test_Whentranslation_required_ThenUsesSentenceTranslator(create_servic
     create_service.return_value = DummyTranslator()
 
     segments = [
-        SRTSegment(index=1, start_time=0.0, end_time=1.0, text="Hallo zusammen", original_text="Hallo zusammen", translation=""),
-        SRTSegment(index=2, start_time=1.1, end_time=2.0, text="Weiter geht's", original_text="Weiter geht's", translation=""),
+        SRTSegment(
+            index=1, start_time=0.0, end_time=1.0, text="Hallo zusammen", original_text="Hallo zusammen", translation=""
+        ),
+        SRTSegment(
+            index=2, start_time=1.1, end_time=2.0, text="Weiter geht's", original_text="Weiter geht's", translation=""
+        ),
     ]
 
     active_words = [

@@ -1,11 +1,12 @@
 """Game session management API routes"""
+
 import json
 import logging
 import uuid
 from datetime import datetime
+from enum import Enum
 from typing import Any
 
-from enum import Enum
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
@@ -13,7 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_async_session
 from core.dependencies import current_active_user
-from database.models import GameSessionRecord, User
+from database.models import GameSession as GameSessionRecord
+from database.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +24,14 @@ router = APIRouter(tags=["game"])
 
 class GameSession(BaseModel):
     """Game session model"""
+
     session_id: str
     user_id: str
     game_type: str  # "vocabulary", "listening", "comprehension"
     difficulty: str = "intermediate"  # "beginner", "intermediate", "advanced"
     video_id: str | None = None
-    start_time: datetime
-    end_time: datetime | None = None
+    started_at: datetime
+    completed_at: datetime | None = None
     status: str = "active"  # "active", "completed", "paused", "abandoned"
     score: int = 0
     max_score: int = 100
@@ -41,6 +44,7 @@ class GameSession(BaseModel):
 
 class GameQuestion(BaseModel):
     """Game question model"""
+
     question_id: str
     question_type: str  # "multiple_choice", "fill_blank", "translation"
     question_text: str
@@ -51,16 +55,17 @@ class GameQuestion(BaseModel):
     points: int = 10
     timestamp: datetime | None = None
 
-    @field_validator('question_text')
+    @field_validator("question_text")
     @classmethod
     def validate_question_text(cls, v):
         if not v or not v.strip():
-            raise ValueError('Question text cannot be empty')
+            raise ValueError("Question text cannot be empty")
         return v
 
 
 class GameType(str, Enum):
     """Valid game types"""
+
     VOCABULARY = "vocabulary"
     LISTENING = "listening"
     COMPREHENSION = "comprehension"
@@ -68,6 +73,7 @@ class GameType(str, Enum):
 
 class GameDifficulty(str, Enum):
     """Valid difficulty levels"""
+
     BEGINNER = "beginner"
     INTERMEDIATE = "intermediate"
     ADVANCED = "advanced"
@@ -75,6 +81,7 @@ class GameDifficulty(str, Enum):
 
 class StartGameRequest(BaseModel):
     """Request model for starting a game session"""
+
     game_type: GameType
     difficulty: GameDifficulty = GameDifficulty.INTERMEDIATE
     video_id: str | None = None
@@ -83,6 +90,7 @@ class StartGameRequest(BaseModel):
 
 class AnswerRequest(BaseModel):
     """Request model for submitting an answer"""
+
     session_id: str
     question_id: str
     question_type: str = "multiple_choice"
@@ -110,9 +118,9 @@ def _record_to_game_session(record: GameSessionRecord) -> GameSession:
         user_id=str(record.user_id),
         game_type=record.game_type,
         difficulty=record.difficulty,
-        video_id=record.video_id,
-        start_time=record.start_time,
-        end_time=record.end_time,
+        video_id=session_payload.get("video_id"),  # Extract from session_data
+        started_at=record.started_at,
+        completed_at=record.completed_at,
         status=record.status,
         score=record.score,
         max_score=record.max_score,
@@ -145,6 +153,7 @@ async def start_game_session(
         session_payload = {
             "questions": [q.model_dump() for q in questions],
             "created_at": now.isoformat(),
+            "video_id": game_request.video_id,
         }
 
         record = GameSessionRecord(
@@ -152,8 +161,8 @@ async def start_game_session(
             user_id=str(current_user.id),
             game_type=game_request.game_type.value,
             difficulty=game_request.difficulty.value,
-            video_id=game_request.video_id,
-            start_time=now,
+            language="de",  # Default to German for now
+            started_at=now,
             status="active",
             total_questions=game_request.total_questions,
             max_score=game_request.total_questions * 10,
@@ -203,13 +212,84 @@ async def get_game_session(
         raise HTTPException(status_code=500, detail=f"Error retrieving game session: {exc!s}")
 
 
+def _validate_game_session(record: GameSessionRecord | None) -> None:
+    """Validate game session exists and is active"""
+    if not record:
+        raise HTTPException(status_code=404, detail="Game session not found")
+    if record.status != "active":
+        raise HTTPException(status_code=400, detail="Game session is not active")
+
+
+def _find_question(session_payload: dict, question_id: str) -> dict:
+    """Find question in session by ID"""
+    questions = session_payload.get("questions", [])
+    question = next((q for q in questions if q.get("question_id") == question_id), None)
+
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+    if question.get("user_answer") is not None:
+        raise HTTPException(status_code=400, detail="Question already answered")
+
+    return question
+
+
+def _evaluate_answer(question: dict, answer_request: AnswerRequest) -> tuple[bool, int]:
+    """Evaluate user answer and calculate points"""
+    expected_answer = (question.get("correct_answer") or answer_request.correct_answer or "").strip().lower()
+    user_answer = answer_request.user_answer.strip().lower()
+    is_correct = expected_answer and user_answer == expected_answer
+
+    logger.info(f"Question correct_answer: {question.get('correct_answer')}")
+    logger.info(f"Request correct_answer: {answer_request.correct_answer}")
+    logger.info(f"Expected answer: '{expected_answer}'")
+    logger.info(f"User answer: '{user_answer}'")
+    logger.info(f"Is correct: {is_correct}")
+
+    points_available = int(question.get("points") or answer_request.points or 0)
+    points_awarded = points_available if is_correct else 0
+
+    return is_correct, points_awarded
+
+
+def _update_question_data(question: dict, answer_request: AnswerRequest, is_correct: bool) -> None:
+    """Update question with user answer and result"""
+    question["user_answer"] = answer_request.user_answer
+    question["is_correct"] = is_correct
+    question["timestamp"] = datetime.utcnow().isoformat()
+
+
+def _update_session_state(record: GameSessionRecord, is_correct: bool, points_awarded: int) -> None:
+    """Update session state after answer submission"""
+    record.questions_answered += 1
+    record.current_question = min(record.current_question + 1, record.total_questions)
+
+    if is_correct:
+        record.correct_answers += 1
+        record.score += points_awarded
+
+    if record.questions_answered >= record.total_questions:
+        record.status = "completed"
+        record.completed_at = datetime.utcnow()
+
+
+def _create_answer_result(record: GameSessionRecord, is_correct: bool, points_awarded: int) -> dict:
+    """Create answer submission result payload"""
+    return {
+        "is_correct": is_correct,
+        "points_earned": points_awarded,
+        "current_score": record.score,
+        "questions_remaining": max(record.total_questions - record.questions_answered, 0),
+        "session_completed": record.status == "completed",
+    }
+
+
 @router.post("/answer", name="game_submit_answer")
 async def submit_answer(
     answer_request: AnswerRequest,
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_async_session),
 ):
-    """Submit an answer for a game question"""
+    """Submit an answer for a game question (Refactored for lower complexity)"""
     try:
         result = await db.execute(
             select(GameSessionRecord).where(
@@ -219,49 +299,14 @@ async def submit_answer(
         )
         record = result.scalar_one_or_none()
 
-        if not record:
-            raise HTTPException(status_code=404, detail="Game session not found")
-
-        if record.status != "active":
-            raise HTTPException(status_code=400, detail="Game session is not active")
+        _validate_game_session(record)
 
         session_payload = _deserialize_session_payload(record.session_data)
-        questions = session_payload.get("questions", [])
-        question = next((q for q in questions if q.get("question_id") == answer_request.question_id), None)
+        question = _find_question(session_payload, answer_request.question_id)
 
-        if not question:
-            raise HTTPException(status_code=404, detail="Question not found")
-
-        if question.get("user_answer") is not None:
-            raise HTTPException(status_code=400, detail="Question already answered")
-
-        # Use question's correct answer if available, otherwise use the one from request
-        expected_answer = (question.get("correct_answer") or answer_request.correct_answer or "").strip().lower()
-        user_answer = answer_request.user_answer.strip().lower()
-        is_correct = expected_answer and user_answer == expected_answer
-
-        # Debug logging
-        logger.info(f"Question correct_answer: {question.get('correct_answer')}")
-        logger.info(f"Request correct_answer: {answer_request.correct_answer}")
-        logger.info(f"Expected answer: '{expected_answer}'")
-        logger.info(f"User answer: '{user_answer}'")
-        logger.info(f"Is correct: {is_correct}")
-        points_available = int(question.get("points") or answer_request.points or 0)
-        points_awarded = points_available if is_correct else 0
-
-        question["user_answer"] = answer_request.user_answer
-        question["is_correct"] = is_correct
-        question["timestamp"] = datetime.utcnow().isoformat()
-
-        record.questions_answered += 1
-        record.current_question = min(record.current_question + 1, record.total_questions)
-        if is_correct:
-            record.correct_answers += 1
-            record.score += points_awarded
-
-        if record.questions_answered >= record.total_questions:
-            record.status = "completed"
-            record.end_time = datetime.utcnow()
+        is_correct, points_awarded = _evaluate_answer(question, answer_request)
+        _update_question_data(question, answer_request, is_correct)
+        _update_session_state(record, is_correct, points_awarded)
 
         record.session_data = json.dumps(session_payload, ensure_ascii=False)
         record.updated_at = datetime.utcnow()
@@ -269,16 +314,8 @@ async def submit_answer(
         await db.commit()
         await db.refresh(record)
 
-        result_payload = {
-            "is_correct": is_correct,
-            "points_earned": points_awarded,
-            "current_score": record.score,
-            "questions_remaining": max(record.total_questions - record.questions_answered, 0),
-            "session_completed": record.status == "completed",
-        }
-
         logger.info("Answer submitted for session %s (correct=%s)", answer_request.session_id, is_correct)
-        return result_payload
+        return _create_answer_result(record, is_correct, points_awarded)
 
     except HTTPException:
         raise
@@ -299,7 +336,7 @@ async def get_user_game_sessions(
         result = await db.execute(
             select(GameSessionRecord)
             .where(GameSessionRecord.user_id == str(current_user.id))
-            .order_by(GameSessionRecord.start_time.desc())
+            .order_by(GameSessionRecord.started_at.desc())
             .limit(limit)
         )
         records = result.scalars().all()
@@ -312,70 +349,85 @@ async def get_user_game_sessions(
         raise HTTPException(status_code=500, detail=f"Error retrieving game sessions: {exc!s}")
 
 
-async def generate_game_questions(
-    game_type: str | GameType,
-    difficulty: str | GameDifficulty,
-    video_id: str | None,
-    total_questions: int
-) -> list[GameQuestion]:
-    """Generate questions for a game session"""
+def _normalize_enum_values(game_type: str | GameType, difficulty: str | GameDifficulty) -> tuple[str, str]:
+    """Normalize enum values to strings"""
     if isinstance(game_type, GameType):
         game_type = game_type.value
     if isinstance(difficulty, GameDifficulty):
         difficulty = difficulty.value
+    return game_type, difficulty
+
+
+def _generate_vocabulary_questions(difficulty: str, total_questions: int) -> list[GameQuestion]:
+    """Generate vocabulary translation questions"""
+    sample_words = [
+        {"word": "hello", "translation": "hola", "difficulty": "beginner"},
+        {"word": "goodbye", "translation": "adiós", "difficulty": "beginner"},
+        {"word": "beautiful", "translation": "hermoso", "difficulty": "intermediate"},
+        {"word": "complicated", "translation": "complicado", "difficulty": "advanced"},
+        {"word": "understand", "translation": "entender", "difficulty": "intermediate"},
+    ]
+
+    filtered_words = [w for w in sample_words if w["difficulty"] == difficulty]
+    if not filtered_words:
+        filtered_words = sample_words
 
     questions = []
-
-    # Sample questions based on game type
-    if game_type == "vocabulary":
-        sample_words = [
-            {"word": "hello", "translation": "hola", "difficulty": "beginner"},
-            {"word": "goodbye", "translation": "adiós", "difficulty": "beginner"},
-            {"word": "beautiful", "translation": "hermoso", "difficulty": "intermediate"},
-            {"word": "complicated", "translation": "complicado", "difficulty": "advanced"},
-            {"word": "understand", "translation": "entender", "difficulty": "intermediate"},
-        ]
-
-        # Filter by difficulty
-        filtered_words = [w for w in sample_words if w["difficulty"] == difficulty]
-        if not filtered_words:
-            filtered_words = sample_words  # Fallback to all words
-
-        for i in range(total_questions):
-            word_data = filtered_words[i % len(filtered_words)]
-            question = GameQuestion(
-                question_id=f"q{i + 1}",
-                question_type="translation",
-                question_text=f"What is the translation of '{word_data['word']}'?",
-                correct_answer=word_data["translation"],
-                points=10
-            )
-            questions.append(question)
-
-    elif game_type == "listening":
-        # Generate listening comprehension questions
-        for i in range(total_questions):
-            question = GameQuestion(
-                question_id=f"q{i + 1}",
-                question_type="multiple_choice",
-                question_text=f"What did the speaker say in segment {i+1}?",
-                options=["Option A", "Option B", "Option C", "Option D"],
-                correct_answer="Option A",
-                points=10
-            )
-            questions.append(question)
-
-    else:  # comprehension
-        # Generate comprehension questions
-        for i in range(total_questions):
-            question = GameQuestion(
-                question_id=f"q{i + 1}",
-                question_type="multiple_choice",
-                question_text=f"What was the main idea of segment {i+1}?",
-                options=["Idea A", "Idea B", "Idea C", "Idea D"],
-                correct_answer="Idea A",
-                points=10
-            )
-            questions.append(question)
+    for i in range(total_questions):
+        word_data = filtered_words[i % len(filtered_words)]
+        question = GameQuestion(
+            question_id=f"q{i + 1}",
+            question_type="translation",
+            question_text=f"What is the translation of '{word_data['word']}'?",
+            correct_answer=word_data["translation"],
+            points=10,
+        )
+        questions.append(question)
 
     return questions
+
+
+def _generate_listening_questions(total_questions: int) -> list[GameQuestion]:
+    """Generate listening comprehension questions"""
+    questions = []
+    for i in range(total_questions):
+        question = GameQuestion(
+            question_id=f"q{i + 1}",
+            question_type="multiple_choice",
+            question_text=f"What did the speaker say in segment {i + 1}?",
+            options=["Option A", "Option B", "Option C", "Option D"],
+            correct_answer="Option A",
+            points=10,
+        )
+        questions.append(question)
+    return questions
+
+
+def _generate_comprehension_questions(total_questions: int) -> list[GameQuestion]:
+    """Generate comprehension questions"""
+    questions = []
+    for i in range(total_questions):
+        question = GameQuestion(
+            question_id=f"q{i + 1}",
+            question_type="multiple_choice",
+            question_text=f"What was the main idea of segment {i + 1}?",
+            options=["Idea A", "Idea B", "Idea C", "Idea D"],
+            correct_answer="Idea A",
+            points=10,
+        )
+        questions.append(question)
+    return questions
+
+
+async def generate_game_questions(
+    game_type: str | GameType, difficulty: str | GameDifficulty, video_id: str | None, total_questions: int
+) -> list[GameQuestion]:
+    """Generate questions for a game session (Refactored for lower complexity)"""
+    game_type, difficulty = _normalize_enum_values(game_type, difficulty)
+
+    if game_type == "vocabulary":
+        return _generate_vocabulary_questions(difficulty, total_questions)
+    elif game_type == "listening":
+        return _generate_listening_questions(total_questions)
+    else:  # comprehension
+        return _generate_comprehension_questions(total_questions)

@@ -1,4 +1,5 @@
 """Behavior-focused tests for `AuthService` following the 80/20 guidance."""
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta
@@ -9,7 +10,6 @@ import pytest
 from database.models import User
 from services.authservice.auth_service import (
     AuthService,
-    AuthenticationError,
     InvalidCredentialsError,
     SessionExpiredError,
     UserAlreadyExistsError,

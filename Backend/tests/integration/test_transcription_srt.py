@@ -1,4 +1,5 @@
 """Integration test ensuring transcription endpoint handles missing service gracefully."""
+
 from __future__ import annotations
 
 import pytest
@@ -17,4 +18,5 @@ async def test_Whentranscribe_fails_without_serviceCalled_ThenSucceeds(async_htt
         headers=flow["headers"],
     )
 
-    assert response.status_code in {404, 422}
+    # Missing video file should return 404 (not found)
+    assert response.status_code == 404, f"Expected 404 (video not found), got {response.status_code}: {response.text}"

@@ -4,12 +4,15 @@ Handles vocabulary filtering from subtitles for chunk processing
 """
 
 import logging
-from pathlib import Path
+import uuid
 from typing import Any
 
 from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 
 logger = logging.getLogger(__name__)
+
+# UUID namespace for vocabulary words (deterministic UUIDs)
+VOCABULARY_NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
 
 
 class VocabularyFilterService:
@@ -19,10 +22,7 @@ class VocabularyFilterService:
         self.subtitle_processor = DirectSubtitleProcessor()
 
     async def filter_vocabulary_from_srt(
-        self,
-        srt_file_path: str,
-        user: Any,
-        language_preferences: dict[str, Any]
+        self, srt_file_path: str, user: Any, language_preferences: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """
         Filter vocabulary from SRT file using subtitle processor
@@ -62,21 +62,46 @@ class VocabularyFilterService:
             filter_result: Result from subtitle processor
 
         Returns:
-            List of vocabulary word dictionaries
+            List of vocabulary word dictionaries matching frontend VocabularyWord type
         """
         vocabulary = []
 
         if filter_result and "blocking_words" in filter_result:
-            vocabulary = [
-                {
-                    "word": word.word if hasattr(word, "word") else str(word),
-                    "difficulty": getattr(word, "difficulty_level", "unknown"),
-                    "active": True,
-                }
-                for word in filter_result.get("blocking_words", [])
-            ]
+            vocabulary = [self._create_vocabulary_word_dict(word) for word in filter_result.get("blocking_words", [])]
 
         return vocabulary
+
+    def _create_vocabulary_word_dict(self, word: Any) -> dict[str, Any]:
+        """
+        Create vocabulary word dictionary with proper UUID concept_id
+
+        Args:
+            word: Filtered word object
+
+        Returns:
+            Dictionary matching frontend VocabularyWord type with valid UUID concept_id
+        """
+        word_text = word.word if hasattr(word, "word") else str(word)
+        difficulty = getattr(word, "difficulty_level", "unknown")
+        lemma = getattr(word, "lemma", None)
+
+        # Generate deterministic UUID based on lemma (or word) + difficulty
+        # This ensures same word gets same UUID across sessions
+        identifier = f"{lemma or word_text}-{difficulty}"
+        concept_id = str(uuid.uuid5(VOCABULARY_NAMESPACE, identifier))
+
+        return {
+            # Required fields matching frontend VocabularyWord type
+            "concept_id": concept_id,  # Valid UUID string
+            "word": word_text,
+            "difficulty_level": difficulty,
+            # Optional fields
+            "translation": getattr(word, "translation", None),
+            "lemma": lemma,
+            "semantic_category": getattr(word, "part_of_speech", None),
+            "domain": None,
+            "known": False,  # User will mark as known in vocabulary game
+        }
 
     def debug_empty_vocabulary(self, filter_result: dict[str, Any], srt_file_path: str) -> None:
         """

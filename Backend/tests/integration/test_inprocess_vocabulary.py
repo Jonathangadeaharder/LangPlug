@@ -1,4 +1,5 @@
 """Integration tests for vocabulary endpoints with minimal mocking."""
+
 from __future__ import annotations
 
 import pytest
@@ -16,9 +17,7 @@ async def test_Whenvocabulary_statsCalled_ThenReturnslevels(async_client):
 
     try:
         response = await async_client.get(
-            "/api/vocabulary/stats",
-            params={"target_language": "de"},
-            headers=flow["headers"]
+            "/api/vocabulary/stats", params={"target_language": "de"}, headers=flow["headers"]
         )
 
         # Integration test should verify actual behavior, not accept any outcome

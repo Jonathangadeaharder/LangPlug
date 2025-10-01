@@ -1,12 +1,13 @@
 """Clean, modern authentication helpers following test standards."""
+
 from __future__ import annotations
 
-import uuid
-from typing import Any, Dict, Optional
+from typing import Any
+
 import httpx
 
-from .data_builders import UserBuilder, TestUser
-from .assertions import assert_status_code, assert_json_response, assert_auth_response_structure
+from .assertions import assert_auth_response_structure, assert_json_response
+from .data_builders import TestUser, UserBuilder
 
 
 class AuthHelper:
@@ -23,7 +24,7 @@ class AuthHelper:
                 setattr(user, key, value)
         return user
 
-    def register_user(self, user: TestUser = None) -> tuple[TestUser, Dict[str, Any]]:
+    def register_user(self, user: TestUser = None) -> tuple[TestUser, dict[str, Any]]:
         """Register a user and return user data and response."""
         if user is None:
             user = self.create_test_user()
@@ -33,11 +34,11 @@ class AuthHelper:
 
         return user, data
 
-    def login_user(self, user: TestUser) -> tuple[str, Dict[str, Any]]:
+    def login_user(self, user: TestUser) -> tuple[str, dict[str, Any]]:
         """Login a user and return access token and response data."""
         login_data = {
             "username": user.email,  # FastAPI-Users expects email in username field
-            "password": user.password
+            "password": user.password,
         }
 
         response = self.client.post("/api/auth/login", data=login_data)
@@ -46,34 +47,34 @@ class AuthHelper:
 
         return data["access_token"], data
 
-    def create_authenticated_user(self, user: TestUser = None) -> tuple[TestUser, str, Dict[str, str]]:
+    def create_authenticated_user(self, user: TestUser = None) -> tuple[TestUser, str, dict[str, str]]:
         """Complete flow: create user, register, login, return user, token, and headers."""
         if user is None:
             user = self.create_test_user()
 
         # Register user
-        _, reg_data = self.register_user(user)
+        _, _reg_data = self.register_user(user)
 
         # Login user
-        token, login_data = self.login_user(user)
+        token, _login_data = self.login_user(user)
 
         # Create auth headers
         headers = {"Authorization": f"Bearer {token}"}
 
         return user, token, headers
 
-    def get_auth_headers(self, user: TestUser = None) -> Dict[str, str]:
+    def get_auth_headers(self, user: TestUser = None) -> dict[str, str]:
         """Quick helper to get auth headers for a user."""
         _, _, headers = self.create_authenticated_user(user)
         return headers
 
-    def verify_token(self, token: str) -> Dict[str, Any]:
+    def verify_token(self, token: str) -> dict[str, Any]:
         """Verify token by calling /me endpoint."""
         headers = {"Authorization": f"Bearer {token}"}
         response = self.client.get("/api/auth/me", headers=headers)
         return assert_json_response(response, 200)
 
-    def logout_user(self, token: str) -> Dict[str, Any]:
+    def logout_user(self, token: str) -> dict[str, Any]:
         """Logout user with token."""
         headers = {"Authorization": f"Bearer {token}"}
         response = self.client.post("/api/auth/logout", headers=headers)
@@ -94,7 +95,7 @@ class AsyncAuthHelper:
                 setattr(user, key, value)
         return user
 
-    async def register_user(self, user: TestUser = None) -> tuple[TestUser, Dict[str, Any]]:
+    async def register_user(self, user: TestUser = None) -> tuple[TestUser, dict[str, Any]]:
         """Register a user and return user data and response."""
         if user is None:
             user = self.create_test_user()
@@ -104,11 +105,11 @@ class AsyncAuthHelper:
 
         return user, data
 
-    async def login_user(self, user: TestUser) -> tuple[str, Dict[str, Any]]:
+    async def login_user(self, user: TestUser) -> tuple[str, dict[str, Any]]:
         """Login a user and return access token and response data."""
         login_data = {
             "username": user.email,  # FastAPI-Users expects email in username field
-            "password": user.password
+            "password": user.password,
         }
 
         response = await self.client.post("/api/auth/login", data=login_data)
@@ -117,34 +118,34 @@ class AsyncAuthHelper:
 
         return data["access_token"], data
 
-    async def create_authenticated_user(self, user: TestUser = None) -> tuple[TestUser, str, Dict[str, str]]:
+    async def create_authenticated_user(self, user: TestUser = None) -> tuple[TestUser, str, dict[str, str]]:
         """Complete flow: create user, register, login, return user, token, and headers."""
         if user is None:
             user = self.create_test_user()
 
         # Register user
-        _, reg_data = await self.register_user(user)
+        _, _reg_data = await self.register_user(user)
 
         # Login user
-        token, login_data = await self.login_user(user)
+        token, _login_data = await self.login_user(user)
 
         # Create auth headers
         headers = {"Authorization": f"Bearer {token}"}
 
         return user, token, headers
 
-    async def get_auth_headers(self, user: TestUser = None) -> Dict[str, str]:
+    async def get_auth_headers(self, user: TestUser = None) -> dict[str, str]:
         """Quick helper to get auth headers for a user."""
         _, _, headers = await self.create_authenticated_user(user)
         return headers
 
-    async def verify_token(self, token: str) -> Dict[str, Any]:
+    async def verify_token(self, token: str) -> dict[str, Any]:
         """Verify token by calling /me endpoint."""
         headers = {"Authorization": f"Bearer {token}"}
         response = await self.client.get("/api/auth/me", headers=headers)
         return assert_json_response(response, 200)
 
-    async def logout_user(self, token: str) -> Dict[str, Any]:
+    async def logout_user(self, token: str) -> dict[str, Any]:
         """Logout user with token."""
         headers = {"Authorization": f"Bearer {token}"}
         response = await self.client.post("/api/auth/logout", headers=headers)
@@ -156,7 +157,7 @@ class AuthTestHelperAsync:
     """Legacy adapter for existing tests - use AsyncAuthHelper for new tests."""
 
     @staticmethod
-    async def register_and_login_async(client: httpx.AsyncClient) -> Dict[str, Any]:
+    async def register_and_login_async(client: httpx.AsyncClient) -> dict[str, Any]:
         """Legacy method for backward compatibility."""
         helper = AsyncAuthHelper(client)
         user, token, headers = await helper.create_authenticated_user()
@@ -166,11 +167,11 @@ class AuthTestHelperAsync:
             "token": token,
             "headers": headers,
             "registration_response": {"id": user.id, "username": user.username},
-            "login_response": {"access_token": token, "token_type": "bearer"}
+            "login_response": {"access_token": token, "token_type": "bearer"},
         }
 
     @staticmethod
-    async def get_current_user_async(client: httpx.AsyncClient, token: str) -> tuple[int, Dict[str, Any]]:
+    async def get_current_user_async(client: httpx.AsyncClient, token: str) -> tuple[int, dict[str, Any]]:
         """Legacy method for backward compatibility."""
         helper = AsyncAuthHelper(client)
         try:
@@ -183,7 +184,7 @@ class AuthTestHelperAsync:
             return response.status_code, response.json() if response.content else {}
 
     @staticmethod
-    async def logout_user_async(client: httpx.AsyncClient, token: str) -> tuple[int, Dict[str, Any]]:
+    async def logout_user_async(client: httpx.AsyncClient, token: str) -> tuple[int, dict[str, Any]]:
         """Legacy method for backward compatibility."""
         helper = AsyncAuthHelper(client)
         try:
@@ -201,24 +202,24 @@ class AuthTestScenarios:
     """Predefined test scenarios for authentication testing."""
 
     @staticmethod
-    def invalid_registration_data() -> list[tuple[Dict[str, Any], str]]:
+    def invalid_registration_data() -> list[tuple[dict[str, Any], str]]:
         """Return list of invalid registration data and expected error descriptions."""
         return [
             ({"username": "", "password": "ValidPass123!"}, "empty username"),
             ({"username": "valid", "password": ""}, "empty password"),
             ({"username": "valid", "password": "weak"}, "weak password"),
             ({"username": "ab", "password": "ValidPass123!"}, "username too short"),
-            ({}, "missing required fields")
+            ({}, "missing required fields"),
         ]
 
     @staticmethod
-    def invalid_login_data() -> list[tuple[Dict[str, Any], str]]:
+    def invalid_login_data() -> list[tuple[dict[str, Any], str]]:
         """Return list of invalid login data and expected error descriptions."""
         return [
             ({"username": "", "password": "anything"}, "empty username"),
             ({"username": "valid@example.com", "password": ""}, "empty password"),
             ({"username": "nonexistent@example.com", "password": "ValidPass123!"}, "user not found"),
-            ({"username": "valid@example.com", "password": "wrongpassword"}, "invalid password")
+            ({"username": "valid@example.com", "password": "wrongpassword"}, "invalid password"),
         ]
 
     @staticmethod
@@ -240,5 +241,5 @@ def create_auth_fixtures():
         "admin_user": AuthTestScenarios.create_admin_user,
         "inactive_user": AuthTestScenarios.create_inactive_user,
         "invalid_registration_data": AuthTestScenarios.invalid_registration_data,
-        "invalid_login_data": AuthTestScenarios.invalid_login_data
+        "invalid_login_data": AuthTestScenarios.invalid_login_data,
     }

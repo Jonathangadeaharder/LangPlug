@@ -3,6 +3,7 @@
 from datetime import datetime
 
 import pytest
+
 from tests.assertion_helpers import assert_validation_error_response
 
 
@@ -22,6 +23,7 @@ async def test_WhenDebugFrontendLogsCalled_ThenSucceeds(async_http_client):
     assert r.status_code == 200
     assert r.json().get("success") is True
 
+
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
 async def test_WhenDebugFrontendLogs_MissingLevelCalled_ThenSucceeds(async_http_client):
@@ -36,6 +38,7 @@ async def test_WhenDebugFrontendLogs_MissingLevelCalled_ThenSucceeds(async_http_
 
     assert_validation_error_response(response, "level")
 
+
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
 async def test_WhenDebughealthCalled_ThenSucceeds(async_http_client):
@@ -43,5 +46,3 @@ async def test_WhenDebughealthCalled_ThenSucceeds(async_http_client):
     assert r.status_code == 200
     data = r.json()
     assert data["status"] == "healthy"
-
-

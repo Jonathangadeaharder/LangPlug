@@ -1,4 +1,0 @@
-E:\Users\Jonandrop\IdeaProjects\LangPlug\api_venv\Scripts\python.exe
-C:\Users\jogah\AppData\Local\Programs\Python\Python311\python.exe
-C:\Python313\python.exe
-C:\Users\jogah\AppData\Local\Microsoft\WindowsApps\python.exe

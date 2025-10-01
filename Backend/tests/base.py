@@ -1,9 +1,11 @@
 """
 Base test classes and utilities for robust database testing
 """
-import pytest
+
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
-from typing import Any, Dict, Optional
+
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -46,7 +48,7 @@ class DatabaseTestBase:
         return mock_session
 
     @staticmethod
-    def configure_mock_query_result(mock_session: AsyncMock, query_results: Dict[str, Any]) -> None:
+    def configure_mock_query_result(mock_session: AsyncMock, query_results: dict[str, Any]) -> None:
         """
         Configure specific query results for a mock session
 
@@ -57,23 +59,23 @@ class DatabaseTestBase:
         """
         mock_result = mock_session._mock_result
 
-        if 'scalar_one_or_none' in query_results:
-            mock_result.scalar_one_or_none.return_value = query_results['scalar_one_or_none']
+        if "scalar_one_or_none" in query_results:
+            mock_result.scalar_one_or_none.return_value = query_results["scalar_one_or_none"]
 
-        if 'scalar' in query_results:
-            mock_result.scalar.return_value = query_results['scalar']
+        if "scalar" in query_results:
+            mock_result.scalar.return_value = query_results["scalar"]
 
-        if 'all' in query_results:
-            mock_result.scalars.return_value.all.return_value = query_results['all']
+        if "all" in query_results:
+            mock_result.scalars.return_value.all.return_value = query_results["all"]
 
-        if 'first' in query_results:
-            mock_result.first.return_value = query_results['first']
+        if "first" in query_results:
+            mock_result.first.return_value = query_results["first"]
 
-        if 'fetchall' in query_results:
-            mock_result.fetchall.return_value = query_results['fetchall']
+        if "fetchall" in query_results:
+            mock_result.fetchall.return_value = query_results["fetchall"]
 
-        if 'rowcount' in query_results:
-            mock_result.rowcount = query_results['rowcount']
+        if "rowcount" in query_results:
+            mock_result.rowcount = query_results["rowcount"]
 
     @staticmethod
     def create_mock_execute_sequence(results: list) -> list:
@@ -97,17 +99,17 @@ class DatabaseTestBase:
             elif isinstance(result_config, dict):
                 mock_result = AsyncMock()
                 for key, value in result_config.items():
-                    if key == 'scalar_one_or_none':
+                    if key == "scalar_one_or_none":
                         mock_result.scalar_one_or_none = MagicMock(return_value=value)  # Sync method
-                    elif key == 'scalar':
+                    elif key == "scalar":
                         mock_result.scalar = MagicMock(return_value=value)  # Sync method
-                    elif key == 'all':
+                    elif key == "all":
                         mock_result.scalars.return_value.all = MagicMock(return_value=value)
-                    elif key == 'first':
+                    elif key == "first":
                         mock_result.first = MagicMock(return_value=value)
-                    elif key == 'fetchall':
+                    elif key == "fetchall":
                         mock_result.fetchall = MagicMock(return_value=value)
-                    elif key == 'rowcount':
+                    elif key == "rowcount":
                         mock_result.rowcount = value
                 mock_results.append(mock_result)
             else:
@@ -127,14 +129,14 @@ class DatabaseTestBase:
 
         # Add isolation metadata
         mock_session._test_isolation_id = id(mock_session)
-        mock_session._test_created_at = __import__('time').time()
+        mock_session._test_created_at = __import__("time").time()
 
         # Track mock calls for pollution detection
         original_execute = mock_session.execute
-        call_count = {'count': 0}
+        call_count = {"count": 0}
 
         async def tracked_execute(*args, **kwargs):
-            call_count['count'] += 1
+            call_count["count"] += 1
             return await original_execute(*args, **kwargs)
 
         mock_session.execute = tracked_execute
@@ -151,23 +153,24 @@ class DatabaseTestBase:
         """
         try:
             # Check for required isolation metadata
-            if not hasattr(mock_session, '_test_isolation_id'):
+            if not hasattr(mock_session, "_test_isolation_id"):
                 return False
 
-            if not hasattr(mock_session, '_test_created_at'):
+            if not hasattr(mock_session, "_test_created_at"):
                 return False
 
             # Check for excessive call accumulation (potential pollution)
-            if hasattr(mock_session, '_test_call_count'):
-                if mock_session._test_call_count['count'] > 1000:
-                    import warnings
-                    warnings.warn(
-                        f"Mock session {mock_session._test_isolation_id} has "
-                        f"excessive calls ({mock_session._test_call_count['count']}), "
-                        "potential pollution detected",
-                        UserWarning
-                    )
-                    return False
+            if hasattr(mock_session, "_test_call_count") and mock_session._test_call_count["count"] > 1000:
+                import warnings
+
+                warnings.warn(
+                    f"Mock session {mock_session._test_isolation_id} has "
+                    f"excessive calls ({mock_session._test_call_count['count']}), "
+                    "potential pollution detected",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                return False
 
             return True
 
@@ -183,7 +186,7 @@ class ServiceTestBase(DatabaseTestBase):
         """Provide a completely isolated mock session for each test"""
         return self.create_mock_session()
 
-    def assert_session_operations(self, mock_session: AsyncMock, expected_operations: Dict[str, int]):
+    def assert_session_operations(self, mock_session: AsyncMock, expected_operations: dict[str, int]):
         """
         Assert that specific session operations were called the expected number of times
 
@@ -195,10 +198,9 @@ class ServiceTestBase(DatabaseTestBase):
         for operation, expected_count in expected_operations.items():
             if hasattr(mock_session, operation):
                 actual_count = getattr(mock_session, operation).call_count
-                assert actual_count == expected_count, (
-                    f"Expected {operation} to be called {expected_count} times, "
-                    f"but it was called {actual_count} times"
-                )
+                assert (
+                    actual_count == expected_count
+                ), f"Expected {operation} to be called {expected_count} times, but it was called {actual_count} times"
             else:
                 raise ValueError(f"Unknown session operation: {operation}")
 

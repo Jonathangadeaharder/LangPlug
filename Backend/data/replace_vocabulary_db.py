@@ -10,14 +10,13 @@ This script will:
 5. Provide detailed logging
 """
 
-import sqlite3
 import csv
+import logging
 import os
 import shutil
-import logging
+import sqlite3
+import sys
 from datetime import datetime
-from pathlib import Path
-from typing import List, Tuple, Dict
 
 
 class VocabularyDatabaseReplacer:
@@ -32,21 +31,18 @@ class VocabularyDatabaseReplacer:
         # Setup logging
         logging.basicConfig(
             level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler('vocabulary_import.log'),
-                logging.StreamHandler()
-            ]
+            format="%(asctime)s - %(levelname)s - %(message)s",
+            handlers=[logging.FileHandler("vocabulary_import.log"), logging.StreamHandler()],
         )
         self.logger = logging.getLogger(__name__)
 
         # CSV file mapping to CEFR levels
         self.csv_files = {
-            'A1_vokabeln.csv': 'A1',
-            'A2_vokabeln.csv': 'A2',
-            'B1_vokabeln.csv': 'B1',
-            'B2_vokabeln.csv': 'B2',
-            'C1_vokabeln.csv': 'C1'
+            "A1_vokabeln.csv": "A1",
+            "A2_vokabeln.csv": "A2",
+            "B1_vokabeln.csv": "B1",
+            "B2_vokabeln.csv": "B2",
+            "C1_vokabeln.csv": "C1",
         }
 
     def backup_database(self) -> bool:
@@ -80,17 +76,18 @@ class VocabularyDatabaseReplacer:
 
             # Clear tables in order (respecting foreign key constraints)
             tables_to_clear = [
-                'session_word_discoveries',
-                'user_learning_progress',
-                'word_category_associations',
-                'unknown_words',
-                'vocabulary',
-                'word_categories',
-                'processing_sessions'
+                "session_word_discoveries",
+                "user_learning_progress",
+                "word_category_associations",
+                "unknown_words",
+                "vocabulary",
+                "word_categories",
+                "processing_sessions",
             ]
 
             for table in tables_to_clear:
-                cursor.execute(f"DELETE FROM {table}")
+                # Safe: table names are from hardcoded whitelist, not user input
+                cursor.execute(f"DELETE FROM {table}")  # noqa: S608
                 deleted_count = cursor.rowcount
                 self.logger.info(f"Cleared {deleted_count} records from {table}")
 
@@ -108,12 +105,12 @@ class VocabularyDatabaseReplacer:
             conn.rollback()
             return False
 
-    def read_csv_file(self, csv_path: str) -> List[Tuple[str, str]]:
+    def read_csv_file(self, csv_path: str) -> list[tuple[str, str]]:
         """Read vocabulary data from CSV file."""
         vocabulary_data = []
 
         try:
-            with open(csv_path, 'r', encoding='utf-8') as file:
+            with open(csv_path, encoding="utf-8") as file:
                 reader = csv.reader(file)
 
                 # Skip header row
@@ -143,17 +140,13 @@ class VocabularyDatabaseReplacer:
             cursor = conn.cursor()
 
             # Insert the category
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO word_categories (name, description, file_path, is_active, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                level,
-                f"CEFR Level {level} Vocabulary",
-                file_path,
-                True,
-                datetime.now(),
-                datetime.now()
-            ))
+            """,
+                (level, f"CEFR Level {level} Vocabulary", file_path, True, datetime.now(), datetime.now()),
+            )
 
             category_id = cursor.lastrowid
             self.logger.info(f"Created word category: {level} (ID: {category_id})")
@@ -163,8 +156,9 @@ class VocabularyDatabaseReplacer:
             self.logger.error(f"Failed to create word category {level}: {e}")
             raise
 
-    def insert_vocabulary_batch(self, conn: sqlite3.Connection, vocabulary_data: List[Tuple[str, str]],
-                               level: str, category_id: int) -> int:
+    def insert_vocabulary_batch(
+        self, conn: sqlite3.Connection, vocabulary_data: list[tuple[str, str]], level: str, category_id: int
+    ) -> int:
         """Insert vocabulary data in batches for better performance."""
         try:
             cursor = conn.cursor()
@@ -174,22 +168,27 @@ class VocabularyDatabaseReplacer:
             category_association_records = []
             current_time = datetime.now()
 
-            for german_word, spanish_translation in vocabulary_data:
-                vocabulary_records.append((
-                    german_word,
-                    german_word,  # Using word as lemma for now
-                    'de',  # German language
-                    level,  # CEFR difficulty level
-                    None,  # word_type (to be determined later)
-                    current_time,
-                    current_time
-                ))
+            for german_word, _spanish_translation in vocabulary_data:
+                vocabulary_records.append(
+                    (
+                        german_word,
+                        german_word,  # Using word as lemma for now
+                        "de",  # German language
+                        level,  # CEFR difficulty level
+                        None,  # word_type (to be determined later)
+                        current_time,
+                        current_time,
+                    )
+                )
 
             # Insert vocabulary records
-            cursor.executemany("""
+            cursor.executemany(
+                """
                 INSERT INTO vocabulary (word, lemma, language, difficulty_level, word_type, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, vocabulary_records)
+            """,
+                vocabulary_records,
+            )
 
             # Get the starting ID for word_category_associations
             cursor.execute("SELECT last_insert_rowid()")
@@ -199,17 +198,16 @@ class VocabularyDatabaseReplacer:
             # Create category associations
             for i in range(len(vocabulary_records)):
                 word_id = first_id + i
-                category_association_records.append((
-                    word_id,
-                    category_id,
-                    current_time
-                ))
+                category_association_records.append((word_id, category_id, current_time))
 
             # Insert category associations
-            cursor.executemany("""
+            cursor.executemany(
+                """
                 INSERT INTO word_category_associations (word_id, category_id, created_at)
                 VALUES (?, ?, ?)
-            """, category_association_records)
+            """,
+                category_association_records,
+            )
 
             inserted_count = len(vocabulary_records)
             self.logger.info(f"Inserted {inserted_count} vocabulary entries for level {level}")
@@ -219,10 +217,10 @@ class VocabularyDatabaseReplacer:
             self.logger.error(f"Failed to insert vocabulary for level {level}: {e}")
             raise
 
-    def collect_all_vocabulary(self) -> Dict[str, Tuple[str, str, str]]:
+    def collect_all_vocabulary(self) -> dict[str, tuple[str, str, str]]:
         """Collect all vocabulary from CSV files, handling duplicates by keeping the lowest level."""
         all_vocabulary = {}  # word -> (spanish_translation, level, source_file)
-        level_order = ['A1', 'A2', 'B1', 'B2', 'C1']
+        level_order = ["A1", "A2", "B1", "B2", "C1"]
 
         for csv_file, level in self.csv_files.items():
             csv_path = os.path.join(self.csv_dir, csv_file)
@@ -247,7 +245,7 @@ class VocabularyDatabaseReplacer:
         self.logger.info(f"Collected {len(all_vocabulary)} unique vocabulary entries")
         return all_vocabulary
 
-    def import_csv_data(self, conn: sqlite3.Connection) -> Dict[str, int]:
+    def import_csv_data(self, conn: sqlite3.Connection) -> dict[str, int]:
         """Import all CSV files into the database, handling duplicates."""
         import_results = {}
 
@@ -257,7 +255,7 @@ class VocabularyDatabaseReplacer:
 
             # Group vocabulary by level
             vocabulary_by_level = {}
-            for word, (translation, level, source_file) in all_vocabulary.items():
+            for word, (translation, level, _source_file) in all_vocabulary.items():
                 if level not in vocabulary_by_level:
                     vocabulary_by_level[level] = []
                 vocabulary_by_level[level].append((word, translation))
@@ -276,9 +274,7 @@ class VocabularyDatabaseReplacer:
                 category_id = self.create_word_category(conn, level, f"{level}_vocabulary")
 
                 # Insert vocabulary data
-                inserted_count = self.insert_vocabulary_batch(
-                    conn, vocabulary_data, level, category_id
-                )
+                inserted_count = self.insert_vocabulary_batch(conn, vocabulary_data, level, category_id)
                 import_results[level] = inserted_count
 
             conn.commit()
@@ -290,7 +286,7 @@ class VocabularyDatabaseReplacer:
             conn.rollback()
             raise
 
-    def verify_import(self, conn: sqlite3.Connection, expected_results: Dict[str, int]) -> bool:
+    def verify_import(self, conn: sqlite3.Connection, expected_results: dict[str, int]) -> bool:
         """Verify the import process by checking record counts."""
         try:
             cursor = conn.cursor()
@@ -400,16 +396,12 @@ def main():
     success = replacer.run_replacement()
 
     if success:
-        print("\n🎉 Vocabulary database replacement completed successfully!")
-        print(f"📝 Backup created at: {replacer.backup_path}")
-        print("📊 Check the log file 'vocabulary_import.log' for detailed information")
+        pass
     else:
-        print("\n❌ Vocabulary database replacement failed!")
-        print("📝 Check the log file 'vocabulary_import.log' for error details")
-        print(f"💾 Database backup available at: {replacer.backup_path}")
+        pass
 
     return 0 if success else 1
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

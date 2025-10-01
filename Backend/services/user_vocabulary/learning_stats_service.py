@@ -5,11 +5,12 @@ Handles learning statistics, history tracking, and analytics
 
 import logging
 from typing import Any
+
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .word_status_service import word_status_service
 from .learning_level_service import learning_level_service
+from .word_status_service import word_status_service
 
 
 class LearningStatsService:
@@ -20,7 +21,9 @@ class LearningStatsService:
         self.word_status = word_status_service
         self.learning_level = learning_level_service
 
-    async def get_learning_statistics(self, session: AsyncSession, user_id: str, language: str = "en") -> dict[str, Any]:
+    async def get_learning_statistics(
+        self, session: AsyncSession, user_id: str, language: str = "en"
+    ) -> dict[str, Any]:
         """
         Get comprehensive learning statistics for user
 
@@ -72,11 +75,7 @@ class LearningStatsService:
             """)
             top_reviewed_result = await session.execute(top_reviewed_query, {"user_id": user_id, "language": language})
             top_reviewed = [
-                {
-                    'word': row[0],
-                    'review_count': row[1],
-                    'confidence_level': row[2]
-                }
+                {"word": row[0], "review_count": row[1], "confidence_level": row[2]}
                 for row in top_reviewed_result.fetchall()
             ]
 
@@ -90,15 +89,16 @@ class LearningStatsService:
                 "confidence_distribution": confidence_distribution,
                 "recent_learned_7_days": recent_learned,
                 "top_reviewed_words": top_reviewed,
-                "language": language
+                "language": language,
             }
 
         except Exception as e:
             self.logger.error(f"Error getting learning statistics: {e}")
             return {"total_known": 0, "total_learned": 0, "error": str(e)}
 
-    async def get_word_learning_history(self, session: AsyncSession, user_id: str, word: str,
-                                       language: str = "en") -> list[dict[str, Any]]:
+    async def get_word_learning_history(
+        self, session: AsyncSession, user_id: str, word: str, language: str = "en"
+    ) -> list[dict[str, Any]]:
         """
         Get learning history for a specific word
 
@@ -118,19 +118,10 @@ class LearningStatsService:
                 JOIN vocabulary v ON ulp.word_id = v.id
                 WHERE ulp.user_id = :user_id AND v.word = :word AND v.language = :language
             """)
-            result = await session.execute(query, {
-                "user_id": user_id,
-                "word": word.lower(),
-                "language": language
-            })
+            result = await session.execute(query, {"user_id": user_id, "word": word.lower(), "language": language})
 
             return [
-                {
-                    'learned_at': row[0],
-                    'confidence_level': row[1],
-                    'review_count': row[2],
-                    'last_reviewed': row[3]
-                }
+                {"learned_at": row[0], "confidence_level": row[1], "review_count": row[2], "last_reviewed": row[3]}
                 for row in result.fetchall()
             ]
 
@@ -138,8 +129,9 @@ class LearningStatsService:
             self.logger.error(f"Error getting word learning history: {e}")
             return []
 
-    async def get_words_by_confidence(self, session: AsyncSession, user_id: str, confidence_level: int,
-                                     language: str = "en", limit: int = 100) -> list[dict[str, Any]]:
+    async def get_words_by_confidence(
+        self, session: AsyncSession, user_id: str, confidence_level: int, language: str = "en", limit: int = 100
+    ) -> list[dict[str, Any]]:
         """
         Get words by confidence level
 
@@ -162,20 +154,12 @@ class LearningStatsService:
                 ORDER BY ulp.learned_at DESC
                 LIMIT :limit
             """)
-            result = await session.execute(query, {
-                "user_id": user_id,
-                "confidence_level": confidence_level,
-                "language": language,
-                "limit": limit
-            })
+            result = await session.execute(
+                query, {"user_id": user_id, "confidence_level": confidence_level, "language": language, "limit": limit}
+            )
 
             return [
-                {
-                    'word': row[0],
-                    'confidence_level': row[1],
-                    'learned_at': row[2],
-                    'review_count': row[3]
-                }
+                {"word": row[0], "confidence_level": row[1], "learned_at": row[2], "review_count": row[3]}
                 for row in result.fetchall()
             ]
 

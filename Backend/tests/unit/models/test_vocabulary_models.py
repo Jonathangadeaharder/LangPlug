@@ -2,15 +2,24 @@
 Test suite for multilingual vocabulary Pydantic models
 Tests focus on validation logic for the new UUID-based multilingual system
 """
-import pytest
-from pydantic import ValidationError
+
 from uuid import uuid4
 
+import pytest
+from pydantic import ValidationError
+
 from api.models.vocabulary import (
-    VocabularyWord, MarkKnownRequest, VocabularyLevel,
-    VocabularyStats, VocabularyLibraryWord, BulkMarkRequest,
-    SupportedLanguage, LanguagesResponse, TranslationPair,
-    ImportRequest, LanguageRequest
+    BulkMarkRequest,
+    ImportRequest,
+    LanguageRequest,
+    LanguagesResponse,
+    MarkKnownRequest,
+    SupportedLanguage,
+    TranslationPair,
+    VocabularyLevel,
+    VocabularyLibraryWord,
+    VocabularyStats,
+    VocabularyWord,
 )
 
 
@@ -30,7 +39,7 @@ class TestVocabularyWordValidation:
                 "semantic_category": "noun",
                 "domain": "greeting",
                 "gender": None,
-                "known": False
+                "known": False,
             },
             {
                 "concept_id": uuid4(),
@@ -41,8 +50,8 @@ class TestVocabularyWordValidation:
                 "semantic_category": "verb",
                 "domain": "communication",
                 "gender": None,
-                "known": True
-            }
+                "known": True,
+            },
         ]
 
         for word_data in valid_words_data:
@@ -61,7 +70,7 @@ class TestVocabularyWordValidation:
                 translation="Hello",
                 difficulty_level="A1",
                 semantic_category="noun",
-                known=False
+                known=False,
             )
 
         error_messages = str(exc_info.value)
@@ -76,7 +85,7 @@ class TestVocabularyWordValidation:
             translation="Hello",
             difficulty_level="A1",
             semantic_category="noun",
-            known=False
+            known=False,
         )
         assert vocab_word.word == "   "
 
@@ -88,7 +97,7 @@ class TestVocabularyWordValidation:
                 word="Test",
                 difficulty_level="Z9",  # Invalid CEFR level
                 semantic_category="noun",
-                known=False
+                known=False,
             )
 
     def test_validate_multilingual_metadata(self):
@@ -105,7 +114,7 @@ class TestVocabularyWordValidation:
             plural_form="Mädchen",
             pronunciation="/ˈmɛːtçən/",
             notes="Neuter noun despite feminine meaning",
-            known=False
+            known=False,
         )
 
         assert vocab_word.gender == "das"
@@ -118,10 +127,7 @@ class TestMarkKnownRequestValidation:
 
     def test_validate_concept_id_valid_requests(self):
         """Test concept_id validation with valid mark known requests"""
-        valid_requests = [
-            {"concept_id": uuid4(), "known": True},
-            {"concept_id": uuid4(), "known": False}
-        ]
+        valid_requests = [{"concept_id": uuid4(), "known": True}, {"concept_id": uuid4(), "known": False}]
 
         for request_data in valid_requests:
             request = MarkKnownRequest(**request_data)
@@ -171,11 +177,11 @@ class TestVocabularyLevelValidation:
                     translation="Hola",
                     difficulty_level="A1",
                     semantic_category="noun",
-                    known=False
+                    known=False,
                 )
             ],
             "total_count": 1,
-            "known_count": 0
+            "known_count": 0,
         }
 
         level = VocabularyLevel(**valid_level_data)
@@ -193,7 +199,7 @@ class TestVocabularyLevelValidation:
             translation_language="es",
             words=[],
             total_count=5,
-            known_count=10  # Exceeds total - but model allows it
+            known_count=10,  # Exceeds total - but model allows it
         )
         assert level.total_count == 5
         assert level.known_count == 10
@@ -206,7 +212,7 @@ class TestVocabularyLevelValidation:
                 target_language="X",  # Too short
                 words=[],
                 total_count=0,
-                known_count=0
+                known_count=0,
             )
 
 
@@ -216,14 +222,11 @@ class TestVocabularyStatsValidation:
     def test_validate_multilingual_stats(self):
         """Test stats validation with multilingual parameters"""
         valid_stats_data = {
-            "levels": {
-                "A1": {"total_words": 100, "user_known": 20},
-                "A2": {"total_words": 150, "user_known": 30}
-            },
+            "levels": {"A1": {"total_words": 100, "user_known": 20}, "A2": {"total_words": 150, "user_known": 30}},
             "target_language": "de",
             "translation_language": "es",
             "total_words": 250,
-            "total_known": 50
+            "total_known": 50,
         }
 
         stats = VocabularyStats(**valid_stats_data)
@@ -239,7 +242,7 @@ class TestVocabularyStatsValidation:
             levels={},
             target_language="de",
             total_words=100,
-            total_known=150  # Exceeds total words - but model allows it
+            total_known=150,  # Exceeds total words - but model allows it
         )
         assert stats.total_words == 100
         assert stats.total_known == 150
@@ -263,7 +266,7 @@ class TestVocabularyLibraryWord:
             "plural_form": None,
             "pronunciation": "/ˈʃprɛçən/",
             "notes": "Strong verb, irregular conjugation",
-            "known": False
+            "known": False,
         }
 
         library_word = VocabularyLibraryWord(**library_word_data)
@@ -279,11 +282,7 @@ class TestBulkMarkRequest:
 
     def test_valid_bulk_mark_multilingual(self):
         """Test valid bulk mark request with target language"""
-        bulk_request_data = {
-            "level": "A1",
-            "target_language": "de",
-            "known": True
-        }
+        bulk_request_data = {"level": "A1", "target_language": "de", "known": True}
 
         bulk_request = BulkMarkRequest(**bulk_request_data)
         assert bulk_request.level == "A1"
@@ -296,7 +295,7 @@ class TestBulkMarkRequest:
             BulkMarkRequest(
                 level="A1",
                 target_language="X",  # Too short
-                known=True
+                known=True,
             )
 
 
@@ -305,12 +304,7 @@ class TestSupportedLanguage:
 
     def test_valid_supported_language(self):
         """Test valid supported language"""
-        lang_data = {
-            "code": "de",
-            "name": "German",
-            "native_name": "Deutsch",
-            "is_active": True
-        }
+        lang_data = {"code": "de", "name": "German", "native_name": "Deutsch", "is_active": True}
 
         language = SupportedLanguage(**lang_data)
         assert language.code == "de"
@@ -326,7 +320,7 @@ class TestLanguagesResponse:
         """Test valid languages response"""
         languages = [
             SupportedLanguage(code="de", name="German", native_name="Deutsch"),
-            SupportedLanguage(code="es", name="Spanish", native_name="Español")
+            SupportedLanguage(code="es", name="Spanish", native_name="Español"),
         ]
 
         response = LanguagesResponse(languages=languages)
@@ -340,11 +334,7 @@ class TestTranslationPair:
 
     def test_valid_translation_pair(self):
         """Test valid German-Spanish translation pair"""
-        pair_data = {
-            "german": "Hallo",
-            "spanish": "Hola",
-            "difficulty_level": "A1"
-        }
+        pair_data = {"german": "Hallo", "spanish": "Hola", "difficulty_level": "A1"}
 
         pair = TranslationPair(**pair_data)
         assert pair.german == "Hallo"
@@ -357,7 +347,7 @@ class TestTranslationPair:
             TranslationPair(
                 german="Test",
                 spanish="Test",
-                difficulty_level="Z9"  # Invalid CEFR level
+                difficulty_level="Z9",  # Invalid CEFR level
             )
 
 
@@ -368,13 +358,10 @@ class TestImportRequest:
         """Test valid import request with translation pairs"""
         pairs = [
             TranslationPair(german="Hallo", spanish="Hola", difficulty_level="A1"),
-            TranslationPair(german="Danke", spanish="Gracias", difficulty_level="A1")
+            TranslationPair(german="Danke", spanish="Gracias", difficulty_level="A1"),
         ]
 
-        import_request = ImportRequest(
-            translation_pairs=pairs,
-            overwrite_existing=False
-        )
+        import_request = ImportRequest(translation_pairs=pairs, overwrite_existing=False)
 
         assert len(import_request.translation_pairs) == 2
         assert not import_request.overwrite_existing
@@ -390,10 +377,7 @@ class TestLanguageRequest:
 
     def test_valid_language_request(self):
         """Test valid language request"""
-        lang_request = LanguageRequest(
-            target_language="de",
-            translation_language="es"
-        )
+        lang_request = LanguageRequest(target_language="de", translation_language="es")
 
         assert lang_request.target_language == "de"
         assert lang_request.translation_language == "es"
@@ -421,7 +405,7 @@ class TestModelIntegration:
                 translation="Hola",
                 difficulty_level="A1",
                 semantic_category="noun",
-                known=True
+                known=True,
             ),
             VocabularyLibraryWord(
                 concept_id=concept_2,
@@ -429,17 +413,12 @@ class TestModelIntegration:
                 translation="hablar",
                 difficulty_level="A2",
                 semantic_category="verb",
-                known=False
-            )
+                known=False,
+            ),
         ]
 
         level = VocabularyLevel(
-            level="A1",
-            target_language="de",
-            translation_language="es",
-            words=words,
-            total_count=2,
-            known_count=1
+            level="A1", target_language="de", translation_language="es", words=words, total_count=2, known_count=1
         )
 
         assert len(level.words) == 2
@@ -451,14 +430,11 @@ class TestModelIntegration:
     def test_vocabulary_stats_multilingual_consistency(self):
         """Test VocabularyStats multilingual data consistency"""
         stats = VocabularyStats(
-            levels={
-                "A1": {"total_words": 100, "user_known": 80},
-                "A2": {"total_words": 150, "user_known": 60}
-            },
+            levels={"A1": {"total_words": 100, "user_known": 80}, "A2": {"total_words": 150, "user_known": 60}},
             target_language="de",
             translation_language="es",
             total_words=250,
-            total_known=140
+            total_known=140,
         )
 
         # Verify totals match individual levels

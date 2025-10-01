@@ -1,14 +1,15 @@
 """Lightweight latency checks that enforce our performance guard rails."""
+
 from __future__ import annotations
 
 import asyncio
+import os
 import time
 
 import pytest
+from httpx import ASGITransport, AsyncClient
 
 from core.app import create_app
-from httpx import ASGITransport, AsyncClient
-import os
 from tests.auth_helpers import AuthTestHelperAsync
 
 HEALTH_BUDGET_SECONDS = 0.25
@@ -29,16 +30,14 @@ async def async_client_no_db():
 @pytest.mark.timeout(30)
 async def test_Whenhealth_endpoint_stays_snappyCalled_ThenSucceeds(async_client_no_db) -> None:
     """Health checks should return quickly and report a healthy system."""
-    print("before request")
     started = time.perf_counter()
     response = await async_client_no_db.get("/health")
     elapsed = time.perf_counter() - started
-    print("after request")
 
     assert response.status_code == 200
     payload = response.json()
     assert payload["status"] == "healthy"
-    assert elapsed < HEALTH_BUDGET_SECONDS
+    assert elapsed < HEALTH_BUDGET_SECONDS, f"Health check took {elapsed:.3f}s (budget: {HEALTH_BUDGET_SECONDS}s)"
 
 
 @pytest.mark.asyncio

@@ -116,9 +116,7 @@
         "Expand existing test suite",
         "Focus on critical paths: data_processing, error_handling, file_operations"
       ],
-      "dependencies_to_mock": [
-        "auth_service"
-      ],
+      "dependencies_to_mock": ["auth_service"],
       "key_scenarios": [
         "Video file processing",
         "Subtitle extraction and filtering",
@@ -262,10 +260,7 @@
     {
       "phase": 2,
       "name": "Core Service Coverage",
-      "services": [
-        "ServiceFactoryService",
-        "VocabularyPreloadService"
-      ],
+      "services": ["ServiceFactoryService", "VocabularyPreloadService"],
       "estimated_duration": "2-4 weeks",
       "focus": "Essential service coverage and dependency stability"
     }

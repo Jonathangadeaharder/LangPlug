@@ -1,9 +1,9 @@
 """
 Tests for Settings CORS origin parsing behavior.
 """
+
 from __future__ import annotations
 
-import os
 import pytest
 
 from core.config import Settings

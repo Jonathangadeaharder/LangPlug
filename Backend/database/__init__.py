@@ -1,13 +1,7 @@
-"""Database package for A1Decider vocabulary management."""
+"""Database package for LangPlug vocabulary management."""
 
-# Database models
-from .models import *
+# Models are now imported explicitly where needed
+# Use database.models_v2 for new code
+# Use database.models for legacy code (to be removed)
 
-__all__ = [
-    'Base',
-    'UnknownWords',
-    'User',
-    'UserProgress',
-    'UserVocabulary',
-    'WordCategory'
-]
+__all__ = []

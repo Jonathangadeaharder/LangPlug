@@ -4,10 +4,10 @@ Comprehensive Game Routes API Tests
 Tests game session management, scoring logic, and user interactions.
 Focuses on business outcomes and proper error handling.
 """
-import pytest
-import json
-from datetime import datetime
+
 from uuid import uuid4
+
+import pytest
 
 from tests.helpers.data_builders import UserBuilder
 
@@ -21,19 +21,12 @@ class TestGameSessionManagement:
         user = UserBuilder().build()
 
         # Register and login user
-        register_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
-        }
+        register_data = {"username": user.username, "email": user.email, "password": user.password}
 
         register_response = await async_client.post("/api/auth/register", json=register_data)
         assert register_response.status_code == 201
 
-        login_data = {
-            "username": user.email,
-            "password": user.password
-        }
+        login_data = {"username": user.email, "password": user.password}
         login_response = await async_client.post("/api/auth/login", data=login_data)
         assert login_response.status_code == 200
 
@@ -45,11 +38,7 @@ class TestGameSessionManagement:
         """Test starting a vocabulary game session returns active session"""
         headers = {"Authorization": f"Bearer {auth_user['token']}"}
 
-        game_request = {
-            "game_type": "vocabulary",
-            "difficulty": "intermediate",
-            "total_questions": 10
-        }
+        game_request = {"game_type": "vocabulary", "difficulty": "intermediate", "total_questions": 10}
 
         response = await async_client.post("/api/game/start", json=game_request, headers=headers)
 
@@ -68,8 +57,8 @@ class TestGameSessionManagement:
         assert data["correct_answers"] == 0
 
         # Verify timestamps
-        assert "start_time" in data
-        assert data["end_time"] is None
+        assert "started_at" in data
+        assert data["completed_at"] is None
 
     @pytest.mark.asyncio
     async def test_WhenStartGameWithVideo_ThenIncludesVideoId(self, async_client, auth_user):
@@ -77,12 +66,7 @@ class TestGameSessionManagement:
         headers = {"Authorization": f"Bearer {auth_user['token']}"}
 
         video_id = str(uuid4())
-        game_request = {
-            "game_type": "listening",
-            "difficulty": "beginner",
-            "video_id": video_id,
-            "total_questions": 5
-        }
+        game_request = {"game_type": "listening", "difficulty": "beginner", "video_id": video_id, "total_questions": 5}
 
         response = await async_client.post("/api/game/start", json=game_request, headers=headers)
 
@@ -97,10 +81,7 @@ class TestGameSessionManagement:
         """Test starting game with invalid game type returns validation error"""
         headers = {"Authorization": f"Bearer {auth_user['token']}"}
 
-        game_request = {
-            "game_type": "invalid_type",
-            "difficulty": "intermediate"
-        }
+        game_request = {"game_type": "invalid_type", "difficulty": "intermediate"}
 
         response = await async_client.post("/api/game/start", json=game_request, headers=headers)
 
@@ -109,10 +90,7 @@ class TestGameSessionManagement:
     @pytest.mark.asyncio
     async def test_WhenStartGameWithoutAuth_ThenReturns401(self, async_client):
         """Test starting game without authentication returns unauthorized"""
-        game_request = {
-            "game_type": "vocabulary",
-            "difficulty": "intermediate"
-        }
+        game_request = {"game_type": "vocabulary", "difficulty": "intermediate"}
 
         response = await async_client.post("/api/game/start", json=game_request)
 
@@ -128,19 +106,12 @@ class TestGameSessionRetrieval:
         user = UserBuilder().build()
 
         # Register and login user
-        register_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
-        }
+        register_data = {"username": user.username, "email": user.email, "password": user.password}
 
         register_response = await async_client.post("/api/auth/register", json=register_data)
         assert register_response.status_code == 201
 
-        login_data = {
-            "username": user.email,
-            "password": user.password
-        }
+        login_data = {"username": user.email, "password": user.password}
         login_response = await async_client.post("/api/auth/login", data=login_data)
         assert login_response.status_code == 200
 
@@ -152,11 +123,7 @@ class TestGameSessionRetrieval:
         """Create a game session for testing"""
         headers = {"Authorization": f"Bearer {auth_user['token']}"}
 
-        game_request = {
-            "game_type": "vocabulary",
-            "difficulty": "intermediate",
-            "total_questions": 10
-        }
+        game_request = {"game_type": "vocabulary", "difficulty": "intermediate", "total_questions": 10}
 
         response = await async_client.post("/api/game/start", json=game_request, headers=headers)
         assert response.status_code == 200
@@ -206,19 +173,12 @@ class TestGameAnswerSubmission:
         user = UserBuilder().build()
 
         # Register and login user
-        register_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
-        }
+        register_data = {"username": user.username, "email": user.email, "password": user.password}
 
         register_response = await async_client.post("/api/auth/register", json=register_data)
         assert register_response.status_code == 201
 
-        login_data = {
-            "username": user.email,
-            "password": user.password
-        }
+        login_data = {"username": user.email, "password": user.password}
         login_response = await async_client.post("/api/auth/login", data=login_data)
         assert login_response.status_code == 200
 
@@ -230,11 +190,7 @@ class TestGameAnswerSubmission:
         """Create active game session for answer testing"""
         headers = {"Authorization": f"Bearer {auth_user['token']}"}
 
-        game_request = {
-            "game_type": "vocabulary",
-            "difficulty": "intermediate",
-            "total_questions": 3
-        }
+        game_request = {"game_type": "vocabulary", "difficulty": "intermediate", "total_questions": 3}
 
         response = await async_client.post("/api/game/start", json=game_request, headers=headers)
         assert response.status_code == 200
@@ -254,7 +210,7 @@ class TestGameAnswerSubmission:
             "question_id": first_question["question_id"],
             "question_type": first_question["question_type"],
             "user_answer": first_question["correct_answer"],
-            "points": first_question["points"]
+            "points": first_question["points"],
         }
 
         response = await async_client.post("/api/game/answer", json=answer_request, headers=headers)
@@ -267,10 +223,7 @@ class TestGameAnswerSubmission:
         assert "points_earned" in data
 
         # Verify session progress (get updated session)
-        session_response = await async_client.get(
-            f"/api/game/session/{active_session['session_id']}",
-            headers=headers
-        )
+        session_response = await async_client.get(f"/api/game/session/{active_session['session_id']}", headers=headers)
         session_data = session_response.json()
 
         assert session_data["questions_answered"] == 1
@@ -279,7 +232,9 @@ class TestGameAnswerSubmission:
         assert session_data["score"] > 0
 
     @pytest.mark.asyncio
-    async def test_WhenSubmitIncorrectAnswer_ThenUpdatesProgressButNotScore(self, async_client, auth_user, active_session):
+    async def test_WhenSubmitIncorrectAnswer_ThenUpdatesProgressButNotScore(
+        self, async_client, auth_user, active_session
+    ):
         """Test submitting incorrect answer updates progress but not score"""
         headers = {"Authorization": f"Bearer {auth_user['token']}"}
 
@@ -292,7 +247,7 @@ class TestGameAnswerSubmission:
             "question_id": first_question["question_id"],
             "question_type": first_question["question_type"],
             "user_answer": "wrong_answer",
-            "points": first_question["points"]
+            "points": first_question["points"],
         }
 
         response = await async_client.post("/api/game/answer", json=answer_request, headers=headers)
@@ -304,10 +259,7 @@ class TestGameAnswerSubmission:
         assert data["points_earned"] == 0
 
         # Verify session progress
-        session_response = await async_client.get(
-            f"/api/game/session/{active_session['session_id']}",
-            headers=headers
-        )
+        session_response = await async_client.get(f"/api/game/session/{active_session['session_id']}", headers=headers)
         session_data = session_response.json()
 
         assert session_data["questions_answered"] == 1
@@ -323,7 +275,7 @@ class TestGameAnswerSubmission:
             "session_id": str(uuid4()),
             "question_id": "q1",
             "user_answer": "any_answer",
-            "correct_answer": "correct_answer"
+            "correct_answer": "correct_answer",
         }
 
         response = await async_client.post("/api/game/answer", json=answer_request, headers=headers)
@@ -340,13 +292,13 @@ class TestGameAnswerSubmission:
         session_questions = active_session["session_data"]["questions"]
 
         # Submit answers for all 3 questions
-        for i, question in enumerate(session_questions):
+        for _i, question in enumerate(session_questions):
             answer_request = {
                 "session_id": session_id,
                 "question_id": question["question_id"],
                 "question_type": question["question_type"],
                 "user_answer": question["correct_answer"],
-                "points": question["points"]
+                "points": question["points"],
             }
 
             response = await async_client.post("/api/game/answer", json=answer_request, headers=headers)
@@ -358,7 +310,7 @@ class TestGameAnswerSubmission:
 
         assert session_data["questions_answered"] == 3
         assert session_data["status"] == "completed"
-        assert session_data["end_time"] is not None
+        assert session_data["completed_at"] is not None
         assert session_data["score"] == 30  # 3 questions * 10 points each
 
 
@@ -371,19 +323,12 @@ class TestUserGameSessions:
         user = UserBuilder().build()
 
         # Register and login user
-        register_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": user.password
-        }
+        register_data = {"username": user.username, "email": user.email, "password": user.password}
 
         register_response = await async_client.post("/api/auth/register", json=register_data)
         assert register_response.status_code == 201
 
-        login_data = {
-            "username": user.email,
-            "password": user.password
-        }
+        login_data = {"username": user.email, "password": user.password}
         login_response = await async_client.post("/api/auth/login", data=login_data)
         assert login_response.status_code == 200
 
@@ -400,11 +345,7 @@ class TestUserGameSessions:
         game_types = ["vocabulary", "listening", "comprehension"]
 
         for game_type in game_types:
-            game_request = {
-                "game_type": game_type,
-                "difficulty": "intermediate",
-                "total_questions": 5
-            }
+            game_request = {"game_type": game_type, "difficulty": "intermediate", "total_questions": 5}
 
             response = await async_client.post("/api/game/start", json=game_request, headers=headers)
             assert response.status_code == 200
@@ -432,7 +373,7 @@ class TestUserGameSessions:
 
         for session in sessions:
             assert "session_id" in session
-            assert "start_time" in session
+            assert "started_at" in session
             assert session["status"] == "active"
 
     @pytest.mark.asyncio

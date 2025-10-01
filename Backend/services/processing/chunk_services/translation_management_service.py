@@ -53,21 +53,14 @@ class TranslationManagementService:
 
             logger.info(f"Generated {len(translation_segments)} translation segments for unknown words")
 
-            return self.create_translation_response(
-                refilter_result, translation_segments, known_words
-            )
+            return self.create_translation_response(refilter_result, translation_segments, known_words)
 
         except Exception as e:
             logger.error(f"Selective translation failed: {e}")
             return self.create_fallback_response(known_words, e)
 
     async def refilter_for_translations(
-        self,
-        srt_path: str,
-        user_id: str,
-        known_words: list[str],
-        user_level: str,
-        target_language: str
+        self, srt_path: str, user_id: str, known_words: list[str], user_level: str, target_language: str
     ) -> dict[str, Any]:
         """
         Re-filter subtitles excluding known words using translation analyzer
@@ -96,12 +89,7 @@ class TranslationManagementService:
 
         except Exception as e:
             logger.error(f"Re-filtering failed: {e}")
-            return {
-                "total_subtitles": 0,
-                "original_blockers": 0,
-                "unknown_blockers": 0,
-                "filtering_stats": {}
-            }
+            return {"total_subtitles": 0, "original_blockers": 0, "unknown_blockers": 0, "filtering_stats": {}}
 
     async def build_translation_segments(
         self,
@@ -110,7 +98,7 @@ class TranslationManagementService:
         known_words: list[str],
         user_level: str,
         target_language: str,
-        refilter_result: dict[str, Any]
+        refilter_result: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """
         Build translation segments for unknown words
@@ -137,9 +125,7 @@ class TranslationManagementService:
 
             if detailed_result and detailed_result.get("filtered_subtitles"):
                 # Filter out known words
-                unknown_word_set = self.filter_unknown_words(
-                    detailed_result.get("blocking_words", []), known_words
-                )
+                unknown_word_set = self.filter_unknown_words(detailed_result.get("blocking_words", []), known_words)
 
                 # Build segments that need translation
                 translation_segments = self.create_translation_segments(
@@ -148,11 +134,7 @@ class TranslationManagementService:
 
         return translation_segments
 
-    def filter_unknown_words(
-        self,
-        blocker_words: list[Any],
-        known_words: list[str]
-    ) -> set[str]:
+    def filter_unknown_words(self, blocker_words: list[Any], known_words: list[str]) -> set[str]:
         """
         Filter out known words from blocker words
 
@@ -167,7 +149,7 @@ class TranslationManagementService:
         known_words_lower = {w.lower() for w in known_words}
 
         for blocker in blocker_words:
-            if hasattr(blocker, 'word'):
+            if hasattr(blocker, "word"):
                 word = blocker.word.lower()
                 if word not in known_words_lower:
                     unknown_word_set.add(word)
@@ -175,9 +157,7 @@ class TranslationManagementService:
         return unknown_word_set
 
     def create_translation_segments(
-        self,
-        filtered_subtitles: list[Any],
-        unknown_word_set: set[str]
+        self, filtered_subtitles: list[Any], unknown_word_set: set[str]
     ) -> list[dict[str, Any]]:
         """
         Create translation segments from filtered subtitles
@@ -192,11 +172,10 @@ class TranslationManagementService:
         translation_segments = []
 
         for subtitle in filtered_subtitles:
-            if hasattr(subtitle, 'filtered_words') and subtitle.filtered_words:
+            if hasattr(subtitle, "filtered_words") and subtitle.filtered_words:
                 # Find unknown words in this subtitle
                 subtitle_unknown_words = [
-                    fw for fw in subtitle.filtered_words
-                    if hasattr(fw, 'word') and fw.word.lower() in unknown_word_set
+                    fw for fw in subtitle.filtered_words if hasattr(fw, "word") and fw.word.lower() in unknown_word_set
                 ]
 
                 if subtitle_unknown_words:
@@ -206,11 +185,7 @@ class TranslationManagementService:
 
         return translation_segments
 
-    def create_translation_segment(
-        self,
-        subtitle: Any,
-        unknown_words: list[Any]
-    ) -> dict[str, Any]:
+    def create_translation_segment(self, subtitle: Any, unknown_words: list[Any]) -> dict[str, Any]:
         """
         Create a single translation segment dictionary
 
@@ -222,25 +197,22 @@ class TranslationManagementService:
             Translation segment dictionary
         """
         return {
-            "subtitle_index": getattr(subtitle, 'index', 0),
-            "text": getattr(subtitle, 'text', ''),
-            "start_time": getattr(subtitle, 'start_time', ''),
-            "end_time": getattr(subtitle, 'end_time', ''),
+            "subtitle_index": getattr(subtitle, "index", 0),
+            "text": getattr(subtitle, "text", ""),
+            "start_time": getattr(subtitle, "start_time", ""),
+            "end_time": getattr(subtitle, "end_time", ""),
             "unknown_words": [
                 {
                     "word": fw.word,
-                    "difficulty": getattr(fw, 'difficulty', 'unknown'),
-                    "pos": getattr(fw, 'pos', 'unknown')
+                    "difficulty": getattr(fw, "difficulty", "unknown"),
+                    "pos": getattr(fw, "pos", "unknown"),
                 }
                 for fw in unknown_words
-            ]
+            ],
         }
 
     def create_translation_response(
-        self,
-        refilter_result: dict[str, Any],
-        translation_segments: list[dict[str, Any]],
-        known_words: list[str]
+        self, refilter_result: dict[str, Any], translation_segments: list[dict[str, Any]], known_words: list[str]
     ) -> dict[str, Any]:
         """
         Create final translation response dictionary
@@ -261,17 +233,11 @@ class TranslationManagementService:
                 "total_blockers": refilter_result.get("original_blockers", 0),
                 "known_blockers": len(known_words),
                 "unknown_blockers": refilter_result.get("unknown_blockers", 0),
-                "translation_reduction": refilter_result.get("filtering_stats", {}).get(
-                    "translation_reduction", 0
-                )
-            }
+                "translation_reduction": refilter_result.get("filtering_stats", {}).get("translation_reduction", 0),
+            },
         }
 
-    def create_fallback_response(
-        self,
-        known_words: list[str],
-        error: Exception
-    ) -> dict[str, Any]:
+    def create_fallback_response(self, known_words: list[str], error: Exception) -> dict[str, Any]:
         """
         Create fallback response when translation fails
 
@@ -290,9 +256,9 @@ class TranslationManagementService:
                 "total_blockers": 0,
                 "known_blockers": len(known_words),
                 "unknown_blockers": 0,
-                "translation_reduction": 0
+                "translation_reduction": 0,
             },
-            "error": str(error)
+            "error": str(error),
         }
 
 

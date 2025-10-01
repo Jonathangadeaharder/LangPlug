@@ -25,26 +25,19 @@ class ParakeetTranscriptionService(ITranscriptionService):
         "parakeet-tdt-1.1b": "nvidia/parakeet-tdt-1.1b",
         "parakeet-ctc-1.1b": "nvidia/parakeet-ctc-1.1b",
         "parakeet-ctc-0.6b": "nvidia/parakeet-ctc-0.6b",
-        "parakeet-tdt-0.6b": "nvidia/parakeet-tdt-0.6b-v3"  # Updated to v3 model
+        "parakeet-tdt-0.6b": "nvidia/parakeet-tdt-0.6b-v3",  # Updated to v3 model
     }
 
-    def __init__(
-        self,
-        model_name: str = "parakeet-tdt-1.1b",
-        device: str | None = None
-    ):
+    def __init__(self, model_name: str = "parakeet-tdt-1.1b", device: str | None = None):
         """
         Initialize Parakeet transcription service
-        
+
         Args:
             model_name: Name of Parakeet model to use
             device: Device to use ('cuda' or 'cpu')
         """
         if model_name not in self.AVAILABLE_MODELS:
-            raise ValueError(
-                f"Invalid model: {model_name}. "
-                f"Choose from: {', '.join(self.AVAILABLE_MODELS.keys())}"
-            )
+            raise ValueError(f"Invalid model: {model_name}. Choose from: {', '.join(self.AVAILABLE_MODELS.keys())}")
 
         self.model_name = model_name
         self.model_path = self.AVAILABLE_MODELS[model_name]
@@ -58,9 +51,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
                 import nemo.collections.asr as nemo_asr
 
                 logger.info(f"Loading Parakeet model: {self.model_name}")
-                self._model = nemo_asr.models.ASRModel.from_pretrained(
-                    model_name=self.model_path
-                )
+                self._model = nemo_asr.models.ASRModel.from_pretrained(model_name=self.model_path)
 
                 # Move model to device
                 if self.device == "cuda" and self._cuda_available():
@@ -70,16 +61,9 @@ class ParakeetTranscriptionService(ITranscriptionService):
                 logger.info(f"Parakeet model loaded: {self.model_name}")
 
             except ImportError:
-                raise ImportError(
-                    "NeMo toolkit not installed. "
-                    "Install with: pip install nemo_toolkit[asr]"
-                )
+                raise ImportError("NeMo toolkit not installed. Install with: pip install nemo_toolkit[asr]")
 
-    def transcribe(
-        self,
-        audio_path: str,
-        language: str | None = None
-    ) -> TranscriptionResult:
+    def transcribe(self, audio_path: str, language: str | None = None) -> TranscriptionResult:
         """Transcribe an audio file"""
         if not self.is_initialized:
             self.initialize()
@@ -100,16 +84,10 @@ class ParakeetTranscriptionService(ITranscriptionService):
                 if isinstance(transcriptions[0], str):
                     # Simple text output
                     full_text = transcriptions[0]
-                    segments = [
-                        TranscriptionSegment(
-                            start_time=0,
-                            end_time=0,
-                            text=full_text
-                        )
-                    ]
+                    segments = [TranscriptionSegment(start_time=0, end_time=0, text=full_text)]
                 else:
                     # Output with timestamps
-                    full_text = transcriptions[0].text if hasattr(transcriptions[0], 'text') else str(transcriptions[0])
+                    full_text = transcriptions[0].text if hasattr(transcriptions[0], "text") else str(transcriptions[0])
 
                     # Try to extract segments with timestamps
                     segments = self._extract_segments(transcriptions[0])
@@ -121,29 +99,18 @@ class ParakeetTranscriptionService(ITranscriptionService):
                 segments=segments,
                 language="en",  # Parakeet is primarily English
                 duration=self._get_audio_duration(audio_path),
-                metadata={
-                    "model": self.model_name,
-                    "device": self.device
-                }
+                metadata={"model": self.model_name, "device": self.device},
             )
         finally:
             if cleanup and os.path.exists(audio_path):
                 os.unlink(audio_path)
 
-    def transcribe_with_timestamps(
-        self,
-        audio_path: str,
-        language: str | None = None
-    ) -> TranscriptionResult:
+    def transcribe_with_timestamps(self, audio_path: str, language: str | None = None) -> TranscriptionResult:
         """Transcribe with detailed timestamps"""
         # Parakeet provides timestamps when available
         return self.transcribe(audio_path, language)
 
-    def transcribe_batch(
-        self,
-        audio_paths: list[str],
-        language: str | None = None
-    ) -> list[TranscriptionResult]:
+    def transcribe_batch(self, audio_paths: list[str], language: str | None = None) -> list[TranscriptionResult]:
         """Transcribe multiple audio files in batch"""
         if not self.is_initialized:
             self.initialize()
@@ -155,15 +122,9 @@ class ParakeetTranscriptionService(ITranscriptionService):
         for audio_path, transcription in zip(audio_paths, transcriptions, strict=False):
             if isinstance(transcription, str):
                 full_text = transcription
-                segments = [
-                    TranscriptionSegment(
-                        start_time=0,
-                        end_time=0,
-                        text=full_text
-                    )
-                ]
+                segments = [TranscriptionSegment(start_time=0, end_time=0, text=full_text)]
             else:
-                full_text = transcription.text if hasattr(transcription, 'text') else str(transcription)
+                full_text = transcription.text if hasattr(transcription, "text") else str(transcription)
                 segments = self._extract_segments(transcription)
 
             results.append(
@@ -172,10 +133,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
                     segments=segments,
                     language="en",
                     duration=self._get_audio_duration(audio_path),
-                    metadata={
-                        "model": self.model_name,
-                        "device": self.device
-                    }
+                    metadata={"model": self.model_name, "device": self.device},
                 )
             )
 
@@ -185,11 +143,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
         """Parakeet supports video through audio extraction"""
         return True
 
-    def extract_audio_from_video(
-        self,
-        video_path: str,
-        output_path: str | None = None
-    ) -> str:
+    def extract_audio_from_video(self, video_path: str, output_path: str | None = None) -> str:
         """Extract audio from video file"""
         try:
             from moviepy.editor import VideoFileClip
@@ -197,10 +151,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
             from moviepy import VideoFileClip
 
         if output_path is None:
-            output_path = tempfile.NamedTemporaryFile(
-                suffix=".wav",
-                delete=False
-            ).name
+            output_path = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
 
         video = VideoFileClip(video_path)
         audio = video.audio
@@ -209,11 +160,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
             raise ValueError(f"No audio track found in {video_path}")
 
         # Parakeet prefers 16kHz audio
-        audio.write_audiofile(
-            output_path,
-            fps=16000,
-            logger=None
-        )
+        audio.write_audiofile(output_path, fps=16000, logger=None)
         video.close()
 
         return output_path
@@ -232,6 +179,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
             # Clear GPU cache if using CUDA
             if self.device == "cuda" and self._cuda_available():
                 import torch
+
                 torch.cuda.empty_cache()
 
     @property
@@ -255,7 +203,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
             "model": self.model_name,
             "device": self.device,
             "framework": "NeMo",
-            "languages": ["English"]
+            "languages": ["English"],
         }
 
     def _is_video_file(self, file_path: str) -> bool:
@@ -267,6 +215,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
         """Check if CUDA is available"""
         try:
             import torch
+
             return torch.cuda.is_available()
         except ImportError:
             return False
@@ -275,6 +224,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
         """Get duration of audio file"""
         try:
             from moviepy.editor import AudioFileClip
+
             with AudioFileClip(audio_path) as audio:
                 return audio.duration
         except (ImportError, OSError, Exception) as e:
@@ -286,37 +236,23 @@ class ParakeetTranscriptionService(ITranscriptionService):
         segments = []
 
         # Try to extract word-level timestamps if available
-        if hasattr(transcription, 'timestamps') and hasattr(transcription, 'words'):
-            words = transcription.words if hasattr(transcription, 'words') else transcription.text.split()
+        if hasattr(transcription, "timestamps") and hasattr(transcription, "words"):
+            words = transcription.words if hasattr(transcription, "words") else transcription.text.split()
             timestamps = transcription.timestamps
 
             for word, (start, end) in zip(words, timestamps, strict=False):
-                segments.append(
-                    TranscriptionSegment(
-                        start_time=start,
-                        end_time=end,
-                        text=word
-                    )
-                )
-        elif hasattr(transcription, 'segments'):
+                segments.append(TranscriptionSegment(start_time=start, end_time=end, text=word))
+        elif hasattr(transcription, "segments"):
             # Segment-level output
             for seg in transcription.segments:
                 segments.append(
                     TranscriptionSegment(
-                        start_time=seg.get('start', 0),
-                        end_time=seg.get('end', 0),
-                        text=seg.get('text', '')
+                        start_time=seg.get("start", 0), end_time=seg.get("end", 0), text=seg.get("text", "")
                     )
                 )
         else:
             # Fallback to single segment
-            text = transcription.text if hasattr(transcription, 'text') else str(transcription)
-            segments.append(
-                TranscriptionSegment(
-                    start_time=0,
-                    end_time=0,
-                    text=text
-                )
-            )
+            text = transcription.text if hasattr(transcription, "text") else str(transcription)
+            segments.append(TranscriptionSegment(start_time=0, end_time=0, text=text))
 
         return segments

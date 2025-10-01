@@ -1,6 +1,7 @@
 """
 In-process tests to ensure vocabulary endpoints require Authorization.
 """
+
 from __future__ import annotations
 
 import pytest

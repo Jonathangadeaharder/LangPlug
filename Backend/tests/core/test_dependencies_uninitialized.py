@@ -1,4 +1,5 @@
 """Core dependency availability tests."""
+
 from __future__ import annotations
 
 import pytest
@@ -25,4 +26,4 @@ def test_Whentranscription_service_requested_ThenReturnsInstanceOrNone():
     """Transcription service should return instance or None if unavailable."""
     transcription_service = deps.get_transcription_service()
     if transcription_service is not None:
-        assert hasattr(transcription_service, 'transcribe')
+        assert hasattr(transcription_service, "transcribe")

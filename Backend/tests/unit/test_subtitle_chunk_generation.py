@@ -1,11 +1,12 @@
 """Unit tests for `SRTParser` that avoid external fixture files."""
+
 from __future__ import annotations
 
 from pathlib import Path
+
 import pytest
 
-from services.utils.srt_parser import SRTParser, SRTSegment
-
+from services.utils.srt_parser import SRTParser
 
 SAMPLE_SRT = """1
 00:00:00,000 --> 00:00:02,000

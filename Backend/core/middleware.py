@@ -1,6 +1,7 @@
 """
 Middleware for FastAPI application
 """
+
 import logging
 import time
 from collections.abc import Callable
@@ -42,11 +43,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "url": str(request.url),
                 "path": request.url.path,
                 "query_params": dict(request.query_params),
-                "headers": {k: v for k, v in request.headers.items() if k.lower() not in ['authorization', 'cookie']},
+                "headers": {k: v for k, v in request.headers.items() if k.lower() not in ["authorization", "cookie"]},
                 "client_ip": request.client.host if request.client else None,
                 "user_agent": request.headers.get("user-agent"),
-                "timestamp": datetime.utcnow().isoformat()
-            }
+                "timestamp": datetime.utcnow().isoformat(),
+            },
         )
 
         # Process request
@@ -78,8 +79,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                     "process_time": round(process_time, 4),
                     "response_headers": dict(response.headers),
                     "response_body": response_body,
-                    "timestamp": datetime.utcnow().isoformat()
-                }
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
             )
 
             # Add processing time to response headers
@@ -95,9 +96,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                     "url": str(request.url),
                     "error": str(e),
                     "process_time": round(process_time, 4),
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.utcnow().isoformat(),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
 
@@ -116,11 +117,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             logger.error(f"LangPlug error: {e.message}", exc_info=True)
             return JSONResponse(
                 status_code=e.status_code,
-                content={
-                    "detail": e.message,
-                    "type": "LangPlugException",
-                    "timestamp": datetime.utcnow().isoformat()
-                }
+                content={"detail": e.message, "type": "LangPlugException", "timestamp": datetime.utcnow().isoformat()},
             )
         except InvalidCredentialsError as e:
             logger.warning(f"Invalid credentials: {e!s}")
@@ -129,8 +126,8 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 content={
                     "detail": str(e),
                     "type": "InvalidCredentialsError",
-                    "timestamp": datetime.utcnow().isoformat()
-                }
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
             )
         except UserAlreadyExistsError as e:
             logger.warning(f"User already exists: {e!s}")
@@ -139,18 +136,14 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 content={
                     "detail": str(e),
                     "type": "UserAlreadyExistsError",
-                    "timestamp": datetime.utcnow().isoformat()
-                }
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
             )
         except SessionExpiredError as e:
             logger.warning(f"Session expired: {e!s}")
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                content={
-                    "detail": str(e),
-                    "type": "SessionExpiredError",
-                    "timestamp": datetime.utcnow().isoformat()
-                }
+                content={"detail": str(e), "type": "SessionExpiredError", "timestamp": datetime.utcnow().isoformat()},
             )
         except Exception as e:
             # Handle unexpected exceptions
@@ -160,8 +153,8 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 content={
                     "detail": "Internal server error",
                     "type": "UnexpectedError",
-                    "timestamp": datetime.utcnow().isoformat()
-                }
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
             )
 
 
@@ -187,11 +180,7 @@ def setup_middleware(app: FastAPI) -> None:
     async def langplug_exception_handler(request: Request, exc: LangPlugException):
         return JSONResponse(
             status_code=exc.status_code,
-            content={
-                "detail": exc.message,
-                "type": exc.__class__.__name__,
-                "timestamp": datetime.utcnow().isoformat()
-            }
+            content={"detail": exc.message, "type": exc.__class__.__name__, "timestamp": datetime.utcnow().isoformat()},
         )
 
     logger.info("Middleware configured successfully")

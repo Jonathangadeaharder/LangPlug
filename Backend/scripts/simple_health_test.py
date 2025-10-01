@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Simple health check test to verify server is running"""
+
 from pathlib import Path
 from urllib import request as urlreq
 
 REPORT_PATH = Path(__file__).parent.parent / "logs" / "simple_health_test_report.txt"
+
 
 def main():
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -30,6 +32,7 @@ def main():
             f.write("Server appears to be down\n")
 
         f.flush()
+
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,7 @@
 """Integration tests for processing API endpoints."""
+
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
@@ -19,16 +19,12 @@ async def test_Whentranscribe_endpointCalled_ThenReturnstask(async_http_client, 
         video = tmp_path / "episode.mp4"
         video.write_bytes(b"fake")
         subtitle = tmp_path / "episode.srt"
-        subtitle.write_text(
-            "1\n00:00:00,000 --> 00:00:01,000\nHallo\n\n", encoding="utf-8"
-        )
+        subtitle.write_text("1\n00:00:00,000 --> 00:00:01,000\nHallo\n\n", encoding="utf-8")
 
         transcriber = Mock()
         transcriber.is_initialized = True
         transcriber.transcribe.return_value = Mock(segments=[])
-        monkeypatch.setattr(
-            "api.routes.processing.get_transcription_service", lambda: transcriber
-        )
+        monkeypatch.setattr("api.routes.processing.get_transcription_service", lambda: transcriber)
 
         response = await async_http_client.post(
             "/api/process/transcribe",
@@ -36,7 +32,10 @@ async def test_Whentranscribe_endpointCalled_ThenReturnstask(async_http_client, 
             headers=flow["headers"],
         )
 
-        assert response.status_code in {200, 202}
+        # Async processing should return 202 (Accepted)
+        assert (
+            response.status_code == 202
+        ), f"Expected 202 (async accepted), got {response.status_code}: {response.text}"
         assert "task_id" in response.json()
 
 
@@ -51,4 +50,5 @@ async def test_Whenprepare_episodeWithoutexisting_video_ThenReturnsError(async_h
         headers=flow["headers"],
     )
 
-    assert response.status_code in {404, 422}
+    # Invalid video path should return 404 (not found)
+    assert response.status_code == 404, f"Expected 404 (video not found), got {response.status_code}: {response.text}"

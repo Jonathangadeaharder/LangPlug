@@ -4,14 +4,14 @@ Loads vocabulary data from text files into the database
 """
 
 import logging
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import AsyncSessionLocal
-from database.models import VocabularyWord, Language
+from database.models import VocabularyWord
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ class VocabularyPreloadService:
                                 notes="",
                                 frequency_rank=0,
                                 created_at=datetime.now(UTC),
-                                updated_at=datetime.now(UTC)
+                                updated_at=datetime.now(UTC),
                             )
                             session.add(vocab_entry)
                             loaded_count += 1
@@ -104,12 +104,12 @@ class VocabularyPreloadService:
     async def get_level_words(self, level: str, session: AsyncSession = None) -> list[dict[str, str]]:
         """Get all words for a specific difficulty level"""
         try:
-
             # If no session provided, create one (fallback for backwards compatibility)
             if session is None:
                 from sqlalchemy.ext.asyncio import async_sessionmaker
 
                 from core.database import engine
+
                 async_session_maker = async_sessionmaker(bind=engine, expire_on_commit=False)
                 async with async_session_maker() as session:
                     return await self._execute_get_level_words(session, level)
@@ -122,29 +122,35 @@ class VocabularyPreloadService:
     async def _execute_get_level_words(self, session: AsyncSession, level: str) -> list[dict[str, str]]:
         """Execute the actual database query for level words"""
         from sqlalchemy import select
+
         from database.models import VocabularyWord
 
-        stmt = select(VocabularyWord).where(
-            VocabularyWord.difficulty_level == level,
-            VocabularyWord.language == 'de'
-        ).order_by(VocabularyWord.word)
+        stmt = (
+            select(VocabularyWord)
+            .where(VocabularyWord.difficulty_level == level, VocabularyWord.language == "de")
+            .order_by(VocabularyWord.word)
+        )
 
         result = await session.execute(stmt)
         words_db = result.scalars().all()
 
         words = []
         for word_db in words_db:
-            words.append({
-                "id": word_db.id,
-                "word": word_db.word,
-                "difficulty_level": word_db.difficulty_level,
-                "word_type": word_db.part_of_speech or "noun",
-                "part_of_speech": word_db.part_of_speech or "noun",
-                "definition": word_db.notes or "",
-            })
+            words.append(
+                {
+                    "id": word_db.id,
+                    "word": word_db.word,
+                    "difficulty_level": word_db.difficulty_level,
+                    "word_type": word_db.part_of_speech or "noun",
+                    "part_of_speech": word_db.part_of_speech or "noun",
+                    "definition": word_db.notes or "",
+                }
+            )
         return words
 
-    async def get_user_known_words(self, user_id: int, level: str = None, session: AsyncSession = None) -> set[str]:
+    async def get_user_known_words(
+        self, user_id: int, level: str | None = None, session: AsyncSession = None
+    ) -> set[str]:
         """Get words that a user has marked as known"""
         try:
             # If no session provided, create one (fallback for backwards compatibility)
@@ -152,6 +158,7 @@ class VocabularyPreloadService:
                 from sqlalchemy.ext.asyncio import async_sessionmaker
 
                 from core.database import engine
+
                 async_session_maker = async_sessionmaker(bind=engine, expire_on_commit=False)
                 async with async_session_maker() as session:
                     return await self._execute_get_user_known_words(session, user_id, level)
@@ -161,25 +168,29 @@ class VocabularyPreloadService:
             logger.error(f"Error getting user known words: {e}")
             raise Exception(f"Failed to get user known words: {e}") from e
 
-    async def _execute_get_user_known_words(self, session: AsyncSession, user_id: int, level: str = None) -> set[str]:
+    async def _execute_get_user_known_words(
+        self, session: AsyncSession, user_id: int, level: str | None = None
+    ) -> set[str]:
         """Execute the actual database query for user known words"""
         from sqlalchemy import select
+
         from database.models import UserVocabularyProgress, VocabularyWord
 
         if level:
-            stmt = select(VocabularyWord.word).join(
-                UserVocabularyProgress, UserVocabularyProgress.vocabulary_id == VocabularyWord.id
-            ).where(
-                UserVocabularyProgress.user_id == user_id,
-                VocabularyWord.difficulty_level == level,
-                VocabularyWord.language == 'de'
+            stmt = (
+                select(VocabularyWord.word)
+                .join(UserVocabularyProgress, UserVocabularyProgress.vocabulary_id == VocabularyWord.id)
+                .where(
+                    UserVocabularyProgress.user_id == user_id,
+                    VocabularyWord.difficulty_level == level,
+                    VocabularyWord.language == "de",
+                )
             )
         else:
-            stmt = select(VocabularyWord.word).join(
-                UserVocabularyProgress, UserVocabularyProgress.vocabulary_id == VocabularyWord.id
-            ).where(
-                UserVocabularyProgress.user_id == user_id,
-                VocabularyWord.language == 'de'
+            stmt = (
+                select(VocabularyWord.word)
+                .join(UserVocabularyProgress, UserVocabularyProgress.vocabulary_id == VocabularyWord.id)
+                .where(UserVocabularyProgress.user_id == user_id, VocabularyWord.language == "de")
             )
 
         result = await session.execute(stmt)
@@ -192,13 +203,11 @@ class VocabularyPreloadService:
             async with AsyncSessionLocal() as session:
                 from sqlalchemy import delete, select
 
-                from database.models import UserVocabularyProgress
-
                 # First, get the word from vocabulary table
-                from database.models import VocabularyWord
+                from database.models import UserVocabularyProgress, VocabularyWord
+
                 vocab_stmt = select(VocabularyWord).where(
-                    VocabularyWord.word == word.lower(),
-                    VocabularyWord.language == 'de'
+                    VocabularyWord.word == word.lower(), VocabularyWord.language == "de"
                 )
                 vocab_result = await session.execute(vocab_stmt)
                 vocab_word = vocab_result.scalar_one_or_none()
@@ -213,8 +222,7 @@ class VocabularyPreloadService:
                 if known:
                     # Check if progress entry already exists
                     existing_stmt = select(UserVocabularyProgress).where(
-                        UserVocabularyProgress.user_id == user_id,
-                        UserVocabularyProgress.vocabulary_id == vocabulary_id
+                        UserVocabularyProgress.user_id == user_id, UserVocabularyProgress.vocabulary_id == vocabulary_id
                     )
                     existing_result = await session.execute(existing_stmt)
                     existing_progress = existing_result.scalar_one_or_none()
@@ -238,23 +246,20 @@ class VocabularyPreloadService:
                             last_reviewed_at=datetime.now(UTC),
                             first_seen_at=datetime.now(UTC),
                             created_at=datetime.now(UTC),
-                            updated_at=datetime.now(UTC)
+                            updated_at=datetime.now(UTC),
                         )
                         session.add(progress)
                 else:
                     # Set as unknown
                     delete_stmt = delete(UserVocabularyProgress).where(
-                        UserVocabularyProgress.user_id == user_id,
-                        UserVocabularyProgress.vocabulary_id == vocabulary_id
+                        UserVocabularyProgress.user_id == user_id, UserVocabularyProgress.vocabulary_id == vocabulary_id
                     )
                     await session.execute(delete_stmt)
 
                 await session.commit()
                 return True
         except Exception as e:
-            logger.error(
-                f"Error marking word '{word}' as {'known' if known else 'unknown'}: {e}"
-            )
+            logger.error(f"Error marking word '{word}' as {'known' if known else 'unknown'}: {e}")
             return False
 
     async def bulk_mark_level_known(
@@ -284,7 +289,7 @@ class VocabularyPreloadService:
             if session:
                 # Use provided session directly
                 query = text("""
-                    SELECT 
+                    SELECT
                         v.difficulty_level,
                         COUNT(*) as total_words,
                         0 as has_definition,

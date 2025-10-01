@@ -17,6 +17,7 @@ interface GameState {
   toggleSubtitles: () => void
   nextSegment: () => Promise<void>
   resetGame: () => void
+  reset: () => void
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -34,7 +35,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       user_progress: {},
       completed: false
     }
-    
+
     set({
       gameSession: initialSession,
       currentWords: [],
@@ -49,7 +50,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!gameSession) return
 
     set({ isProcessing: true })
-    
+
     try {
       const blockingWordsResponse = await getBlockingWordsApiVocabularyBlockingWordsGet({
         videoPath: gameSession.video_path,
@@ -86,7 +87,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           known,
         },
       })
-      
+
       // Update local progress
       const updatedProgress = {
         ...gameSession.user_progress,
@@ -94,7 +95,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
 
       // Update current words
-      const updatedWords = currentWords.map(w => 
+      const updatedWords = currentWords.map(w =>
         w.word === word ? { ...w, known } : w
       )
 
@@ -143,6 +144,16 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   resetGame: () => {
+    set({
+      gameSession: null,
+      currentWords: [],
+      currentWordIndex: 0,
+      showSubtitles: false,
+      isProcessing: false
+    })
+  },
+
+  reset: () => {
     set({
       gameSession: null,
       currentWords: [],

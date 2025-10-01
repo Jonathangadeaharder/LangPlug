@@ -4,11 +4,12 @@ import { toast } from 'react-hot-toast'
 import { ProcessingScreen } from './ProcessingScreen'
 import { VocabularyGame } from './VocabularyGame'
 import { ChunkedLearningPlayer } from './ChunkedLearningPlayer'
-import { handleApiError } from '@/services/api'
+import { handleApiError, OpenAPI } from '@/services/api'
 import {
   getTaskProgressApiProcessProgressTaskIdGet,
   processChunkApiProcessChunkPost,
   profileGetApiProfileGet,
+  markWordKnownApiVocabularyMarkKnownPost,
 } from '@/client/services.gen'
 import { logger } from '@/services/logger'
 import type { VideoInfo, ProcessingStatus, VocabularyWord } from '@/types'
@@ -45,14 +46,14 @@ interface ChunkedLearningFlowProps {
   onComplete?: () => void // Called when entire episode is completed
 }
 
-export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({ 
-  videoInfo, 
+export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
+  videoInfo,
   chunkDurationMinutes = 5,
   onComplete
 }) => {
   const navigate = useNavigate()
-  const { series, episode } = useParams<{ series: string; episode: string }>()
-  
+  const { series, episode: _episode } = useParams<{ series: string; episode: string }>()
+
   // State management
   const [currentPhase, setCurrentPhase] = useState<'processing' | 'game' | 'video'>('processing')
   const [currentChunk, setCurrentChunk] = useState(0)
@@ -63,7 +64,7 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
     current_step: 'Initializing',
     message: 'Starting processing...'
   })
-  const [taskId, setTaskId] = useState<string | null>(null)
+  const [_taskId, setTaskId] = useState<string | null>(null)
   const [gameWords, setGameWords] = useState<VocabularyWord[]>([])
   const [learnedWords, setLearnedWords] = useState<Set<string>>(new Set())
   const [activeLanguages, setActiveLanguages] = useState<{
@@ -77,9 +78,9 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
     logger.info('ChunkedLearningFlow', `🎬 Initializing chunks for video: ${videoInfo.path}`)
     const videoDurationMinutes = videoInfo.duration || 25 // Assume 25 minutes if not provided
     const totalChunks = Math.ceil(videoDurationMinutes / chunkDurationMinutes)
-    
+
     logger.info('ChunkedLearningFlow', `Video duration: ${videoDurationMinutes} min, Chunk size: ${chunkDurationMinutes} min, Total chunks: ${totalChunks}`)
-    
+
     const newChunks: ChunkData[] = []
     for (let i = 0; i < totalChunks; i++) {
       newChunks.push({
@@ -99,7 +100,7 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
 
     const loadProfileLanguages = async () => {
       try {
-        const profile = await profileGetApiProfileGet() as UserProfileResponse
+        const profile = await profileGetApiProfileGet() as unknown as UserProfileResponse
         if (!isMounted || !profile) {
           return
         }
@@ -139,22 +140,22 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
   // Process current chunk
   const processChunk = async (chunkIndex: number) => {
     console.log(`[ChunkedLearningFlow] 🎬 processChunk called with index: ${chunkIndex}/${chunks.length}`)
-    
+
     if (chunkIndex >= chunks.length) {
       console.log(`[ChunkedLearningFlow] 🎉 All chunks processed! Episode completed!`)
       // All chunks processed
       toast.success('Episode completed!')
       const handleProcessChunk = async () => {
         if (!videoInfo) return
-        
+
         logger.userAction(`Start processing chunk ${currentChunk + 1}`, 'ChunkedLearningFlow', {
           chunkRange: `${formatTime(chunks[currentChunk].startTime)} - ${formatTime(chunks[currentChunk].endTime)}`,
           videoTitle: videoInfo.title
         })
-        
+
         setCurrentPhase('processing')
         const chunk = chunks[currentChunk]
-        
+
         try {
           logger.info('ChunkedLearningFlow', `Starting chunk ${currentChunk + 1} processing`, {
             startTime: chunk.startTime,
@@ -162,7 +163,7 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
             videoPath: videoInfo.path,
             totalChunks: chunks.length
           })
-        
+
           console.log(`[ChunkedLearningFlow] Setting phase to PROCESSING`)
           setCurrentPhase('processing')
           setProcessingStatus({
@@ -190,7 +191,7 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
               status: response.status || 'started'
             })
             console.log(`[ChunkedLearningFlow] Task ID received: ${response.task_id}`)
-            
+
             // Start polling for progress
             console.log(`[ChunkedLearningFlow] Starting progress polling...`)
             pollProgress(response.task_id, chunkIndex)
@@ -214,7 +215,7 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
       endTime: chunk.endTime,
       videoPath: videoInfo.path
     })
-    
+
     console.log(`[ChunkedLearningFlow] Setting phase to PROCESSING`)
     setCurrentPhase('processing')
     setProcessingStatus({
@@ -242,7 +243,7 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
         status: response.status || 'started'
       })
       console.log(`[ChunkedLearningFlow] Task ID received: ${response.task_id}`)
-      
+
       // Start polling for progress
       console.log(`[ChunkedLearningFlow] Starting progress polling...`)
       pollProgress(response.task_id, chunkIndex)
@@ -253,11 +254,12 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
     }
   }
 
-  // Poll for processing progress
+  // Poll for processing progress with exponential backoff
   const pollProgress = async (taskId: string, chunkIndex: number) => {
     console.log(`[ChunkedLearningFlow] 🔄 Starting progress polling for task: ${taskId}, chunk: ${chunkIndex}`)
-    const maxAttempts = 180 // 15 minutes max
+    const maxAttempts = 120 // Reduced from 180, with longer intervals
     let attempts = 0
+    let pollInterval = 5000 // Start at 5 seconds
 
     const poll = async () => {
       try {
@@ -278,19 +280,26 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
             subtitlePath: progress.subtitle_path,
             translationPath: progress.translation_path
           })
-          
+
           // Update chunk data with results
+          // Add fallback concept_id for backwards compatibility
+          const vocabularyWithIds = (progress.vocabulary || []).map((word: any) => ({
+            ...word,
+            concept_id: word.concept_id || `${word.lemma || word.word}-${word.difficulty_level || 'unknown'}`,
+            lemma: word.lemma || word.word  // Ensure lemma is always set
+          }))
+
           const updatedChunks = [...chunks]
           updatedChunks[chunkIndex] = {
             ...updatedChunks[chunkIndex],
-            vocabulary: progress.vocabulary || [],
+            vocabulary: vocabularyWithIds,
             subtitlePath: progress.subtitle_path,
             translationPath: progress.translation_path || undefined,
             isProcessed: true
           }
           setChunks(updatedChunks)
-          setGameWords(progress.vocabulary || [])
-          
+          setGameWords(vocabularyWithIds)
+
           logger.userAction('Entering vocabulary game phase', 'ChunkedLearningFlow', {
             wordsToLearn: progress.vocabulary?.length || 0,
             chunkIndex: currentChunk + 1
@@ -314,14 +323,34 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
           console.error(`[ChunkedLearningFlow] ⏱️ Processing TIMEOUT after ${maxAttempts} attempts`)
           toast.error('Processing timeout')
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('[ChunkedLearningFlow] ❌ Error polling progress:', error)
+
+        // Check if this is an authentication error (401 Unauthorized)
+        if (error?.response?.status === 401 || error?.status === 401 ||
+            error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
+          console.error('[ChunkedLearningFlow] 🔒 Authentication failed - stopping polling')
+          toast.error('Session expired. Please log in again.')
+
+          // Clear authentication and redirect to login
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          localStorage.removeItem('user_id')
+
+          // Navigate to login page
+          navigate('/login')
+          return // Stop polling completely
+        }
+
         attempts++
         if (attempts < maxAttempts) {
-          console.log(`[ChunkedLearningFlow] Retrying poll in 3 seconds...`)
-          setTimeout(poll, 3000)
+          // Exponential backoff: increase interval each time, max 30 seconds
+          pollInterval = Math.min(pollInterval * 1.5, 30000)
+          console.log(`[ChunkedLearningFlow] Retrying poll in ${pollInterval/1000} seconds...`)
+          setTimeout(poll, pollInterval)
         } else {
           console.error(`[ChunkedLearningFlow] Failed after ${maxAttempts} attempts`)
+          toast.error('Processing failed. Please try again.')
         }
       }
     }
@@ -329,16 +358,132 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
     poll()
   }
 
-  // Handle game completion
-  const handleGameComplete = (knownWords: string[], unknownWords: string[]) => {
+  // Handle individual word answers in the game with improved error handling
+  const handleWordAnswered = async (word: string, known: boolean) => {
+    const wordData = gameWords.find(w => w.word === word)
+    if (!wordData) {
+      logger.warn('ChunkedLearningFlow', 'Cannot save word progress - word not found', { word })
+      toast.error(`Cannot save progress for "${word}" - word data missing`)
+      return
+    }
+
+    // Show optimistic feedback immediately
+    const loadingToast = toast.loading(`Saving progress for "${word}"...`)
+
+    try {
+      // Use existing mark-known endpoint with concept_id
+      // If no concept_id, skip saving (will be fixed after server restart)
+      if (!wordData.concept_id) {
+        logger.warn('ChunkedLearningFlow', 'Skipping save - no concept_id (needs server restart)', { word })
+        toast.error(`Cannot save "${word}" - server restart needed`, { duration: 2000 })
+        return
+      }
+
+      const res = await markWordKnownApiVocabularyMarkKnownPost({
+        requestBody: {
+          concept_id: wordData.concept_id,
+          known: known
+        }
+      }) as any
+
+      const respWord = res?.word ?? word
+      const respLemma = res?.lemma ?? undefined
+      const respLevel = res?.level ?? undefined
+      logger.info('ChunkedLearningFlow', 'Word progress saved to database', {
+        word: respWord,
+        lemma: respLemma,
+        level: respLevel,
+        known
+      })
+
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToast)
+      toast.success('✓ Progress saved', { duration: 1500 })
+    } catch (error) {
+      logger.error('ChunkedLearningFlow', 'Failed to save word progress', { word, error })
+
+      // Dismiss loading toast and show error
+      toast.dismiss(loadingToast)
+      toast.error(`Failed to save progress for "${word}". Will retry automatically.`, { duration: 3000 })
+
+      // Retry once after delay
+      setTimeout(async () => {
+        try {
+          if (!wordData.concept_id) {
+            return  // Skip retry if no concept_id
+          }
+          await markWordKnownApiVocabularyMarkKnownPost({
+            requestBody: {
+              concept_id: wordData.concept_id,
+              known: known
+            }
+          })
+          toast.success('Progress saved on retry')
+        } catch (retryError) {
+          // Silent fail on retry - don't block the game
+          logger.error('ChunkedLearningFlow', 'Retry also failed', { word, retryError })
+        }
+      }, 2000)
+    }
+  }
+
+  // Handle game completion with second-pass filtering
+  const handleGameComplete = async (knownWords: string[], unknownWords: string[]) => {
     logger.userAction('Vocabulary game completed', 'ChunkedLearningFlow', {
       knownWords: knownWords.length,
       unknownWords: unknownWords.length,
       totalWords: knownWords.length + unknownWords.length,
       chunkIndex: currentChunk + 1
     })
-    
+
     setLearnedWords(prev => new Set([...prev, ...knownWords]))
+
+    // Apply selective translations if there are known words
+    if (knownWords.length > 0 && chunks[currentChunk]?.subtitlePath) {
+      logger.info('ChunkedLearningFlow', 'Applying selective translations', {
+        knownWords: knownWords.length,
+        subtitlePath: chunks[currentChunk].subtitlePath
+      })
+
+      try {
+        // Call backend to apply selective translations based on known words
+        const response = await fetch(`${OpenAPI.BASE}/api/process/apply-selective-translations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          },
+          body: JSON.stringify({
+            srt_path: chunks[currentChunk].subtitlePath,
+            known_words: knownWords,
+            user_id: localStorage.getItem('user_id') || ''
+          })
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          logger.info('ChunkedLearningFlow', 'Selective translations applied', {
+            newTranslationPath: result.translation_path
+          })
+
+          // Update the chunk with the new translation file path
+          const updatedChunks = [...chunks]
+          updatedChunks[currentChunk] = {
+            ...updatedChunks[currentChunk],
+            translationPath: result.translation_path
+          }
+          setChunks(updatedChunks)
+        } else {
+          logger.warn('ChunkedLearningFlow', 'Selective translation failed', {
+            status: response.status
+          })
+        }
+      } catch (error) {
+        logger.error('ChunkedLearningFlow', 'Error applying selective translations', { error })
+        // Continue with existing translations
+      }
+    }
+
     logger.userAction('Entering video playback phase', 'ChunkedLearningFlow', {
       chunkIndex: currentChunk + 1,
       totalLearnedWords: learnedWords.size + knownWords.length
@@ -363,7 +508,7 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
         translationPath: processingStatus.translation_path || undefined
       })
     }
-    
+
     logger.userAction('Skipped vocabulary game', 'ChunkedLearningFlow', {
       chunkIndex: currentChunk + 1,
       vocabularyCount: processingStatus?.vocabulary?.length || 0
@@ -443,18 +588,19 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
     switch (currentPhase) {
       case 'processing':
         return (
-          <ProcessingScreen 
+          <ProcessingScreen
             status={processingStatus}
             chunkNumber={currentChunk + 1}
             totalChunks={chunks.length}
             chunkDuration={`${formatTime(chunk.startTime)} - ${formatTime(chunk.endTime)}`}
           />
         )
-      
+
       case 'game':
         return (
           <VocabularyGame
             words={gameWords as any}
+            onWordAnswered={handleWordAnswered}
             onComplete={handleGameComplete}
             onSkip={handleSkipGame}
             episodeTitle={videoInfo.title}
@@ -465,7 +611,7 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
             }}
           />
         )
-      
+
       case 'video':
         logger.info('ChunkedLearningFlow', 'Rendering video player', {
           subtitlePath: chunk.subtitlePath,
@@ -496,7 +642,7 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
             nativeLanguage={activeLanguages?.native}
           />
         )
-      
+
       default:
         return null
     }

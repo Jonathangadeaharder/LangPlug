@@ -2,6 +2,7 @@
 Base Repository Pattern for Standardized Database Access
 Addresses standardization of database access patterns across services
 """
+
 import logging
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
@@ -13,7 +14,8 @@ from core.database import get_async_session
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 class BaseRepository(ABC, Generic[T]):
     """
@@ -110,15 +112,15 @@ class BaseRepository(ABC, Generic[T]):
                 rows = result.scalars().all()
                 return list(rows)
         except Exception as e:
-             self.logger.error(f"Error finding {self.table_name} by criteria {criteria}: {e}")
-             raise
+            self.logger.error(f"Error finding {self.table_name} by criteria {criteria}: {e}")
+            raise
 
     async def save(self, entity: T) -> T:
         """Save entity (insert or update)"""
         try:
             async with self.transaction() as session:
                 # Check if entity has an ID (update vs insert)
-                if hasattr(entity, 'id') and entity.id is not None:
+                if hasattr(entity, "id") and entity.id is not None:
                     # Update existing entity
                     session.merge(entity)
                 else:
@@ -159,7 +161,7 @@ class BaseRepository(ABC, Generic[T]):
             self.logger.error(f"Error counting {self.table_name}: {e}")
             raise
 
-    async def execute_raw_query(self, query: str, params: dict[str, Any] = None) -> list[dict[str, Any]]:
+    async def execute_raw_query(self, query: str, params: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         """Execute raw SQL query - use sparingly and with caution"""
         self.logger.warning(f"Executing raw query: {query}")
         try:

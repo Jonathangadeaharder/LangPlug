@@ -13,13 +13,10 @@ router = APIRouter(tags=["websocket"])
 
 
 @router.websocket("/connect")
-async def websocket_endpoint(
-    websocket: WebSocket,
-    token: str | None = Query(None)
-):
+async def websocket_endpoint(websocket: WebSocket, token: str | None = Query(None)):
     """
     WebSocket endpoint for real-time updates
-    
+
     Connect with: ws://localhost:8000/ws/connect?token=YOUR_JWT_TOKEN
     """
     # Validate token and get user
@@ -74,22 +71,26 @@ async def websocket_status(websocket: WebSocket):
     await websocket.accept()
 
     try:
-        await websocket.send_json({
-            "type": "status",
-            "connections": manager.get_connection_count(),
-            "users": len(manager.get_connected_users())
-        })
+        await websocket.send_json(
+            {
+                "type": "status",
+                "connections": manager.get_connection_count(),
+                "users": len(manager.get_connected_users()),
+            }
+        )
 
         # Keep connection alive for status updates
         while True:
             data = await websocket.receive_text()
 
             if data == "status":
-                await websocket.send_json({
-                    "type": "status",
-                    "connections": manager.get_connection_count(),
-                    "users": len(manager.get_connected_users())
-                })
+                await websocket.send_json(
+                    {
+                        "type": "status",
+                        "connections": manager.get_connection_count(),
+                        "users": len(manager.get_connected_users()),
+                    }
+                )
 
     except WebSocketDisconnect:
         logger.info("Status WebSocket disconnected")

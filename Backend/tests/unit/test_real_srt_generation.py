@@ -1,8 +1,10 @@
 """Tests for WhisperTranscriptionService behavior."""
+
 from __future__ import annotations
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
 
 try:
     from services.transcriptionservice.whisper_implementation import WhisperTranscriptionService
@@ -54,7 +56,7 @@ def test_Whentranscribe_called_ThenUsesModel(tmp_path, mock_whisper):
 @pytest.mark.timeout(30)
 def test_Whenvideo_file_provided_ThenExtractsAudio(tmp_path, mock_whisper):
     """Video files should be converted to audio before transcription."""
-    loader, model = mock_whisper
+    _loader, model = mock_whisper
     model.transcribe.return_value = {"text": "video audio", "segments": []}
 
     service = WhisperTranscriptionService(model_size="tiny")

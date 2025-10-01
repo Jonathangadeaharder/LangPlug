@@ -1,5 +1,5 @@
 """
-Log Formatter Service  
+Log Formatter Service
 Handles creation and management of log formatters
 """
 
@@ -24,12 +24,12 @@ class StructuredLogFormatter(logging.Formatter):
             "message": record.getMessage(),
             "module": record.module,
             "function": record.funcName,
-            "line": record.lineno
+            "line": record.lineno,
         }
 
-        if hasattr(record, 'thread') and record.thread:
+        if hasattr(record, "thread") and record.thread:
             log_entry["thread_id"] = record.thread
-        if hasattr(record, 'process') and record.process:
+        if hasattr(record, "process") and record.process:
             log_entry["process_id"] = record.process
 
         if record.exc_info:
@@ -37,12 +37,30 @@ class StructuredLogFormatter(logging.Formatter):
 
         if self.include_extra_fields:
             for key, value in record.__dict__.items():
-                if key not in ['name', 'msg', 'args', 'levelname', 'levelno', 'pathname',
-                             'filename', 'module', 'lineno', 'funcName', 'created', 'msecs',
-                             'relativeCreated', 'thread', 'threadName', 'processName', 'process',
-                             'message', 'exc_info', 'exc_text', 'stack_info']:
-                    if not key.startswith('_'):
-                        log_entry[key] = value
+                if key not in [
+                    "name",
+                    "msg",
+                    "args",
+                    "levelname",
+                    "levelno",
+                    "pathname",
+                    "filename",
+                    "module",
+                    "lineno",
+                    "funcName",
+                    "created",
+                    "msecs",
+                    "relativeCreated",
+                    "thread",
+                    "threadName",
+                    "processName",
+                    "process",
+                    "message",
+                    "exc_info",
+                    "exc_text",
+                    "stack_info",
+                ] and not key.startswith("_"):
+                    log_entry[key] = value
 
         return json.dumps(log_entry, default=str)
 
@@ -53,21 +71,17 @@ class LogFormatterService:
     def create_formatter(self, format_type, include_extra_fields=True):
         """Create formatter based on format type"""
         from ..loggingservice.logging_service import LogFormat
-        
+
         if format_type == LogFormat.SIMPLE:
-            return logging.Formatter('%(levelname)s - %(name)s - %(message)s')
+            return logging.Formatter("%(levelname)s - %(name)s - %(message)s")
         elif format_type == LogFormat.DETAILED:
-            return logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
-            )
+            return logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s")
         elif format_type == LogFormat.JSON:
             return StructuredLogFormatter(include_extra_fields=True)
         elif format_type == LogFormat.STRUCTURED:
             return StructuredLogFormatter(include_extra_fields=False)
         else:
-            return logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
-            )
+            return logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s")
 
 
 # Singleton instance

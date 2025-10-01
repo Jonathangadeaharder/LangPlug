@@ -14,26 +14,28 @@ sys.path.insert(0, str(backend_dir))
 
 def test_imports():
     """Test all service imports work"""
-    print("Testing imports...")
 
     try:
         from services.filterservice.subtitle_processing import (
-            UserDataLoader, user_data_loader,
-            WordValidator, word_validator,
-            WordFilter, word_filter,
-            SubtitleProcessor, subtitle_processor,
-            SRTFileHandler, srt_file_handler
+            SRTFileHandler,
+            SubtitleProcessor,
+            UserDataLoader,
+            WordFilter,
+            WordValidator,
+            srt_file_handler,
+            subtitle_processor,
+            user_data_loader,
+            word_filter,
+            word_validator,
         )
-        print("  [GOOD] All service imports successful")
+
         return True
-    except ImportError as e:
-        print(f"  [POOR] Import failed: {e}")
+    except ImportError:
         return False
 
 
 def test_facade_instantiation():
     """Test facade can be instantiated"""
-    print("\nTesting facade instantiation...")
 
     try:
         from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
@@ -48,24 +50,21 @@ def test_facade_instantiation():
         assert processor.file_handler is not None
         assert processor.vocab_service is not None
 
-        print("  [GOOD] Facade instantiated with all services")
         return True
-    except Exception as e:
-        print(f"  [POOR] Instantiation failed: {e}")
+    except Exception:
         return False
 
 
 def test_service_singletons():
     """Test singleton instances work"""
-    print("\nTesting service singletons...")
 
     try:
         from services.filterservice.subtitle_processing import (
-            user_data_loader,
-            word_validator,
-            word_filter,
+            srt_file_handler,
             subtitle_processor,
-            srt_file_handler
+            user_data_loader,
+            word_filter,
+            word_validator,
         )
 
         # Test each singleton
@@ -75,16 +74,13 @@ def test_service_singletons():
         assert subtitle_processor is not None
         assert srt_file_handler is not None
 
-        print("  [GOOD] All singleton instances available")
         return True
-    except Exception as e:
-        print(f"  [POOR] Singleton test failed: {e}")
+    except Exception:
         return False
 
 
 def test_word_validator_basic():
     """Test word validator basic functionality"""
-    print("\nTesting WordValidator...")
 
     try:
         from services.filterservice.subtitle_processing import WordValidator
@@ -93,35 +89,33 @@ def test_word_validator_basic():
 
         # Test valid vocabulary word (longer word)
         result = validator.is_valid_vocabulary_word("schwierig", "de")
-        assert result == True, f"Expected 'schwierig' to be valid, got {result}"
+        assert result, f"Expected 'schwierig' to be valid, got {result}"
 
         # Test invalid words
         result = validator.is_valid_vocabulary_word("123", "de")
-        assert result == False, f"Expected '123' to be invalid, got {result}"
+        assert not result, f"Expected '123' to be invalid, got {result}"
 
         result = validator.is_valid_vocabulary_word("oh", "de")
-        assert result == False, f"Expected 'oh' to be invalid, got {result}"
+        assert not result, f"Expected 'oh' to be invalid, got {result}"
 
         # Test interjection detection
-        assert validator.is_interjection("hallo", "de") == True
-        assert validator.is_interjection("schwierig", "de") == False
+        assert validator.is_interjection("hallo", "de")
+        assert not validator.is_interjection("schwierig", "de")
 
-        print("  [GOOD] WordValidator working correctly")
         return True
-    except Exception as e:
-        print(f"  [POOR] WordValidator test failed: {e}")
+    except Exception:
         import traceback
+
         traceback.print_exc()
         return False
 
 
 def test_word_filter_basic():
     """Test word filter basic functionality"""
-    print("\nTesting WordFilter...")
 
     try:
-        from services.filterservice.subtitle_processing import WordFilter
         from services.filterservice.interface import FilteredWord, WordStatus
+        from services.filterservice.subtitle_processing import WordFilter
 
         word_filter_service = WordFilter()
 
@@ -133,28 +127,23 @@ def test_word_filter_basic():
             status=WordStatus.ACTIVE,
             filter_reason=None,
             confidence=None,
-            metadata={}
+            metadata={},
         )
 
         # Test filtering (should mark as active since not in known words)
         user_known_words = set()
-        result = word_filter_service.filter_word(
-            test_word, user_known_words, "A1", "de", word_info=None
-        )
+        result = word_filter_service.filter_word(test_word, user_known_words, "A1", "de", word_info=None)
 
         assert result.status == WordStatus.ACTIVE
         assert "lemma" in result.metadata
 
-        print("  [GOOD] WordFilter working correctly")
         return True
-    except Exception as e:
-        print(f"  [POOR] WordFilter test failed: {e}")
+    except Exception:
         return False
 
 
 async def test_facade_process_subtitles():
     """Test facade process_subtitles method"""
-    print("\nTesting facade process_subtitles...")
 
     try:
         from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
@@ -170,22 +159,14 @@ async def test_facade_process_subtitles():
             status=WordStatus.ACTIVE,
             filter_reason=None,
             confidence=None,
-            metadata={}
+            metadata={},
         )
 
-        subtitle = FilteredSubtitle(
-            original_text="Hallo Welt",
-            start_time=0.0,
-            end_time=2.0,
-            words=[word]
-        )
+        subtitle = FilteredSubtitle(original_text="Hallo Welt", start_time=0.0, end_time=2.0, words=[word])
 
         # Process (using test user_id that won't be in database)
         result = await processor.process_subtitles(
-            [subtitle],
-            user_id="test_user_12345",
-            user_level="A1",
-            language="de"
+            [subtitle], user_id="test_user_12345", user_level="A1", language="de"
         )
 
         # Verify result structure
@@ -196,20 +177,16 @@ async def test_facade_process_subtitles():
         assert "total_subtitles" in result.statistics
         assert result.statistics["user_id"] == "test_user_12345"
 
-        print("  [GOOD] Facade process_subtitles working")
         return True
-    except Exception as e:
-        print(f"  [POOR] Facade process_subtitles failed: {e}")
+    except Exception:
         import traceback
+
         traceback.print_exc()
         return False
 
 
 def main():
     """Run all verification tests"""
-    print("=" * 60)
-    print("DirectSubtitleProcessor Refactoring Verification")
-    print("=" * 60)
 
     results = []
 
@@ -224,24 +201,16 @@ def main():
     results.append(("Facade Process", asyncio.run(test_facade_process_subtitles())))
 
     # Summary
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
 
     passed = sum(1 for _, result in results if result)
     total = len(results)
 
-    for test_name, result in results:
-        status = "[PASS]" if result else "[FAIL]"
-        print(f"{status} {test_name}")
-
-    print(f"\nTotal: {passed}/{total} tests passed")
+    for _test_name, _result in results:
+        pass
 
     if passed == total:
-        print("\n[SUCCESS] All verification tests passed!")
         return 0
     else:
-        print(f"\n[WARNING] {total - passed} test(s) failed")
         return 1
 
 

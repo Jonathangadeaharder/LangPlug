@@ -1,8 +1,9 @@
 """Improved assertion helpers that follow test standards and provide clear error messages."""
+
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
 import json
+from typing import Any
 
 
 def assert_status_code(response, expected_code: int, context: str = "") -> None:
@@ -23,7 +24,7 @@ def assert_status_code(response, expected_code: int, context: str = "") -> None:
         raise AssertionError(error_msg)
 
 
-def assert_json_response(response, expected_code: int = 200) -> Dict[str, Any]:
+def assert_json_response(response, expected_code: int = 200) -> dict[str, Any]:
     """Assert response is JSON with expected status and return parsed data."""
     assert_status_code(response, expected_code)
 
@@ -36,12 +37,12 @@ def assert_json_response(response, expected_code: int = 200) -> Dict[str, Any]:
         raise AssertionError(f"Invalid JSON response: {e}")
 
 
-def assert_success_response(response, expected_code: int = 200) -> Dict[str, Any]:
+def assert_success_response(response, expected_code: int = 200) -> dict[str, Any]:
     """Assert successful response and return JSON data."""
     return assert_json_response(response, expected_code)
 
 
-def assert_validation_error(response, field_name: str = None) -> Dict[str, Any]:
+def assert_validation_error(response, field_name: str | None = None) -> dict[str, Any]:
     """Assert response is 422 validation error, optionally checking specific field."""
     data = assert_json_response(response, 422)
 
@@ -49,10 +50,9 @@ def assert_validation_error(response, field_name: str = None) -> Dict[str, Any]:
         # Check FastAPI validation error format
         if "detail" in data and isinstance(data["detail"], list):
             field_errors = [
-                err for err in data["detail"]
-                if isinstance(err, dict) and
-                isinstance(err.get("loc"), list) and
-                err["loc"][-1] == field_name
+                err
+                for err in data["detail"]
+                if isinstance(err, dict) and isinstance(err.get("loc"), list) and err["loc"][-1] == field_name
             ]
             assert field_errors, f"No validation error found for field '{field_name}'"
         else:
@@ -61,33 +61,33 @@ def assert_validation_error(response, field_name: str = None) -> Dict[str, Any]:
     return data
 
 
-def assert_authentication_error(response) -> Dict[str, Any]:
+def assert_authentication_error(response) -> dict[str, Any]:
     """Assert response is 401 authentication error."""
     return assert_json_response(response, 401)
 
 
-def assert_authorization_error(response) -> Dict[str, Any]:
+def assert_authorization_error(response) -> dict[str, Any]:
     """Assert response is 403 authorization error."""
     return assert_json_response(response, 403)
 
 
-def assert_not_found_error(response) -> Dict[str, Any]:
+def assert_not_found_error(response) -> dict[str, Any]:
     """Assert response is 404 not found error."""
     return assert_json_response(response, 404)
 
 
-def assert_server_error(response) -> Dict[str, Any]:
+def assert_server_error(response) -> dict[str, Any]:
     """Assert response is 500 server error - use sparingly and only when expected."""
     return assert_json_response(response, 500)
 
 
-def assert_required_fields(data: Dict[str, Any], required_fields: List[str]) -> None:
+def assert_required_fields(data: dict[str, Any], required_fields: list[str]) -> None:
     """Assert that all required fields are present in response data."""
     missing_fields = [field for field in required_fields if field not in data]
     assert not missing_fields, f"Missing required fields: {missing_fields}"
 
 
-def assert_field_types(data: Dict[str, Any], field_types: Dict[str, type]) -> None:
+def assert_field_types(data: dict[str, Any], field_types: dict[str, type]) -> None:
     """Assert that fields have expected types."""
     type_errors = []
     for field, expected_type in field_types.items():
@@ -102,10 +102,10 @@ def assert_field_types(data: Dict[str, Any], field_types: Dict[str, type]) -> No
 def assert_response_structure(
     response,
     expected_code: int = 200,
-    required_fields: List[str] = None,
-    field_types: Dict[str, type] = None,
-    optional_fields: List[str] = None
-) -> Dict[str, Any]:
+    required_fields: list[str] | None = None,
+    field_types: dict[str, type] | None = None,
+    optional_fields: list[str] | None = None,
+) -> dict[str, Any]:
     """Comprehensive response structure validation."""
     data = assert_json_response(response, expected_code)
 
@@ -121,10 +121,10 @@ def assert_response_structure(
 def assert_list_response(
     response,
     expected_code: int = 200,
-    min_length: int = None,
-    max_length: int = None,
-    item_structure: Dict[str, type] = None
-) -> List[Dict[str, Any]]:
+    min_length: int | None = None,
+    max_length: int | None = None,
+    item_structure: dict[str, type] | None = None,
+) -> list[dict[str, Any]]:
     """Assert response contains a list with optional validation."""
     data = assert_json_response(response, expected_code)
 
@@ -143,16 +143,10 @@ def assert_list_response(
     return data
 
 
-def assert_vocabulary_response_structure(data: Dict[str, Any]) -> None:
+def assert_vocabulary_response_structure(data: dict[str, Any]) -> None:
     """Assert vocabulary API response has expected structure."""
     required_fields = ["level", "target_language", "words", "total_count", "known_count"]
-    field_types = {
-        "level": str,
-        "target_language": str,
-        "words": list,
-        "total_count": int,
-        "known_count": int
-    }
+    field_types = {"level": str, "target_language": str, "words": list, "total_count": int, "known_count": int}
 
     assert_required_fields(data, required_fields)
     assert_field_types(data, field_types)
@@ -161,33 +155,27 @@ def assert_vocabulary_response_structure(data: Dict[str, Any]) -> None:
     if data["words"]:
         word = data["words"][0]
         word_required_fields = ["concept_id", "word"]
-        word_field_types = {
-            "concept_id": str,
-            "word": str
-        }
+        word_field_types = {"concept_id": str, "word": str}
         assert_required_fields(word, word_required_fields)
         assert_field_types(word, word_field_types)
 
 
-def assert_auth_response_structure(data: Dict[str, Any]) -> None:
+def assert_auth_response_structure(data: dict[str, Any]) -> None:
     """Assert authentication response has expected structure."""
     required_fields = ["access_token", "token_type"]
-    field_types = {
-        "access_token": str,
-        "token_type": str
-    }
+    field_types = {"access_token": str, "token_type": str}
 
     assert_required_fields(data, required_fields)
     assert_field_types(data, field_types)
 
 
-def assert_user_response_structure(data: Dict[str, Any]) -> None:
+def assert_user_response_structure(data: dict[str, Any]) -> None:
     """Assert user response has expected structure."""
     required_fields = ["id", "username", "is_active"]
     field_types = {
         "id": (str, int),  # Could be string or int depending on implementation
         "username": str,
-        "is_active": bool
+        "is_active": bool,
     }
 
     assert_required_fields(data, required_fields)
@@ -196,46 +184,41 @@ def assert_user_response_structure(data: Dict[str, Any]) -> None:
     for field, allowed_types in field_types.items():
         if field in data:
             if isinstance(allowed_types, tuple):
-                assert isinstance(data[field], allowed_types), \
-                    f"Field {field}: expected one of {[t.__name__ for t in allowed_types]}, got {type(data[field]).__name__}"
+                assert isinstance(
+                    data[field], allowed_types
+                ), f"Field {field}: expected one of {[t.__name__ for t in allowed_types]}, got {type(data[field]).__name__}"
             else:
-                assert isinstance(data[field], allowed_types), \
-                    f"Field {field}: expected {allowed_types.__name__}, got {type(data[field]).__name__}"
+                assert isinstance(
+                    data[field], allowed_types
+                ), f"Field {field}: expected {allowed_types.__name__}, got {type(data[field]).__name__}"
 
 
-def assert_error_response_structure(data: Dict[str, Any]) -> None:
+def assert_error_response_structure(data: dict[str, Any]) -> None:
     """Assert error response has expected structure."""
     # Support both FastAPI standard format and custom formats
     has_detail = "detail" in data
     has_error_message = "error" in data and isinstance(data["error"], dict) and "message" in data["error"]
 
-    assert has_detail or has_error_message, \
-        f"Expected error response to have 'detail' or 'error.message', got keys: {list(data.keys())}"
+    assert (
+        has_detail or has_error_message
+    ), f"Expected error response to have 'detail' or 'error.message', got keys: {list(data.keys())}"
 
 
 # Performance assertion helpers
 def assert_response_time(response, max_seconds: float) -> None:
     """Assert response time is within acceptable limits."""
-    if hasattr(response, 'elapsed'):
+    if hasattr(response, "elapsed"):
         elapsed = response.elapsed.total_seconds()
         assert elapsed <= max_seconds, f"Response took {elapsed:.3f}s, expected ≤ {max_seconds}s"
 
 
 # Test-specific assertion helpers
 def assert_pagination_response(
-    data: Dict[str, Any],
-    expected_page: int = None,
-    expected_per_page: int = None
+    data: dict[str, Any], expected_page: int | None = None, expected_per_page: int | None = None
 ) -> None:
     """Assert paginated response has expected structure."""
     required_fields = ["items", "total", "page", "per_page", "pages"]
-    field_types = {
-        "items": list,
-        "total": int,
-        "page": int,
-        "per_page": int,
-        "pages": int
-    }
+    field_types = {"items": list, "total": int, "page": int, "per_page": int, "pages": int}
 
     assert_required_fields(data, required_fields)
     assert_field_types(data, field_types)
@@ -247,7 +230,7 @@ def assert_pagination_response(
         assert data["per_page"] == expected_per_page, f"Expected per_page {expected_per_page}, got {data['per_page']}"
 
 
-def assert_health_response(data: Dict[str, Any]) -> None:
+def assert_health_response(data: dict[str, Any]) -> None:
     """Assert health check response has expected structure."""
     required_fields = ["status"]
     field_types = {"status": str}
@@ -263,7 +246,7 @@ class AssertionContext:
 
     def __init__(self, context: str):
         self.context = context
-        self.errors: List[str] = []
+        self.errors: list[str] = []
 
     def __enter__(self):
         return self

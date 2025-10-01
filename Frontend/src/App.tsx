@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { GlobalStyle } from '@/styles/GlobalStyles'
@@ -7,13 +7,13 @@ import { LoginForm } from '@/components/auth/LoginForm'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { VideoSelection } from '@/components/VideoSelection'
 import { EpisodeSelection } from '@/components/EpisodeSelection'
-import { LearningPlayer } from '@/components/LearningPlayer'
 import { PipelineProgress } from '@/components/PipelineProgress'
 import { ChunkedLearningPage } from '@/components/ChunkedLearningPage'
 import { VocabularyLibrary } from '@/components/VocabularyLibrary'
 import ProfileScreen from '@/screens/ProfileScreen'
 import { useAuthStore } from '@/store/useAuthStore'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { setupAuthInterceptors } from '@/services/auth-interceptor'
 
 // Exported for testing - this is the routing logic without the Router wrapper
 export const AppRoutes: React.FC = () => {
@@ -102,6 +102,11 @@ export const AppRoutes: React.FC = () => {
 }
 
 const App: React.FC = () => {
+  useEffect(() => {
+    // Initialize auth interceptors on app mount
+    setupAuthInterceptors()
+  }, [])
+
   return (
     <ErrorBoundary>
       <GlobalStyle />

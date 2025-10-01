@@ -4,13 +4,14 @@ Extracted from vocabulary_service.py for better separation of concerns
 """
 
 import logging
-from typing import Dict, List, Optional, Any
-from sqlalchemy import select, func, and_, or_
+from typing import Any
+
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import VocabularyWord, UnknownWord
-from services.lemmatization_service import lemmatization_service
+from database.models import UnknownWord, VocabularyWord
 from services.interfaces.base import IService
+from services.lemmatization_service import lemmatization_service
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +19,7 @@ logger = logging.getLogger(__name__)
 class VocabularyLookupService(IService):
     """Service responsible for vocabulary word lookups and searches"""
 
-    async def get_word_info(
-        self,
-        word: str,
-        language: str,
-        db: AsyncSession
-    ) -> Optional[Dict[str, Any]]:
+    async def get_word_info(self, word: str, language: str, db: AsyncSession) -> dict[str, Any] | None:
         """Get vocabulary information for a word"""
         # First try lemmatization
         lemma = lemmatization_service.lemmatize(word)
@@ -35,9 +31,9 @@ class VocabularyLookupService(IService):
                 and_(
                     or_(
                         func.lower(VocabularyWord.lemma) == lemma.lower(),
-                        func.lower(VocabularyWord.word) == word.lower()
+                        func.lower(VocabularyWord.word) == word.lower(),
                     ),
-                    VocabularyWord.language == language
+                    VocabularyWord.language == language,
                 )
             )
             .limit(1)
@@ -59,7 +55,7 @@ class VocabularyLookupService(IService):
                 "translation_en": vocab_word.translation_en,
                 "pronunciation": vocab_word.pronunciation,
                 "notes": vocab_word.notes,
-                "found": True
+                "found": True,
             }
 
         # Word not found - track it
@@ -70,16 +66,12 @@ class VocabularyLookupService(IService):
             "lemma": lemma,
             "language": language,
             "found": False,
-            "message": "Word not in vocabulary database"
+            "message": "Word not in vocabulary database",
         }
 
     async def search_vocabulary(
-        self,
-        db: AsyncSession,
-        search_term: str,
-        language: str,
-        limit: int = 20
-    ) -> List[Dict[str, Any]]:
+        self, db: AsyncSession, search_term: str, language: str, limit: int = 20
+    ) -> list[dict[str, Any]]:
         """Search vocabulary by word or lemma"""
         search_lower = search_term.lower()
 
@@ -89,9 +81,9 @@ class VocabularyLookupService(IService):
                 and_(
                     or_(
                         func.lower(VocabularyWord.word).like(f"%{search_lower}%"),
-                        func.lower(VocabularyWord.lemma).like(f"%{search_lower}%")
+                        func.lower(VocabularyWord.lemma).like(f"%{search_lower}%"),
                     ),
-                    VocabularyWord.language == language
+                    VocabularyWord.language == language,
                 )
             )
             .order_by(
@@ -100,7 +92,7 @@ class VocabularyLookupService(IService):
                 func.lower(VocabularyWord.lemma) == search_lower,
                 # Then by difficulty and frequency
                 VocabularyWord.difficulty_level,
-                VocabularyWord.frequency_rank.nullslast()
+                VocabularyWord.frequency_rank.nullslast(),
             )
             .limit(limit)
         )
@@ -115,7 +107,7 @@ class VocabularyLookupService(IService):
                 "lemma": word.lemma,
                 "difficulty_level": word.difficulty_level,
                 "part_of_speech": word.part_of_speech,
-                "translation_en": word.translation_en
+                "translation_en": word.translation_en,
             }
             for word in words
         ]
@@ -123,13 +115,13 @@ class VocabularyLookupService(IService):
     async def get_vocabulary_library(
         self,
         db: AsyncSession,
-        user_id: Optional[int] = None,
+        user_id: int | None = None,
         language: str = "de",
-        level: Optional[str] = None,
-        known_filter: Optional[bool] = None,
+        level: str | None = None,
+        known_filter: bool | None = None,
         page: int = 1,
-        per_page: int = 50
-    ) -> Dict[str, Any]:
+        per_page: int = 50,
+    ) -> dict[str, Any]:
         """Get vocabulary library with optional filtering"""
         # Base query
         query = select(VocabularyWord).where(VocabularyWord.language == language)
@@ -140,9 +132,7 @@ class VocabularyLookupService(IService):
 
         # Order by frequency rank or difficulty
         query = query.order_by(
-            VocabularyWord.difficulty_level,
-            VocabularyWord.frequency_rank.nullslast(),
-            VocabularyWord.lemma
+            VocabularyWord.difficulty_level, VocabularyWord.frequency_rank.nullslast(), VocabularyWord.lemma
         )
 
         # Get total count
@@ -169,7 +159,7 @@ class VocabularyLookupService(IService):
                 "part_of_speech": word.part_of_speech,
                 "gender": word.gender,
                 "translation_en": word.translation_en,
-                "pronunciation": word.pronunciation
+                "pronunciation": word.pronunciation,
             }
             word_list.append(word_data)
 
@@ -179,7 +169,7 @@ class VocabularyLookupService(IService):
             "page": page,
             "per_page": per_page,
             "language": language,
-            "level": level
+            "level": level,
         }
 
     async def get_vocabulary_level(
@@ -189,19 +179,14 @@ class VocabularyLookupService(IService):
         target_language: str = "de",
         translation_language: str = "es",
         limit: int = 50,
-        offset: int = 0
-    ) -> Dict[str, Any]:
+        offset: int = 0,
+    ) -> dict[str, Any]:
         """Get vocabulary for a specific level"""
         level = level.upper()  # Normalize to uppercase
 
         stmt = (
             select(VocabularyWord)
-            .where(
-                and_(
-                    VocabularyWord.difficulty_level == level,
-                    VocabularyWord.language == target_language
-                )
-            )
+            .where(and_(VocabularyWord.difficulty_level == level, VocabularyWord.language == target_language))
             .limit(limit)
             .offset(offset)
         )
@@ -219,7 +204,7 @@ class VocabularyLookupService(IService):
                 "plural_form": "",
                 "pronunciation": word.pronunciation or "",
                 "notes": word.notes or "",
-                "known": False
+                "known": False,
             }
             word_list.append(word_data)
 
@@ -228,7 +213,7 @@ class VocabularyLookupService(IService):
             "target_language": target_language,
             "translation_language": translation_language,
             "words": word_list,
-            "known_count": 0
+            "known_count": 0,
         }
 
     def validate_language_code(self, language_code: str) -> bool:
@@ -241,33 +226,12 @@ class VocabularyLookupService(IService):
 
     def calculate_difficulty_score(self, level: str) -> int:
         """Calculate numeric difficulty score from CEFR level"""
-        level_scores = {
-            "A1": 1,
-            "A2": 2,
-            "B1": 3,
-            "B2": 4,
-            "C1": 5,
-            "C2": 6
-        }
+        level_scores = {"A1": 1, "A2": 2, "B1": 3, "B2": 4, "C1": 5, "C2": 6}
         return level_scores.get(level, 0)
 
-    async def _track_unknown_word(
-        self,
-        word: str,
-        lemma: str,
-        language: str,
-        db: AsyncSession
-    ):
+    async def _track_unknown_word(self, word: str, lemma: str, language: str, db: AsyncSession):
         """Track words not in vocabulary database"""
-        stmt = (
-            select(UnknownWord)
-            .where(
-                and_(
-                    UnknownWord.word == word,
-                    UnknownWord.language == language
-                )
-            )
-        )
+        stmt = select(UnknownWord).where(and_(UnknownWord.word == word, UnknownWord.language == language))
         result = await db.execute(stmt)
         unknown = result.scalar_one_or_none()
 
@@ -275,12 +239,7 @@ class VocabularyLookupService(IService):
             unknown.frequency_count += 1
             unknown.last_encountered = func.now()
         else:
-            unknown = UnknownWord(
-                word=word,
-                lemma=lemma,
-                language=language,
-                frequency_count=1
-            )
+            unknown = UnknownWord(word=word, lemma=lemma, language=language, frequency_count=1)
             db.add(unknown)
 
         try:
@@ -289,13 +248,9 @@ class VocabularyLookupService(IService):
             logger.warning(f"Failed to track unknown word: {e}")
             await db.rollback()
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform health check for the vocabulary lookup service"""
-        return {
-            "service": "VocabularyLookupService",
-            "status": "healthy",
-            "lemmatization": "available"
-        }
+        return {"service": "VocabularyLookupService", "status": "healthy", "lemmatization": "available"}
 
     async def initialize(self) -> None:
         """Initialize vocabulary lookup service resources"""
@@ -306,29 +261,16 @@ class VocabularyLookupService(IService):
         logger.info("VocabularyLookupService cleanup completed")
 
     async def get_vocabulary_stats(
-        self,
-        db: AsyncSession,
-        user_id: Optional[int] = None,
-        language: str = "de"
-    ) -> Dict[str, Any]:
+        self, db: AsyncSession, user_id: int | None = None, language: str = "de"
+    ) -> dict[str, Any]:
         """Get vocabulary statistics"""
         levels = ["A1", "A2", "B1", "B2", "C1", "C2"]
-        stats = {
-            "language": language,
-            "levels": {},
-            "total_words": 0
-        }
+        stats = {"language": language, "levels": {}, "total_words": 0}
 
         for level in levels:
             # Count total words at this level
-            total_stmt = (
-                select(func.count(VocabularyWord.id))
-                .where(
-                    and_(
-                        VocabularyWord.language == language,
-                        VocabularyWord.difficulty_level == level
-                    )
-                )
+            total_stmt = select(func.count(VocabularyWord.id)).where(
+                and_(VocabularyWord.language == language, VocabularyWord.difficulty_level == level)
             )
             total_result = await db.execute(total_stmt)
             total_count = total_result.scalar() or 0

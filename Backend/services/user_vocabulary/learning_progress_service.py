@@ -5,6 +5,7 @@ Handles tracking user learning progress (marking words learned, removing words)
 
 import logging
 from datetime import datetime
+
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,13 +22,13 @@ class LearningProgressService:
     async def mark_word_learned(self, session: AsyncSession, user_id: str, word: str, language: str = "en") -> bool:
         """
         Mark word as learned by user
-        
+
         Args:
             session: Database session
             user_id: User ID
             word: Word to mark as learned
             language: Language code
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -41,7 +42,7 @@ class LearningProgressService:
 
             # Check if already learned
             existing_query = text("""
-                SELECT id FROM user_learning_progress 
+                SELECT id FROM user_learning_progress
                 WHERE user_id = :user_id AND word_id = :word_id
             """)
             existing_result = await session.execute(existing_query, {"user_id": user_id, "word_id": word_id})
@@ -52,7 +53,7 @@ class LearningProgressService:
             if existing_row:
                 # Update existing record
                 update_query = text("""
-                    UPDATE user_learning_progress 
+                    UPDATE user_learning_progress
                     SET confidence_level = confidence_level + 1,
                         review_count = review_count + 1,
                         last_reviewed = :now
@@ -74,16 +75,18 @@ class LearningProgressService:
             self.logger.error(f"Error marking word as learned: {e}")
             return False
 
-    async def add_known_words(self, session: AsyncSession, user_id: str, words: list[str], language: str = "en") -> bool:
+    async def add_known_words(
+        self, session: AsyncSession, user_id: str, words: list[str], language: str = "en"
+    ) -> bool:
         """
         Add multiple words to user's known vocabulary using batch operations
-        
+
         Args:
             session: Database session
             user_id: User ID
             words: List of words to add
             language: Language code
-            
+
         Returns:
             True if any words were added, False otherwise
         """
@@ -103,17 +106,19 @@ class LearningProgressService:
                 return False
 
             # Get existing learning progress for these words
-            existing_progress = await self.repository.get_existing_progress_batch(session, user_id, list(word_ids.values()))
+            existing_progress = await self.repository.get_existing_progress_batch(
+                session, user_id, list(word_ids.values())
+            )
 
             # Prepare and execute operations
             now = datetime.now().isoformat()
             success_count = 0
 
-            for word, word_id in word_ids.items():
+            for _word, word_id in word_ids.items():
                 if word_id in existing_progress:
                     # Update existing record
                     update_query = text("""
-                        UPDATE user_learning_progress 
+                        UPDATE user_learning_progress
                         SET confidence_level = confidence_level + 1,
                             review_count = review_count + 1,
                             last_reviewed = :now
@@ -141,13 +146,13 @@ class LearningProgressService:
     async def remove_word(self, session: AsyncSession, user_id: str, word: str, language: str = "en") -> bool:
         """
         Remove word from user's learned vocabulary
-        
+
         Args:
             session: Database session
             user_id: User ID
             word: Word to remove
             language: Language code
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -162,7 +167,7 @@ class LearningProgressService:
 
             # Delete learning progress record
             delete_query = text("""
-                DELETE FROM user_learning_progress 
+                DELETE FROM user_learning_progress
                 WHERE user_id = :user_id AND word_id = :word_id
             """)
             result = await session.execute(delete_query, {"user_id": user_id, "word_id": word_id})

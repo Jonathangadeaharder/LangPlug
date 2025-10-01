@@ -1,4 +1,5 @@
 """High-level workflow smoke tests."""
+
 from __future__ import annotations
 
 import pytest
@@ -11,9 +12,7 @@ from tests.auth_helpers import AuthTestHelperAsync
 async def test_Whenfull_user_workflowCalled_ThenSucceeds(async_client):
     flow = await AuthTestHelperAsync.register_and_login_async(async_client)
 
-    status_code, profile = await AuthTestHelperAsync.get_current_user_async(
-        async_client, flow["token"]
-    )
+    status_code, profile = await AuthTestHelperAsync.get_current_user_async(async_client, flow["token"])
     assert status_code == 200
     assert profile["username"] == flow["user_data"]["username"]
 
