@@ -7,7 +7,6 @@ import { LoginForm } from '@/components/auth/LoginForm'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { VideoSelection } from '@/components/VideoSelection'
 import { EpisodeSelection } from '@/components/EpisodeSelection'
-import { PipelineProgress } from '@/components/PipelineProgress'
 import { ChunkedLearningPage } from '@/components/ChunkedLearningPage'
 import { VocabularyLibrary } from '@/components/VocabularyLibrary'
 import ProfileScreen from '@/screens/ProfileScreen'
@@ -59,15 +58,6 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute>
             <ChunkedLearningPage />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/pipeline/:series/:episode"
-        element={
-          <ProtectedRoute>
-            <PipelineProgress />
           </ProtectedRoute>
         }
       />

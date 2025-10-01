@@ -19,7 +19,6 @@ from . import (
     filtering_routes,
     pipeline_routes,
     transcription_routes,
-    translation_routes,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,7 +28,6 @@ router = APIRouter(tags=["processing"])
 
 # Include all focused routers
 router.include_router(transcription_routes.router)
-router.include_router(translation_routes.router)
 router.include_router(filtering_routes.router)
 router.include_router(episode_processing_routes.router)
 router.include_router(pipeline_routes.router)
@@ -52,16 +50,13 @@ async def _get_user_language_level(user_id: str) -> str | None:
 
 
 # Export commonly used functions for backward compatibility
-from .episode_processing_routes import run_chunk_processing, run_processing_pipeline
+from .episode_processing_routes import run_chunk_processing
 from .filtering_routes import run_subtitle_filtering
 from .transcription_routes import run_transcription
-from .translation_routes import run_translation
 
 __all__ = [
     "router",
     "run_chunk_processing",
-    "run_processing_pipeline",
     "run_subtitle_filtering",
     "run_transcription",
-    "run_translation",
 ]
