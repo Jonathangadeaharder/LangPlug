@@ -7,6 +7,7 @@ import logging
 from typing import Any
 
 from ..interface import FilteredWord, WordStatus
+from services.nlp.lemma_resolver import lemmatize_word, is_proper_name
 
 logger = logging.getLogger(__name__)
 
@@ -40,13 +41,28 @@ class WordFilter:
         """
         word_text = word.text.lower().strip()
 
-        # Resolve lemma and difficulty from word info
-        lemma, word_difficulty = self._extract_word_data(word_text, word_info)
+        # Check if proper name - filter out immediately
+        if is_proper_name(word.text, language):
+            word.status = WordStatus.FILTERED_OTHER
+            word.filter_reason = "Proper name (automatically filtered)"
+            logger.debug(f"Filtered proper name: '{word.text}'")
+            return word
 
-        # Store lemma in metadata
+        # Generate lemma using spaCy (always, no fallbacks)
+        try:
+            lemma = lemmatize_word(word.text, language)
+        except Exception as e:
+            logger.error(f"spaCy lemmatization failed for '{word.text}': {e}")
+            word.status = WordStatus.FILTERED_INVALID
+            word.filter_reason = f"Lemmatization failed: {e}"
+            return word
+
+        # Get difficulty from word info (fallback to C2 if not found)
+        word_difficulty = word_info.get("difficulty_level", "C2") if word_info else "C2"
+
+        # Store lemma and difficulty in metadata
         word.metadata["lemma"] = lemma
-        if word_difficulty:
-            word.metadata["difficulty_level"] = word_difficulty
+        word.metadata["difficulty_level"] = word_difficulty
 
         # Check user knowledge
         if self.is_known_by_user(lemma, user_known_words):
@@ -63,6 +79,7 @@ class WordFilter:
         # Word passed all filters - it's a learning target
         word.status = WordStatus.ACTIVE
         word.metadata.update({"user_level": user_level, "language": language})
+        logger.debug(f"Word '{word.text}' -> lemma '{lemma}' (level: {word_difficulty})")
         return word
 
     def _extract_word_data(self, word_text: str, word_info: dict[str, Any] | None) -> tuple[str, str]:

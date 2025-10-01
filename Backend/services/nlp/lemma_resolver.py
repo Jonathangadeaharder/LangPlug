@@ -75,4 +75,41 @@ def lemmatize_word(word: str, language_code: str) -> str:
     return lemma
 
 
-__all__ = ["lemmatize_word"]
+def is_proper_name(word: str, language_code: str) -> bool:
+    """Check if a word is a proper name using spaCy NER and POS tagging.
+
+    Returns True if the word is:
+    - Tagged as PROPN (proper noun)
+    - Recognized as a named entity (PER, ORG, LOC, GPE, etc.)
+
+    Proper names should not be included in vocabulary learning.
+    """
+    if not word:
+        return False
+
+    model_name = _resolve_model_name(language_code)
+    nlp = _load_model(model_name)
+
+    doc = nlp(word)
+    if not doc or len(doc) == 0:
+        return False
+
+    token = doc[0]
+
+    # Check if POS tag is proper noun
+    if token.pos_ == "PROPN":
+        logger.debug("Word '%s' detected as proper noun (POS=PROPN)", word)
+        return True
+
+    # Check if recognized as named entity
+    # Common NER labels: PER (person), ORG (organization), LOC (location), GPE (geopolitical entity)
+    if doc.ents:
+        for ent in doc.ents:
+            if token.i >= ent.start and token.i < ent.end:
+                logger.debug("Word '%s' detected as named entity (label=%s)", word, ent.label_)
+                return True
+
+    return False
+
+
+__all__ = ["lemmatize_word", "is_proper_name"]

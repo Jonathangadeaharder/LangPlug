@@ -81,9 +81,13 @@ class VocabularyFilterService:
         Returns:
             Dictionary matching frontend VocabularyWord type with valid UUID concept_id
         """
-        word_text = word.word if hasattr(word, "word") else str(word)
-        difficulty = getattr(word, "difficulty_level", "unknown")
-        lemma = getattr(word, "lemma", None)
+        # Extract word text
+        word_text = word.text if hasattr(word, "text") else (word.word if hasattr(word, "word") else str(word))
+
+        # Extract from metadata (where word_filter.py stores them)
+        metadata = getattr(word, "metadata", {})
+        lemma = metadata.get("lemma", None)
+        difficulty = metadata.get("difficulty_level", "unknown")
 
         # Generate deterministic UUID based on lemma (or word) + difficulty
         # This ensures same word gets same UUID across sessions
@@ -97,8 +101,8 @@ class VocabularyFilterService:
             "difficulty_level": difficulty,
             # Optional fields
             "translation": getattr(word, "translation", None),
-            "lemma": lemma,
-            "semantic_category": getattr(word, "part_of_speech", None),
+            "lemma": lemma,  # spaCy-generated lemma from word_filter.py
+            "semantic_category": metadata.get("part_of_speech", None),
             "domain": None,
             "known": False,  # User will mark as known in vocabulary game
         }

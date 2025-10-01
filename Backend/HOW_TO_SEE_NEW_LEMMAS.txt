@@ -1,0 +1,46 @@
+================================================================================
+HOW TO SEE THE NEW LEMMAS (spaCy + Proper Name Filtering)
+================================================================================
+
+WHAT WAS FIXED:
+  1. Backend always uses spaCy for lemmatization (no fallbacks)
+  2. Backend filters out proper names (Berlin, Schmidt, etc.)
+  3. Backend uses de_core_news_lg model for better accuracy
+  4. Frontend always reprocesses chunks (no caching of old data)
+
+WHY YOU'RE SEEING OLD DATA:
+  - The screenshot shows vocabulary from an OLD processing run (before fixes)
+  - The old vocabulary is stored in React component state
+  - The backend can't retroactively update old vocabulary data
+
+HOW TO SEE THE NEW LEMMAS:
+
+Option 1: Refresh the page
+  1. Refresh your browser page (F5 or Ctrl+R)
+  2. Click on the same chunk again
+  3. It will reprocess with the NEW backend code
+  4. You should see "Lemma: traurig" (not "Lemma: trauriger")
+
+Option 2: Select a different time range
+  1. Select a different chunk or time range
+  2. Process it
+  3. New vocabulary will use the fixed backend code
+
+WHAT TO EXPECT AFTER REPROCESSING:
+  - "trauriger" -> "Lemma: traurig" (adjective base form)
+  - "spricht" -> "Lemma: sprechen" (verb infinitive)
+  - Proper names like "Berlin", "Schmidt" will NOT appear in vocabulary
+  - Correct difficulty levels from database (A1, A2, B1, etc.)
+
+VERIFICATION:
+  Backend code is correct and tested:
+    [GOOD] spaCy lemmatization: trauriger -> traurig
+    [GOOD] Proper name detection: Berlin -> FILTERED OUT
+    [GOOD] Vocabulary builder using new code
+
+  Frontend now forces reprocessing:
+    [GOOD] Chunks reset to isProcessed=false on page load
+    [GOOD] No caching of old vocabulary
+    [GOOD] Always calls backend to process fresh
+
+================================================================================

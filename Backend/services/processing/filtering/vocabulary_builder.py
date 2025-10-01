@@ -7,7 +7,7 @@ from inspect import isawaitable
 from typing import Any
 
 from services.filterservice.interface import FilteredWord
-from services.nlp.lemma_resolver import lemmatize_word
+from services.nlp.lemma_resolver import lemmatize_word, is_proper_name
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,11 @@ class VocabularyBuilderService:
         async with AsyncSessionLocal() as session:
             for blocker in blocker_words:
                 word_text = blocker.text.lower()
+
+                # Skip proper names - consider them known
+                if is_proper_name(blocker.text, target_language):
+                    logger.info("Skipping proper name: '%s'", blocker.text)
+                    continue
 
                 # Check cache first
                 cache_entry = self.concept_cache.get(word_text)
