@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class VocabularyWord(BaseModel):
     """Single vocabulary word with translations"""
 
-    concept_id: UUID | None = Field(None, description="Unique identifier (optional, will be deprecated)")
+    concept_id: UUID | int | str | None = Field(None, description="Unique identifier (UUID, int, or string)")
     word: str = Field(..., min_length=1, max_length=100, description="The vocabulary word in target language")
     translation: str | None = Field(None, max_length=100, description="Translation in user's preferred language")
     lemma: str | None = Field(None, max_length=100, description="Base form of the word")

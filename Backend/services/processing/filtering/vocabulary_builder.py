@@ -3,7 +3,6 @@ Vocabulary building service for filtering operations
 """
 
 import logging
-import uuid
 from inspect import isawaitable
 from typing import Any
 
@@ -62,17 +61,18 @@ class VocabularyBuilderService:
 
                     # Process lookup result
                     if row:
-                        concept_uuid = uuid.UUID(str(row[0]))
+                        # row[0] is the database ID (integer in current schema)
+                        db_id = row[0]
                         logger.info(
                             "Mapped blocker word '%s' (lemma '%s') -> concept %s (word='%s', lemma='%s', level=%s)",
                             blocker.text,
                             resolved_lemma or word_text,
-                            concept_uuid,
+                            db_id,
                             row[2],
                             row[3],
                             row[1],
                         )
-                        concept_id, cached_level, cached_word, cached_lemma = (concept_uuid, row[1], row[2], row[3])
+                        concept_id, cached_level, cached_word, cached_lemma = (db_id, row[1], row[2], row[3])
                     else:
                         logger.warning(
                             "Concept not found for word '%s' (lemma '%s') in language '%s'",
@@ -163,20 +163,29 @@ class VocabularyBuilderService:
         return_dict: bool,
     ) -> Any:
         """Create VocabularyWord object from blocker and concept info"""
-        from database.models import VocabularyWord
+        # Create dict representation for Pydantic compatibility
+        vocab_dict = {
+            "word": blocker_text,
+            "lemma": final_lemma,
+            "difficulty_level": (cached_level or blocker_metadata.get("difficulty_level") or "C2"),
+            "translation": None,  # API model uses 'translation', not 'translation_en'
+            "concept_id": concept_id,
+            "semantic_category": None,
+            "domain": None,
+            "gender": None,
+            "plural_form": None,
+            "pronunciation": None,
+            "notes": None,
+            "known": False,
+        }
 
-        vocab_word = VocabularyWord(
-            word=blocker_text,
-            lemma=final_lemma,
-            language=target_language,
-            difficulty_level=(cached_level or blocker_metadata.get("difficulty_level") or "C2"),
-            translation_en="",
-        )
+        if return_dict:
+            return vocab_dict
+        else:
+            # Return Pydantic model for FastAPI serialization
+            from api.models.vocabulary import VocabularyWord
 
-        if concept_id:
-            vocab_word.id = concept_id
-
-        return vocab_word.dict() if return_dict else vocab_word
+            return VocabularyWord(**vocab_dict)
 
     def generate_candidate_forms(
         self,
@@ -220,14 +229,16 @@ class VocabularyBuilderService:
             "stem",
         )
 
+        MIN_STEM_LENGTH = 3  # Minimum length of word stem after removing suffix
+
         for suffix in adjective_suffixes:
-            if word_text.endswith(suffix) and len(word_text) - len(suffix) >= 3:
+            if word_text.endswith(suffix) and len(word_text) - len(suffix) >= MIN_STEM_LENGTH:
                 forms.add(word_text[: -len(suffix)])
 
         # Common noun suffixes
         noun_suffixes = ("ern", "er", "en", "e", "n", "s")
         for suffix in noun_suffixes:
-            if word_text.endswith(suffix) and len(word_text) - len(suffix) >= 3:
+            if word_text.endswith(suffix) and len(word_text) - len(suffix) >= MIN_STEM_LENGTH:
                 forms.add(word_text[: -len(suffix)])
 
         return forms
