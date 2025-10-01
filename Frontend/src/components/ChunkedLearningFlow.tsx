@@ -88,12 +88,12 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
         startTime: i * chunkDurationMinutes * 60,
         endTime: Math.min((i + 1) * chunkDurationMinutes * 60, videoDurationMinutes * 60),
         vocabulary: [],
-        isProcessed: false
+        isProcessed: false  // Always mark as not processed to force reprocessing
       })
     }
-    console.log(`[ChunkedLearningFlow] Created ${newChunks.length} chunks`)
+    console.log(`[ChunkedLearningFlow] Created ${newChunks.length} chunks (all marked for reprocessing)`)
     setChunks(newChunks)
-  }, [videoInfo.duration, chunkDurationMinutes])
+  }, [videoInfo.duration, chunkDurationMinutes, videoInfo.path])
 
   useEffect(() => {
     let isMounted = true
