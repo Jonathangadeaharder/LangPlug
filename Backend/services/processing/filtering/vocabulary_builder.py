@@ -16,8 +16,8 @@ class VocabularyBuilderService:
     """Builds vocabulary words from blocker words with database lookup and caching"""
 
     def __init__(self):
-        self.concept_cache: dict[str, dict[str, Any | None]] = {}
-        self.lemma_cache: dict[str, str | None] = {}
+        self.concept_cache: dict[str, dict[str, Any]] = {}
+        self.lemma_cache: dict[str, str] = {}
 
     async def build_vocabulary_words(
         self, blocker_words: list[FilteredWord], target_language: str, return_dict: bool = True
@@ -87,21 +87,42 @@ class VocabularyBuilderService:
                         concept_id, cached_level, cached_word, cached_lemma, resolved_lemma
                     )
 
-                # Create vocabulary word
-                final_lemma = cached_lemma or resolved_lemma or word_text
+                # ALWAYS use spaCy-generated lemma (no fallbacks)
+                if not resolved_lemma:
+                    raise RuntimeError(f"Failed to resolve lemma for word '{blocker.text}'")
+
+                logger.info(
+                    "Word '%s' -> lemma '%s' (db_word='%s', db_lemma='%s', level=%s)",
+                    blocker.text,
+                    resolved_lemma,
+                    cached_word,
+                    cached_lemma,
+                    cached_level or "C2",
+                )
+
                 vocab_word = self._create_vocabulary_word(
-                    blocker.text, final_lemma, target_language, cached_level, blocker.metadata, concept_id, return_dict
+                    blocker.text, resolved_lemma, target_language, cached_level, blocker.metadata, concept_id, return_dict
                 )
                 vocabulary_words.append(vocab_word)
 
         return vocabulary_words
 
-    def _get_or_compute_lemma(self, word_text: str, blocker_text: str, target_language: str) -> str | None:
-        """Get lemma from cache or compute it"""
+    def _get_or_compute_lemma(self, word_text: str, blocker_text: str, target_language: str) -> str:
+        """Get lemma from cache or compute it using spaCy (always returns valid lemma)"""
         resolved_lemma = self.lemma_cache.get(word_text)
         if word_text not in self.lemma_cache:
+            # This will raise RuntimeError if spaCy fails - fail early, no fallbacks
             resolved_lemma = lemmatize_word(blocker_text, target_language)
             self.lemma_cache[word_text] = resolved_lemma
+            logger.debug(
+                "spaCy lemmatization: '%s' -> '%s' (language=%s)", blocker_text, resolved_lemma, target_language
+            )
+        else:
+            logger.debug("Using cached lemma for '%s': '%s'", word_text, resolved_lemma)
+
+        if not resolved_lemma:
+            raise RuntimeError(f"Cached lemma is invalid for '{word_text}'")
+
         return resolved_lemma
 
     async def _lookup_concept_from_db(
@@ -141,8 +162,8 @@ class VocabularyBuilderService:
         level: str | None,
         db_word: str | None,
         db_lemma: str | None,
-        resolved_lemma: str | None,
-    ) -> dict[str, Any | None]:
+        resolved_lemma: str,
+    ) -> dict[str, Any]:
         """Create cache entry for concept lookup"""
         return {
             "concept_id": concept_id,

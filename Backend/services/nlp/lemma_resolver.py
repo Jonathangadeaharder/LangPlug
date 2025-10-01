@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import logging
 
-try:  # pragma: no cover - spaCy may be unavailable in CI
+try:
     import spacy  # type: ignore
-except Exception:  # pragma: no cover - allow runtime without spaCy
-    spacy = None
+except ImportError as exc:
+    raise RuntimeError(
+        "spaCy is required for lemmatization. Install it with: pip install spacy"
+    ) from exc
 
 from core.config import settings
 from core.language_preferences import SPACY_MODEL_MAP
@@ -20,8 +22,7 @@ _LANGUAGE_MODEL_OVERRIDES: dict[str, str] = {
     "en": settings.spacy_model_en,
 }
 
-_MODEL_CACHE: dict[str, spacy.Language | None] = {}
-_WARNING_EMITTED = False
+_MODEL_CACHE: dict[str, spacy.Language] = {}
 
 
 def _resolve_model_name(language_code: str) -> str:
@@ -31,49 +32,47 @@ def _resolve_model_name(language_code: str) -> str:
     return SPACY_MODEL_MAP.get(language_code, SPACY_MODEL_MAP["default"])
 
 
-def _load_model(model_name: str) -> spacy.Language | None:
-    global _WARNING_EMITTED
-
+def _load_model(model_name: str) -> spacy.Language:
+    """Load spaCy model, fail early if unavailable"""
     if model_name in _MODEL_CACHE:
         return _MODEL_CACHE[model_name]
 
-    if spacy is None:
-        if not _WARNING_EMITTED:
-            logger.warning("spaCy is not installed; lemma resolution is disabled")
-            _WARNING_EMITTED = True
-        _MODEL_CACHE[model_name] = None
-        return None
-
     try:
         nlp = spacy.load(model_name)
-    except Exception as exc:  # pragma: no cover - depends on runtime env
-        logger.error("Failed to load spaCy model '%s': %s", model_name, exc)
-        nlp = None
+        logger.info("Loaded spaCy model '%s' successfully", model_name)
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to load spaCy model '{model_name}'. "
+            f"Install it with: python -m spacy download {model_name}"
+        ) from exc
+
     _MODEL_CACHE[model_name] = nlp
     return nlp
 
 
-def lemmatize_word(word: str, language_code: str) -> str | None:
+def lemmatize_word(word: str, language_code: str) -> str:
     """Return the lemma for *word* using spaCy for the given language.
 
-    Returns the lemma in lowercase when available; otherwise ``None``.
+    Returns the lemma in lowercase.
+    Raises RuntimeError if spaCy model is unavailable or lemmatization fails.
     """
     if not word:
-        return None
+        raise ValueError("Cannot lemmatize empty word")
 
     model_name = _resolve_model_name(language_code)
     nlp = _load_model(model_name)
 
-    if not nlp:
-        return None
-
     doc = nlp(word)
-    if not doc:
-        return None
+    if not doc or len(doc) == 0:
+        raise RuntimeError(f"spaCy failed to tokenize word '{word}'")
 
     token = doc[0]
     lemma = token.lemma_.strip().lower()
-    return lemma or None
+
+    if not lemma:
+        raise RuntimeError(f"spaCy returned empty lemma for word '{word}'")
+
+    return lemma
 
 
 __all__ = ["lemmatize_word"]
