@@ -222,9 +222,7 @@ class TestModelValidationIntegration:
 
         from api.models.vocabulary import MarkKnownRequest, VocabularyWord
 
-        word = VocabularyWord(
-            concept_id=uuid.uuid4(), word="sprechen", translation="to speak", difficulty_level="A2", frequency_rank=200
-        )
+        word = VocabularyWord(concept_id=uuid.uuid4(), word="sprechen", translation="to speak", difficulty_level="A2")
 
         mark_request = MarkKnownRequest(concept_id=word.concept_id, known=True)
 

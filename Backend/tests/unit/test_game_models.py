@@ -25,7 +25,7 @@ class TestGameSessionValidation:
             "user_id": str(uuid4()),
             "game_type": "vocabulary",
             "difficulty": "intermediate",
-            "start_time": datetime.now(),
+            "started_at": datetime.now(),
             "status": "active",
             "total_questions": 10,
         }
@@ -48,7 +48,7 @@ class TestGameSessionValidation:
             "user_id": str(uuid4()),
             "game_type": "listening",
             "video_id": video_id,
-            "start_time": datetime.now(),
+            "started_at": datetime.now(),
         }
 
         session = GameSession(**session_data)
@@ -58,14 +58,14 @@ class TestGameSessionValidation:
 
     def test_WhenGameSessionWithCompleteData_ThenSetsAllFields(self):
         """Test game session with complete data sets all fields correctly"""
-        end_time = datetime.now()
+        completed_at = datetime.now()
         session_data = {
             "session_id": str(uuid4()),
             "user_id": str(uuid4()),
             "game_type": "comprehension",
             "difficulty": "advanced",
-            "start_time": datetime.now(),
-            "end_time": end_time,
+            "started_at": datetime.now(),
+            "completed_at": completed_at,
             "status": "completed",
             "score": 85,
             "max_score": 100,
@@ -78,7 +78,7 @@ class TestGameSessionValidation:
 
         session = GameSession(**session_data)
 
-        assert session.end_time == end_time
+        assert session.completed_at == completed_at
         assert session.status == "completed"
         assert session.score == 85
         assert session.questions_answered == 8
@@ -91,14 +91,14 @@ class TestGameSessionValidation:
             "session_id": str(uuid4()),
             "user_id": str(uuid4()),
             "game_type": "vocabulary",
-            "start_time": datetime.now(),
+            "started_at": datetime.now(),
         }
 
         session = GameSession(**minimal_data)
 
         assert session.difficulty == "intermediate"  # Default
         assert session.video_id is None  # Default
-        assert session.end_time is None  # Default
+        assert session.completed_at is None  # Default
         assert session.status == "active"  # Default
         assert session.score == 0  # Default
         assert session.max_score == 100  # Default
@@ -113,7 +113,7 @@ class TestGameSessionValidation:
         incomplete_data = {
             "session_id": str(uuid4()),
             "user_id": str(uuid4()),
-            # Missing game_type and start_time
+            # Missing game_type and started_at
         }
 
         with pytest.raises(ValidationError) as exc_info:
@@ -123,7 +123,7 @@ class TestGameSessionValidation:
         field_names = [error["loc"][0] for error in errors]
 
         assert "game_type" in field_names
-        assert "start_time" in field_names
+        assert "started_at" in field_names
 
     def test_WhenInvalidUuidFields_ThenRaisesValidationError(self):
         """Test invalid UUID format in ID fields raises validation error"""
@@ -131,7 +131,7 @@ class TestGameSessionValidation:
             "session_id": "not-a-uuid",
             "user_id": "also-not-a-uuid",
             "game_type": "vocabulary",
-            "start_time": datetime.now(),
+            "started_at": datetime.now(),
         }
 
         # Note: Current model uses str type, but this tests future UUID validation
@@ -309,7 +309,7 @@ class TestGameModelBusinessLogic:
             "session_id": str(uuid4()),
             "user_id": str(uuid4()),
             "game_type": "vocabulary",
-            "start_time": datetime.now(),
+            "started_at": datetime.now(),
             "total_questions": 5,
             "questions_answered": 5,
             "status": "completed",
