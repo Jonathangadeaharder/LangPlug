@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     default_language: str = Field(default="de", alias="LANGPLUG_DEFAULT_LANGUAGE")
 
     # SpaCy model settings
-    spacy_model_de: str = Field(default="de_core_news_sm", alias="LANGPLUG_SPACY_MODEL_DE")
+    spacy_model_de: str = Field(default="de_core_news_lg", alias="LANGPLUG_SPACY_MODEL_DE")
     spacy_model_en: str = Field(default="en_core_web_sm", alias="LANGPLUG_SPACY_MODEL_EN")
 
     # Security settings
