@@ -49,10 +49,17 @@ class ChunkTranslationService(IChunkTranslationService):
         service_key = (source_lang, target_lang, quality)
 
         if service_key not in self._translation_services:
-            service_name = settings.translation_service
-            logger.info(f"Creating translation service '{service_name}': {source_lang} -> {target_lang} ({quality})")
+            # Calculate the correct OPUS model for this language pair
+            # OPUS models follow pattern: Helsinki-NLP/opus-mt-{source}-{target}
+            model_name = f"Helsinki-NLP/opus-mt-{source_lang}-{target_lang}"
+
+            logger.info(
+                f"Creating translation service: {source_lang} -> {target_lang} " f"(model: {model_name})"
+            )
+
             self._translation_services[service_key] = TranslationServiceFactory.create_service(
-                service_name=service_name, source_lang=source_lang, target_lang=target_lang, quality=quality
+                service_name="opus",  # Use OPUS service type
+                model_name=model_name,  # Explicitly set model for language pair
             )
 
         return self._translation_services[service_key]
@@ -162,6 +169,11 @@ class ChunkTranslationService(IChunkTranslationService):
         """
         source_lang = language_preferences.get("target", "de")
         target_lang = language_preferences.get("native", "en")
+
+        logger.info(
+            f"[TRANSLATION DEBUG] Building translations: {source_lang} -> {target_lang} "
+            f"(preferences: {language_preferences})"
+        )
 
         translation_service = self.get_translation_service(source_lang, target_lang)
 
