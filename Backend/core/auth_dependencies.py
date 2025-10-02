@@ -69,15 +69,42 @@ async def get_user_from_query_token(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication token required")
 
     try:
-        from .auth import jwt_authentication
+        from .auth import auth_backend, get_user_db, get_user_manager
+        from fastapi_users.db import SQLAlchemyUserDatabase
 
-        user = await jwt_authentication.authenticate(token, db)
-        if user is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication token")
-        return user
+        # Get JWT strategy from auth backend
+        strategy = auth_backend.get_strategy()
+
+        # Get user database and user manager
+        user_db_gen = get_user_db(db)
+        user_db: SQLAlchemyUserDatabase = await anext(user_db_gen)
+
+        try:
+            user_manager_gen = get_user_manager(user_db)
+            user_manager = await anext(user_manager_gen)
+
+            try:
+                # Decode and validate the token - returns User object, not ID
+                user = await strategy.read_token(token, user_manager=user_manager)
+                if user is None:
+                    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+                # Check if user is active
+                if not user.is_active:
+                    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is inactive")
+
+                return user
+            finally:
+                # Close the user manager generator
+                await user_manager_gen.aclose()
+        finally:
+            # Close the user db generator
+            await user_db_gen.aclose()
+
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.error(f"Token authentication failed: {e}", exc_info=True)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed")
 
 

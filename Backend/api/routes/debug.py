@@ -26,14 +26,12 @@ class FrontendLogEntry(BaseModel):
     userId: str = None
 
 
-@router.post("/frontend-logs")
-async def log_frontend_entry(entry: FrontendLogEntry):
-    """
-    Log an entry from the frontend application
-    """
-    log_level = getattr(logging, entry.level.upper(), logging.INFO)
+class FrontendLogBatch(BaseModel):
+    logs: list[FrontendLogEntry]
 
-    # Format the log message
+
+def format_log_entry(entry: FrontendLogEntry) -> str:
+    """Format a single log entry"""
     log_msg = f"[{entry.category}] {entry.message}"
     if entry.data:
         log_msg += f" | Data: {entry.data}"
@@ -43,11 +41,36 @@ async def log_frontend_entry(entry: FrontendLogEntry):
         log_msg += f" | URL: {entry.url}"
     if entry.userId:
         log_msg += f" | User: {entry.userId}"
+    return log_msg
 
-    # Log with the appropriate level
-    frontend_logger.log(log_level, log_msg)
 
-    return {"success": True, "status": "logged", "timestamp": entry.timestamp}
+@router.post("/frontend-logs")
+async def log_frontend_entry(payload: FrontendLogEntry | FrontendLogBatch):
+    """
+    Log entries from the frontend application.
+    Accepts either a single log entry or a batch of log entries.
+    """
+    # Check if it's a batch or single entry
+    if isinstance(payload, FrontendLogBatch):
+        # Handle batch
+        for entry in payload.logs:
+            log_level = getattr(logging, entry.level.upper(), logging.INFO)
+            log_msg = format_log_entry(entry)
+            frontend_logger.log(log_level, log_msg)
+
+        return {
+            "success": True,
+            "status": "logged",
+            "count": len(payload.logs),
+            "timestamp": payload.logs[0].timestamp if payload.logs else None
+        }
+    else:
+        # Handle single entry (backward compatibility)
+        log_level = getattr(logging, payload.level.upper(), logging.INFO)
+        log_msg = format_log_entry(payload)
+        frontend_logger.log(log_level, log_msg)
+
+        return {"success": True, "status": "logged", "timestamp": payload.timestamp}
 
 
 @router.get("/health")

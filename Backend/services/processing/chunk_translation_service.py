@@ -85,7 +85,7 @@ class ChunkTranslationService(IChunkTranslationService):
         Returns:
             List of translation segments
         """
-        task_progress[task_id].progress = 85.0
+        task_progress[task_id].progress = 65.0
         task_progress[task_id].current_step = "Building translations..."
         task_progress[task_id].message = "Creating translated subtitle segments"
 
@@ -174,13 +174,18 @@ class ChunkTranslationService(IChunkTranslationService):
         async def translate_with_progress(task_id=None, task_progress_dict=None):
             """Translate segments with progress tracking"""
             translation_segments = []
+            batch_size = 5  # Process in small batches to yield to event loop
 
             for i, segment in enumerate(tqdm(subtitle_segments, desc="Translating segments", disable=False)):
                 try:
-                    # Update progress
+                    # Update progress every segment to ensure smooth updates (65% -> 95%)
                     if task_id and task_progress_dict:
-                        progress = 85.0 + (10.0 * (i + 1) / len(subtitle_segments))
+                        # Map translation progress (0-100%) to overall range (65-95%)
+                        translation_pct = (i + 1) / len(subtitle_segments)
+                        progress = int(65 + (30 * translation_pct))
                         task_progress_dict[task_id].progress = progress
+                        task_progress_dict[task_id].current_step = "Building translations..."
+                        task_progress_dict[task_id].message = f"Translating segment {i+1}/{len(subtitle_segments)}"
 
                     # Create translation segment
                     translation_result = translation_service.translate(segment.text, source_lang, target_lang)
@@ -194,12 +199,19 @@ class ChunkTranslationService(IChunkTranslationService):
 
                     translation_segments.append(translation_segment)
 
-                    # Small delay to prevent overwhelming the translation service
-                    await asyncio.sleep(0.1)
+                    # Yield to event loop every batch to allow FastAPI to respond to requests
+                    if (i + 1) % batch_size == 0:
+                        await asyncio.sleep(0.01)  # 10ms yield to event loop
 
                 except Exception as e:
                     logger.error(f"Translation failed for segment {segment.index}: {e}")
                     continue
+
+            # Update progress one final time before returning
+            if task_id and task_progress_dict:
+                task_progress_dict[task_id].progress = 95
+                task_progress_dict[task_id].current_step = "Building translations..."
+                task_progress_dict[task_id].message = "Translation completed"
 
             return translation_segments
 

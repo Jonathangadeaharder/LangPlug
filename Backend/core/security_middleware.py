@@ -76,10 +76,23 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         """Check if path should be excluded from rate limiting"""
         return any(path.startswith(excluded) for excluded in self.exclude_paths)
 
+    def _add_cors_headers(self, response: JSONResponse, origin: str | None = None) -> JSONResponse:
+        """Add CORS headers to response (for rate limit error responses)"""
+        if origin:
+            response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Expose-Headers"] = "X-Request-ID, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After"
+        return response
+
     async def dispatch(self, request: Request, call_next):
         # Skip rate limiting for excluded paths
         if self._is_excluded(request.url.path):
             return await call_next(request)
+
+        # Get origin for CORS headers
+        origin = request.headers.get("origin")
 
         client_id = self._get_client_id(request)
         current_time = time.time()
@@ -98,7 +111,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             retry_after = int(self.window_size - (current_time - oldest_request))
 
             logger.warning(f"Rate limit exceeded for {client_id}")
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 content={"detail": "Rate limit exceeded", "retry_after": retry_after},
                 headers={
@@ -108,17 +121,19 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     "X-RateLimit-Reset": str(int(current_time + retry_after)),
                 },
             )
+            return self._add_cors_headers(response, origin)
 
         # Check burst limit (requests in last 5 seconds)
         recent_requests = sum(1 for timestamp in self.request_counts[client_id] if timestamp > current_time - 5)
 
         if recent_requests >= self.burst_size:
             logger.warning(f"Burst limit exceeded for {client_id}")
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 content={"detail": "Burst limit exceeded. Please slow down."},
                 headers={"Retry-After": "5"},
             )
+            return self._add_cors_headers(response, origin)
 
         # Add current request
         self.request_counts[client_id].append(current_time)

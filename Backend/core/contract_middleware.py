@@ -76,6 +76,24 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
 
     def validate_response_status(self, path: str, method: str, status_code: int, schema: dict[str, Any]) -> bool:
         """Validate if the response status code is defined in the OpenAPI schema"""
+        # Allow common HTTP status codes that can come from middleware layers
+        # These don't need to be explicitly documented in every endpoint
+        STANDARD_HTTP_CODES = {
+            400,  # Bad Request
+            401,  # Unauthorized
+            403,  # Forbidden
+            404,  # Not Found
+            405,  # Method Not Allowed
+            422,  # Unprocessable Entity
+            429,  # Too Many Requests
+            500,  # Internal Server Error
+            502,  # Bad Gateway
+            503,  # Service Unavailable
+        }
+
+        if status_code in STANDARD_HTTP_CODES:
+            return True
+
         paths = schema.get("paths", {})
 
         # Find matching path

@@ -79,24 +79,25 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
                 task_id, task_progress, video_file, start_time, end_time
             )
 
-            # Step 2: Transcribe chunk (20-50% progress)
+            # Step 2: Transcribe chunk (5-35% progress)
             srt_file = await self.transcription_service.transcribe_chunk(
-                task_id, task_progress, video_file, audio_file, language_preferences
+                task_id, task_progress, video_file, audio_file, language_preferences, start_time, end_time
             )
 
-            # Step 3: Filter vocabulary (50-85% progress)
-            vocabulary = await self._filter_vocabulary(task_id, task_progress, video_file, user, language_preferences)
+            # Step 3: Filter vocabulary (35-65% progress)
+            vocabulary = await self._filter_vocabulary(task_id, task_progress, srt_file, user, language_preferences)
 
             # Step 4: Generate filtered subtitles (85-95% progress)
             filtered_srt = await self._generate_filtered_subtitles(
-                task_id, task_progress, video_file, vocabulary, language_preferences
+                task_id, task_progress, srt_file, vocabulary, language_preferences
             )
 
             # Step 5: Build translation segments (95-100% progress)
+            # Use the chunk SRT file, not the full video SRT file
             translation_segments = await self.translation_service.build_translation_segments(
                 task_id,
                 task_progress,
-                self.transcription_service.find_matching_srt_file(video_file),
+                srt_file,  # Use chunk-specific SRT file
                 vocabulary,
                 language_preferences,
             )
@@ -147,7 +148,7 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
         self,
         task_id: str,
         task_progress: dict[str, Any],
-        video_file: Path,
+        srt_file: str,
         user,
         language_preferences: dict[str, Any],
     ) -> list:
@@ -157,22 +158,26 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
         Args:
             task_id: Processing task ID
             task_progress: Progress tracking dictionary
-            video_file: Path to video file
+            srt_file: Path to chunk SRT file
             user: Authenticated user object
             language_preferences: User language preferences
 
         Returns:
             List of vocabulary words for learning
         """
-        task_progress[task_id].progress = 70.0
+        # Start filtering at 35%
+        task_progress[task_id].progress = 35
         task_progress[task_id].current_step = "Filtering vocabulary..."
-        task_progress[task_id].message = "Analyzing subtitles for learning words"
+        task_progress[task_id].message = "Loading subtitle file"
 
-        # Find matching SRT file
-        srt_file_path = self.transcription_service.find_matching_srt_file(video_file)
+        # Use the chunk SRT file passed as parameter
+        srt_file_path = srt_file
 
-        # Delegate to vocabulary filter service
-        vocabulary = await self.vocabulary_filter.filter_vocabulary_from_srt(srt_file_path, user, language_preferences)
+        # Delegate to vocabulary filter service with progress tracking
+        # Service will update progress from 35% -> 65% internally
+        vocabulary = await self.vocabulary_filter.filter_vocabulary_from_srt(
+            srt_file_path, user, language_preferences, task_id, task_progress
+        )
 
         logger.info(f"[CHUNK DEBUG] Filtered {len(vocabulary)} vocabulary words")
         return vocabulary
@@ -181,7 +186,7 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
         self,
         task_id: str,
         task_progress: dict[str, Any],
-        video_file: Path,
+        srt_file: str,
         vocabulary: list,
         language_preferences: dict[str, Any],
     ) -> str:
@@ -191,22 +196,24 @@ class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
         Args:
             task_id: Processing task ID
             task_progress: Progress tracking dictionary
-            video_file: Path to video file
+            srt_file: Path to chunk SRT file
             vocabulary: List of vocabulary words
             language_preferences: User language preferences
 
         Returns:
             Path to the generated filtered subtitle file
         """
-        task_progress[task_id].progress = 90.0
+        task_progress[task_id].progress = 90
         task_progress[task_id].current_step = "Generating filtered subtitles..."
         task_progress[task_id].message = "Creating learning-optimized subtitle files"
 
-        # Find the source SRT file
-        source_srt = self.transcription_service.find_matching_srt_file(video_file)
+        # Use the chunk SRT file directly (no need to search for it)
+        from pathlib import Path
+
+        video_file = Path(srt_file).with_suffix(".mp4")  # Derive video path from SRT
 
         # Delegate to subtitle generation service
-        filtered_srt = await self.subtitle_generator.generate_filtered_subtitles(video_file, vocabulary, source_srt)
+        filtered_srt = await self.subtitle_generator.generate_filtered_subtitles(video_file, vocabulary, srt_file)
 
         return filtered_srt
 

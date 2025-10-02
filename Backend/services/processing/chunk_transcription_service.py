@@ -30,7 +30,7 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
         self, task_id: str, task_progress: dict[str, Any], video_file: Path, start_time: float, end_time: float
     ) -> Path:
         """Extract audio chunk from video using ffmpeg"""
-        task_progress[task_id].progress = 20.0
+        task_progress[task_id].progress = 5
         task_progress[task_id].current_step = "Extracting audio chunk..."
         task_progress[task_id].message = "Isolating audio for this segment"
 
@@ -92,11 +92,12 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
             return audio_output
 
         except FileNotFoundError:
-            logger.warning("FFmpeg not found, falling back to simulation mode")
-            # Fallback: simulate the process for development/testing
-            await asyncio.sleep(2)
-            logger.info(f"Audio extraction simulated for {video_file.name} ({start_time}-{end_time}s)")
-            return video_file  # Return original file as fallback
+            logger.error("FFmpeg not found - cannot extract audio chunk")
+            raise ChunkTranscriptionError(
+                "FFmpeg is not installed or not in PATH. "
+                "Please install FFmpeg to enable video chunk processing. "
+                "See: https://ffmpeg.org/download.html"
+            )
 
         except ChunkTranscriptionError:
             # Re-raise our custom exceptions
@@ -120,9 +121,11 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
         video_file: Path,
         audio_file: Path,
         language_preferences: dict[str, Any] | None = None,
+        start_time: float = 0,
+        end_time: float = 30,
     ) -> str:
         """Transcribe the audio chunk to text"""
-        task_progress[task_id].progress = 50.0
+        task_progress[task_id].progress = 5
         target_language = language_preferences.get("target") if language_preferences else settings.default_language
         task_progress[task_id].current_step = "Transcribing audio..."
         task_progress[task_id].message = f"Converting speech ({target_language}) to text"
@@ -139,38 +142,84 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
             if audio_file != video_file:  # We have an actual audio file
                 logger.info(f"Transcribing audio chunk: {audio_file}")
                 # Use the transcription service to process the audio chunk
-                transcription_result = await transcription_service.transcribe_audio(
-                    str(audio_file), language=target_language
+                # Run synchronous transcribe in executor to avoid blocking
+                import asyncio
+
+                transcription_result = await asyncio.to_thread(
+                    transcription_service.transcribe, str(audio_file), language=target_language
                 )
 
-                if hasattr(transcription_result, "text"):
-                    transcribed_text = transcription_result.text
-                elif isinstance(transcription_result, str):
-                    transcribed_text = transcription_result
-                else:
-                    transcribed_text = str(transcription_result)
-
-                # Create SRT file for this chunk
+                # Extract transcribed segments from result
                 srt_output = video_file.with_suffix(".srt")
-                self._create_chunk_srt(transcribed_text, srt_output, 0, 30)  # Assume 30s chunk
 
-                logger.info(f"Transcription completed for {video_file.name}: {len(transcribed_text)} chars")
+                if hasattr(transcription_result, "segments") and transcription_result.segments:
+                    # Create SRT from Whisper segments with proper timestamps
+                    self._create_srt_from_segments(transcription_result.segments, srt_output)
+                    logger.info(
+                        f"Created SRT with {len(transcription_result.segments)} segments "
+                        f"from {len(transcription_result.full_text)} chars"
+                    )
+                elif hasattr(transcription_result, "full_text"):
+                    # Fallback: single segment SRT
+                    transcribed_text = transcription_result.full_text
+                    self._create_chunk_srt(transcribed_text, srt_output, 0, 30)
+                    logger.info(f"Created single-segment SRT from {len(transcribed_text)} chars")
+                else:
+                    raise ChunkTranscriptionError("Transcription result has no usable text or segments")
+
+                # Update progress to end of transcription phase
+                task_progress[task_id].progress = 35
+                task_progress[task_id].message = "Transcription complete"
+
+                logger.info(f"Transcription completed for {video_file.name} -> {srt_output}")
                 return str(srt_output)
 
             else:
-                # Fallback mode - simulate transcription
-                logger.info(f"[CHUNK DEBUG] Transcription simulated for {video_file.name}")
-                await asyncio.sleep(3)
-                return self.find_matching_srt_file(video_file)
+                # No real audio file extracted - transcription service unavailable
+                logger.error(f"Audio file equals video file - no audio extraction occurred")
+                raise ChunkTranscriptionError(
+                    "Cannot transcribe chunk: Audio extraction did not produce a separate audio file. "
+                    "This indicates FFmpeg is not available or failed."
+                )
+
+        except ChunkTranscriptionError:
+            # Re-raise our custom exceptions
+            raise
+        except Exception as e:
+            logger.error(f"Transcription error: {e}", exc_info=True)
+            raise ChunkTranscriptionError(f"Chunk transcription failed: {e}")
+
+    def _create_srt_from_segments(self, segments: list, output_path: Path) -> None:
+        """
+        Create SRT file from transcription segments
+
+        Args:
+            segments: List of TranscriptionSegment objects from Whisper
+            output_path: Path to output SRT file
+        """
+        try:
+            from utils.srt_parser import SRTParser, SRTSegment
+
+            # Convert TranscriptionSegments to SRTSegments
+            srt_segments = []
+            for i, seg in enumerate(segments, start=1):
+                srt_segment = SRTSegment(
+                    index=i, start_time=seg.start_time, end_time=seg.end_time, text=seg.text.strip()
+                )
+                srt_segments.append(srt_segment)
+
+            # Use SRTParser to write properly formatted SRT
+            parser = SRTParser()
+            srt_content = parser.segments_to_srt(srt_segments)
+
+            # Write to file
+            output_path.write_text(srt_content, encoding="utf-8")
+
+            logger.info(f"Created SRT file with {len(srt_segments)} segments: {output_path}")
 
         except Exception as e:
-            logger.error(f"Transcription error: {e}")
-            # Fallback to existing SRT file if available
-            existing_srt = self.find_matching_srt_file(video_file)
-            if Path(existing_srt).exists():
-                logger.warning(f"Using existing SRT file due to transcription error: {existing_srt}")
-                return existing_srt
-            raise ChunkTranscriptionError(f"Transcription failed and no fallback available: {e}")
+            logger.error(f"Failed to create SRT from segments: {e}")
+            raise ChunkTranscriptionError(f"SRT creation from segments failed: {e}")
 
     def _create_chunk_srt(self, text: str, output_path: Path, start_time: float, duration: float) -> None:
         """Create an SRT file from transcribed text"""

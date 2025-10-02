@@ -13,16 +13,16 @@ OpenAPI.TOKEN = async () => localStorage.getItem('authToken') ?? ''
 
 export { OpenAPI }
 
-export const buildVideoStreamUrl = (series: string, episode: string) => {
+export const buildVideoStreamUrl = (series: string, episode: string): string => {
   const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
   const token = localStorage.getItem('authToken')
   const url = `${base}/api/videos/${encodeURIComponent(series)}/${encodeURIComponent(episode)}`
-  
+
   // Add token as query parameter for video streaming (ReactPlayer can't send headers)
   if (token) {
     return `${url}?token=${encodeURIComponent(token)}`
   }
-  
+
   return url
 }
 

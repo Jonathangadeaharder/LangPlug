@@ -17,6 +17,7 @@ import {
 import axios from 'axios'
 import { buildVideoStreamUrl } from '@/services/api'
 import { logger } from '@/services/logger'
+import { useSubtitlePreferences, type SubtitleMode } from '@/hooks/useSubtitlePreferences'
 
 // Styled Components
 const PlayerContainer = styled.div`
@@ -612,7 +613,6 @@ interface ChunkedLearningPlayerProps {
 }
 
 type PlaybackSpeed = 0.5 | 0.75 | 1 | 1.25 | 1.5 | 2
-type SubtitleMode = 'off' | 'original' | 'translation' | 'both'
 
 export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
   videoPath: _videoPath,
@@ -643,6 +643,7 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
   const [currentTime, setCurrentTime] = useState(startTime)
   const [playbackRate, setPlaybackRate] = useState<PlaybackSpeed>(1)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [videoReady, setVideoReady] = useState(false)
 
   // UI state
   const [showControls, setShowControls] = useState(true)
@@ -650,8 +651,8 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
   const [showCompletion, setShowCompletion] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
-  // Subtitle state
-  const [subtitleMode, setSubtitleMode] = useState<SubtitleMode>('original')
+  // Subtitle state with persistence
+  const [subtitleMode, setSubtitleMode] = useSubtitlePreferences('original')
   const [currentSubtitle, setCurrentSubtitle] = useState<{ original: string; translation: string }>({
     original: '',
     translation: ''
@@ -969,13 +970,41 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
     }
   }, [subtitlePath, translationPath, series, startTime, endTime, buildSubtitleUrl, parseSRT])
 
-  // Auto-play when component mounts
-  useEffect(() => {
-    if (playerRef.current) {
-      playerRef.current.seekTo(startTime)
-      setTimeout(() => setPlaying(true), 100)
+  // Handle video ready - seek to startTime and begin playback (only once per chunk)
+  const handleVideoReady = useCallback(() => {
+    // Prevent infinite loop - only initialize once per chunk
+    if (videoReady) {
+      return
     }
-  }, [startTime])
+
+    logger.info('ChunkedLearningPlayer', 'Video ready, seeking to chunk start', {
+      startTime,
+      endTime,
+      chunkDuration: endTime - startTime
+    })
+    setVideoReady(true)
+
+    if (playerRef.current) {
+      // Seek to the chunk's start time
+      playerRef.current.seekTo(startTime, 'seconds')
+
+      // Start playing after a short delay to ensure seek completes
+      setTimeout(() => {
+        setPlaying(true)
+        logger.info('ChunkedLearningPlayer', 'Playback started')
+      }, 200)
+    }
+  }, [startTime, endTime, videoReady])
+
+  // Reset video ready state when chunk changes
+  useEffect(() => {
+    logger.info('ChunkedLearningPlayer', 'Chunk changed, resetting player state', {
+      startTime,
+      endTime
+    })
+    setVideoReady(false)
+    setPlaying(false)
+  }, [startTime, endTime])
 
   // Handle video progress
   const handleProgress = useCallback((state: { playedSeconds: number }) => {
@@ -1070,10 +1099,7 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
   }
 
   // Video URL
-  const videoUrl = buildVideoStreamUrl(
-    series,
-    episode
-  )
+  const videoUrl = buildVideoStreamUrl(series, episode)
 
   const handleSkip = useCallback(() => {
     setPlaying(false)
@@ -1101,6 +1127,7 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
           muted={muted}
           playbackRate={playbackRate}
           controls={false}
+          onReady={handleVideoReady}
           onProgress={handleProgress}
           progressInterval={100}
         />

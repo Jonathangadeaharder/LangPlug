@@ -196,10 +196,10 @@ class ChunkHandler:
 
         Returns:
             Estimated duration in seconds
+
+        Raises:
+            Exception: If SRT file cannot be parsed
         """
-        try:
-            segments = SRTParser.parse_file(srt_path)
-            # Estimate: 0.3 seconds per segment
-            return max(15, len(segments) * 0.3)
-        except:
-            return 30  # Default estimate
+        segments = SRTParser.parse_file(srt_path)
+        # Estimate: 0.3 seconds per segment
+        return max(15, len(segments) * 0.3)

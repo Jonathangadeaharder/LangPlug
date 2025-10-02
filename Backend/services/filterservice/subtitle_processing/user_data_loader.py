@@ -33,16 +33,17 @@ class UserDataLoader:
         """
         user_id_str = str(user_id)
 
-        # Primary path: direct query (mock-friendly for unit tests)
+        # Primary path: direct query from user_vocabulary_progress table
         try:
             async with AsyncSessionLocal() as session:
                 result = await session.execute(
                     text(
                         """
-                        SELECT lemma
-                        FROM user_known_words
+                        SELECT DISTINCT lemma
+                        FROM user_vocabulary_progress
                         WHERE user_id = :user_id
-                        AND language_code = :lang
+                        AND language = :lang
+                        AND is_known = 1
                         """
                     ),
                     {"user_id": user_id_str, "lang": language},
@@ -51,26 +52,12 @@ class UserDataLoader:
                 if isawaitable(rows):
                     rows = await rows
                 lemmas = {lemma.lower() for (lemma,) in rows}
-                if lemmas:
-                    logger.debug(f"Loaded {len(lemmas)} known lemmas for user {user_id_str} via direct query")
-                    return lemmas
+                logger.debug(f"Loaded {len(lemmas)} known lemmas for user {user_id_str} from database")
+                return lemmas
         except Exception as exc:
-            logger.error(f"Error loading user known words via direct query: {exc}")
+            logger.error(f"Error loading user known words from database: {exc}")
+            return set()
 
-        # Service fallback if direct query returns nothing or fails
-        try:
-            from services.vocabulary_service import VocabularyService
-
-            vocab_service = VocabularyService
-
-            known_lemmas = await vocab_service.get_user_known_words(user_id_str, language)
-            if known_lemmas:
-                logger.debug(f"Loaded {len(known_lemmas)} known lemmas for user {user_id_str} via service fallback")
-                return {lemma.lower() for lemma in known_lemmas}
-        except Exception as exc:
-            logger.error(f"Service lookup for user known words failed: {exc}")
-
-        return set()
 
     async def load_word_difficulties(self, language: str) -> dict[str, str]:
         """
@@ -93,7 +80,7 @@ class UserDataLoader:
                         """
                         SELECT DISTINCT lemma, difficulty_level
                         FROM vocabulary_words
-                        WHERE language_code = :lang
+                        WHERE language = :lang
                         """
                     ),
                     {"lang": language},
@@ -106,10 +93,10 @@ class UserDataLoader:
                 for lemma, difficulty in rows:
                     self._word_difficulty_cache[lemma.lower()] = difficulty
 
-                logger.debug(f"Loaded {len(self._word_difficulty_cache)} word difficulties")
+                logger.debug(f"Loaded {len(self._word_difficulty_cache)} word difficulties from database")
 
         except Exception as e:
-            logger.error(f"Error loading word difficulties: {e}")
+            logger.error(f"Error loading word difficulties from database: {e}")
 
         return self._word_difficulty_cache
 

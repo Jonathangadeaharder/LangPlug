@@ -72,6 +72,8 @@ async def get_subtitles(
     "/{series}/{episode}",
     name="stream_video",
     responses={
+        200: {"description": "Full video content"},
+        206: {"description": "Partial video content (range request)"},
         401: {"description": "Invalid or missing authentication token"},
         404: {"description": "Video file not accessible"},
         500: {"description": "Error streaming video"},

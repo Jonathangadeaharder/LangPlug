@@ -2,10 +2,15 @@
 FastAPI application factory
 """
 
+import warnings
 from contextlib import asynccontextmanager
 from datetime import datetime
 
 from fastapi import FastAPI
+
+# Suppress pkg_resources deprecation warning from passlib
+# This is a known issue with passlib that will be fixed when they migrate away from pkg_resources
+warnings.filterwarnings("ignore", message="pkg_resources is deprecated", category=UserWarning)
 
 from api.routes import (
     auth,

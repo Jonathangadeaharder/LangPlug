@@ -19,8 +19,11 @@ from core.dependencies import (
 from database.models import User
 from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 from services.filterservice.interface import FilteredSubtitle
+from services.processing.chunk_services.translation_management_service import (
+    translation_management_service,
+)
 
-from ..models.processing import FilterRequest, ProcessingStatus
+from ..models.processing import FilterRequest, ProcessingStatus, SelectiveTranslationRequest
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["filtering"])
@@ -149,6 +152,45 @@ async def filter_subtitles(
     except Exception as e:
         logger.error(f"Failed to start filtering: {e!s}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Filtering failed: {e!s}")
+
+
+@router.post("/apply-selective-translations", name="apply_selective_translations")
+async def apply_selective_translations(
+    request: SelectiveTranslationRequest,
+    current_user: User = Depends(current_active_user),
+):
+    """
+    Apply selective translations based on known words.
+    Re-filters subtitles to show only unknown words that need translation.
+    """
+    try:
+        logger.info(f"Applying selective translations for {len(request.known_words)} known words")
+
+        # Get user's target language and level from profile
+        target_language = getattr(current_user, "target_language", "de")
+        user_level = getattr(current_user, "language_level", "A1")
+
+        # Call the translation management service
+        result = await translation_management_service.apply_selective_translations(
+            srt_path=request.srt_path,
+            known_words=request.known_words,
+            target_language=target_language,
+            user_level=user_level,
+            user_id=str(current_user.id),
+        )
+
+        logger.info(f"Selective translations applied: {result.get('translation_count', 0)} segments need translation")
+
+        return {
+            "success": True,
+            "translation_path": request.srt_path,  # For now, return the same path
+            "translation_count": result.get("translation_count", 0),
+            "filtering_stats": result.get("filtering_stats", {}),
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to apply selective translations: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Selective translation failed: {e!s}")
 
 
 async def _save_filtered_subtitles_to_file(filtered_subtitles: list[FilteredSubtitle], output_path: str) -> None:

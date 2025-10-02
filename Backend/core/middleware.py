@@ -161,14 +161,8 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 def setup_middleware(app: FastAPI) -> None:
     """Set up all middleware for the FastAPI application"""
 
-    # CORS middleware
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_origins,
-        allow_credentials=settings.cors_credentials,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    # CORS middleware is now configured in security_middleware.py to avoid duplication
+    # This function is kept for backward compatibility and exception handlers
 
     # Custom middleware (order matters - first added runs last)
     # Temporarily disable custom middleware - causing OPTIONS request issues
@@ -183,4 +177,4 @@ def setup_middleware(app: FastAPI) -> None:
             content={"detail": exc.message, "type": exc.__class__.__name__, "timestamp": datetime.utcnow().isoformat()},
         )
 
-    logger.info("Middleware configured successfully")
+    logger.info("Middleware configured successfully (CORS configured in security_middleware)")

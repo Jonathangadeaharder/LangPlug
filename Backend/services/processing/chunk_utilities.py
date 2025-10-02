@@ -184,7 +184,14 @@ class ChunkUtilities(IChunkUtilities):
 
         logger.info(f"[CHUNK DEBUG] Initialized processing for task {task_id}")
 
-    def complete_processing(self, task_id: str, task_progress: dict[str, Any], vocabulary: list | None = None) -> None:
+    def complete_processing(
+        self,
+        task_id: str,
+        task_progress: dict[str, Any],
+        vocabulary: list | None = None,
+        subtitle_path: str | None = None,
+        translation_path: str | None = None
+    ) -> None:
         """
         Mark chunk processing as completed
 
@@ -192,6 +199,8 @@ class ChunkUtilities(IChunkUtilities):
             task_id: Processing task ID
             task_progress: Progress tracking dictionary
             vocabulary: Optional vocabulary results
+            subtitle_path: Optional path to subtitle file
+            translation_path: Optional path to translation file
         """
         task_progress[task_id].status = "completed"
         task_progress[task_id].progress = 100.0
@@ -200,6 +209,14 @@ class ChunkUtilities(IChunkUtilities):
 
         if vocabulary:
             task_progress[task_id].vocabulary = vocabulary
+
+        if subtitle_path:
+            task_progress[task_id].subtitle_path = subtitle_path
+            logger.info(f"[CHUNK DEBUG] Set subtitle_path: {subtitle_path}")
+
+        if translation_path:
+            task_progress[task_id].translation_path = translation_path
+            logger.info(f"[CHUNK DEBUG] Set translation_path: {translation_path}")
 
         logger.info(f"[CHUNK DEBUG] Completed processing for task {task_id}")
 

@@ -28,6 +28,11 @@ class Logger {
   private logs: LogEntry[] = []
   private maxLogs = 1000
   private apiEnabled = true
+  private batchQueue: LogEntry[] = []
+  private readonly batchSize = 20 // Increased for efficiency
+  private readonly batchTimeout = 10000 // 10 seconds - less frequent sends
+  private batchTimer: ReturnType<typeof setTimeout> | null = null
+  private isSending = false
 
   constructor() {
     // Set log level based on environment
@@ -121,45 +126,93 @@ class Logger {
       this.logs = this.logs.slice(-this.maxLogs)
     }
 
-    // Send to backend if enabled
+    // Send to backend if enabled (using batching)
     if (this.apiEnabled) {
-      this.sendLogToBackend(entry).catch(() => {
-        // Silently fail if backend logging fails
-      })
+      this.addToBatch(entry)
     }
   }
 
-  private async sendLogToBackend(entry: LogEntry) {
+  private addToBatch(entry: LogEntry) {
+    // Only send INFO and above to backend to avoid spam
+    if (LogLevel[entry.level as keyof typeof LogLevel] < LogLevel.INFO) {
+      return
+    }
+
+    this.batchQueue.push(entry)
+
+    // If batch is full, send immediately
+    if (this.batchQueue.length >= this.batchSize) {
+      this.flushBatch()
+    } else {
+      // Otherwise, schedule batch send
+      this.scheduleBatchSend()
+    }
+  }
+
+  private scheduleBatchSend() {
+    // Clear existing timer
+    if (this.batchTimer) {
+      clearTimeout(this.batchTimer)
+    }
+
+    // Schedule new batch send
+    this.batchTimer = setTimeout(() => {
+      this.flushBatch()
+    }, this.batchTimeout)
+  }
+
+  private async flushBatch() {
+    // Clear timer
+    if (this.batchTimer) {
+      clearTimeout(this.batchTimer)
+      this.batchTimer = null
+    }
+
+    // Skip if already sending or queue is empty
+    if (this.isSending || this.batchQueue.length === 0) {
+      return
+    }
+
+    // Take current batch and clear queue
+    const batch = [...this.batchQueue]
+    this.batchQueue = []
+    this.isSending = true
+
+    try {
+      await this.sendBatchToBackend(batch)
+    } catch (error) {
+      // Silently fail backend logging
+      if (import.meta.env.DEV) {
+        console.warn('Failed to send log batch:', error)
+      }
+    } finally {
+      this.isSending = false
+    }
+  }
+
+  private async sendBatchToBackend(batch: LogEntry[]) {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
-      // Only send INFO and above to backend to avoid spam
-      if (LogLevel[entry.level as keyof typeof LogLevel] < LogLevel.INFO) {
-        return
-      }
-
-      // Use fetch with timeout and proper error handling
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
 
       await fetch(`${API_BASE_URL}/api/debug/frontend-logs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(entry),
+        body: JSON.stringify({ logs: batch }),
         signal: controller.signal
       })
 
       clearTimeout(timeoutId)
     } catch (error) {
-      // Silently fail backend logging to avoid disrupting user experience
-      // Only log to console in development
-      if (import.meta.env.DEV) {
-        console.warn('Frontend log backend sync failed:', error)
-      }
+      // Re-throw to be handled by caller
+      throw error
     }
   }
+
 
   debug(category: string, message: string, data?: any) {
     if (!this.shouldLog(LogLevel.DEBUG)) return

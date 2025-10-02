@@ -22,7 +22,12 @@ class VocabularyFilterService:
         self.subtitle_processor = DirectSubtitleProcessor()
 
     async def filter_vocabulary_from_srt(
-        self, srt_file_path: str, user: Any, language_preferences: dict[str, Any]
+        self,
+        srt_file_path: str,
+        user: Any,
+        language_preferences: dict[str, Any],
+        task_id: str | None = None,
+        task_progress: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Filter vocabulary from SRT file using subtitle processor
@@ -31,11 +36,18 @@ class VocabularyFilterService:
             srt_file_path: Path to SRT file
             user: Authenticated user object
             language_preferences: User language preferences
+            task_id: Optional task ID for progress tracking
+            task_progress: Optional progress tracking dictionary
 
         Returns:
             List of vocabulary words for learning
         """
         logger.info(f"Filtering vocabulary from {srt_file_path}")
+
+        # Update progress: Start processing (35% -> 40%)
+        if task_id and task_progress:
+            task_progress[task_id].progress = 40
+            task_progress[task_id].message = "Processing subtitle segments"
 
         # Use subtitle processor to filter vocabulary
         filter_result = await self.subtitle_processor.process_srt_file(
@@ -45,11 +57,21 @@ class VocabularyFilterService:
             language=language_preferences.get("target", "de"),
         )
 
+        # Update progress: Extracting vocabulary (40% -> 55%)
+        if task_id and task_progress:
+            task_progress[task_id].progress = 55
+            task_progress[task_id].message = "Extracting vocabulary words"
+
         # Extract vocabulary from filter result
         vocabulary = self.extract_vocabulary_from_result(filter_result)
 
         if not vocabulary:
             self.debug_empty_vocabulary(filter_result, srt_file_path)
+
+        # Update progress: Vocabulary extracted (55% -> 65%)
+        if task_id and task_progress:
+            task_progress[task_id].progress = 65
+            task_progress[task_id].message = f"Found {len(vocabulary)} learning words"
 
         logger.info(f"Filtered {len(vocabulary)} vocabulary words")
         return vocabulary
@@ -76,21 +98,34 @@ class VocabularyFilterService:
         Create vocabulary word dictionary with proper UUID concept_id
 
         Args:
-            word: Filtered word object
+            word: VocabularyWord Pydantic model or dict from srt_file_handler
 
         Returns:
             Dictionary matching frontend VocabularyWord type with valid UUID concept_id
         """
-        # Extract word text
-        word_text = word.text if hasattr(word, "text") else (word.word if hasattr(word, "word") else str(word))
-
-        # Extract from metadata (where word_filter.py stores them)
-        metadata = getattr(word, "metadata", {})
-        lemma = metadata.get("lemma", None)
-        difficulty = metadata.get("difficulty_level", "unknown")
+        # Check if word is already a VocabularyWord Pydantic model or dict
+        if hasattr(word, "model_dump"):
+            # It's a Pydantic model - convert to dict
+            word_dict = word.model_dump()
+            word_text = word_dict.get("word", "")
+            lemma = word_dict.get("lemma", None)
+            difficulty = word_dict.get("difficulty_level", "C2")
+            translation = word_dict.get("translation", None)
+        elif isinstance(word, dict):
+            # It's already a dict
+            word_text = word.get("word", "")
+            lemma = word.get("lemma", None)
+            difficulty = word.get("difficulty_level", "C2")
+            translation = word.get("translation", None)
+        else:
+            # Fallback: treat as FilteredWord with metadata
+            word_text = word.text if hasattr(word, "text") else str(word)
+            metadata = getattr(word, "metadata", {})
+            lemma = metadata.get("lemma", None)
+            difficulty = metadata.get("difficulty_level", "C2")
+            translation = getattr(word, "translation", None)
 
         # Generate deterministic UUID based on lemma (or word) + difficulty
-        # This ensures same word gets same UUID across sessions
         identifier = f"{lemma or word_text}-{difficulty}"
         concept_id = str(uuid.uuid5(VOCABULARY_NAMESPACE, identifier))
 
@@ -100,9 +135,9 @@ class VocabularyFilterService:
             "word": word_text,
             "difficulty_level": difficulty,
             # Optional fields
-            "translation": getattr(word, "translation", None),
-            "lemma": lemma,  # spaCy-generated lemma from word_filter.py
-            "semantic_category": metadata.get("part_of_speech", None),
+            "translation": translation,
+            "lemma": lemma,  # spaCy-generated lemma
+            "semantic_category": None,
             "domain": None,
             "known": False,  # User will mark as known in vocabulary game
         }

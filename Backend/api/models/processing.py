@@ -102,3 +102,17 @@ class ChunkProcessingRequest(BaseModel):
             "example": {"video_path": "/videos/Superstore/S01/E01.mp4", "start_time": 120.5, "end_time": 180.0}
         }
     )
+
+
+class SelectiveTranslationRequest(BaseModel):
+    srt_path: str = Field(..., min_length=1, description="Path to the SRT subtitle file")
+    known_words: list[str] = Field(..., description="List of words that the user already knows")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "srt_path": "/subtitles/episode_german.srt",
+                "known_words": ["der", "die", "das", "und", "ist"]
+            }
+        }
+    )

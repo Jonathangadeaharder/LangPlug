@@ -21,6 +21,8 @@ class MarkKnownRequest(BaseModel):
     """Request to mark a word as known"""
 
     concept_id: str = Field(..., description="The concept ID to mark")
+    word: str | None = Field(None, description="The word text (optional)")
+    lemma: str | None = Field(None, description="The word lemma (optional)")
     language: str = Field("de", description="Language code")
     known: bool = Field(..., description="Whether to mark as known")
 
@@ -76,19 +78,28 @@ async def mark_word_known(
 ):
     """Mark a word as known or unknown"""
     try:
-        # For test compatibility, treat concept_id as word identifier
-        await vocabulary_service.mark_word_known(
+        # Use lemma if provided, otherwise fall back to word, then concept_id for backward compatibility
+        word_to_lookup = request.lemma or request.word or request.concept_id
+
+        result = await vocabulary_service.mark_word_known(
             user_id=current_user.id,
-            word=request.concept_id,  # Use concept_id as word identifier
+            word=word_to_lookup,
             language=request.language,
             is_known=request.known,
             db=db,
         )
 
-        # Format response for test expectations
-        return {"success": True, "concept_id": request.concept_id, "known": request.known}
+        # Format response with result data
+        return {
+            "success": result.get("success", True),
+            "concept_id": request.concept_id,
+            "known": request.known,
+            "word": result.get("word"),
+            "lemma": result.get("lemma"),
+            "level": result.get("level"),
+        }
     except Exception as e:
-        logger.error(f"Error marking word: {e}")
+        logger.error(f"Error marking word: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error updating word status")
 
 

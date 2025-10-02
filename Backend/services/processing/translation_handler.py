@@ -219,13 +219,13 @@ class TranslationHandler:
 
         Returns:
             Estimated duration in seconds
+
+        Raises:
+            Exception: If SRT file cannot be parsed
         """
-        try:
-            segments = SRTParser.parse_file(srt_path)
-            # Estimate: 1 second per segment
-            return max(30, len(segments))
-        except:
-            return 60  # Default estimate
+        segments = SRTParser.parse_file(srt_path)
+        # Estimate: 1 second per segment
+        return max(30, len(segments))
 
     async def validate_languages(self, source_language: str, target_language: str) -> bool:
         """

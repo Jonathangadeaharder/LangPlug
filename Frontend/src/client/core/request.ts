@@ -32,7 +32,7 @@ export const base64 = (str: string): string => {
 	try {
 		return btoa(str);
 	} catch (err) {
-		// @ts-expect-error - Buffer is available in Node.js environment
+		// @ts-ignore
 		return Buffer.from(str).toString('base64');
 	}
 };
@@ -71,7 +71,7 @@ const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
 	const path = options.url
 		.replace('{api-version}', config.VERSION)
 		.replace(/{(.*?)}/g, (substring: string, group: string) => {
-			if (options.path && group in options.path) {
+			if (options.path?.hasOwnProperty(group)) {
 				return encoder(String(options.path[group]));
 			}
 			return substring;
@@ -119,13 +119,13 @@ export const resolve = async <T>(options: ApiRequestOptions<T>, resolver?: T | R
 
 export const getHeaders = async <T>(config: OpenAPIConfig, options: ApiRequestOptions<T>): Promise<Record<string, string>> => {
 	const [token, username, password, additionalHeaders] = await Promise.all([
-		// @ts-expect-error - Config types need refinement
+		// @ts-ignore
 		resolve(options, config.TOKEN),
-		// @ts-expect-error - Config types need refinement
+		// @ts-ignore
 		resolve(options, config.USERNAME),
-		// @ts-expect-error - Config types need refinement
+		// @ts-ignore
 		resolve(options, config.PASSWORD),
-		// @ts-expect-error - Config types need refinement
+		// @ts-ignore
 		resolve(options, config.HEADERS),
 	]);
 
