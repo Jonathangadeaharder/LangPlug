@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from services.transcriptionservice.factory import get_transcription_service
 
 
 @pytest.mark.timeout(30)
+@pytest.mark.skipif(os.environ.get("SKIP_HEAVY_AI_TESTS") == "1", reason="Heavy AI tests skipped")
 def test_Whenservice_factory_called_ThenReturnsService():
     """Service factory should return a service instance or None if unavailable."""
     service = get_transcription_service("whisper-tiny")
