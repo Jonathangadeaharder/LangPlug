@@ -188,8 +188,8 @@ jobs:
           # Copy source code
           COPY . .
 
-          # Build the application
-          RUN yarn build
+          # Build the application (skip prebuild hooks that require openapi_spec.json)
+          RUN npx tsc && npx vite build
 
           # Production stage with nginx
           FROM nginx:alpine as production
