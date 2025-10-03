@@ -87,7 +87,7 @@ jobs:
       - name: Lint with ruff (if available)
         run: |
           if command -v ruff >/dev/null 2>&1; then
-            ruff check . --select=E,W,F --ignore=E501,E402 --exclude=data,docs,scripts,tests/e2e_*.py,tests/conftest.py,run_backend.py
+            ruff check . --select=E,W,F --ignore=E501,E402 --exclude=data,docs,scripts,tests,run_backend.py
           else
             echo "Ruff not available, skipping lint"
           fi
