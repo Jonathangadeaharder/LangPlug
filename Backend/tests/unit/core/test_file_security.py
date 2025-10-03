@@ -94,7 +94,7 @@ class TestFileSecurityValidator:
             await FileSecurityValidator.validate_file_upload(mock_file, {".mp4", ".srt"})
 
     @pytest.mark.asyncio
-    async def test_validate_file_upload_empty_file(self):
+    async def test_validate_file_upload_empty_file(self, temp_upload_dir):
         """Upload validation should reject empty files"""
         mock_file = Mock()
         mock_file.filename = "video.mp4"
@@ -106,7 +106,7 @@ class TestFileSecurityValidator:
             await FileSecurityValidator.validate_file_upload(mock_file, {".mp4"})
 
     @pytest.mark.asyncio
-    async def test_validate_file_upload_file_too_large(self):
+    async def test_validate_file_upload_file_too_large(self, temp_upload_dir):
         """Upload validation should reject oversized files"""
         mock_file = Mock()
         mock_file.filename = "huge.mp4"
