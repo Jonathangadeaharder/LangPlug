@@ -30,7 +30,7 @@ jobs:
       - name: Run backend unit tests
         working-directory: ./Backend
         env:
-          LANGPLUG_SECRET_KEY: test-secret-key
+          LANGPLUG_SECRET_KEY: test-secret-key-for-ci-only-not-for-production-use
         run: |
           python -m pytest tests/ -v --tb=short -m "not e2e and not integration" || echo "Backend tests failed, but continuing"
 

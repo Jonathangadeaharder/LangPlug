@@ -69,7 +69,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_langplug
           REDIS_URL: redis://localhost:6379
-          LANGPLUG_SECRET_KEY: test-secret-key
+          LANGPLUG_SECRET_KEY: test-secret-key-for-ci-only-not-for-production-use
         run: |
           python -m pytest tests/ -v --cov=. --cov-report=xml
 
