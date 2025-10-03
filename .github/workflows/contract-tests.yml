@@ -79,6 +79,7 @@ jobs:
         working-directory: ./Backend
         env:
           DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
+          LANGPLUG_SECRET_KEY: test-secret-key
           ENVIRONMENT: test
         run: |
           # Run contract-specific tests
