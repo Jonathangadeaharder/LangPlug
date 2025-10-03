@@ -75,10 +75,17 @@ class AuthHelper:
         return assert_json_response(response, 200)
 
     def logout_user(self, token: str) -> dict[str, Any]:
-        """Logout user with token."""
+        """
+        Logout user with token.
+
+        Note: FastAPI-Users logout returns 204 No Content.
+        JWT tokens are stateless and cannot be invalidated without a blacklist.
+        """
         headers = {"Authorization": f"Bearer {token}"}
         response = self.client.post("/api/auth/logout", headers=headers)
-        return assert_json_response(response, 200)
+        # Logout returns 204 No Content (no body)
+        assert response.status_code == 204, f"Expected 204, got {response.status_code}"
+        return {"success": True, "message": "Logged out"}
 
 
 class AsyncAuthHelper:
@@ -146,10 +153,17 @@ class AsyncAuthHelper:
         return assert_json_response(response, 200)
 
     async def logout_user(self, token: str) -> dict[str, Any]:
-        """Logout user with token."""
+        """
+        Logout user with token.
+
+        Note: FastAPI-Users logout returns 204 No Content.
+        JWT tokens are stateless and cannot be invalidated without a blacklist.
+        """
         headers = {"Authorization": f"Bearer {token}"}
         response = await self.client.post("/api/auth/logout", headers=headers)
-        return assert_json_response(response, 200)
+        # Logout returns 204 No Content (no body)
+        assert response.status_code == 204, f"Expected 204, got {response.status_code}"
+        return {"success": True, "message": "Logged out"}
 
 
 # Backwards compatibility with existing test code
@@ -189,7 +203,7 @@ class AuthTestHelperAsync:
         helper = AsyncAuthHelper(client)
         try:
             data = await helper.logout_user(token)
-            return 200, data
+            return 204, data  # Logout returns 204 No Content
         except AssertionError:
             # Return error status if logout fails
             headers = {"Authorization": f"Bearer {token}"}
