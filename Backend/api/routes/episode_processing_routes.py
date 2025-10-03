@@ -70,7 +70,59 @@ async def process_chunk(
     current_user: User = Depends(current_active_user),
     task_progress: dict[str, Any] = Depends(get_task_progress_registry),
 ):
-    """Process a specific chunk of video for vocabulary learning"""
+    """
+    Process a specific time-based chunk of video for vocabulary extraction and learning.
+
+    Extracts vocabulary from a defined time segment of a video, performing transcription,
+    translation, and vocabulary analysis on the specified chunk. Useful for focused
+    learning on specific video segments.
+
+    **Authentication Required**: Yes
+
+    Args:
+        request (ChunkProcessingRequest): Chunk specification with:
+            - video_path (str): Relative or absolute path to video file
+            - start_time (float): Chunk start time in seconds (>= 0)
+            - end_time (float): Chunk end time in seconds (> start_time)
+        background_tasks (BackgroundTasks): FastAPI background task manager
+        current_user (User): Authenticated user
+        task_progress (dict): Task progress tracking registry
+
+    Returns:
+        dict: Task initiation response with:
+            - task_id: Unique task identifier for progress tracking
+            - status: "started"
+
+    Raises:
+        HTTPException: 400 if chunk timing is invalid
+        HTTPException: 404 if video file not found
+        HTTPException: 500 if task initialization fails
+
+    Example:
+        ```bash
+        curl -X POST "http://localhost:8000/api/processing/chunk" \
+          -H "Authorization: Bearer <token>" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "video_path": "Learn German/S01E01.mp4",
+            "start_time": 120.0,
+            "end_time": 180.0
+          }'
+        ```
+
+        Response:
+        ```json
+        {
+            "task_id": "chunk_123_120_180_1234567890.123",
+            "status": "started"
+        }
+        ```
+
+    Note:
+        Use the returned task_id with /api/processing/progress/{task_id} to monitor
+        chunk processing. Completed processing returns extracted vocabulary and
+        generates chunk-specific subtitle segments.
+    """
     try:
         full_path = (
             Path(request.video_path)

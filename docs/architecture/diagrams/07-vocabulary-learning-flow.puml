@@ -1,0 +1,78 @@
+@startuml Vocabulary Learning Activity Flow
+!theme blueprint
+skinparam activityFontSize 14
+skinparam activityDiamondFontSize 12
+
+title Vocabulary Learning Flow - User Journey
+
+start
+
+:User watches video;
+
+:Encounters unknown word;
+
+if (Word already in system?) then (yes)
+  :Retrieve word data\nfrom vocabulary DB;
+else (no)
+  :Record unknown word\nfor future analysis;
+  :Continue without definition;
+  stop
+endif
+
+:Display word difficulty level\n(CEFR: A1-C2);
+
+if (User level >= Word level?) then (yes)
+  :Mark as "Known"\nautomatically;
+  :Update progress stats;
+else (no)
+  if (User wants to learn?) then (yes)
+    :Mark as "Learning";
+    :Add to spaced repetition queue;
+
+    :Show translation\nand pronunciation;
+
+    :Display context examples\nfrom current video;
+
+    :User practices word\nin learning game;
+
+    if (Correct answer?) then (yes)
+      :Increment confidence level;
+      :Update review count;
+      if (Confidence >= 3?) then (yes)
+        :Promote to "Known";
+        :Update vocabulary progress;
+      else (no)
+        :Schedule next review\n(spaced repetition);
+      endif
+    else (no)
+      :Decrease confidence level;
+      :Schedule earlier review;
+    endif
+  else (no - skip for now)
+    :Mark as "New";
+    :Increment encounter count;
+  endif
+endif
+
+:Continue video playback;
+
+if (More unknown words?) then (yes)
+  :Process next word;
+  backward :Encounters unknown word;
+else (no)
+  :Video complete;
+endif
+
+:Update session statistics;
+
+:Calculate learning progress\n(known words / total words);
+
+if (Blocking words present?) then (yes)
+  :Suggest vocabulary review\nbefore continuing series;
+else (no)
+  :Allow continuation\nto next episode;
+endif
+
+stop
+
+@enduml

@@ -1,6 +1,56 @@
 """
-ChunkProcessingService - Facade for video chunk processing
-Delegates to focused component services for better separation of concerns
+Chunk Processing Service
+
+Facade for processing video chunks for vocabulary learning with transcription and translation.
+Coordinates audio extraction, transcription, vocabulary filtering, and subtitle generation.
+
+Key Components:
+    - ChunkProcessingService: Main orchestration facade
+    - ChunkTranscriptionService: Audio extraction and speech-to-text
+    - ChunkTranslationService: Translation segment building
+    - ChunkUtilities: Helper utilities for path resolution and progress tracking
+
+Processing Pipeline:
+    1. Extract audio chunk (0-20% progress)
+    2. Transcribe audio to text (5-35%)
+    3. Filter vocabulary for learning (35-65%)
+    4. Generate filtered subtitles (85-95%)
+    5. Build translation segments (95-100%)
+
+Usage Example:
+    ```python
+    service = ChunkProcessingService(db_session)
+
+    await service.process_chunk(
+        video_path="/videos/series/episode.mp4",
+        start_time=0.0,
+        end_time=30.0,
+        user_id=123,
+        task_id="chunk_abc123",
+        task_progress=progress_dict,
+        session_token="session_token_here"
+    )
+    ```
+
+Dependencies:
+    - sqlalchemy: Database session for user/vocabulary queries
+    - ChunkTranscriptionService: Audio and transcription handling
+    - ChunkTranslationService: Translation service management
+    - FFmpeg: External tool for audio extraction (required)
+
+Thread Safety:
+    No. Each request should have its own service instance with dedicated db_session.
+
+Performance Notes:
+    - Audio extraction: ~2-5 seconds per 30s chunk
+    - Transcription: ~5-10 seconds per 30s chunk (depends on model)
+    - Translation: ~2-5 seconds for 10-20 segments
+    - Total: ~10-20 seconds per 30s chunk
+
+Warning:
+    Currently wraps entire processing in a transaction, including ML inference and file I/O.
+    This can hold database locks for extended periods. Consider refactoring to only wrap
+    database operations (vocabulary filtering, progress updates) in transactions.
 """
 
 import logging
@@ -28,8 +78,41 @@ class ChunkProcessingError(Exception):
 
 class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
     """
-    Facade for processing video chunks for vocabulary learning
-    Coordinates transcription, filtering, and subtitle generation using focused services
+    Orchestration facade for video chunk processing pipeline.
+
+    Coordinates multiple services to extract audio, transcribe speech, filter vocabulary,
+    and generate learning-optimized subtitles. Implements both processing and handler interfaces.
+
+    Attributes:
+        db_session (AsyncSession): Database session for user and vocabulary queries
+        transcription_service (ChunkTranscriptionService): Handles audio extraction and transcription
+        translation_service (ChunkTranslationService): Manages translation services
+        utilities (ChunkUtilities): Path resolution and progress tracking helpers
+        vocabulary_filter: Service for filtering vocabulary from subtitles
+        subtitle_generator: Service for generating filtered subtitle files
+        translation_manager: Service for managing translations
+
+    Example:
+        ```python
+        async with get_db_session() as db:
+            service = ChunkProcessingService(db)
+
+            await service.process_chunk(
+                video_path="/videos/german_series/s01e01.mp4",
+                start_time=0.0,
+                end_time=30.0,
+                user_id=123,
+                task_id="task_xyz",
+                task_progress=progress_tracker,
+                session_token="token"
+            )
+            # Creates: video.srt, video_filtered.srt, video_translation.srt
+        ```
+
+    Note:
+        Progress tracking updates task_progress dictionary in-place.
+        Automatically cleans up temporary audio files.
+        Transaction wraps entire processing - see module docstring warning.
     """
 
     def __init__(self, db_session: AsyncSession):

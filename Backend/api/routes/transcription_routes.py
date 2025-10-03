@@ -71,10 +71,8 @@ async def run_transcription(video_path: str, task_id: str, task_progress: dict[s
         task_progress[task_id]["progress"] = 25
         task_progress[task_id]["message"] = "Starting transcription engine"
 
-        # Generate output path for SRT file
         srt_path = video_file.with_suffix(".srt")
 
-        # Run transcription
         logger.info(f"Transcribing video: {video_file} -> {srt_path}")
         result = await transcription_service.transcribe_video(video_path=str(video_file), output_path=str(srt_path))
 
@@ -118,11 +116,57 @@ async def transcribe_video(
     current_user: User = Depends(current_active_user),
     task_progress: dict[str, Any] = Depends(get_task_progress_registry),
 ):
-    """Transcribe video to generate subtitles"""
+    """
+    Transcribe video audio to generate SRT subtitles using speech recognition.
+
+    Initiates background transcription task using Whisper or configured transcription
+    service. Validates video file format and existence before starting processing.
+
+    **Authentication Required**: Yes
+
+    Args:
+        request (TranscribeRequest): Transcription request with:
+            - video_path (str): Relative or absolute path to video file
+        background_tasks (BackgroundTasks): FastAPI background task manager
+        current_user (User): Authenticated user
+        task_progress (dict): Task progress tracking registry
+
+    Returns:
+        dict: Task initiation response with:
+            - task_id: Unique task identifier for progress tracking
+            - status: "started"
+
+    Raises:
+        HTTPException: 404 if video file not found
+        HTTPException: 422 if transcription service unavailable or invalid video format
+        HTTPException: 500 if task initialization fails
+
+    Example:
+        ```bash
+        curl -X POST "http://localhost:8000/api/processing/transcribe" \
+          -H "Authorization: Bearer <token>" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "video_path": "Learn German/S01E01.mp4"
+          }'
+        ```
+
+        Response:
+        ```json
+        {
+            "task_id": "transcribe_123_1234567890.123",
+            "status": "started"
+        }
+        ```
+
+    Note:
+        Use the returned task_id with /api/processing/progress/{task_id} to monitor
+        transcription progress. Completed transcription generates an SRT file with
+        the same name as the video file.
+    """
     try:
         logger.info(f"Transcribe request received: {request.video_path}")
 
-        # Check if transcription service is available
         transcription_service = get_transcription_service()
         if transcription_service is None:
             logger.warning("Transcription service not available")
@@ -151,7 +195,6 @@ async def transcribe_video(
             logger.error(f"Invalid video format: {full_path}")
             raise HTTPException(status_code=422, detail="Unsupported video format")
 
-        # Start transcription in background
         task_id = f"transcribe_{current_user.id}_{datetime.now().timestamp()}"
         background_tasks.add_task(
             run_transcription,

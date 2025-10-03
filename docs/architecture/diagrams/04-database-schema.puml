@@ -1,0 +1,120 @@
+@startuml LangPlug Database Schema
+!theme blueprint
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+title Database Schema - LangPlug Backend
+
+entity "users" as users {
+  * id : Integer <<PK>>
+  --
+  * username : String(50) <<UK>>
+  * email : String(100) <<UK>>
+  * hashed_password : String
+  * is_active : Boolean
+  * is_admin : Boolean
+  native_language : String(5)
+  target_language : String(5)
+  created_at : DateTime
+  updated_at : DateTime
+}
+
+entity "user_language_preferences" as prefs {
+  * id : Integer <<PK>>
+  --
+  * user_id : Integer <<FK>>
+  * native_language : String(5)
+  * target_language : String(5)
+  interface_language : String(5)
+  created_at : DateTime
+  updated_at : DateTime
+}
+
+entity "vocabulary_words" as vocab {
+  * id : Integer <<PK>>
+  --
+  * word : String(100)
+  * lemma : String(100)
+  * language : String(5)
+  * difficulty_level : String(10)
+  part_of_speech : String(50)
+  gender : String(10)
+  translation_en : Text
+  translation_native : Text
+  pronunciation : String(200)
+  notes : Text
+  frequency_rank : Integer
+  created_at : DateTime
+  updated_at : DateTime
+  <<UK>> (word, language)
+}
+
+entity "user_vocabulary_progress" as progress {
+  * id : Integer <<PK>>
+  --
+  * user_id : Integer <<FK>>
+  * vocabulary_id : Integer <<FK>>
+  * lemma : String(100)
+  * language : String(5)
+  * is_known : Boolean
+  confidence_level : Integer
+  review_count : Integer
+  first_seen_at : DateTime
+  last_reviewed_at : DateTime
+  created_at : DateTime
+  updated_at : DateTime
+  <<UK>> (user_id, vocabulary_id)
+}
+
+entity "processing_sessions" as sessions {
+  * session_id : String(100) <<PK>>
+  --
+  * user_id : Integer <<FK>>
+  * video_path : String
+  * status : String
+  language : String(5)
+  start_time : Float
+  end_time : Float
+  progress_percentage : Integer
+  error_message : Text
+  created_at : DateTime
+  updated_at : DateTime
+}
+
+entity "session_vocabulary" as session_vocab {
+  * id : Integer <<PK>>
+  --
+  * session_id : String(100) <<FK>>
+  vocabulary_id : Integer <<FK>>
+  * word : String(100)
+  * lemma : String(100)
+  frequency_in_session : Integer
+  context_examples : Text
+}
+
+entity "game_sessions" as games {
+  * id : Integer <<PK>>
+  --
+  * user_id : Integer <<FK>>
+  * game_type : String
+  * language : String(5)
+  * difficulty_level : String(10)
+  * status : String
+  correct_answers : Integer
+  incorrect_answers : Integer
+  score : Integer
+  started_at : DateTime
+  completed_at : DateTime
+}
+
+users ||--o{ prefs : "has preferences"
+users ||--o{ progress : "tracks progress"
+users ||--o{ sessions : "creates sessions"
+users ||--o{ games : "plays games"
+
+vocab ||--o{ progress : "tracked by users"
+vocab ||--o{ session_vocab : "appears in sessions"
+
+sessions ||--o{ session_vocab : "contains vocabulary"
+
+@enduml

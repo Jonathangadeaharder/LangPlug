@@ -138,7 +138,62 @@ async def start_game_session(
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_async_session),
 ):
-    """Start a new game session"""
+    """
+    Start a new vocabulary game session for the current user.
+
+    Creates a new game session with generated questions based on game type and difficulty.
+    Supports vocabulary translation, listening comprehension, and general comprehension games.
+
+    **Authentication Required**: Yes
+
+    Args:
+        game_request (StartGameRequest): Game configuration with:
+            - game_type (GameType): "vocabulary", "listening", or "comprehension"
+            - difficulty (GameDifficulty): "beginner", "intermediate", or "advanced"
+            - video_id (str, optional): Associated video for context
+            - total_questions (int): Number of questions (1-50, default: 10)
+        current_user (User): Authenticated user
+        db (AsyncSession): Database session
+
+    Returns:
+        GameSession: Created game session with:
+            - session_id: Unique session identifier
+            - game_type: Type of game
+            - difficulty: Difficulty level
+            - total_questions: Number of questions
+            - status: "active"
+            - session_data: Generated questions
+
+    Raises:
+        HTTPException: 500 if session creation fails
+
+    Example:
+        ```bash
+        curl -X POST "http://localhost:8000/api/game/start" \
+          -H "Authorization: Bearer <token>" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "game_type": "vocabulary",
+            "difficulty": "intermediate",
+            "total_questions": 15
+          }'
+        ```
+
+        Response:
+        ```json
+        {
+            "session_id": "abc-123-def",
+            "user_id": "user-456",
+            "game_type": "vocabulary",
+            "difficulty": "intermediate",
+            "status": "active",
+            "total_questions": 15,
+            "current_question": 0,
+            "score": 0,
+            "max_score": 150
+        }
+        ```
+    """
     try:
         session_id = str(uuid.uuid4())
         now = datetime.utcnow()
@@ -289,7 +344,61 @@ async def submit_answer(
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_async_session),
 ):
-    """Submit an answer for a game question (Refactored for lower complexity)"""
+    """
+    Submit an answer for a game question and receive immediate feedback.
+
+    Evaluates the user's answer against the correct answer, updates score, and
+    automatically completes the session when all questions are answered.
+
+    **Authentication Required**: Yes
+
+    Args:
+        answer_request (AnswerRequest): Answer submission with:
+            - session_id (str): Game session identifier
+            - question_id (str): Question identifier
+            - user_answer (str): User's submitted answer
+            - correct_answer (str, optional): Expected correct answer
+            - points (int): Points available for this question
+        current_user (User): Authenticated user
+        db (AsyncSession): Database session
+
+    Returns:
+        dict: Answer result with:
+            - is_correct: Whether answer was correct
+            - points_earned: Points awarded
+            - current_score: Updated total score
+            - questions_remaining: Remaining questions
+            - session_completed: Whether session is finished
+
+    Raises:
+        HTTPException: 404 if session or question not found
+        HTTPException: 400 if question already answered or session not active
+        HTTPException: 500 if answer processing fails
+
+    Example:
+        ```bash
+        curl -X POST "http://localhost:8000/api/game/answer" \
+          -H "Authorization: Bearer <token>" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "session_id": "abc-123",
+            "question_id": "q1",
+            "user_answer": "hola",
+            "points": 10
+          }'
+        ```
+
+        Response:
+        ```json
+        {
+            "is_correct": true,
+            "points_earned": 10,
+            "current_score": 10,
+            "questions_remaining": 9,
+            "session_completed": false
+        }
+        ```
+    """
     try:
         result = await db.execute(
             select(GameSessionRecord).where(

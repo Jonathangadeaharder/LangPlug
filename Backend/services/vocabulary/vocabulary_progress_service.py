@@ -1,5 +1,55 @@
 """
-Vocabulary Progress Service - Handles user progress tracking
+Vocabulary Progress Service
+
+User vocabulary progress tracking and bulk operations for language learning.
+This module manages individual word progress, bulk level updates, and user statistics.
+
+Key Components:
+    - VocabularyProgressService: Main progress tracking service
+    - Transactional word marking (known/unknown)
+    - Bulk level operations (mark entire levels)
+    - User statistics aggregation
+
+Usage Example:
+    ```python
+    from services.vocabulary.vocabulary_progress_service import vocabulary_progress_service
+
+    # Mark single word as known
+    result = await vocabulary_progress_service.mark_word_known(
+        user_id=123,
+        word="Haus",
+        language="de",
+        is_known=True,
+        db=db_session
+    )
+
+    # Mark entire level as known
+    await vocabulary_progress_service.bulk_mark_level(
+        db=db_session,
+        user_id=123,
+        language="de",
+        level="A1",
+        is_known=True
+    )
+
+    # Get user stats
+    stats = await vocabulary_progress_service.get_user_vocabulary_stats(123, "de", db)
+    ```
+
+Dependencies:
+    - sqlalchemy: Database operations and queries
+    - core.transaction: Transactional boundaries (@transactional decorator)
+    - database.models: UserVocabularyProgress, VocabularyWord
+
+Thread Safety:
+    Yes when using separate service instances per request.
+    Singleton pattern used in production, per-test instances in testing.
+
+Performance Notes:
+    - Single word updates: O(1) with index on (user_id, vocabulary_id)
+    - Bulk level updates: O(n) where n = words in level
+    - Statistics: O(1) with proper indexes on joins
+    - Uses transactional boundaries to ensure data consistency
 """
 
 import logging
@@ -15,7 +65,37 @@ logger = logging.getLogger(__name__)
 
 
 class VocabularyProgressService:
-    """Handles user vocabulary progress tracking and bulk operations"""
+    """
+    Service for tracking user vocabulary learning progress.
+
+    Manages individual word progress (known/unknown status, confidence levels),
+    bulk operations for entire difficulty levels, and user statistics.
+
+    Attributes:
+        query_service: Optional dependency on vocabulary query service for word lookups
+
+    Example:
+        ```python
+        service = VocabularyProgressService()
+
+        # Mark word as known (increases confidence)
+        result = await service.mark_word_known(123, "Haus", "de", True, db)
+        # result: {"success": True, "confidence_level": 2, ...}
+
+        # Bulk mark level
+        result = await service.bulk_mark_level(db, 123, "de", "A1", True)
+        # result: {"success": True, "updated_count": 500, ...}
+
+        # Get statistics
+        stats = await service.get_user_vocabulary_stats(123, "de", db)
+        # stats: {"total_words": 5000, "total_known": 1200, ...}
+        ```
+
+    Note:
+        Uses @transactional decorator for atomic updates.
+        Confidence levels: 0 (unknown) to 5 (very confident).
+        Each review increments/decrements confidence.
+    """
 
     def __init__(self, query_service=None):
         """Initialize with optional query service dependency"""

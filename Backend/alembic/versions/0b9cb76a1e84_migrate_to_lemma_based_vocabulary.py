@@ -106,13 +106,11 @@ def upgrade() -> None:
         sa.UniqueConstraint('user_id', 'vocabulary_id', name='uq_user_vocabulary')
     )
 
-    # Create indexes
     op.create_index('idx_user_vocab_user', 'user_vocabulary_progress', ['user_id'])
     op.create_index('idx_user_vocab_lemma', 'user_vocabulary_progress', ['lemma'])
     op.create_index('idx_user_vocab_known', 'user_vocabulary_progress', ['is_known'])
     op.create_index('idx_user_vocab_user_lemma', 'user_vocabulary_progress', ['user_id', 'lemma', 'language'])
 
-    # Create session_vocabulary
     op.create_table(
         'session_vocabulary',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -130,7 +128,6 @@ def upgrade() -> None:
     op.create_index('idx_session_vocab_session', 'session_vocabulary', ['session_id'])
     op.create_index('idx_session_vocab_word', 'session_vocabulary', ['word'])
 
-    # Create user_language_preferences if it doesn't exist
     if 'user_language_preferences' not in existing_tables:
         op.create_table(
             'user_language_preferences',
@@ -146,7 +143,6 @@ def upgrade() -> None:
             sa.UniqueConstraint('user_id', name='uq_user_language_pref')
         )
 
-    # Add language column to processing_sessions if missing
     if 'processing_sessions' in existing_tables:
         columns = [col['name'] for col in inspector.get_columns('processing_sessions')]
         if 'language' not in columns:

@@ -58,7 +58,62 @@ class UserProfile(BaseModel):
 
 @router.get("", response_model=UserProfile, name="profile_get")
 async def get_profile(current_user: User = Depends(current_active_user)):
-    """Get current user's profile"""
+    """
+    Retrieve the current user's complete profile information.
+
+    Returns user account details, language preferences, and runtime configuration
+    for the user's selected language pair.
+
+    **Authentication Required**: Yes
+
+    Args:
+        current_user (User): Authenticated user from JWT token
+
+    Returns:
+        UserProfile: Complete profile with:
+            - id: User UUID
+            - username: User's username
+            - is_admin: Administrator status
+            - created_at: Account creation timestamp
+            - last_login: Last login timestamp
+            - native_language: Native language details (code, name, flag)
+            - target_language: Learning language details (code, name, flag)
+            - language_runtime: Runtime settings for language pair
+
+    Raises:
+        HTTPException: 500 if profile retrieval fails
+
+    Example:
+        ```bash
+        curl -X GET "http://localhost:8000/api/profile" \
+          -H "Authorization: Bearer <token>"
+        ```
+
+        Response:
+        ```json
+        {
+            "id": "user-123",
+            "username": "learner01",
+            "is_admin": false,
+            "created_at": "2024-01-15T10:30:00",
+            "last_login": "2024-10-03T08:15:00",
+            "native_language": {
+                "code": "en",
+                "name": "English",
+                "flag": "🇬🇧"
+            },
+            "target_language": {
+                "code": "de",
+                "name": "German",
+                "flag": "🇩🇪"
+            },
+            "language_runtime": {
+                "transcription_model": "whisper-large",
+                "translation_model": "opus-en-de"
+            }
+        }
+        ```
+    """
     try:
         user_id = str(current_user.id)
         native_code, target_code = load_language_preferences(user_id)
@@ -94,10 +149,67 @@ async def get_profile(current_user: User = Depends(current_active_user)):
 async def update_language_preferences(
     preferences: LanguagePreferences, current_user: User = Depends(current_active_user)
 ):
-    """Update user's language preferences"""
+    """
+    Update user's native and target language preferences.
+
+    Changes the user's language learning configuration, updating both the native
+    language and target learning language. This affects subtitle processing,
+    translation models, and vocabulary filtering.
+
+    **Authentication Required**: Yes
+
+    Args:
+        preferences (LanguagePreferences): Language configuration with:
+            - native_language (str): Native language code (must be supported)
+            - target_language (str): Target learning language code (must be supported)
+        current_user (User): Authenticated user
+
+    Returns:
+        dict: Update confirmation with:
+            - success: Whether update succeeded
+            - message: Success message
+            - native_language: Updated native language details
+            - target_language: Updated target language details
+            - language_runtime: New runtime configuration
+
+    Raises:
+        HTTPException: 400 if languages are invalid or identical
+        HTTPException: 500 if update fails
+
+    Example:
+        ```bash
+        curl -X PUT "http://localhost:8000/api/profile/languages" \
+          -H "Authorization: Bearer <token>" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "native_language": "en",
+            "target_language": "es"
+          }'
+        ```
+
+        Response:
+        ```json
+        {
+            "success": true,
+            "message": "Language preferences updated successfully",
+            "native_language": {
+                "code": "en",
+                "name": "English",
+                "flag": "🇬🇧"
+            },
+            "target_language": {
+                "code": "es",
+                "name": "Spanish",
+                "flag": "🇪🇸"
+            },
+            "language_runtime": {
+                "transcription_model": "whisper-large",
+                "translation_model": "opus-en-es"
+            }
+        }
+        ```
+    """
     try:
-        # Note: Language preferences would need to be added to User model
-        # For now, just return success with the requested preferences
         logger.info(
             f"Language preferences update requested for user {current_user.id}: {preferences.native_language} -> {preferences.target_language}"
         )
@@ -154,10 +266,8 @@ class UserSettings(BaseModel):
 async def get_user_settings(current_user: User = Depends(current_active_user)):
     """Get user settings"""
     try:
-        # Get user settings from database or file system
         user_settings_path = settings.get_data_path() / str(current_user.id) / "settings.json"
 
-        # Default settings
         default_settings = UserSettings()
 
         if user_settings_path.exists():
@@ -166,7 +276,6 @@ async def get_user_settings(current_user: User = Depends(current_active_user)):
 
                 with open(user_settings_path, encoding="utf-8") as f:
                     settings_data = json.load(f)
-                    # Merge with defaults
                     for key, value in settings_data.items():
                         if hasattr(default_settings, key):
                             setattr(default_settings, key, value)
@@ -185,13 +294,11 @@ async def get_user_settings(current_user: User = Depends(current_active_user)):
 async def update_user_settings(settings_update: UserSettings, current_user: User = Depends(current_active_user)):
     """Update user settings"""
     try:
-        # Ensure user data directory exists
         user_data_path = settings.get_data_path() / str(current_user.id)
         user_data_path.mkdir(parents=True, exist_ok=True)
 
         user_settings_path = user_data_path / "settings.json"
 
-        # Save settings to file
         import json
 
         settings_dict = settings_update.dict(exclude_none=True)

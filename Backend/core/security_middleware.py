@@ -23,21 +23,17 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         self.enforce_https = enforce_https
 
     async def dispatch(self, request: Request, call_next):
-        # Process the request
         response = await call_next(request)
 
-        # Add security headers
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
 
-        # Add HSTS header if HTTPS is enforced
         if self.enforce_https:
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
 
-        # Add CSP header with nonce for inline scripts if needed
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
@@ -63,12 +59,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     def _get_client_id(self, request: Request) -> str:
         """Get unique identifier for the client"""
-        # Try to get user ID from JWT if authenticated
         user_id = getattr(request.state, "user_id", None)
         if user_id:
             return f"user:{user_id}"
 
-        # Fall back to IP address
         client_ip = request.client.host if request.client else "unknown"
         return f"ip:{client_ip}"
 
@@ -87,26 +81,21 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return response
 
     async def dispatch(self, request: Request, call_next):
-        # Skip rate limiting for excluded paths
         if self._is_excluded(request.url.path):
             return await call_next(request)
 
-        # Get origin for CORS headers
         origin = request.headers.get("origin")
 
         client_id = self._get_client_id(request)
         current_time = time.time()
 
-        # Clean old requests outside the window
         self.request_counts[client_id] = [
             timestamp for timestamp in self.request_counts[client_id] if timestamp > current_time - self.window_size
         ]
 
-        # Check rate limit
         request_count = len(self.request_counts[client_id])
 
         if request_count >= self.requests_per_minute:
-            # Calculate retry after
             oldest_request = min(self.request_counts[client_id])
             retry_after = int(self.window_size - (current_time - oldest_request))
 
@@ -123,7 +112,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             )
             return self._add_cors_headers(response, origin)
 
-        # Check burst limit (requests in last 5 seconds)
         recent_requests = sum(1 for timestamp in self.request_counts[client_id] if timestamp > current_time - 5)
 
         if recent_requests >= self.burst_size:
@@ -135,10 +123,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             )
             return self._add_cors_headers(response, origin)
 
-        # Add current request
         self.request_counts[client_id].append(current_time)
 
-        # Process request and add rate limit headers
         response = await call_next(request)
         response.headers["X-RateLimit-Limit"] = str(self.requests_per_minute)
         response.headers["X-RateLimit-Remaining"] = str(self.requests_per_minute - request_count - 1)
@@ -155,7 +141,6 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
         self.max_body_size = max_body_size
 
     async def dispatch(self, request: Request, call_next):
-        # Check content length
         content_length = request.headers.get("content-length")
         if content_length and int(content_length) > self.max_body_size:
             logger.warning(f"Request body too large: {content_length} bytes")
@@ -163,14 +148,12 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, content={"detail": "Request body too large"}
             )
 
-        # Add request ID for tracing
         request_id = (
             request.headers.get("X-Request-ID")
             or hashlib.sha256(f"{time.time()}{request.client}".encode()).hexdigest()[:16]
         )
         request.state.request_id = request_id
 
-        # Process request
         response = await call_next(request)
         response.headers["X-Request-ID"] = request_id
 
@@ -183,7 +166,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
 
-        # Log request
         logger.info(
             f"Request started: {request.method} {request.url.path} "
             f"from {request.client.host if request.client else 'unknown'}"
@@ -193,13 +175,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             process_time = time.time() - start_time
 
-            # Log response
             logger.info(
                 f"Request completed: {request.method} {request.url.path} "
                 f"status={response.status_code} duration={process_time:.3f}s"
             )
 
-            # Add timing header
             response.headers["X-Process-Time"] = str(process_time)
             return response
 
@@ -214,7 +194,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 def setup_security_middleware(app: FastAPI, settings):
     """Configure all security middleware for the application"""
 
-    # Add CORS middleware (should be added first)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
@@ -224,20 +203,16 @@ def setup_security_middleware(app: FastAPI, settings):
         expose_headers=["X-Request-ID", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
     )
 
-    # Add security headers
     app.add_middleware(SecurityHeadersMiddleware, enforce_https=settings.environment == "production")
 
-    # Add rate limiting with more reasonable limits for development
     app.add_middleware(
         RateLimitMiddleware,
-        requests_per_minute=300,  # Increased for development
-        burst_size=60,  # Allow 60 requests in 5 seconds (vocabulary game needs this)
+        requests_per_minute=300,
+        burst_size=60,
     )
 
-    # Add request validation
     app.add_middleware(RequestValidationMiddleware, max_body_size=settings.max_upload_size)
 
-    # Add logging
     app.add_middleware(LoggingMiddleware)
 
     logger.info("Security middleware configured successfully")

@@ -1,6 +1,58 @@
 """
-Vocabulary Service Facade - Delegates to specialized sub-services
-This is the refactored version that will replace the monolithic vocabulary_service.py
+Vocabulary Service Facade
+
+Modern facade pattern implementation for vocabulary operations, delegating to specialized sub-services.
+This module provides a unified interface for vocabulary querying, progress tracking, and statistics.
+
+Key Components:
+    - VocabularyService: Main facade coordinating sub-services
+    - vocabulary_query_service: Word lookup and search operations
+    - vocabulary_progress_service: User progress tracking and bulk operations
+    - vocabulary_stats_service: Statistics and analytics
+
+Architecture:
+    This facade delegates to three specialized services:
+    1. Query Service: Read operations (word info, library, search)
+    2. Progress Service: Write operations (mark known, bulk updates)
+    3. Stats Service: Analytics (statistics, summaries, supported languages)
+
+Usage Example:
+    ```python
+    from services.vocabulary.vocabulary_service_new import vocabulary_service
+
+    # Get word information
+    word_info = await vocabulary_service.get_word_info("Haus", "de", db)
+
+    # Mark word as known
+    result = await vocabulary_service.mark_word_known(
+        user_id=123,
+        word="Haus",
+        language="de",
+        is_known=True,
+        db=db
+    )
+
+    # Get user statistics
+    stats = await vocabulary_service.get_user_vocabulary_stats(123, "de", db)
+    ```
+
+Dependencies:
+    - sqlalchemy: Database operations
+    - vocabulary_query_service: Word lookups
+    - vocabulary_progress_service: Progress tracking
+    - vocabulary_stats_service: Statistics generation
+
+Thread Safety:
+    Yes. Service instance is stateless, delegates to sub-services which handle their own concurrency.
+
+Performance Notes:
+    - Query operations: O(1) with database indexes
+    - Progress updates: Transactional, may involve locking
+    - Statistics: May involve aggregations, consider caching
+
+Migration Note:
+    This is the modern replacement for monolithic vocabulary_service.py.
+    Legacy compatibility methods maintained for existing tests.
 """
 
 import logging
@@ -18,7 +70,37 @@ logger = logging.getLogger(__name__)
 
 
 class VocabularyService:
-    """Facade for vocabulary operations - delegates to specialized services"""
+    """
+    Facade for vocabulary operations coordinating specialized sub-services.
+
+    Provides a unified API for all vocabulary-related operations while delegating
+    to focused services for query, progress tracking, and statistics.
+
+    Attributes:
+        query_service: Handles word lookups and searches
+        progress_service: Manages user progress and bulk operations
+        stats_service: Generates statistics and analytics
+
+    Example:
+        ```python
+        service = VocabularyService()
+
+        # Query operations
+        word = await service.get_word_info("Haus", "de", db)
+        library = await service.get_vocabulary_library(db, "de", level="A1")
+
+        # Progress operations
+        await service.mark_word_known(123, "Haus", "de", True, db)
+        await service.bulk_mark_level(db, 123, "de", "A1", True)
+
+        # Statistics
+        stats = await service.get_user_vocabulary_stats(123, "de", db)
+        ```
+
+    Note:
+        This is a stateless facade - all state is managed by sub-services.
+        Safe to use as singleton (vocabulary_service instance).
+    """
 
     def __init__(self):
         self.query_service = vocabulary_query_service

@@ -90,13 +90,26 @@ Shows the physical deployment architecture and infrastructure.
 
 #### Option 3: Command Line (with PlantUML installed)
 
+**Prerequisites**: Requires Java and Graphviz
+
 ```bash
-# Install PlantUML (requires Java)
+# Install Graphviz (required for PlantUML rendering)
+# On Ubuntu/Debian:
+sudo apt-get install graphviz
+
+# On macOS:
+brew install graphviz
+
+# Install PlantUML
 # On Ubuntu/Debian:
 sudo apt-get install plantuml
 
 # On macOS:
 brew install plantuml
+
+# Or use PlantUML jar directly (Java required):
+wget https://sourceforge.net/projects/plantuml/files/plantuml.jar/download -O plantuml.jar
+java -jar plantuml.jar *.puml
 
 # Generate PNG images
 plantuml *.puml
@@ -183,5 +196,23 @@ Keep diagrams in sync with code to maintain their value as documentation.
 
 ---
 
-**Last Updated**: 2025-10-02
+## New Diagrams (2025-10-03)
+
+The following comprehensive diagrams have been added:
+
+1. **`01-system-context.puml`** - C4 System Context (replaces system-context.puml)
+2. **`02-container-diagram.puml`** - C4 Container Diagram (replaces container-diagram.puml)
+3. **`03-component-diagram.puml`** - Backend Components (replaces backend-components.puml)
+4. **`04-database-schema.puml`** - Database ER Diagram (replaces entity-relationship.puml)
+5. **`05-authentication-sequence.puml`** - Auth Flow (replaces sequence-authentication.puml)
+6. **`06-video-processing-sequence.puml`** - Processing Pipeline (replaces sequence-video-processing.puml)
+7. **`07-vocabulary-learning-flow.puml`** - Learning Journey (activity diagram)
+8. **`08-deployment-architecture.puml`** - Production Deployment (replaces deployment-diagram.puml)
+9. **`09-layered-architecture.puml`** - Layered Architecture Pattern (new)
+
+All diagrams follow consistent naming (numbered) and use latest C4-PlantUML and BluePrint theme.
+
+---
+
+**Last Updated**: 2025-10-03
 **Maintained By**: LangPlug Development Team

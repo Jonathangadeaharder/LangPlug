@@ -32,7 +32,45 @@ class TokenRefreshResponse(BaseModel):
 
 @router.get("/me", response_model=UserResponse, name="auth_get_current_user")
 async def get_current_user_info(current_user: Annotated[User, Depends(current_active_user)]):
-    """Get current user information"""
+    """
+    Get current authenticated user information.
+
+    This endpoint returns the profile information for the currently authenticated user.
+    Requires a valid JWT access token in the Authorization header.
+
+    **Authentication Required**: Yes
+
+    Returns:
+        UserResponse: User profile information including:
+            - id: Unique user identifier (UUID)
+            - username: User's username
+            - email: User's email address
+            - is_superuser: Whether user has admin privileges
+            - is_active: Whether user account is active
+            - created_at: Account creation timestamp (ISO format)
+            - last_login: Last login timestamp (ISO format, nullable)
+
+    Raises:
+        HTTPException: 401 Unauthorized if token is invalid or missing
+
+    Example:
+        ```bash
+        curl -H "Authorization: Bearer <token>" http://localhost:8000/api/auth/me
+        ```
+
+        Response:
+        ```json
+        {
+            "id": "123e4567-e89b-12d3-a456-426614174000",
+            "username": "johndoe",
+            "email": "john@example.com",
+            "is_superuser": false,
+            "is_active": true,
+            "created_at": "2025-10-03T10:00:00",
+            "last_login": "2025-10-03T11:30:00"
+        }
+        ```
+    """
     return UserResponse(
         id=current_user.id,
         username=current_user.username,

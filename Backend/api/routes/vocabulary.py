@@ -59,7 +59,47 @@ class SearchVocabularyRequest(BaseModel):
 async def get_word_info(
     word: str, language: str = Query("de", description="Language code"), db: AsyncSession = Depends(get_async_session)
 ):
-    """Get information about a specific word"""
+    """
+    Retrieve detailed information about a specific vocabulary word.
+
+    Looks up word metadata including lemma, CEFR level, translations, and usage examples
+    from the vocabulary database.
+
+    **Authentication Required**: No
+
+    Args:
+        word (str): The word to look up
+        language (str): Target language code (default: "de")
+        db (AsyncSession): Database session dependency
+
+    Returns:
+        dict: Word information including:
+            - word: The original word
+            - lemma: Base form of the word
+            - level: CEFR level (A1-C2)
+            - translations: List of translations
+            - examples: Usage examples
+
+    Raises:
+        HTTPException: 404 if word not found in vocabulary database
+        HTTPException: 500 if database query fails
+
+    Example:
+        ```bash
+        curl -X GET "http://localhost:8000/api/vocabulary/word-info/Hallo?language=de"
+        ```
+
+        Response:
+        ```json
+        {
+            "word": "Hallo",
+            "lemma": "hallo",
+            "level": "A1",
+            "translations": ["Hello", "Hi"],
+            "examples": ["Hallo, wie geht es dir?"]
+        }
+        ```
+    """
     try:
         info = await vocabulary_service.get_word_info(word, language, db)
         if not info:
@@ -78,7 +118,60 @@ async def mark_word_known(
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_async_session),
 ):
-    """Mark a word as known or unknown"""
+    """
+    Mark a vocabulary word as known or unknown for the current user.
+
+    Updates user's vocabulary progress by marking a word as known (mastered)
+    or unknown (needs practice). Supports lookup by lemma, word form, or concept ID.
+
+    **Authentication Required**: Yes
+
+    Args:
+        request (MarkKnownRequest): Request containing:
+            - concept_id (str, optional): UUID of vocabulary concept
+            - word (str, optional): The word text
+            - lemma (str, optional): Base form of the word
+            - language (str): Language code (default: "de")
+            - known (bool): Whether to mark as known
+        current_user (User): Authenticated user
+        db (AsyncSession): Database session
+
+    Returns:
+        dict: Update result with:
+            - success: Whether operation succeeded
+            - concept_id: The vocabulary concept ID
+            - known: The new known status
+            - word: The word text
+            - lemma: The word lemma
+            - level: CEFR level
+
+    Raises:
+        HTTPException: 500 if database update fails
+
+    Example:
+        ```bash
+        curl -X POST "http://localhost:8000/api/vocabulary/mark-known" \
+          -H "Authorization: Bearer <token>" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "lemma": "hallo",
+            "language": "de",
+            "known": true
+          }'
+        ```
+
+        Response:
+        ```json
+        {
+            "success": true,
+            "concept_id": "abc-123",
+            "known": true,
+            "word": "Hallo",
+            "lemma": "hallo",
+            "level": "A1"
+        }
+        ```
+    """
     try:
         # Use lemma if provided, otherwise fall back to word, then concept_id for backward compatibility
         word_to_lookup = request.lemma or request.word or request.concept_id
@@ -142,7 +235,51 @@ async def get_vocabulary_stats(
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_async_session),
 ):
-    """Get vocabulary statistics for the current user"""
+    """
+    Get comprehensive vocabulary learning statistics for the current user.
+
+    Returns detailed progress metrics including known/unknown word counts by CEFR level,
+    learning streaks, and overall proficiency metrics.
+
+    **Authentication Required**: Yes
+
+    Args:
+        target_language (str): Target language code (default: "de")
+        translation_language (str): Translation language code (default: "en")
+        current_user (User): Authenticated user
+        db (AsyncSession): Database session
+
+    Returns:
+        VocabularyStats: Statistics including:
+            - total_words: Total vocabulary size
+            - known_words: Number of mastered words
+            - by_level: Breakdown by CEFR level (A1-C2)
+            - learning_streak: Consecutive days of practice
+            - mastery_percentage: Overall proficiency score
+
+    Raises:
+        HTTPException: 500 if statistics calculation fails
+
+    Example:
+        ```bash
+        curl -X GET "http://localhost:8000/api/vocabulary/stats?target_language=de&translation_language=en" \
+          -H "Authorization: Bearer <token>"
+        ```
+
+        Response:
+        ```json
+        {
+            "total_words": 5000,
+            "known_words": 450,
+            "by_level": {
+                "A1": {"total": 600, "known": 200},
+                "A2": {"total": 800, "known": 150},
+                "B1": {"total": 1000, "known": 100}
+            },
+            "mastery_percentage": 9.0
+        }
+        ```
+    """
     try:
         # Use the comprehensive vocabulary stats method that returns VocabularyStats object
         stats = await vocabulary_service.get_vocabulary_stats(
@@ -163,7 +300,55 @@ async def get_vocabulary_library(
     current_user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_async_session),
 ):
-    """Get vocabulary library with optional filtering"""
+    """
+    Retrieve paginated vocabulary library with optional CEFR level filtering.
+
+    Returns a paginated list of vocabulary words, optionally filtered by CEFR level,
+    with user-specific progress indicators showing which words are known.
+
+    **Authentication Required**: Yes
+
+    Args:
+        language (str): Target language code (default: "de")
+        level (str, optional): CEFR level filter (A1, A2, B1, B2, C1, C2)
+        limit (int): Maximum words to return (1-1000, default: 100)
+        offset (int): Pagination offset (default: 0)
+        current_user (User): Authenticated user
+        db (AsyncSession): Database session
+
+    Returns:
+        dict: Library data with:
+            - words: List of vocabulary entries with known status
+            - total_count: Total matching words
+            - limit: Applied limit
+            - offset: Applied offset
+
+    Raises:
+        HTTPException: 500 if database query fails
+
+    Example:
+        ```bash
+        curl -X GET "http://localhost:8000/api/vocabulary/library?level=A1&limit=50" \
+          -H "Authorization: Bearer <token>"
+        ```
+
+        Response:
+        ```json
+        {
+            "words": [
+                {
+                    "lemma": "hallo",
+                    "translation": "hello",
+                    "level": "A1",
+                    "is_known": true
+                }
+            ],
+            "total_count": 600,
+            "limit": 50,
+            "offset": 0
+        }
+        ```
+    """
     try:
         library = await vocabulary_service.get_vocabulary_library(
             db=db, language=language, level=level, user_id=current_user.id, limit=limit, offset=offset

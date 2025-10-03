@@ -48,12 +48,67 @@ class DailyProgress(BaseModel):
 
 @router.get("/user", response_model=UserProgress, name="progress_get_user")
 async def get_user_progress(current_user: User = Depends(current_active_user)):
-    """Get progress data for the current user"""
+    """
+    Retrieve comprehensive learning progress for the current user.
+
+    Returns cumulative learning statistics including videos watched, vocabulary learned,
+    learning streaks, experience points, and achievement tracking.
+
+    **Authentication Required**: Yes
+
+    Args:
+        current_user (User): Authenticated user
+
+    Returns:
+        UserProgress: Progress metrics with:
+            - user_id: User identifier
+            - total_videos_watched: Total videos completed
+            - total_watch_time: Total watching time in minutes
+            - vocabulary_learned: Number of words mastered
+            - current_streak: Consecutive days of activity
+            - longest_streak: Best streak achieved
+            - level: Current proficiency level
+            - experience_points: Total XP earned
+            - daily_goals_completed: Goals completed today
+            - weekly_goals_completed: Goals completed this week
+            - last_activity: Timestamp of last activity
+            - achievements: List of earned achievements
+            - learning_stats: Additional statistics
+
+    Raises:
+        HTTPException: 500 if progress retrieval fails
+
+    Example:
+        ```bash
+        curl -X GET "http://localhost:8000/api/progress/user" \
+          -H "Authorization: Bearer <token>"
+        ```
+
+        Response:
+        ```json
+        {
+            "user_id": "user-123",
+            "total_videos_watched": 15,
+            "total_watch_time": 450.5,
+            "vocabulary_learned": 234,
+            "current_streak": 7,
+            "longest_streak": 14,
+            "level": "Intermediate",
+            "experience_points": 1250,
+            "daily_goals_completed": 3,
+            "weekly_goals_completed": 15,
+            "last_activity": "2024-10-03T10:30:00",
+            "achievements": ["first_video", "streak_7", "vocab_100"],
+            "learning_stats": {
+                "average_session_duration": 30.0,
+                "favorite_series": "Learn German"
+            }
+        }
+        ```
+    """
     try:
-        # Get user progress from database or file system
         user_progress_path = settings.get_data_path() / str(current_user.id) / "progress.json"
 
-        # Default progress
         default_progress = UserProgress(user_id=str(current_user.id), last_activity=datetime.now())
 
         if user_progress_path.exists():
@@ -61,11 +116,9 @@ async def get_user_progress(current_user: User = Depends(current_active_user)):
                 with open(user_progress_path, encoding="utf-8") as f:
                     progress_data = json.load(f)
 
-                    # Convert datetime string back to datetime object
                     if progress_data.get("last_activity"):
                         progress_data["last_activity"] = datetime.fromisoformat(progress_data["last_activity"])
 
-                    # Merge with defaults
                     for key, value in progress_data.items():
                         if hasattr(default_progress, key):
                             setattr(default_progress, key, value)
@@ -73,7 +126,6 @@ async def get_user_progress(current_user: User = Depends(current_active_user)):
             except Exception as e:
                 logger.warning(f"Error loading user progress: {e!s}")
 
-        # Calculate current streak based on last activity
         if default_progress.last_activity:
             days_since_activity = (datetime.now() - default_progress.last_activity).days
             if days_since_activity > 1:
@@ -91,26 +143,20 @@ async def get_user_progress(current_user: User = Depends(current_active_user)):
 async def update_user_progress(progress_update: dict[str, Any], current_user: User = Depends(current_active_user)):
     """Update user progress data"""
     try:
-        # Get current progress
         current_progress = await get_user_progress(current_user)
 
-        # Update fields
         for key, value in progress_update.items():
             if hasattr(current_progress, key):
                 setattr(current_progress, key, value)
 
-        # Update last activity
         current_progress.last_activity = datetime.now()
 
-        # Ensure user data directory exists
         user_data_path = settings.get_data_path() / str(current_user.id)
         user_data_path.mkdir(parents=True, exist_ok=True)
 
         user_progress_path = user_data_path / "progress.json"
 
-        # Save progress to file
         progress_dict = current_progress.dict()
-        # Convert datetime to string for JSON serialization
         if progress_dict["last_activity"]:
             progress_dict["last_activity"] = progress_dict["last_activity"].isoformat()
 
@@ -129,7 +175,6 @@ async def update_user_progress(progress_update: dict[str, Any], current_user: Us
 async def get_daily_progress(days: int = 7, current_user: User = Depends(current_active_user)):
     """Get daily progress for the last N days"""
     try:
-        # Get daily progress from database or file system
         user_daily_path = settings.get_data_path() / str(current_user.id) / "daily_progress.json"
 
         daily_progress = []
@@ -139,7 +184,6 @@ async def get_daily_progress(days: int = 7, current_user: User = Depends(current
                 with open(user_daily_path, encoding="utf-8") as f:
                     daily_data = json.load(f)
 
-                    # Get last N days
                     for i in range(days):
                         date = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
                         day_data = daily_data.get(date, {})
@@ -148,13 +192,11 @@ async def get_daily_progress(days: int = 7, current_user: User = Depends(current
             except Exception as e:
                 logger.warning(f"Error loading daily progress: {e!s}")
 
-        # Fill in missing days with empty progress
         if len(daily_progress) < days:
             for i in range(len(daily_progress), days):
                 date = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
                 daily_progress.append(DailyProgress(date=date))
 
-        # Sort by date (most recent first)
         daily_progress.sort(key=lambda x: x.date, reverse=True)
 
         logger.info(f"Retrieved {len(daily_progress)} days of progress for user {current_user.id}")

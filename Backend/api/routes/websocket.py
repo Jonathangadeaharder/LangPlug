@@ -15,9 +15,54 @@ router = APIRouter(tags=["websocket"])
 @router.websocket("/connect")
 async def websocket_endpoint(websocket: WebSocket, token: str | None = Query(None)):
     """
-    WebSocket endpoint for real-time updates
+    WebSocket endpoint for real-time bidirectional communication.
 
-    Connect with: ws://localhost:8000/ws/connect?token=YOUR_JWT_TOKEN
+    Establishes a persistent WebSocket connection for real-time updates including
+    task progress notifications, vocabulary updates, and game session events.
+    Requires JWT authentication token in query string.
+
+    **Authentication Required**: Yes (via query parameter)
+
+    Args:
+        websocket (WebSocket): WebSocket connection instance
+        token (str, optional): JWT authentication token
+
+    Connection URL:
+        ws://localhost:8000/ws/connect?token=YOUR_JWT_TOKEN
+
+    Message Types (Client -> Server):
+        - ping: Keepalive message
+        - subscribe: Subscribe to specific event types
+        - unsubscribe: Unsubscribe from event types
+
+    Message Types (Server -> Client):
+        - task_progress: Background task progress updates
+        - vocabulary_update: Vocabulary learning progress
+        - game_event: Game session state changes
+        - system_message: System notifications
+
+    Raises:
+        WebSocketDisconnect: When client disconnects
+        Exception: On authentication failure or server error
+
+    Example (JavaScript):
+        ```javascript
+        const token = localStorage.getItem('authToken');
+        const ws = new WebSocket(`ws://localhost:8000/ws/connect?token=${token}`);
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Message type:', data.type);
+            console.log('Message data:', data.payload);
+        };
+
+        // Send ping
+        ws.send(JSON.stringify({ type: 'ping' }));
+        ```
+
+    Note:
+        Connection automatically closes on authentication failure with code 1008.
+        Client should implement reconnection logic for network interruptions.
     """
     # Validate token and get user
     if not token:

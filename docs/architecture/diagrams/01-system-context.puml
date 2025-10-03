@@ -1,0 +1,28 @@
+@startuml LangPlug System Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title System Context Diagram - LangPlug Language Learning Platform
+
+Person(user, "Language Learner", "Person learning a foreign language through video content")
+Person_Ext(admin, "Administrator", "System administrator managing users and content")
+
+System(langplug, "LangPlug Platform", "Web-based language learning platform using video content with AI-powered transcription and vocabulary tracking")
+
+System_Ext(browser, "Web Browser", "Chrome, Firefox, Safari, Edge")
+System_Ext(whisper, "Whisper AI", "OpenAI's speech-to-text transcription model")
+System_Ext(opus_mt, "OPUS-MT / NLLB", "Helsinki-NLP and Meta translation models")
+System_Ext(spacy, "spaCy NLP", "Natural language processing for lemmatization")
+
+Rel(user, browser, "Uses", "HTTPS")
+Rel(browser, langplug, "Interacts with", "HTTPS/WSS")
+Rel(admin, browser, "Manages system", "HTTPS")
+
+Rel(langplug, whisper, "Transcribes audio", "Local model inference")
+Rel(langplug, opus_mt, "Translates text", "Local model inference")
+Rel(langplug, spacy, "Processes language", "Local model inference")
+
+SHOW_LEGEND()
+
+@enduml

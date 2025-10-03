@@ -93,7 +93,6 @@ class VocabularyService:
         """Get vocabulary statistics for user"""
         stats = await self.progress_repository.get_vocabulary_stats(db, user_id, language)
 
-        # Get level breakdown
         level_breakdown = await self.vocabulary_repository.count_by_difficulty(db, language)
 
         return VocabularyStatsResponse(

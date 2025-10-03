@@ -26,7 +26,6 @@ class AuthenticationService:
 
     async def register_user(self, db: Session, user_data: UserCreate) -> UserResponse:
         """Register a new user"""
-        # Check if user already exists
         existing_user = await self.user_repository.get_by_email(db, user_data.email)
         if existing_user:
             raise ValidationError("Email already registered")
@@ -35,10 +34,8 @@ class AuthenticationService:
         if existing_username:
             raise ValidationError("Username already taken")
 
-        # Hash password
         hashed_password = self._hash_password(user_data.password)
 
-        # Create user
         user = await self.user_repository.create(
             db,
             username=user_data.username,
@@ -62,10 +59,8 @@ class AuthenticationService:
         if not user.is_active:
             raise AuthenticationError("Account is deactivated")
 
-        # Update last login
         await self.user_repository.update_last_login(db, user.id)
 
-        # Generate token
         access_token = self._create_access_token({"sub": str(user.id)})
 
         return TokenResponse(

@@ -120,7 +120,55 @@ async def filter_subtitles(
     task_progress: dict[str, Any] = Depends(get_task_progress_registry),
     subtitle_processor: DirectSubtitleProcessor = Depends(get_subtitle_processor),
 ):
-    """Filter subtitles based on user's vocabulary knowledge"""
+    """
+    Filter subtitle content based on user's vocabulary knowledge level.
+
+    Initiates background processing to filter subtitles, highlighting unknown words
+    and applying vocabulary-based filtering according to user's CEFR level and
+    known word list. Generates filtered subtitle file for adaptive learning.
+
+    **Authentication Required**: Yes
+
+    Args:
+        request (FilterRequest): Filtering configuration with:
+            - video_path (str): Relative or absolute path to video file
+        background_tasks (BackgroundTasks): FastAPI background task manager
+        current_user (User): Authenticated user
+        task_progress (dict): Task progress tracking registry
+        subtitle_processor (DirectSubtitleProcessor): Subtitle processing service
+
+    Returns:
+        dict: Task initiation response with:
+            - task_id: Unique task identifier for progress tracking
+            - status: "started"
+
+    Raises:
+        HTTPException: 422 if subtitle file not found
+        HTTPException: 500 if task initialization fails
+
+    Example:
+        ```bash
+        curl -X POST "http://localhost:8000/api/processing/filter-subtitles" \
+          -H "Authorization: Bearer <token>" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "video_path": "Learn German/S01E01.mp4"
+          }'
+        ```
+
+        Response:
+        ```json
+        {
+            "task_id": "filter_123_1234567890.123",
+            "status": "started"
+        }
+        ```
+
+    Note:
+        Use the returned task_id with /api/processing/progress/{task_id} to monitor
+        filtering progress. Completed filtering generates a filtered SRT file with
+        vocabulary annotations.
+    """
     try:
         # Validate subtitle file exists before starting background task
         video_file = (

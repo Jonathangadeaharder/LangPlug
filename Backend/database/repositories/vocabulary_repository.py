@@ -90,12 +90,10 @@ class VocabularyRepository(BaseRepository[VocabularyWordModel], VocabularyReposi
         progress = await self.get_user_progress(user_id, vocabulary_id)
 
         if progress:
-            # Update existing
             for key, value in kwargs.items():
                 setattr(progress, key, value)
             progress.is_known = is_known
         else:
-            # Create new
             progress = UserVocabularyProgress(user_id=user_id, vocabulary_id=vocabulary_id, is_known=is_known, **kwargs)
             self.session.add(progress)
 
@@ -168,10 +166,8 @@ class VocabularyRepository(BaseRepository[VocabularyWordModel], VocabularyReposi
         unknown = result.scalar_one_or_none()
 
         if unknown:
-            # Increment frequency
             unknown.frequency_count += 1
         else:
-            # Create new
             unknown = UnknownWord(word=word, lemma=lemma, language=language, frequency_count=1)
             self.session.add(unknown)
 

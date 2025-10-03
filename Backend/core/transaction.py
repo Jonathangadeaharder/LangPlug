@@ -39,36 +39,29 @@ def transactional(func: Callable):
 
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
-        # Find the session parameter
         session = None
 
-        # Check if session is in args
         for arg in args:
             if isinstance(arg, AsyncSession):
                 session = arg
                 break
 
-        # Check if session is in kwargs
         if session is None:
             for value in kwargs.values():
                 if isinstance(value, AsyncSession):
                     session = value
                     break
 
-        # If no session found, call function normally (for services without DB)
         if session is None:
             logger.warning(f"No AsyncSession found in {func.__name__}, skipping transaction management")
             return await func(*args, **kwargs)
 
-        # Execute within transaction
         try:
-            async with session.begin_nested():  # Use SAVEPOINT for nested transactions
+            async with session.begin_nested():
                 result = await func(*args, **kwargs)
-                # Commit happens automatically on successful exit
                 return result
         except Exception as e:
             logger.error(f"Transaction rolled back in {func.__name__}: {e}")
-            # Rollback happens automatically on exception
             raise
 
     return wrapper
@@ -97,13 +90,11 @@ class TransactionContext:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Commit or rollback based on exception"""
         if exc_type is None:
-            # Success - commit
             await self.transaction.commit()
         else:
-            # Exception - rollback
             await self.transaction.rollback()
             logger.error(f"Transaction rolled back: {exc_val}")
-        return False  # Don't suppress exception
+        return False
 
 
 __all__ = ["transactional", "TransactionContext"]

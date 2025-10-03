@@ -29,10 +29,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         start_time = time.time()
         api_logger = logging.getLogger("api")
 
-        # Don't read request body in middleware - it causes issues with body consumption
-        # Just log the request metadata
-
-        # Log detailed request information
         api_logger.info(
             f"API Request: {request.method} {request.url.path}",
             extra={
@@ -48,24 +44,20 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             },
         )
 
-        # Process request
         try:
             response = await call_next(request)
             process_time = time.time() - start_time
 
-            # Read response body for logging (if it's JSON and not too large)
             response_body = None
             content_type = response.headers.get("content-type", "")
             if "application/json" in content_type:
                 try:
-                    # For small responses, log the body
                     content_length = response.headers.get("content-length")
-                    if content_length and int(content_length) < 1024 * 10:  # Less than 10KB
+                    if content_length and int(content_length) < 1024 * 10:
                         response_body = "[Response body available but not logged for privacy]"
                 except Exception:
                     pass
 
-            # Log response
             api_logger.info(
                 f"API Response: {response.status_code} {request.method} {request.url.path}",
                 extra={
@@ -81,7 +73,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 },
             )
 
-            # Add processing time to response headers
             response.headers["X-Process-Time"] = str(process_time)
             return response
 

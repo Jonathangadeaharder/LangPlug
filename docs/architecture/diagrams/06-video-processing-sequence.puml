@@ -1,0 +1,179 @@
+@startuml Video Processing Flow
+!theme blueprint
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title Video Processing Pipeline - Chunk Transcription & Translation
+
+actor "User" as user
+participant "Frontend" as frontend
+participant "API" as api
+participant "Chunk\nProcessor" as processor
+participant "Transcription\nService" as transcribe
+participant "Translation\nService" as translate
+participant "Vocabulary\nFilter" as filter
+participant "Whisper\nModel" as whisper
+participant "OPUS-MT\nModel" as opus
+participant "spaCy\nNLP" as spacy
+participant "WebSocket" as ws
+database "Database" as db
+participant "File\nSystem" as fs
+
+== Video Upload ==
+
+user -> frontend: Uploads video file
+activate frontend
+
+frontend -> api: POST /api/videos/upload/series_name\n(multipart/form-data)
+activate api
+
+api -> fs: Save video file\n(/videos/series/episode.mp4)
+activate fs
+fs --> api: File saved
+deactivate fs
+
+api --> frontend: 200 OK\n{video_id, path}
+deactivate api
+
+frontend --> user: Upload complete
+deactivate frontend
+
+== Initiate Processing ==
+
+user -> frontend: Starts processing\n(start_time=0, end_time=30)
+activate frontend
+
+frontend -> api: POST /api/processing/chunk\n{video_path, start_time, end_time}
+activate api
+
+api -> processor: process_chunk(params)
+activate processor
+
+processor -> ws: Update progress: 0%\n"Starting processing"
+activate ws
+ws --> frontend: WebSocket event
+deactivate ws
+
+== Step 1: Audio Extraction ==
+
+processor -> transcribe: extract_audio_chunk(video, 0-30s)
+activate transcribe
+
+transcribe -> fs: Execute FFmpeg\nffmpeg -i video.mp4 -ss 0 -t 30 audio.mp3
+activate fs
+fs --> transcribe: audio.mp3
+deactivate fs
+
+transcribe --> processor: audio_file_path
+deactivate transcribe
+
+processor -> ws: Update progress: 20%\n"Audio extracted"
+activate ws
+ws --> frontend: WebSocket event
+deactivate ws
+
+== Step 2: Transcription ==
+
+processor -> transcribe: transcribe_chunk(audio.mp3)
+activate transcribe
+
+transcribe -> whisper: transcribe(audio.mp3,\nlanguage="de")
+activate whisper
+whisper --> transcribe: [{text, start, end}, ...]
+deactivate whisper
+
+transcribe -> fs: Write SRT file\nvideo_chunk.srt
+activate fs
+fs --> transcribe: SRT saved
+deactivate fs
+
+transcribe --> processor: srt_file_path
+deactivate transcribe
+
+processor -> ws: Update progress: 35%\n"Transcription complete"
+activate ws
+ws --> frontend: WebSocket event
+deactivate ws
+
+== Step 3: Vocabulary Filtering ==
+
+processor -> filter: filter_vocabulary(srt,\nuser_id, user_level="B1")
+activate filter
+
+filter -> db: SELECT known_words\nWHERE user_id = ?
+activate db
+db --> filter: known_words[]
+deactivate db
+
+filter -> db: SELECT word_difficulties\nWHERE language = ?
+activate db
+db --> filter: word_difficulties{}
+deactivate db
+
+filter -> spacy: lemmatize(words)
+activate spacy
+spacy --> filter: lemmas[]
+deactivate spacy
+
+filter -> filter: categorize_words(\nblocking, learning, known)
+
+filter --> processor: {blocking_words[],\nlearning_words[],\nfiltered_subtitles[]}
+deactivate filter
+
+processor -> ws: Update progress: 65%\n"Vocabulary filtered"
+activate ws
+ws --> frontend: WebSocket event
+deactivate ws
+
+== Step 4: Subtitle Generation ==
+
+processor -> fs: Write filtered_srt\nvideo_chunk_filtered.srt
+activate fs
+fs --> processor: Filtered SRT saved
+deactivate fs
+
+processor -> ws: Update progress: 85%\n"Filtered subtitles generated"
+activate ws
+ws --> frontend: WebSocket event
+deactivate ws
+
+== Step 5: Translation ==
+
+processor -> translate: build_translation_segments(\nsrt, blocking_words[])
+activate translate
+
+translate -> opus: translate(word,\nsrc="de", tgt="es")
+activate opus
+opus --> translate: translation
+deactivate opus
+
+translate -> fs: Write translation_srt\nvideo_chunk_translation.srt
+activate fs
+fs --> translate: Translation SRT saved
+deactivate fs
+
+translate --> processor: translation_file_path
+deactivate translate
+
+processor -> ws: Update progress: 100%\n"Processing complete"
+activate ws
+ws --> frontend: WebSocket event
+deactivate ws
+
+== Completion ==
+
+processor -> db: UPDATE processing_session\nSET status = 'completed'
+activate db
+db --> processor: OK
+deactivate db
+
+processor --> api: Processing complete\n{filtered_srt, translation_srt}
+deactivate processor
+
+api --> frontend: 200 OK\n{status: "completed"}
+deactivate api
+
+frontend --> user: Display subtitles\nand translations
+deactivate frontend
+
+@enduml

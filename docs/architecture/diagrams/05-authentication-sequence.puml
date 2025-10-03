@@ -1,0 +1,139 @@
+@startuml Authentication Flow
+!theme blueprint
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title Authentication Flow - Registration, Login, Token Refresh
+
+actor "User" as user
+participant "Frontend" as frontend
+participant "API\n(FastAPI)" as api
+participant "Auth Service" as auth
+participant "Token Service" as token
+participant "Password\nValidator" as pwd
+database "Database" as db
+
+== User Registration ==
+
+user -> frontend: Enters registration details
+activate frontend
+
+frontend -> api: POST /api/auth/register\n{username, email, password}
+activate api
+
+api -> auth: register_user(data)
+activate auth
+
+auth -> pwd: validate_password(password)
+activate pwd
+pwd --> auth: Validation result
+deactivate pwd
+
+auth -> pwd: hash_password(password)
+activate pwd
+pwd --> auth: hashed_password (Argon2)
+deactivate pwd
+
+auth -> db: INSERT user\n(username, email, hashed_password)
+activate db
+db --> auth: user_id
+deactivate db
+
+auth --> api: User created
+deactivate auth
+
+api --> frontend: 201 Created\n{user_id, username, email}
+deactivate api
+
+frontend --> user: Registration successful
+deactivate frontend
+
+== User Login ==
+
+user -> frontend: Enters credentials
+activate frontend
+
+frontend -> api: POST /api/auth/login\n{username, password}
+activate api
+
+api -> auth: login(username, password)
+activate auth
+
+auth -> db: SELECT user\nWHERE username = ?
+activate db
+db --> auth: user record
+deactivate db
+
+auth -> pwd: verify_password(password, hashed)
+activate pwd
+pwd --> auth: verified = True
+deactivate pwd
+
+auth -> token: create_token_pair(user_id)
+activate token
+token --> auth: {access_token, refresh_token}
+deactivate token
+
+auth -> db: UPDATE users\nSET last_login = NOW()
+activate db
+db --> auth: OK
+deactivate db
+
+auth --> api: {access_token, refresh_token}
+deactivate auth
+
+api --> frontend: 200 OK\n{access_token}\nSet-Cookie: refresh_token (httpOnly)
+deactivate api
+
+frontend --> user: Login successful
+deactivate frontend
+
+== Protected API Request ==
+
+user -> frontend: Requests protected resource
+activate frontend
+
+frontend -> api: GET /api/vocabulary/words\nAuthorization: Bearer <access_token>
+activate api
+
+api -> token: verify_access_token(token)
+activate token
+token --> api: user_id (decoded from JWT)
+deactivate token
+
+api -> db: SELECT vocabulary\nWHERE user_id = ?
+activate db
+db --> api: vocabulary_words[]
+deactivate db
+
+api --> frontend: 200 OK\n{vocabulary_words[]}
+deactivate api
+
+frontend --> user: Display vocabulary
+deactivate frontend
+
+== Token Refresh ==
+
+user -> frontend: Access token expired
+activate frontend
+
+frontend -> api: POST /api/auth/token/refresh\nCookie: refresh_token
+activate api
+
+api -> token: refresh_access_token(refresh_token)
+activate token
+
+token -> token: verify_refresh_token()
+token -> token: decode_token()
+token -> token: create_access_token(user_id)
+
+token --> api: new_access_token
+deactivate token
+
+api --> frontend: 200 OK\n{access_token}
+deactivate api
+
+frontend --> user: Continue using app
+deactivate frontend
+
+@enduml

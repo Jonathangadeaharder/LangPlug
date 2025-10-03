@@ -17,23 +17,18 @@ class ConnectionManager:
     """Manages WebSocket connections with proper cleanup and error handling"""
 
     def __init__(self):
-        # Store active connections by user_id
         self.active_connections: dict[str, set[WebSocket]] = {}
-        # Store connection metadata
         self.connection_info: dict[WebSocket, dict] = {}
-        # Background task for health checks
         self.health_check_task: asyncio.Task | None = None
 
     async def connect(self, websocket: WebSocket, user_id: str):
         """Accept and register a new WebSocket connection"""
         await websocket.accept()
 
-        # Add to active connections
         if user_id not in self.active_connections:
             self.active_connections[user_id] = set()
         self.active_connections[user_id].add(websocket)
 
-        # Store connection metadata
         self.connection_info[websocket] = {
             "user_id": user_id,
             "connected_at": datetime.now(),
@@ -42,7 +37,6 @@ class ConnectionManager:
 
         logger.info(f"WebSocket connected for user {user_id}")
 
-        # Send initial connection confirmation
         await self.send_personal_message(
             websocket, {"type": "connection", "status": "connected", "timestamp": datetime.now().isoformat()}
         )
@@ -54,15 +48,12 @@ class ConnectionManager:
         if info:
             user_id = info["user_id"]
 
-            # Remove from active connections
             if user_id in self.active_connections:
                 self.active_connections[user_id].discard(websocket)
 
-                # Clean up empty sets
                 if not self.active_connections[user_id]:
                     del self.active_connections[user_id]
 
-            # Remove connection metadata
             del self.connection_info[websocket]
 
             logger.info(f"WebSocket disconnected for user {user_id}")
@@ -87,7 +78,6 @@ class ConnectionManager:
                     logger.error(f"Error sending message to user {user_id}: {e}")
                     disconnected.append(connection)
 
-            # Clean up disconnected connections
             for conn in disconnected:
                 self.disconnect(conn)
 
@@ -108,7 +98,6 @@ class ConnectionManager:
                 logger.error(f"Error broadcasting message: {e}")
                 disconnected.append(connection)
 
-        # Clean up disconnected connections
         for conn in disconnected:
             self.disconnect(conn)
 
@@ -137,14 +126,10 @@ class ConnectionManager:
         message_type = data.get("type")
 
         if message_type == "ping":
-            # Update last ping time
             info["last_ping"] = datetime.now()
-
-            # Send pong response
             await self.send_personal_message(websocket, {"type": "pong", "timestamp": datetime.now().isoformat()})
 
         elif message_type == "subscribe":
-            # Handle subscription to specific events
             event_type = data.get("event_type")
             logger.info(f"User {info['user_id']} subscribed to {event_type}")
 
@@ -165,19 +150,16 @@ class ConnectionManager:
                     for websocket, info in self.connection_info.items():
                         last_ping = info.get("last_ping")
 
-                        # Disconnect if no ping in 60 seconds
                         if (current_time - last_ping).seconds > 60:
                             logger.warning(f"Connection timeout for user {info['user_id']}")
                             disconnected.append(websocket)
                         else:
-                            # Send heartbeat
                             try:
                                 await websocket.send_json({"type": "heartbeat", "timestamp": current_time.isoformat()})
                             except (ConnectionClosed, RuntimeError, Exception) as e:
                                 logger.warning(f"Failed to send heartbeat to websocket: {e}")
                                 disconnected.append(websocket)
 
-                    # Clean up disconnected connections
                     for conn in disconnected:
                         self.disconnect(conn)
 

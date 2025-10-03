@@ -118,15 +118,12 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
 
     def _should_skip_validation(self, method: str, path: str) -> bool:
         """Check if request should skip validation"""
-        # Skip OPTIONS requests (CORS preflight)
         if method == "OPTIONS":
             return True
 
-        # Skip subtitle serving endpoint (uses dynamic paths)
         if path.startswith("/api/videos/subtitles/"):
             return True
 
-        # Skip OpenAPI and documentation endpoints
         if path in ["/openapi.json", "/docs", "/redoc"]:
             return True
 
@@ -170,26 +167,21 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
         method = request.method
         path = str(request.url.path)
 
-        # Skip validation for certain endpoints
         if self._should_skip_validation(method, path):
             return await call_next(request)
 
         app = request.app
 
         try:
-            # Validate request contract
             schema = self.get_openapi_schema(app)
             error_response = self._validate_request_contract(method, path, schema)
             if error_response:
                 return error_response
 
-            # Process the request
             response = await call_next(request)
 
-            # Validate response contract
             self._validate_response_contract(path, method, response, schema)
 
-            # Add validation headers
             self._add_validation_headers(response)
 
             return response

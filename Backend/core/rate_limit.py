@@ -8,10 +8,27 @@ To enable rate limiting:
 3. Add exception handler to main.py
 4. Apply @limiter.limit() decorator to endpoints
 
+Example usage in main.py:
+    from slowapi import _rate_limit_exceeded_handler
+    from slowapi.errors import RateLimitExceeded
+    from core.rate_limit import limiter
+
+    app = FastAPI(...)
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 Example endpoint protection:
-    @router.post("/login")
-    @limiter.limit("5/minute")
+    from core.rate_limit import limiter, RateLimits
+    from fastapi import Request
+
+    @router.post("/auth/login")
+    @limiter.limit(RateLimits.LOGIN)
     async def login(request: Request, ...):
+        ...
+
+    @router.post("/videos/upload/{series}")
+    @limiter.limit(RateLimits.VIDEO_UPLOAD)
+    async def upload_video(request: Request, ...):
         ...
 """
 
@@ -50,31 +67,3 @@ class RateLimits:
     # Vocabulary/game endpoints
     VOCABULARY_MARK = "200/minute"  # 200 vocabulary marks per minute
     GAME_SESSION = "50/hour"  # 50 game sessions per hour
-
-
-# Usage in main.py:
-# from slowapi import _rate_limit_exceeded_handler
-# from slowapi.errors import RateLimitExceeded
-# from core.rate_limit import limiter
-
-# app = FastAPI(...)
-#
-# # Add limiter to app state
-# app.state.limiter = limiter
-#
-# # Add exception handler
-# app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-# Usage in routes:
-# from core.rate_limit import limiter, RateLimits
-# from fastapi import Request
-#
-# @router.post("/auth/login")
-# @limiter.limit(RateLimits.LOGIN)
-# async def login(request: Request, ...):
-#     ...
-#
-# @router.post("/videos/upload/{series}")
-# @limiter.limit(RateLimits.VIDEO_UPLOAD)
-# async def upload_video(request: Request, ...):
-#     ...

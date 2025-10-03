@@ -1,6 +1,49 @@
 """
-JWT Token Service with Security Hardening
-Implements access tokens (short-lived) and refresh tokens (long-lived)
+JWT Token Service
+
+Secure JWT token management implementing access/refresh token pattern for authentication.
+This module provides stateless authentication using signed JSON Web Tokens with HMAC-SHA256.
+
+Key Components:
+    - TokenService: Main JWT token management class
+    - Access tokens: Short-lived (1 hour) for API authentication
+    - Refresh tokens: Long-lived (30 days) for token renewal
+    - Token type validation to prevent token substitution attacks
+
+Usage Example:
+    ```python
+    from services.authservice.token_service import TokenService
+
+    # Create token pair for user
+    tokens = TokenService.create_token_pair(user_id=123)
+    access_token = tokens["access_token"]
+    refresh_token = tokens["refresh_token"]
+
+    # Verify access token
+    user_id = TokenService.verify_access_token(access_token)
+
+    # Refresh access token
+    new_access = TokenService.refresh_access_token(refresh_token)
+    ```
+
+Dependencies:
+    - jose: JWT encoding/decoding (python-jose library)
+    - core.config: Secret key and settings
+    - core.exceptions: Authentication error handling
+
+Security Features:
+    - HMAC-SHA256 signing algorithm
+    - Token type validation (prevents using refresh token as access token)
+    - Automatic expiration checking
+    - Issued-at timestamp for audit trails
+
+Thread Safety:
+    Yes. All methods are stateless class methods with no shared mutable state.
+
+Performance Notes:
+    - Token creation: O(1), ~1ms
+    - Token validation: O(1), ~1ms
+    - No database queries required (stateless)
 """
 
 from datetime import UTC, datetime, timedelta
@@ -13,13 +56,50 @@ from core.exceptions import AuthenticationError
 
 class TokenService:
     """
-    JWT token management with security hardening
+    Stateless JWT token management service.
 
-    Features:
-    - Short-lived access tokens (1 hour)
-    - Long-lived refresh tokens (30 days)
-    - Token type validation
-    - Secure token generation and validation
+    Provides secure token creation, validation, and refresh functionality using JSON Web Tokens.
+    All methods are class methods for stateless operation (no instance needed).
+
+    Class Attributes:
+        ACCESS_TOKEN_EXPIRE_MINUTES (int): Access token lifetime (60 minutes)
+        REFRESH_TOKEN_EXPIRE_DAYS (int): Refresh token lifetime (30 days)
+        ALGORITHM (str): JWT signing algorithm (HS256)
+
+    Token Payload Structure:
+        Access Token:
+            - sub: User ID (string)
+            - exp: Expiration timestamp
+            - iat: Issued-at timestamp
+            - type: "access"
+
+        Refresh Token:
+            - sub: User ID (string)
+            - exp: Expiration timestamp
+            - iat: Issued-at timestamp
+            - type: "refresh"
+
+    Example:
+        ```python
+        # Create token pair
+        tokens = TokenService.create_token_pair(user_id=42)
+
+        # Verify access token
+        try:
+            user_id = TokenService.verify_access_token(tokens["access_token"])
+        except AuthenticationError:
+            # Token invalid/expired
+            pass
+
+        # Refresh access token
+        new_access = TokenService.refresh_access_token(tokens["refresh_token"])
+        ```
+
+    Security Notes:
+        - Never expose secret_key from settings
+        - Token type field prevents substitution attacks
+        - UTC timestamps prevent timezone manipulation
+        - Refresh tokens should be stored securely (httpOnly cookies)
     """
 
     # Token configuration
@@ -30,14 +110,33 @@ class TokenService:
     @classmethod
     def create_access_token(cls, user_id: int, additional_claims: dict | None = None) -> str:
         """
-        Create short-lived access token
+        Create a short-lived access token for API authentication.
+
+        Access tokens should be sent with each API request in the Authorization header.
+        They expire after 1 hour for security.
 
         Args:
-            user_id: User ID to encode in token
-            additional_claims: Optional additional claims to include
+            user_id (int): User ID to encode in token subject (sub claim)
+            additional_claims (dict | None): Optional extra claims to include in payload
 
         Returns:
-            Encoded JWT access token
+            str: Encoded JWT access token string
+
+        Example:
+            ```python
+            # Basic token
+            token = TokenService.create_access_token(user_id=123)
+
+            # With additional claims
+            token = TokenService.create_access_token(
+                user_id=123,
+                additional_claims={"role": "admin", "permissions": ["read", "write"]}
+            )
+            ```
+
+        Note:
+            Token includes "type": "access" claim to prevent token substitution.
+            Additional claims are merged into payload, overriding defaults if keys conflict.
         """
         expires = datetime.now(UTC) + timedelta(minutes=cls.ACCESS_TOKEN_EXPIRE_MINUTES)
 
@@ -57,13 +156,33 @@ class TokenService:
     @classmethod
     def create_refresh_token(cls, user_id: int) -> str:
         """
-        Create long-lived refresh token
+        Create a long-lived refresh token for obtaining new access tokens.
+
+        Refresh tokens should be stored securely (httpOnly cookie) and used only to
+        obtain new access tokens when they expire.
 
         Args:
-            user_id: User ID to encode in token
+            user_id (int): User ID to encode in token subject (sub claim)
 
         Returns:
-            Encoded JWT refresh token
+            str: Encoded JWT refresh token string
+
+        Example:
+            ```python
+            refresh_token = TokenService.create_refresh_token(user_id=123)
+            # Store in httpOnly cookie
+            response.set_cookie(
+                "refresh_token",
+                refresh_token,
+                httponly=True,
+                secure=True,
+                samesite="strict"
+            )
+            ```
+
+        Note:
+            Refresh tokens last 30 days and include "type": "refresh" claim.
+            They cannot be used as access tokens due to type validation.
         """
         expires = datetime.now(UTC) + timedelta(days=cls.REFRESH_TOKEN_EXPIRE_DAYS)
 
@@ -97,17 +216,37 @@ class TokenService:
     @classmethod
     def decode_token(cls, token: str, expected_type: str | None = None) -> dict:
         """
-        Decode and validate JWT token
+        Decode and validate JWT token with optional type checking.
+
+        Verifies token signature, expiration, and optionally validates token type to
+        prevent token substitution attacks.
 
         Args:
-            token: JWT token to decode
-            expected_type: Expected token type ("access" or "refresh")
+            token (str): JWT token string to decode
+            expected_type (str | None): Expected token type ("access" or "refresh"), None to skip check
 
         Returns:
-            Decoded token payload
+            dict: Decoded token payload containing claims (sub, exp, iat, type, etc.)
 
         Raises:
-            AuthenticationError: If token is invalid or expired
+            AuthenticationError: If token signature invalid, expired, or wrong type
+
+        Example:
+            ```python
+            # Decode without type validation
+            payload = TokenService.decode_token(token)
+            user_id = int(payload["sub"])
+
+            # Decode with type validation
+            try:
+                payload = TokenService.decode_token(token, expected_type="access")
+            except AuthenticationError as e:
+                print(f"Invalid token: {e}")
+            ```
+
+        Note:
+            Automatically checks expiration (exp claim).
+            Type mismatch raises AuthenticationError with descriptive message.
         """
         try:
             payload = jwt.decode(token, settings.secret_key, algorithms=[cls.ALGORITHM])

@@ -1,0 +1,35 @@
+@startuml LangPlug Container Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Container Diagram - LangPlug Platform
+
+Person(user, "Language Learner", "Person learning through video content")
+
+System_Boundary(langplug, "LangPlug Platform") {
+    Container(frontend, "Frontend Application", "React + TypeScript", "Delivers user interface for video playback, vocabulary tracking, and learning games")
+
+    Container(api, "Backend API", "Python + FastAPI", "Handles authentication, video processing, vocabulary management, and game sessions")
+
+    ContainerDb(db, "Database", "PostgreSQL / SQLite", "Stores users, vocabulary, progress, and video metadata")
+
+    Container(file_storage, "File Storage", "Local Filesystem", "Stores video files, subtitles, and processed audio")
+
+    Container(ai_models, "AI Model Services", "Whisper + OPUS-MT + spaCy", "Local AI models for transcription, translation, and NLP")
+
+    Container(websocket, "WebSocket Manager", "FastAPI WebSockets", "Real-time progress updates during video processing")
+}
+
+Rel(user, frontend, "Uses", "HTTPS")
+Rel(frontend, api, "Makes API calls", "JSON/HTTPS")
+Rel(frontend, websocket, "Receives updates", "WSS")
+
+Rel(api, db, "Reads/Writes", "SQL (async)")
+Rel(api, file_storage, "Stores/Retrieves", "File I/O")
+Rel(api, ai_models, "Invokes", "In-process")
+Rel(api, websocket, "Publishes updates", "In-process")
+
+SHOW_LEGEND()
+
+@enduml

@@ -32,10 +32,8 @@ async def create_database_async(args):
         return 1
 
     try:
-        # Initialize the database with async SQLAlchemy
         await init_database()
 
-        # Show basic database info
         if os.path.exists(db_path):
             os.path.getsize(db_path) / (1024 * 1024)
 
@@ -91,10 +89,8 @@ async def show_stats_async(args):
 
     try:
         async with get_async_session() as session:
-            # Database info
             os.path.getsize(db_path) / (1024 * 1024)
 
-            # Vocabulary statistics
             vocab_count = await session.execute(text("SELECT COUNT(*) FROM vocabulary"))
             vocab_count.scalar()
 
@@ -106,7 +102,6 @@ async def show_stats_async(args):
             )
             [row[0] for row in languages.fetchall()]
 
-            # User progress statistics
             progress_count = await session.execute(text("SELECT COUNT(*) FROM user_learning_progress"))
             progress_count.scalar()
 
@@ -131,17 +126,13 @@ def backup_database(args):
         import shutil
         from datetime import datetime
 
-        # Create backup filename if not provided
         if args.backup_path:
             backup_path = args.backup_path
         else:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_path = f"{db_path}.backup_{timestamp}"
 
-        # Copy the database file
         shutil.copy2(db_path, backup_path)
-
-        # Show backup size
         os.path.getsize(backup_path) / (1024 * 1024)
 
         return 0
@@ -161,7 +152,6 @@ async def search_words_async(args):
             query = args.query
             limit = args.limit
 
-            # Search vocabulary
             vocab_query = text("""
                 SELECT word, frequency, difficulty_level
                 FROM vocabulary
@@ -176,7 +166,6 @@ async def search_words_async(args):
                 for row in vocab_rows:
                     _word, _frequency, _difficulty_level = row
 
-            # Search user progress
             progress_query = text("""
                 SELECT DISTINCT word
                 FROM user_learning_progress
@@ -211,14 +200,12 @@ async def vacuum_database_async(args):
         return 1
 
     try:
-        # Get size before vacuum
         size_before = os.path.getsize(db_path) / (1024 * 1024)
 
         async with get_async_session() as session:
             await session.execute(text("VACUUM"))
             await session.commit()
 
-        # Get size after vacuum
         size_after = os.path.getsize(db_path) / (1024 * 1024)
         size_before - size_after
 

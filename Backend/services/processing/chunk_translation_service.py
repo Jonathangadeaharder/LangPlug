@@ -1,6 +1,51 @@
 """
-ChunkTranslationService - Handle translation services and translation building
-Extracted from chunk_processor.py for better separation of concerns
+Chunk Translation Service
+
+Translation service management and segment building for video chunks.
+This module coordinates translation services for different language pairs and builds translated SRT segments.
+
+Key Components:
+    - ChunkTranslationService: Main translation coordination service
+    - Translation service factory and caching per language pair
+    - Batch translation with progress tracking
+    - Segment overlap detection
+
+Usage Example:
+    ```python
+    service = ChunkTranslationService()
+
+    # Get/create translation service for language pair
+    translator = service.get_translation_service("de", "en")
+
+    # Build translation segments from SRT
+    segments = await service.build_translation_segments(
+        task_id="task_123",
+        task_progress=progress_dict,
+        srt_file_path="/path/to/subtitles.srt",
+        vocabulary=[...],
+        language_preferences={"target": "de", "native": "en"}
+    )
+    # Returns: List of translated SRT segments
+    ```
+
+Dependencies:
+    - TranslationServiceFactory: Creates language-specific OPUS translation models
+    - utils.srt_parser: SRT file parsing and segment formatting
+    - tqdm: Progress bar for translation batches
+
+Thread Safety:
+    No. Service caches translation models in instance dict (_translation_services).
+    Use separate instances per request or add locking for concurrent access.
+
+Performance Notes:
+    - Translation service caching: O(1) lookup per language pair
+    - Translation: ~200ms per segment (model dependent)
+    - Batch processing: Yields to event loop every 5 segments
+    - Progress updates: Every segment (65% -> 95% range)
+
+Translation Models:
+    Uses Helsinki-NLP OPUS-MT models: opus-mt-{source}-{target}
+    Example: "opus-mt-de-en" for German to English
 """
 
 import asyncio
@@ -25,7 +70,32 @@ class ChunkTranslationError(Exception):
 
 class ChunkTranslationService(IChunkTranslationService):
     """
-    Service responsible for managing translation services and building translations
+    Translation service coordinator for video chunk processing.
+
+    Manages translation service instances per language pair and builds translated
+    subtitle segments with progress tracking.
+
+    Attributes:
+        _translation_services (dict): Cache of translation services keyed by (source, target, quality)
+
+    Example:
+        ```python
+        service = ChunkTranslationService()
+
+        # Automatic model selection for language pair
+        translator = service.get_translation_service("de", "en")
+        # Creates: Helsinki-NLP/opus-mt-de-en model
+
+        # Build translations with progress
+        segments = await service.build_translation_segments(
+            "task_1", progress, "video.srt", vocab, {"target": "de", "native": "en"}
+        )
+        ```
+
+    Note:
+        Service instances are cached per language pair for performance.
+        Implements IChunkTranslationService interface.
+        Translates ALL segments, not just vocabulary segments (for complete subtitles).
     """
 
     def __init__(self):

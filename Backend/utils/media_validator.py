@@ -51,15 +51,12 @@ def is_valid_video_file(file_path: str) -> bool:
     """
     path = Path(file_path)
 
-    # Check if file exists
     if not path.exists():
         return False
 
-    # Check file extension
     if path.suffix.lower() in VIDEO_EXTENSIONS:
         return True
 
-    # Check MIME type
     mime_type, _ = mimetypes.guess_type(str(path))
     return bool(mime_type and mime_type in VIDEO_MIME_TYPES)
 

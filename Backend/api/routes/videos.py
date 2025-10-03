@@ -33,7 +33,52 @@ def get_video_service(db_session: AsyncSession = Depends(get_async_session)) -> 
 async def get_available_videos(
     current_user: User = Depends(current_active_user), video_service: VideoService = Depends(get_video_service)
 ):
-    """Get list of available videos/series"""
+    """
+    Retrieve list of all available videos and series for the current user.
+
+    Scans the configured videos directory and returns metadata for all accessible
+    video files, including subtitle availability and episode information.
+
+    **Authentication Required**: Yes
+
+    Args:
+        current_user (User): Authenticated user
+        video_service (VideoService): Video service dependency
+
+    Returns:
+        list[VideoInfo]: List of video metadata objects containing:
+            - series: Series/show name
+            - season: Season number
+            - episode: Episode number
+            - title: Episode title
+            - path: Relative file path
+            - has_subtitles: Whether subtitles exist
+            - duration: Video duration in seconds
+
+    Raises:
+        HTTPException: 500 if directory scanning fails
+
+    Example:
+        ```bash
+        curl -X GET "http://localhost:8000/api/videos" \
+          -H "Authorization: Bearer <token>"
+        ```
+
+        Response:
+        ```json
+        [
+            {
+                "series": "Learn German",
+                "season": "1",
+                "episode": "01",
+                "title": "Introduction",
+                "path": "Learn German/S01E01.mp4",
+                "has_subtitles": true,
+                "duration": 1200
+            }
+        ]
+        ```
+    """
     return video_service.get_available_videos()
 
 
@@ -43,7 +88,43 @@ async def get_subtitles(
     current_user: User = Depends(current_active_user),
     video_service: VideoService = Depends(get_video_service),
 ):
-    """Serve subtitle files - Requires authentication"""
+    """
+    Serve subtitle files (SRT format) for video playback.
+
+    Returns subtitle file content as plain text with UTF-8 encoding.
+    Validates file existence and applies security checks to prevent path traversal.
+
+    **Authentication Required**: Yes
+
+    Args:
+        subtitle_path (str): Relative path to subtitle file
+        current_user (User): Authenticated user
+        video_service (VideoService): Video service dependency
+
+    Returns:
+        FileResponse: SRT file content with UTF-8 encoding
+
+    Raises:
+        HTTPException: 404 if subtitle file not found or invalid
+        HTTPException: 500 if file serving fails
+
+    Example:
+        ```bash
+        curl -X GET "http://localhost:8000/api/videos/subtitles/Learn German/S01E01.srt" \
+          -H "Authorization: Bearer <token>"
+        ```
+
+        Response: (plain text SRT content)
+        ```
+        1
+        00:00:00,000 --> 00:00:05,000
+        Hallo und willkommen!
+
+        2
+        00:00:05,500 --> 00:00:10,000
+        Heute lernen wir Deutsch.
+        ```
+    """
     try:
         logger.info(f"Serving subtitles: {subtitle_path}")
 
@@ -95,7 +176,6 @@ async def stream_video(
             logger.error(f"Video file exists check failed: {video_file}")
             raise HTTPException(status_code=404, detail="Video file not accessible")
 
-        # Return video with proper headers for streaming
         response = FileResponse(
             video_file,
             media_type="video/mp4",
@@ -131,13 +211,10 @@ async def upload_subtitle(
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e)) from e
 
-        # Read content
         content = await subtitle_file.read()
 
-        # Get video file path and validate it exists
         videos_path = settings.get_videos_path()
         try:
-            # Validate video_path to prevent path traversal
             video_file_path = str(videos_path / video_path)
             FileSecurityValidator.validate_file_path(video_file_path)
             video_file = videos_path / video_path
@@ -147,10 +224,8 @@ async def upload_subtitle(
         if not video_file.exists():
             raise HTTPException(status_code=404, detail="Video file not found")
 
-        # Save subtitle with same name as video
         subtitle_path = video_file.with_suffix(".srt")
 
-        # Write uploaded file
         with open(subtitle_path, "wb") as buffer:
             buffer.write(content)
 
@@ -189,22 +264,18 @@ async def get_user_videos(
 async def get_video_vocabulary(video_id: str, current_user: User = Depends(current_active_user)):
     """Get vocabulary words extracted from a video"""
     try:
-        # Convert video_id to video path
         videos_path = settings.get_videos_path()
         video_path = videos_path / video_id
 
         if not video_path.exists():
             raise HTTPException(status_code=404, detail="Video not found")
 
-        # Check for corresponding subtitle file
         srt_path = video_path.with_suffix(".srt")
         if not srt_path.exists():
             raise HTTPException(status_code=404, detail="Subtitles not found for this video")
 
-        # Extract vocabulary using the existing vocabulary extraction logic
         from api.routes.vocabulary import extract_blocking_words_for_segment
 
-        # Extract vocabulary for the entire video (0 to large duration)
         vocabulary_words = await extract_blocking_words_for_segment(str(srt_path), 0, 999999, current_user.id)
 
         logger.info(f"Extracted {len(vocabulary_words)} vocabulary words for video {video_id}")
@@ -233,7 +304,6 @@ async def get_video_status(
 ):
     """Get processing status for a video"""
     try:
-        # Look for any processing tasks related to this video
         video_tasks = [
             (task_id, progress)
             for task_id, progress in task_progress.items()
@@ -241,14 +311,12 @@ async def get_video_status(
         ]
 
         if not video_tasks:
-            # No active processing, check if video exists and has been processed
             videos_path = settings.get_videos_path()
             video_path = videos_path / video_id
 
             if not video_path.exists():
                 raise HTTPException(status_code=404, detail="Video not found")
 
-            # Check if subtitles exist (indicates processing completed)
             srt_path = video_path.with_suffix(".srt")
             if srt_path.exists():
                 return ProcessingStatus(
@@ -266,7 +334,6 @@ async def get_video_status(
                     message="Video has not been processed yet",
                 )
 
-        # Return the most recent task status
         _latest_task_id, latest_progress = video_tasks[-1]
         return latest_progress
 
@@ -339,11 +406,9 @@ async def upload_video(
     Uses FileSecurityValidator for secure file handling with path traversal prevention
     """
     try:
-        # Validate series name and file
         safe_series = _validate_series_name(series)
         safe_path = await _validate_video_file_upload(video_file)
 
-        # Prepare destination
         series_path = settings.get_videos_path() / safe_series
         series_path.mkdir(parents=True, exist_ok=True)
 
@@ -353,16 +418,13 @@ async def upload_video(
         if final_destination.exists():
             raise HTTPException(status_code=409, detail="File already exists")
 
-        # Write video file
         await _write_video_file(video_file, final_destination)
 
-        # Cleanup temporary file
         if safe_path.exists() and safe_path != final_destination:
             safe_path.unlink(missing_ok=True)
 
         logger.info(f"[SECURITY] Uploaded video: {final_destination}")
 
-        # Build and return response
         return _build_video_info_response(final_destination, safe_series)
 
     except HTTPException:

@@ -47,8 +47,74 @@ def format_log_entry(entry: FrontendLogEntry) -> str:
 @router.post("/frontend-logs")
 async def log_frontend_entry(payload: FrontendLogEntry | FrontendLogBatch):
     """
-    Log entries from the frontend application.
-    Accepts either a single log entry or a batch of log entries.
+    Receive and process log entries from the frontend application.
+
+    Accepts either a single log entry or a batch of log entries from the frontend,
+    routing them to the backend logging system for centralized debugging and monitoring.
+    Supports standard log levels and includes contextual metadata.
+
+    **Authentication Required**: No
+
+    Args:
+        payload (FrontendLogEntry | FrontendLogBatch): Log entry or batch with:
+            - timestamp: ISO 8601 timestamp
+            - level: Log level ("debug", "info", "warn", "error")
+            - category: Log category (e.g., "api", "render", "user-action")
+            - message: Log message
+            - data (optional): Structured log data
+            - error (optional): Error message if applicable
+            - stack (optional): Stack trace for errors
+            - url (optional): Current page URL
+            - userAgent (optional): Browser user agent
+            - userId (optional): User identifier
+
+    Returns:
+        dict: Acknowledgment with:
+            - success: Always true
+            - status: "logged"
+            - count: Number of log entries processed (for batches)
+            - timestamp: Timestamp of first log entry
+
+    Example (single entry):
+        ```bash
+        curl -X POST "http://localhost:8000/api/debug/frontend-logs" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "timestamp": "2024-10-03T10:30:00.000Z",
+            "level": "error",
+            "category": "api",
+            "message": "Failed to fetch vocabulary",
+            "error": "Network request failed",
+            "userId": "user-123"
+          }'
+        ```
+
+    Example (batch):
+        ```bash
+        curl -X POST "http://localhost:8000/api/debug/frontend-logs" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "logs": [
+              {
+                "timestamp": "2024-10-03T10:30:00.000Z",
+                "level": "info",
+                "category": "navigation",
+                "message": "User navigated to vocabulary page"
+              },
+              {
+                "timestamp": "2024-10-03T10:30:05.000Z",
+                "level": "debug",
+                "category": "api",
+                "message": "Fetching vocabulary library",
+                "data": {"limit": 100, "offset": 0}
+              }
+            ]
+          }'
+        ```
+
+    Note:
+        Log entries are written to the backend's "frontend" logger and can be
+        monitored alongside backend logs for comprehensive debugging.
     """
     # Check if it's a batch or single entry
     if isinstance(payload, FrontendLogBatch):

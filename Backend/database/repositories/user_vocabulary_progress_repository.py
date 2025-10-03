@@ -200,7 +200,6 @@ class UserVocabularyProgressRepository(
 
         db.commit()
 
-        # Return updated records
         final_stmt = select(UserVocabularyProgress).where(
             and_(UserVocabularyProgress.user_id == user_id, UserVocabularyProgress.vocabulary_id.in_(vocabulary_ids))
         )

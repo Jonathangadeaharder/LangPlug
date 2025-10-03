@@ -1,5 +1,60 @@
 """
-Video service for handling video-related business logic
+Video Service
+
+Video file management and metadata extraction for LangPlug video library.
+This module handles video discovery, series organization, and subtitle file management.
+
+Key Components:
+    - VideoService: Main service for video operations
+    - Video scanning and discovery (direct files and series directories)
+    - Episode metadata parsing from filenames
+    - Subtitle file detection and path resolution
+
+Video Organization:
+    Supports two structures:
+    1. Direct videos: /videos/video.mp4
+    2. Series structure: /videos/SeriesName/episode.mp4
+
+    Subtitle files: Automatically detected as video_name.srt
+
+Usage Example:
+    ```python
+    from services.videoservice.video_service import VideoService
+
+    service = VideoService(db_manager, auth_service)
+
+    # Get all available videos
+    videos = service.get_available_videos()
+    # Returns: [VideoInfo(series="SeriesName", episode="1", ...)]
+
+    # Scan directory structure
+    scan_result = service.scan_videos_directory()
+    # Returns: {"direct_videos": [...], "series_directories": [...], ...}
+
+    # Get subtitle file path
+    subtitle_path = service.get_subtitle_file_path("SeriesName/episode.srt")
+
+    # Get video file path
+    video_path = service.get_video_file_path("SeriesName", "Episode 1")
+    ```
+
+Dependencies:
+    - pathlib: Path manipulation
+    - core.config: Videos directory configuration
+    - api.models.video: VideoInfo data model
+
+Thread Safety:
+    Yes. Service is stateless, all operations use local variables.
+
+Performance Notes:
+    - Video scanning: O(n) where n = total video files
+    - Uses glob patterns for efficient file discovery
+    - Caches not implemented - rescans on each call
+
+Filename Parsing Patterns:
+    - Episode: "episode 1", "ep1", "e1", "episode_01"
+    - Season: "season 1", "s1", "staffel 1"
+    - Case-insensitive matching
 """
 
 import logging
@@ -12,7 +67,38 @@ logger = logging.getLogger(__name__)
 
 
 class VideoService:
-    """Service class for video-related operations"""
+    """
+    Service for video library management and metadata extraction.
+
+    Handles video file discovery, series organization, episode parsing, and subtitle detection.
+    Supports both standalone videos and series directory structures.
+
+    Attributes:
+        db: Database manager instance
+        auth_service: Authentication service instance
+
+    Example:
+        ```python
+        service = VideoService(db_manager, auth_service)
+
+        # Discover all videos
+        videos = service.get_available_videos()
+        for video in videos:
+            print(f"{video.series} - {video.episode}: {video.title}")
+            print(f"  Has subtitles: {video.has_subtitles}")
+
+        # Get video path for playback
+        video_file = service.get_video_file_path("Dark", "Episode 1")
+
+        # Resolve subtitle path (handles Windows/WSL paths)
+        subtitle_file = service.get_subtitle_file_path("Dark/s01e01.srt")
+        ```
+
+    Note:
+        Methods are refactored to keep complexity low (<15 lines per method).
+        Supports Windows absolute paths and WSL path conversion.
+        Episode parsing is case-insensitive and flexible (handles multiple formats).
+    """
 
     def __init__(self, db_manager, auth_service):
         self.db = db_manager

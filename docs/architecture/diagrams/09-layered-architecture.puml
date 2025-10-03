@@ -1,0 +1,144 @@
+@startuml Layered Architecture
+!theme blueprint
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+title Layered Architecture - Backend Structure
+
+package "Presentation Layer" <<Rectangle>> #LightBlue {
+  component "API Routes" as routes {
+    [auth.py\nlogin, register,\ntoken refresh]
+    [vocabulary.py\nwords, progress,\nstatistics]
+    [videos.py\nupload, stream,\nprocessing]
+    [game.py\nstart, answer,\ncomplete]
+  }
+
+  component "Request/Response\nModels" as models {
+    [Pydantic Models\nValidation,\nSerialization]
+  }
+
+  component "WebSocket\nHandlers" as ws {
+    [Real-time\nProgress Updates]
+  }
+}
+
+package "Business Logic Layer" <<Rectangle>> #LightGreen {
+  component "Domain Services" as services {
+    [Auth Service\nAuthentication,\nTokens]
+    [Vocabulary Service\nQueries, Progress,\nStats]
+    [Processing Service\nVideo Processing,\nOrchestration]
+    [Transcription Service\nAudio Extraction,\nWhisper]
+    [Translation Service\nOPUS-MT,\nManagement]
+    [Filtering Service\nVocabulary Filter,\nSubtitles]
+  }
+
+  component "Business Rules" as rules {
+    [CEFR Level\nCalculation]
+    [Spaced\nRepetition]
+    [Progress\nTracking]
+  }
+}
+
+package "Data Access Layer" <<Rectangle>> #LightYellow {
+  component "Repositories" as repos {
+    [User Repository\nCRUD Operations]
+    [Vocabulary Repository\nWord Queries]
+    [Progress Repository\nProgress Tracking]
+    [Session Repository\nProcessing Sessions]
+  }
+
+  component "Database Models" as dbmodels {
+    [SQLAlchemy\nORM Models]
+  }
+
+  component "Query Builders" as queries {
+    [Complex Queries\nJoins, Aggregations]
+  }
+}
+
+package "Infrastructure Layer" <<Rectangle>> #LightGray {
+  component "External Services" as external {
+    [Whisper Model\nSpeech-to-Text]
+    [OPUS-MT Model\nTranslation]
+    [spaCy NLP\nLemmatization]
+  }
+
+  component "File System" as filesystem {
+    [Video Storage]
+    [Subtitle Files]
+    [Temp Files]
+  }
+
+  component "Cross-Cutting" as crosscut {
+    [Logging]
+    [Error Handling]
+    [Middleware]
+    [Security]
+  }
+}
+
+database "Database" as db {
+  storage "PostgreSQL\nSQLite"
+}
+
+' Presentation → Business Logic
+routes --> services
+models <--> routes
+ws --> services
+
+' Business Logic → Data Access
+services --> repos
+services --> rules
+
+' Data Access → Infrastructure
+repos --> dbmodels
+repos --> queries
+queries --> db
+dbmodels --> db
+
+' Business Logic → Infrastructure
+services --> external
+services --> filesystem
+
+' Cross-cutting concerns
+crosscut ..> routes : applies to
+crosscut ..> services : applies to
+crosscut ..> repos : applies to
+
+note right of routes
+  **API Layer**
+  - FastAPI routers
+  - Request validation
+  - Response serialization
+  - HTTP status codes
+  - Authentication enforcement
+end note
+
+note right of services
+  **Business Logic**
+  - Domain rules
+  - Workflow orchestration
+  - Service composition
+  - Transaction boundaries
+  - Business validations
+end note
+
+note right of repos
+  **Data Access**
+  - Database abstraction
+  - Query optimization
+  - Transaction management
+  - Data mapping
+  - Repository pattern
+end note
+
+note right of external
+  **Infrastructure**
+  - AI model integration
+  - File operations
+  - External systems
+  - Caching (optional)
+  - Logging, monitoring
+end note
+
+@enduml

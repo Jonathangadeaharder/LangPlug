@@ -1,6 +1,68 @@
 """
-ChunkTranscriptionService - Handle audio extraction and transcription for video chunks
-Extracted from chunk_processor.py for better separation of concerns
+Chunk Transcription Service
+
+Audio extraction and speech-to-text transcription for video chunks.
+This module handles FFmpeg-based audio extraction and Whisper-based transcription with SRT generation.
+
+Key Components:
+    - ChunkTranscriptionService: Main service for audio extraction and transcription
+    - FFmpeg integration for audio extraction
+    - Whisper model integration for transcription
+    - SRT file generation from transcription segments
+
+Processing Steps:
+    1. Extract audio chunk using FFmpeg (PCM 16kHz mono)
+    2. Transcribe using Whisper model (language-specific)
+    3. Convert segments to SRT format
+    4. Cleanup temporary audio files
+
+Usage Example:
+    ```python
+    service = ChunkTranscriptionService()
+
+    # Extract audio chunk
+    audio_file = await service.extract_audio_chunk(
+        task_id="task_123",
+        task_progress=progress_dict,
+        video_file=Path("/videos/video.mp4"),
+        start_time=0.0,
+        end_time=30.0
+    )
+
+    # Transcribe chunk
+    srt_file = await service.transcribe_chunk(
+        task_id="task_123",
+        task_progress=progress_dict,
+        video_file=Path("/videos/video.mp4"),
+        audio_file=audio_file,
+        language_preferences={"target": "de"},
+        start_time=0.0,
+        end_time=30.0
+    )
+
+    # Cleanup
+    service.cleanup_temp_audio_file(audio_file, video_file)
+    ```
+
+Dependencies:
+    - FFmpeg: External tool for audio extraction (required, must be in PATH)
+    - Whisper: Speech recognition model via transcription service
+    - asyncio: Subprocess management for FFmpeg
+    - utils.srt_parser: SRT file formatting
+
+Thread Safety:
+    Yes. Service is stateless, all operations use local variables.
+
+Performance Notes:
+    - Audio extraction: ~2-5 seconds per 30s chunk (I/O bound)
+    - Transcription: ~5-10 seconds per 30s chunk (GPU accelerated if available)
+    - FFmpeg timeout: 600 seconds (10 minutes)
+    - Audio format: PCM 16-bit 16kHz mono (optimized for speech recognition)
+
+Error Handling:
+    - Raises ChunkTranscriptionError on failures
+    - Automatically cleans up partial files on error
+    - Handles FFmpeg not found, timeout, and process errors
 """
 
 import asyncio
@@ -23,7 +85,37 @@ class ChunkTranscriptionError(Exception):
 
 class ChunkTranscriptionService(IChunkTranscriptionService):
     """
-    Service responsible for audio extraction and transcription of video chunks
+    Service for extracting audio and transcribing video chunks to text.
+
+    Handles the complete audio-to-text pipeline: FFmpeg audio extraction, Whisper transcription,
+    and SRT file generation with proper timestamp formatting.
+
+    Example:
+        ```python
+        service = ChunkTranscriptionService()
+
+        # Extract audio (creates .wav file)
+        audio = await service.extract_audio_chunk(
+            "task_1", progress, Path("video.mp4"), 0.0, 30.0
+        )
+        # Creates: video_chunk_0s_30s.wav
+
+        # Transcribe (creates .srt file)
+        srt = await service.transcribe_chunk(
+            "task_1", progress, Path("video.mp4"), audio,
+            {"target": "de"}, 0.0, 30.0
+        )
+        # Creates: video.srt with German transcription
+
+        # Cleanup temp audio
+        service.cleanup_temp_audio_file(audio, Path("video.mp4"))
+        ```
+
+    Note:
+        Implements IChunkTranscriptionService interface.
+        Audio extraction requires FFmpeg in system PATH.
+        Transcription requires Whisper model loaded in transcription service.
+        Automatically handles temporary file cleanup on success and error.
     """
 
     async def extract_audio_chunk(

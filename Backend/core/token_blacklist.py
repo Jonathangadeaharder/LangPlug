@@ -31,7 +31,6 @@ class TokenBlacklist:
         if self._redis_client is None:
             try:
                 self._redis_client = redis.Redis(host="localhost", port=6379, decode_responses=True)
-                # Test connection
                 await self._redis_client.ping()
                 logger.info("Redis connection established")
             except Exception as e:
@@ -43,7 +42,6 @@ class TokenBlacklist:
 
     async def add_token(self, token: str, expires_at: datetime | None = None) -> bool:
         """Add a token to the blacklist"""
-        # Validate token
         if not token or token is None:
             logger.warning("Attempted to add empty or None token to blacklist")
             return False
@@ -57,7 +55,6 @@ class TokenBlacklist:
             redis_client = await self._get_redis_client()
             if redis_client:
                 try:
-                    # Set token with expiration
                     ttl = int((expires_at - datetime.now(UTC)).total_seconds())
                     if ttl > 0:
                         await redis_client.setex(f"blacklist:{token}", ttl, "1")
@@ -65,9 +62,7 @@ class TokenBlacklist:
                         return True
                 except Exception as e:
                     logger.error(f"Redis blacklist add failed: {e}")
-                    # Fall back to memory
 
-        # Memory fallback
         self._memory_blacklist.add(token)
         self._memory_expiry[token] = expires_at
         logger.info(f"Token added to memory blacklist. Total tokens: {len(self._memory_blacklist)}")
@@ -75,7 +70,6 @@ class TokenBlacklist:
 
     async def is_blacklisted(self, token: str) -> bool:
         """Check if a token is blacklisted"""
-        # Validate token
         if not token or token is None:
             logger.debug("Checking blacklist for empty/None token - returning False")
             return False
@@ -92,13 +86,9 @@ class TokenBlacklist:
                     return is_blacklisted
                 except Exception as e:
                     logger.error(f"Redis blacklist check failed: {e}")
-                    # Fall back to memory
 
-        # Memory fallback
         if token in self._memory_blacklist:
-            # Check if token has expired
             if token in self._memory_expiry and datetime.now(UTC) > self._memory_expiry[token]:
-                # Token expired, remove it
                 self._memory_blacklist.discard(token)
                 del self._memory_expiry[token]
                 logger.debug(f"Expired token removed from blacklist: {token[:20]}...")
@@ -122,9 +112,7 @@ class TokenBlacklist:
                     return bool(result)
                 except Exception as e:
                     logger.error(f"Redis blacklist remove failed: {e}")
-                    # Fall back to memory
 
-        # Memory fallback
         removed = token in self._memory_blacklist
         self._memory_blacklist.discard(token)
         self._memory_expiry.pop(token, None)

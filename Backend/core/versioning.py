@@ -62,37 +62,30 @@ class ApiVersionManager:
 
     def get_version_from_request(self, request: Request) -> str:
         """Extract API version from request."""
-        # Try header first (preferred method)
         version = request.headers.get("X-API-Version")
         if version:
             return self._normalize_version(version)
 
-        # Try Accept header with version
         accept_header = request.headers.get("Accept", "")
         version_match = re.search(r"version=([\d\.]+)", accept_header)
         if version_match:
             return self._normalize_version(version_match.group(1))
 
-        # Try query parameter
         version = request.query_params.get("version")
         if version:
             return self._normalize_version(version)
 
-        # Try URL path
         path = str(request.url.path)
         version_match = re.search(r"/v([\d\.]+)/", path)
         if version_match:
             return self._normalize_version(version_match.group(1))
 
-        # Return default version
         return self.default_version
 
     def _normalize_version(self, version: str) -> str:
         """Normalize version string to standard format."""
-        # Remove 'v' prefix if present
         version = version.lstrip("v")
 
-        # Ensure major.minor format
         if "." not in version:
             version = f"{version}.0"
 
@@ -147,7 +140,6 @@ def add_version_headers(response, version: str) -> None:
     response.headers["X-API-Version"] = version
     response.headers["X-API-Latest-Version"] = version_manager.get_latest_version()
 
-    # Add deprecation warning if needed
     if version_manager.is_version_deprecated(version):
         version_info = version_manager.get_version_info(version)
         response.headers["Deprecation"] = "true"
@@ -171,16 +163,13 @@ class VersionedRoute(APIRoute):
         if not match:
             return match, child_scope
 
-        # Check version compatibility
         request = Request(scope)
         try:
             version = get_api_version(request)
 
-            # Check minimum version
             if self._compare_versions(version, self.min_version) < 0:
                 return False, {}
 
-            # Check maximum version if specified
             if self.max_version and self._compare_versions(version, self.max_version) > 0:
                 return False, {}
 
@@ -194,7 +183,6 @@ class VersionedRoute(APIRoute):
         v1_parts = [int(x) for x in v1.split(".")]
         v2_parts = [int(x) for x in v2.split(".")]
 
-        # Pad shorter version with zeros
         max_len = max(len(v1_parts), len(v2_parts))
         v1_parts.extend([0] * (max_len - len(v1_parts)))
         v2_parts.extend([0] * (max_len - len(v2_parts)))
@@ -229,20 +217,15 @@ def validate_request_contract(request_data: dict[str, Any], version: str) -> dic
 
 def format_response_contract(response_data: dict[str, Any], version: str) -> dict[str, Any]:
     """Format response data according to version-specific contract."""
-    # Version-specific response formatting
     if version == ApiVersion.V1_0:
-        # V1.0 format - legacy format
         return response_data
     elif version == ApiVersion.V1_1:
-        # V1.1 format - enhanced error handling
         if "error" in response_data:
             response_data["error_code"] = response_data.get("error", "unknown_error")
         return response_data
     elif version == ApiVersion.V2_0:
-        # V2.0 format - new structure
         if "user" in response_data:
             user_data = response_data["user"]
-            # Transform user data for v2.0
             if "created_at" in user_data:
                 user_data["created_timestamp"] = user_data["created_at"]
         return response_data

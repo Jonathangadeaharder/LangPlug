@@ -23,9 +23,4 @@ with open(input_file, encoding="utf-8") as infile, open(output_file, "w", newlin
                 # Write new row: german_word, spanish_translation
                 writer.writerow([german_word, translation])
             except Exception:
-                # Fallback: write original if translation fails
                 writer.writerow([german_word, german_word])
-
-# Optional: Replace original file (uncomment if desired)
-# import os
-# os.replace(output_file, input_file)

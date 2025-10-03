@@ -7,6 +7,24 @@ To enable CSRF protection:
 2. Import this module in main.py
 3. Add CSRF token endpoint to auth routes
 4. Update frontend to include CSRF tokens in state-changing requests
+
+Example usage in main.py:
+    from fastapi_csrf_protect import CsrfProtect
+    from core.csrf_config import get_csrf_config
+
+    @CsrfProtect.load_config
+    def load_csrf_config():
+        return get_csrf_config()
+
+    @app.post("/api/auth/csrf-token")
+    async def generate_csrf_token(csrf_protect: CsrfProtect = Depends()):
+        csrf_protect.set_csrf_cookie()
+        return {"message": "CSRF cookie set"}
+
+Example endpoint protection:
+    async def endpoint(csrf_protect: CsrfProtect = Depends()):
+        csrf_protect.validate_csrf()
+        # ... rest of endpoint
 """
 
 from pydantic import BaseModel
@@ -33,23 +51,3 @@ class CsrfSettings(BaseModel):
 def get_csrf_config() -> CsrfSettings:
     """Get CSRF configuration"""
     return CsrfSettings()
-
-
-# Usage in main.py:
-# from fastapi_csrf_protect import CsrfProtect
-# from core.csrf_config import get_csrf_config
-#
-# @CsrfProtect.load_config
-# def load_csrf_config():
-#     return get_csrf_config()
-#
-# # Add CSRF token generation endpoint
-# @app.post("/api/auth/csrf-token")
-# async def generate_csrf_token(csrf_protect: CsrfProtect = Depends()):
-#     csrf_protect.set_csrf_cookie()
-#     return {"message": "CSRF cookie set"}
-#
-# # Protect state-changing endpoints by adding:
-# async def endpoint(csrf_protect: CsrfProtect = Depends()):
-#     csrf_protect.validate_csrf()
-#     # ... rest of endpoint

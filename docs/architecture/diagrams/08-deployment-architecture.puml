@@ -1,0 +1,122 @@
+@startuml Deployment Architecture
+!theme blueprint
+skinparam linetype ortho
+
+title Deployment Architecture - LangPlug Production Environment
+
+cloud "Internet" {
+  actor "User" as user
+}
+
+node "Reverse Proxy (Nginx)" as nginx {
+  component "SSL/TLS Termination" as ssl
+  component "Load Balancer" as lb
+  component "Static File Serving" as static
+}
+
+node "Application Server" as appserver {
+  node "FastAPI Application" as fastapi {
+    component "Uvicorn Worker 1" as worker1
+    component "Uvicorn Worker 2" as worker2
+    component "Uvicorn Worker 3" as worker3
+    component "Uvicorn Worker 4" as worker4
+  }
+
+  node "Background Tasks" as bg {
+    component "Video Processing Queue" as queue
+    component "Celery Workers (Optional)" as celery
+  }
+
+  node "AI Model Services" as ai {
+    artifact "Whisper Model\n(medium)" as whisper
+    artifact "OPUS-MT Models\n(de-es, es-de)" as opus
+    artifact "spaCy Models\n(de_core_news_sm)" as spacy
+  }
+}
+
+database "PostgreSQL Database" as db {
+  folder "Data Storage" {
+    collections "users"
+    collections "vocabulary_words"
+    collections "user_vocabulary_progress"
+    collections "processing_sessions"
+    collections "game_sessions"
+  }
+}
+
+storage "File System" as fs {
+  folder "/var/lib/langplug" {
+    folder "videos/" as videos
+    folder "subtitles/" as subs
+    folder "temp/" as temp
+  }
+}
+
+node "Optional Services" as optional {
+  database "Redis Cache" as redis
+  queue "Message Queue\n(RabbitMQ)" as mq
+}
+
+' User connections
+user --> nginx : HTTPS (443)
+
+' Nginx routing
+nginx --> fastapi : HTTP (8000)
+nginx --> static : Static files
+
+' FastAPI to services
+fastapi --> db : Async SQL queries
+fastapi --> fs : File I/O
+fastapi --> ai : Model inference
+fastapi --> queue : Enqueue tasks
+
+' Background tasks
+queue --> celery : Process videos
+celery --> ai : AI inference
+celery --> db : Update progress
+celery --> fs : Store results
+
+' Optional integrations
+fastapi ..> redis : Cache (optional)
+fastapi ..> mq : Queue (optional)
+celery ..> redis : Task coordination
+celery ..> mq : Message passing
+
+' Storage relationships
+fastapi --> videos : Read videos
+fastapi --> subs : Read/Write SRT
+fastapi --> temp : Temp audio files
+
+note right of nginx
+  **Production Configuration**
+  - SSL/TLS certificates from Let's Encrypt
+  - Rate limiting: 1000 req/hour
+  - Request timeout: 30s
+  - Max body size: 500MB
+end note
+
+note right of fastapi
+  **Application Server**
+  - 4 Uvicorn workers (multi-core)
+  - Async database connections
+  - Connection pooling
+  - Worker timeout: 300s
+end note
+
+note right of db
+  **Database Configuration**
+  - PostgreSQL 15+
+  - Connection pool: 20-40
+  - Backup schedule: Daily
+  - WAL archiving enabled
+end note
+
+note right of ai
+  **AI Models (Local)**
+  - Loaded on startup
+  - In-memory inference
+  - GPU acceleration (optional)
+  - Model caching enabled
+end note
+
+@enduml

@@ -1,6 +1,49 @@
 """
-Direct Subtitle Processing - Facade for subtitle processing services
-Delegates to focused services while maintaining backward compatibility
+Direct Subtitle Processor
+
+Facade for subtitle processing and vocabulary filtering services.
+This module provides a unified interface for processing subtitles with user-specific vocabulary filtering.
+
+Key Components:
+    - DirectSubtitleProcessor: Main facade for subtitle processing
+    - Delegates to: user_data_loader, word_validator, word_filter, subtitle_processor, srt_file_handler
+    - FilteringResult: Result structure with categorized content
+    - FilteredSubtitle: Subtitle data structure
+
+Usage Example:
+    ```python
+    processor = DirectSubtitleProcessor()
+
+    # Process subtitle list
+    result = await processor.process_subtitles(
+        subtitles=[...],
+        user_id=123,
+        user_level="A1",
+        language="de"
+    )
+    # result: FilteringResult with blocking_words, learning_subtitles, etc.
+
+    # Process SRT file
+    result = await processor.process_srt_file(
+        srt_file_path="/path/to/video.srt",
+        user_id=123,
+        user_level="A1",
+        language="de"
+    )
+    # result: Dict with processing results and statistics
+    ```
+
+Dependencies:
+    - subtitle_processing: Focused sub-services (loader, validator, filter, processor, handler)
+    - vocabulary_service: Word difficulty and user progress data
+
+Thread Safety:
+    Yes. Facade is stateless, delegates to services which manage their own state.
+
+Performance Notes:
+    - Pre-loads user known words and word difficulties
+    - Processing: O(n) where n = number of subtitle segments
+    - Uses vocabulary service for efficient database queries
 """
 
 import logging
@@ -14,8 +57,38 @@ logger = logging.getLogger(__name__)
 
 class DirectSubtitleProcessor:
     """
-    Facade for subtitle processing services
-    Maintains backward compatibility while delegating to focused sub-services
+    Facade coordinating subtitle processing and vocabulary filtering.
+
+    Provides high-level API for processing subtitles with user-specific filtering,
+    delegating to specialized sub-services for data loading, validation, and filtering.
+
+    Attributes:
+        vocab_service: Vocabulary service for word lookups
+        data_loader: Loads user known words and word difficulties
+        validator: Validates word difficulty and learning status
+        filter: Filters words based on user level and knowledge
+        processor: Processes subtitles into categorized results
+        file_handler: Handles SRT file parsing and result formatting
+
+    Example:
+        ```python
+        processor = DirectSubtitleProcessor()
+
+        # Process subtitles with automatic user data loading
+        result = await processor.process_subtitles(
+            subtitles=subtitle_list,
+            user_id="123",
+            user_level="B1",
+            language="de"
+        )
+
+        print(f"Blocking words: {len(result.blocking_words)}")
+        print(f"Learning subtitles: {len(result.learning_subtitles)}")
+        ```
+
+    Note:
+        Maintains backward compatibility with legacy API.
+        Automatically pre-loads user data for efficient processing.
     """
 
     def __init__(self):

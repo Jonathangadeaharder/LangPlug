@@ -1,0 +1,65 @@
+@startuml LangPlug Component Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Component Diagram - Backend API Architecture
+
+Container(frontend, "Frontend App", "React", "User Interface")
+
+Container_Boundary(api, "Backend API") {
+    Component(auth_routes, "Authentication Routes", "FastAPI Router", "Handles login, registration, token refresh")
+    Component(vocab_routes, "Vocabulary Routes", "FastAPI Router", "Manages vocabulary queries and progress")
+    Component(video_routes, "Video Routes", "FastAPI Router", "Handles video upload, streaming, processing")
+    Component(game_routes, "Game Routes", "FastAPI Router", "Manages learning game sessions")
+
+    Component(auth_service, "Auth Service", "Python Service", "JWT token management, password hashing")
+    Component(vocab_service, "Vocabulary Service", "Python Service", "Vocabulary queries, progress tracking, statistics")
+    Component(processing_service, "Processing Service", "Python Service", "Video chunk processing orchestration")
+    Component(transcription_service, "Transcription Service", "Python Service", "Audio extraction and speech-to-text")
+    Component(translation_service, "Translation Service", "Python Service", "Text translation management")
+    Component(filtering_service, "Filtering Service", "Python Service", "Subtitle vocabulary filtering")
+
+    Component(user_repo, "User Repository", "Python Repository", "User data access")
+    Component(vocab_repo, "Vocabulary Repository", "Python Repository", "Vocabulary data access")
+    Component(progress_repo, "Progress Repository", "Python Repository", "Progress data access")
+
+    Component(middleware, "Middleware Stack", "FastAPI Middleware", "CORS, security headers, logging, error handling")
+}
+
+ContainerDb(db, "Database", "PostgreSQL", "Data persistence")
+Container(ai_models, "AI Models", "Whisper/OPUS-MT/spaCy", "ML inference")
+
+Rel(frontend, auth_routes, "Calls", "JSON/HTTPS")
+Rel(frontend, vocab_routes, "Calls", "JSON/HTTPS")
+Rel(frontend, video_routes, "Calls", "JSON/HTTPS")
+Rel(frontend, game_routes, "Calls", "JSON/HTTPS")
+
+Rel(auth_routes, auth_service, "Uses")
+Rel(vocab_routes, vocab_service, "Uses")
+Rel(video_routes, processing_service, "Uses")
+Rel(game_routes, vocab_service, "Uses")
+
+Rel(auth_service, user_repo, "Uses")
+Rel(vocab_service, vocab_repo, "Uses")
+Rel(vocab_service, progress_repo, "Uses")
+Rel(processing_service, transcription_service, "Uses")
+Rel(processing_service, translation_service, "Uses")
+Rel(processing_service, filtering_service, "Uses")
+
+Rel(user_repo, db, "Queries", "SQL")
+Rel(vocab_repo, db, "Queries", "SQL")
+Rel(progress_repo, db, "Queries", "SQL")
+
+Rel(transcription_service, ai_models, "Invokes", "Whisper")
+Rel(translation_service, ai_models, "Invokes", "OPUS-MT/NLLB")
+Rel(filtering_service, ai_models, "Invokes", "spaCy")
+
+Rel(middleware, auth_routes, "Wraps")
+Rel(middleware, vocab_routes, "Wraps")
+Rel(middleware, video_routes, "Wraps")
+Rel(middleware, game_routes, "Wraps")
+
+SHOW_LEGEND()
+
+@enduml

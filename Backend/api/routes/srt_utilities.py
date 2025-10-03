@@ -48,25 +48,75 @@ class ConvertToSRTRequest(BaseModel):
 @router.post("/parse", response_model=ParseSRTResponse)
 async def parse_srt_content(request: ParseSRTRequest):
     """
-    Parse SRT content and return structured data.
+    Parse SRT subtitle content and return structured segment data.
 
-    This endpoint replaces frontend SRT parsing logic, ensuring
-    the backend is the single source of truth for SRT processing.
+    Converts raw SRT text format into structured JSON with parsed timestamps,
+    segment indices, and text content. This endpoint centralizes SRT parsing
+    logic on the backend, ensuring consistent parsing across the application.
+
+    **Authentication Required**: No
 
     Args:
-        request: SRT content to parse
+        request (ParseSRTRequest): Request with:
+            - content (str): Raw SRT file content
 
     Returns:
-        Parsed SRT segments with metadata
+        ParseSRTResponse: Parsed data with:
+            - segments: List of subtitle segments
+                - index: Segment number
+                - start_time: Start timestamp in seconds
+                - end_time: End timestamp in seconds
+                - text: Subtitle text
+                - original_text: Original text (if available)
+                - translation: Translation text (if available)
+            - total_segments: Total number of segments
+            - duration: Total video duration in seconds
 
     Raises:
-        HTTPException: If parsing fails
+        HTTPException: 400 if SRT content is malformed or unparseable
+
+    Example:
+        ```bash
+        curl -X POST "http://localhost:8000/api/srt/parse" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "content": "1\\n00:00:00,000 --> 00:00:05,000\\nHallo!\\n\\n2\\n00:00:05,500 --> 00:00:10,000\\nWie geht es dir?"
+          }'
+        ```
+
+        Response:
+        ```json
+        {
+            "segments": [
+                {
+                    "index": 1,
+                    "start_time": 0.0,
+                    "end_time": 5.0,
+                    "text": "Hallo!",
+                    "original_text": "",
+                    "translation": ""
+                },
+                {
+                    "index": 2,
+                    "start_time": 5.5,
+                    "end_time": 10.0,
+                    "text": "Wie geht es dir?",
+                    "original_text": "",
+                    "translation": ""
+                }
+            ],
+            "total_segments": 2,
+            "duration": 10.0
+        }
+        ```
+
+    Note:
+        This endpoint should be used by frontend instead of client-side SRT parsing
+        to ensure consistency and reduce code duplication.
     """
     try:
-        # Parse using the backend SRT parser
         segments = SRTParser.parse_content(request.content)
 
-        # Convert to response format
         response_segments = []
         max_end_time = 0
 
@@ -109,16 +159,13 @@ async def parse_srt_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="File must be an SRT file (.srt extension)")
 
     try:
-        # Read file content
         content = await file.read()
 
-        # Decode content (try UTF-8 first, fall back to latin-1)
         try:
             srt_content = content.decode("utf-8")
         except UnicodeDecodeError:
             srt_content = content.decode("latin-1")
 
-        # Parse using the existing endpoint logic
         request = ParseSRTRequest(content=srt_content)
         return await parse_srt_content(request)
 
@@ -141,7 +188,6 @@ async def convert_to_srt(request: ConvertToSRTRequest):
         HTTPException: If conversion fails
     """
     try:
-        # Convert request segments to SRTSegment objects
         segments = []
         for segment_data in request.segments:
             segment = SRTSegment(
@@ -154,10 +200,8 @@ async def convert_to_srt(request: ConvertToSRTRequest):
             )
             segments.append(segment)
 
-        # Convert to SRT format
         srt_content = SRTParser.segments_to_srt(segments)
 
-        # Return as plain text response
         return Response(
             content=srt_content,
             media_type="text/plain",
@@ -184,17 +228,13 @@ async def validate_srt_content(content: str):
 
         issues = []
 
-        # Check for common issues
         for i, segment in enumerate(segments):
-            # Check for overlapping timestamps
             if i > 0 and segment.start_time < segments[i - 1].end_time:
                 issues.append(f"Segment {segment.index}: Overlaps with previous segment")
 
-            # Check for negative duration
             if segment.end_time <= segment.start_time:
                 issues.append(f"Segment {segment.index}: Invalid duration")
 
-            # Check for missing text
             if not segment.text and not segment.original_text:
                 issues.append(f"Segment {segment.index}: Missing text content")
 

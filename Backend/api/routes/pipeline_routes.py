@@ -50,7 +50,64 @@ async def get_task_progress(
     current_user: User = Depends(current_active_user),
     task_progress: dict[str, Any] = Depends(get_task_progress_registry),
 ):
-    """Get progress of a background task"""
+    """
+    Monitor progress of a background processing task.
+
+    Polls the status of an active background task (transcription, filtering, translation,
+    or full pipeline). Returns current progress percentage, status, and step information.
+
+    **Authentication Required**: Yes
+
+    Args:
+        task_id (str): Unique task identifier from task initiation response
+        current_user (User): Authenticated user
+        task_progress (dict): Task progress tracking registry
+
+    Returns:
+        ProcessingStatus: Progress information with:
+            - status: "processing", "completed", "error", or "cancelled"
+            - progress: Percentage complete (0-100)
+            - current_step: Description of current processing step
+            - message: Detailed status message
+            - vocabulary (optional): Extracted vocabulary (if applicable)
+            - subtitle_path (optional): Generated subtitle path (if completed)
+            - translation_path (optional): Translation file path (if applicable)
+
+    Raises:
+        None (returns completed status for missing tasks)
+
+    Example:
+        ```bash
+        curl -X GET "http://localhost:8000/api/processing/progress/transcribe_123_1234567890.123" \
+          -H "Authorization: Bearer <token>"
+        ```
+
+        Response (in progress):
+        ```json
+        {
+            "status": "processing",
+            "progress": 45.0,
+            "current_step": "Transcribing audio segments",
+            "message": "Processing segment 45 of 100"
+        }
+        ```
+
+        Response (completed):
+        ```json
+        {
+            "status": "completed",
+            "progress": 100.0,
+            "current_step": "Processing complete",
+            "message": "Video transcribed successfully",
+            "subtitle_path": "Learn German/S01E01.srt"
+        }
+        ```
+
+    Note:
+        Frontend should poll this endpoint periodically (e.g., every 2 seconds)
+        until status becomes "completed" or "error". Missing tasks return
+        completed status to prevent infinite polling.
+    """
     logger.debug(f"[PROGRESS CHECK] Task ID: {task_id}")
     logger.debug(f"[PROGRESS CHECK] Available tasks: {list(task_progress.keys())}")
 
