@@ -303,18 +303,14 @@ class TestCompleteUserWorkflow:
         """
         service = VocabularyFilterService()
 
-        class MockFilteredWord:
-            def __init__(self):
-                self.word = "glücklich"
-                self.difficulty_level = "C2"
-                self.lemma = "glücklich"
-                self.concept_id = None
+        # Use dict format that matches what the service expects
+        mock_word = {"word": "glücklich", "difficulty_level": "C2", "lemma": "glücklich", "concept_id": None}
 
         # Session 1: Process vocabulary with "glücklich"
-        vocab1 = service.extract_vocabulary_from_result({"blocking_words": [MockFilteredWord()]})
+        vocab1 = service.extract_vocabulary_from_result({"blocking_words": [mock_word]})
 
         # Session 2: Process vocabulary with same word "glücklich"
-        vocab2 = service.extract_vocabulary_from_result({"blocking_words": [MockFilteredWord()]})
+        vocab2 = service.extract_vocabulary_from_result({"blocking_words": [mock_word]})
 
         # Find "glücklich" in both sessions
         glucklish_word1 = next((w for w in vocab1 if w["word"] == "glücklich"), None)
@@ -343,18 +339,12 @@ class TestCompleteUserWorkflow:
         """
         service = VocabularyFilterService()
 
-        class MockFilteredWord:
-            def __init__(self, word_text, difficulty, lemma):
-                self.word = word_text
-                self.difficulty_level = difficulty
-                self.lemma = lemma
-                self.concept_id = None
-
+        # Use dict format that matches what the service expects
         filter_result = {
             "blocking_words": [
-                MockFilteredWord("Hallo", "A1", "hallo"),
-                MockFilteredWord("Welt", "A2", "welt"),
-                MockFilteredWord("glücklich", "C2", "glücklich"),
+                {"word": "Hallo", "difficulty_level": "A1", "lemma": "hallo", "concept_id": None},
+                {"word": "Welt", "difficulty_level": "A2", "lemma": "welt", "concept_id": None},
+                {"word": "glücklich", "difficulty_level": "C2", "lemma": "glücklich", "concept_id": None},
             ]
         }
 
