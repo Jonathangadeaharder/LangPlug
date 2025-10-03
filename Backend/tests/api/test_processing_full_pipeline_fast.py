@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from api.models.processing import ProcessingStatus
 from tests.auth_helpers import AuthTestHelperAsync
 
 
@@ -14,17 +15,16 @@ async def test_Whenfull_pipeline_started_ThenReturnsTaskId(async_client, monkeyp
     auth = await AuthTestHelperAsync.register_and_login_async(async_client)
 
     # Mock the processing pipeline
-    from api.routes import processing as proc
 
     async def mock_pipeline(video_path_str: str, task_id: str, task_progress, user_id: int):
-        task_progress[task_id] = proc.ProcessingStatus(
+        task_progress[task_id] = ProcessingStatus(
             status="completed",
             progress=100.0,
             current_step="done",
             message="Processing complete",
         )
 
-    monkeypatch.setattr(proc, "run_processing_pipeline", mock_pipeline)
+    monkeypatch.setattr("api.routes.episode_processing_routes.run_processing_pipeline", mock_pipeline)
 
     request_body = {
         "video_path": "test_video.mp4",
@@ -45,17 +45,16 @@ async def test_Whenpipeline_progress_requested_ThenReturnsStatus(async_client, m
     auth = await AuthTestHelperAsync.register_and_login_async(async_client)
 
     # Mock the processing pipeline
-    from api.routes import processing as proc
 
     async def mock_pipeline(video_path_str: str, task_id: str, task_progress, user_id: int):
-        task_progress[task_id] = proc.ProcessingStatus(
+        task_progress[task_id] = ProcessingStatus(
             status="completed",
             progress=100.0,
             current_step="done",
             message="Processing complete",
         )
 
-    monkeypatch.setattr(proc, "run_processing_pipeline", mock_pipeline)
+    monkeypatch.setattr("api.routes.episode_processing_routes.run_processing_pipeline", mock_pipeline)
 
     # Start processing
     request_body = {

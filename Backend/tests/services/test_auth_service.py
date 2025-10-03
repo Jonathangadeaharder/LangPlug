@@ -18,13 +18,16 @@ from services.authservice.auth_service import (
 
 @pytest.fixture
 def db_session_mock():
-    """Provide an async-capable session double."""
-    session = AsyncMock()
+    """Provide an async-capable session double that passes isinstance(AsyncSession) checks."""
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    session = AsyncMock(spec=AsyncSession)
     session.execute = AsyncMock()
     session.commit = AsyncMock()
     session.refresh = AsyncMock()
     session.rollback = AsyncMock()
     session.add = Mock()
+    session.begin_nested = AsyncMock(return_value=AsyncMock(__aenter__=AsyncMock(), __aexit__=AsyncMock()))
     return session
 
 
