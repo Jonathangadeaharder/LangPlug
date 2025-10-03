@@ -11,6 +11,7 @@ from domains.vocabulary.services import VocabularyService
 
 
 @pytest.mark.asyncio
+@pytest.mark.integration
 class TestVocabularyServiceIntegration:
     """Integration tests for vocabulary service"""
 
@@ -207,6 +208,7 @@ class TestVocabularyAPIIntegration:
 
 
 @pytest.mark.performance
+@pytest.mark.integration
 class TestVocabularyPerformance:
     """Performance tests for vocabulary operations"""
 
