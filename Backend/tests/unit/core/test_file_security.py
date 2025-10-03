@@ -5,11 +5,20 @@ Tests path traversal prevention, file validation, and secure upload handling
 """
 
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
 from core.file_security import FileSecurityValidator
+
+
+@pytest.fixture
+def temp_upload_dir(tmp_path):
+    """Fixture to provide a temporary upload directory for tests"""
+    upload_dir = tmp_path / "uploads"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    with patch.object(FileSecurityValidator, "ALLOWED_UPLOAD_DIR", upload_dir):
+        yield upload_dir
 
 
 class TestFileSecurityValidator:
@@ -110,7 +119,7 @@ class TestFileSecurityValidator:
             await FileSecurityValidator.validate_file_upload(mock_file, {".mp4"})
 
     @pytest.mark.asyncio
-    async def test_validate_file_upload_success(self):
+    async def test_validate_file_upload_success(self, temp_upload_dir):
         """Upload validation should succeed for valid files"""
         mock_file = Mock()
         mock_file.filename = "video.mp4"
@@ -135,7 +144,7 @@ class TestFileSecurityValidator:
         with pytest.raises(ValueError, match="not allowed"):
             FileSecurityValidator.get_safe_upload_path("malware.exe")
 
-    def test_get_safe_upload_path_generates_uuid(self):
+    def test_get_safe_upload_path_generates_uuid(self, temp_upload_dir):
         """Safe upload path should generate UUID filename by default"""
         path1 = FileSecurityValidator.get_safe_upload_path("video.mp4")
         path2 = FileSecurityValidator.get_safe_upload_path("video.mp4")
@@ -145,14 +154,14 @@ class TestFileSecurityValidator:
         assert path1.suffix == ".mp4"
         assert path2.suffix == ".mp4"
 
-    def test_get_safe_upload_path_preserves_name(self):
+    def test_get_safe_upload_path_preserves_name(self, temp_upload_dir):
         """Safe upload path should preserve name when requested"""
         path = FileSecurityValidator.get_safe_upload_path("my_video.mp4", preserve_name=True)
 
         assert "my_video" in str(path)
         assert path.suffix == ".mp4"
 
-    def test_get_safe_upload_path_sanitizes_preserved_name(self):
+    def test_get_safe_upload_path_sanitizes_preserved_name(self, temp_upload_dir):
         """Safe upload path should sanitize preserved names"""
         path = FileSecurityValidator.get_safe_upload_path("../etc/passwd.mp4", preserve_name=True)
 
