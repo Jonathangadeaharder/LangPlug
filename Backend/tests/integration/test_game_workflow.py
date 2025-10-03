@@ -131,7 +131,7 @@ class TestCompleteGameWorkflow:
         assert final_session_data["correct_answers"] == 2
         assert final_session_data["score"] == 20  # Fixed: 10 + 0 + 10 (correct scoring)
         assert final_session_data["status"] == "completed"
-        assert final_session_data["end_time"] is not None
+        assert final_session_data["completed_at"] is not None  # Fixed: Use correct field name
 
         # Step 7: Verify session appears in user's session list
         sessions_response = await async_client.get("/api/game/sessions", headers=headers)
