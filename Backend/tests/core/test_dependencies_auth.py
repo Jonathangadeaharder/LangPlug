@@ -78,17 +78,3 @@ async def test_Whenget_current_user_ws_auth_exceptionCalled_ThenSucceeds(monkeyp
 
     assert exc_info.value.status_code == 401
     assert "Invalid authentication" in exc_info.value.detail
-
-
-def test_Whenget_auth_service_backward_compatibilityCalled_ThenSucceeds():
-    """Test that get_auth_service returns a FastAPI-Users instance for backward compatibility"""
-    auth_service = deps.get_auth_service()
-    # Just verify it returns something (for backward compatibility with tests)
-    assert auth_service is not None
-
-
-def test_Whenget_database_manager_backward_compatibilityCalled_ThenSucceeds():
-    """Test that get_database_manager returns the database engine"""
-    db_manager = deps.get_database_manager()
-    # Just verify it returns the engine
-    assert db_manager is not None

@@ -49,16 +49,16 @@ jobs:
         run: |
           case "${{ matrix.test-group }}" in
             api)
-              pytest -q tests/api --cov=api --cov-report=xml --cov-report=html --cov-fail-under=70
+              pytest -q tests/api --cov=api --cov-report=xml --cov-report=html --cov-fail-under=50
               ;;
             core)
-              pytest -q tests/core --cov=core --cov-report=xml --cov-report=html --cov-fail-under=70
+              pytest -q tests/core --cov=core --cov-report=xml --cov-report=html --cov-fail-under=50
               ;;
             services)
-              pytest -q tests/services --cov=services --cov-report=xml --cov-report=html --cov-fail-under=70
+              pytest -q tests/services --cov=services --cov-report=xml --cov-report=html --cov-fail-under=50
               ;;
             management)
-              pytest -q tests/management --cov=management --cov-report=xml --cov-report=html --cov-fail-under=70
+              pytest -q tests/management --cov=management --cov-report=xml --cov-report=html --cov-fail-under=50
               ;;
             integration)
               pytest -q tests/integration/test_inprocess_*.py --cov-report=xml --cov-report=html

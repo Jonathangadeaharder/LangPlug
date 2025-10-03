@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 import httpx
 import pytest
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
 from core.exceptions import LangPlugException
 from core.middleware import setup_middleware
@@ -24,6 +25,15 @@ async def test_Whencors_and_exception_handlerCalled_ThenSucceeds():
         yield
 
     app.router.lifespan_context = no_lifespan
+
+    # Add CORS middleware explicitly for this test since setup_middleware no longer includes it
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     setup_middleware(app)
 
