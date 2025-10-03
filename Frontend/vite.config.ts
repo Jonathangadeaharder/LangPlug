@@ -6,14 +6,18 @@ import { viteLogger } from './vite-plugin-logger'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
+  const plugins = [react()]
+
+  // Only use logger in development mode to avoid stream conflicts in production builds
+  if (mode === 'development') {
+    plugins.unshift(viteLogger({
+      logFile: 'frontend.log',
+      includeTimestamp: true
+    }))
+  }
+
   return {
-    plugins: [
-      viteLogger({
-        logFile: 'frontend.log',
-        includeTimestamp: true
-      }),
-      react()
-    ],
+    plugins,
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
