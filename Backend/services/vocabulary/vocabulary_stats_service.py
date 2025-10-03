@@ -8,6 +8,7 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import AsyncSessionLocal
+from core.enums import CEFRLevel
 from database.models import UserVocabularyProgress, VocabularyWord
 
 logger = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ class VocabularyStatsService:
         This method manages its own database session and returns a plain dict.
         New code should use get_vocabulary_stats() with dependency injection instead.
         """
-        levels_list = ["A1", "A2", "B1", "B2", "C1", "C2"]
+        levels_list = CEFRLevel.all_levels()
         stats = {"target_language": target_language, "levels": {}, "total_words": 0, "total_known": 0}
 
         async with AsyncSessionLocal() as session:
@@ -84,7 +85,7 @@ class VocabularyStatsService:
         total_words_all = 0
         total_known_all = 0
 
-        for level in ["A1", "A2", "B1", "B2", "C1", "C2"]:
+        for level in CEFRLevel.all_levels():
             # Execute database query
             total_stmt = select(func.count(VocabularyWord.id)).where(
                 and_(VocabularyWord.language == target_language, VocabularyWord.difficulty_level == level)
@@ -151,7 +152,7 @@ class VocabularyStatsService:
 
         # Progress by level
         levels_progress = []
-        for level in ["A1", "A2", "B1", "B2", "C1", "C2"]:
+        for level in CEFRLevel.all_levels():
             level_total_stmt = select(func.count(VocabularyWord.id)).where(VocabularyWord.difficulty_level == level)
             level_total_result = await db_session.execute(level_total_stmt)
             level_total = level_total_result.scalar() or 0

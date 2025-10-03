@@ -14,9 +14,10 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.enums import GameDifficulty, GameSessionStatus, GameType
 from database.models import GameSession as GameSessionRecord
 
-from .game_question_service import GameDifficulty, GameQuestion, GameQuestionService, GameType
+from .game_question_service import GameQuestion, GameQuestionService
 from .game_scoring_service import GameScoringService
 
 logger = logging.getLogger(__name__)
@@ -27,12 +28,12 @@ class GameSession(BaseModel):
 
     session_id: str
     user_id: str
-    game_type: str  # "vocabulary", "listening", "comprehension"
-    difficulty: str = "intermediate"  # "beginner", "intermediate", "advanced"
+    game_type: GameType | str
+    difficulty: GameDifficulty | str = GameDifficulty.INTERMEDIATE
     video_id: str | None = None
     started_at: datetime
     completed_at: datetime | None = None
-    status: str = "active"  # "active", "completed", "paused", "abandoned"
+    status: GameSessionStatus | str = GameSessionStatus.ACTIVE
     score: int = 0
     max_score: int = 100
     questions_answered: int = 0
@@ -146,7 +147,7 @@ class GameSessionService:
             difficulty=request.difficulty.value,
             language="de",  # Default to German for now
             started_at=now,
-            status="active",
+            status=GameSessionStatus.ACTIVE.value,
             total_questions=request.total_questions,
             max_score=request.total_questions * 10,
             session_data=json.dumps(session_payload, ensure_ascii=False),
@@ -256,14 +257,14 @@ class GameSessionService:
             points_earned=evaluation.points_awarded,
             current_score=record.score,
             questions_remaining=max(record.total_questions - record.questions_answered, 0),
-            session_completed=record.status == "completed",
+            session_completed=record.status == GameSessionStatus.COMPLETED.value,
         )
 
     def _validate_session(self, record: GameSessionRecord | None) -> None:
         """Validate session exists and is active"""
         if not record:
             raise GameSessionNotFoundError("Game session not found")
-        if record.status != "active":
+        if record.status != GameSessionStatus.ACTIVE.value:
             raise GameSessionInactiveError("Game session is not active")
 
     def _find_question(self, session_payload: dict, question_id: str) -> dict:
@@ -288,7 +289,7 @@ class GameSessionService:
             record.score += points_awarded
 
         if self.scoring_service.calculate_session_completion(record.questions_answered, record.total_questions):
-            record.status = "completed"
+            record.status = GameSessionStatus.COMPLETED.value
             record.completed_at = datetime.utcnow()
 
     def _deserialize_payload(self, raw: str | None) -> dict:

@@ -6,27 +6,12 @@ Isolated from session management and scoring logic.
 """
 
 import logging
-from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
 
+from core.enums import GameDifficulty, GameType
+
 logger = logging.getLogger(__name__)
-
-
-class GameType(str, Enum):
-    """Valid game types"""
-
-    VOCABULARY = "vocabulary"
-    LISTENING = "listening"
-    COMPREHENSION = "comprehension"
-
-
-class GameDifficulty(str, Enum):
-    """Valid difficulty levels"""
-
-    BEGINNER = "beginner"
-    INTERMEDIATE = "intermediate"
-    ADVANCED = "advanced"
 
 
 class GameQuestion(BaseModel):

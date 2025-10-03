@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.config import settings
 from core.database import get_async_session
 from core.dependencies import current_active_user
+from core.enums import CEFRLevel
 from database.models import User
 from services.vocabulary_service import vocabulary_service
 
@@ -370,8 +371,8 @@ async def get_vocabulary_level(
     db: AsyncSession = Depends(get_async_session),
 ):
     """Get vocabulary for a specific level"""
-    if level.upper() not in ["A1", "A2", "B1", "B2", "C1", "C2"]:
-        raise HTTPException(status_code=422, detail="Invalid level")
+    if level.upper() not in CEFRLevel.all_levels():
+        raise HTTPException(status_code=422, detail=f"Invalid level. Must be one of {CEFRLevel.all_levels()}")
 
     try:
         library = await vocabulary_service.get_vocabulary_library(

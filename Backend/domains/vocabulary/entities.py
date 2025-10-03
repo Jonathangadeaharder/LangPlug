@@ -8,41 +8,10 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
+from core.enums import CEFRLevel, ConfidenceLevel, WordType
 
-class DifficultyLevel(Enum):
-    """CEFR difficulty levels"""
-
-    A1 = "A1"
-    A2 = "A2"
-    B1 = "B1"
-    B2 = "B2"
-    C1 = "C1"
-    C2 = "C2"
-
-
-class WordType(Enum):
-    """Types of vocabulary words"""
-
-    NOUN = "noun"
-    VERB = "verb"
-    ADJECTIVE = "adjective"
-    ADVERB = "adverb"
-    PREPOSITION = "preposition"
-    CONJUNCTION = "conjunction"
-    ARTICLE = "article"
-    PRONOUN = "pronoun"
-    INTERJECTION = "interjection"
-    UNKNOWN = "unknown"
-
-
-class ConfidenceLevel(Enum):
-    """User confidence levels for vocabulary knowledge"""
-
-    UNKNOWN = 0
-    WEAK = 1
-    MODERATE = 2
-    STRONG = 3
-    MASTERED = 4
+# Alias for domain-specific naming (same as CEFRLevel)
+DifficultyLevel = CEFRLevel
 
 
 @dataclass

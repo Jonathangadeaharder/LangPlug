@@ -2,9 +2,9 @@
 Processing API models
 """
 
-from typing import Literal
-
 from pydantic import BaseModel, ConfigDict, Field
+
+from core.enums import ProcessingStatus as ProcessingStatusEnum
 
 from .vocabulary import VocabularyWord
 
@@ -17,9 +17,7 @@ class TranscribeRequest(BaseModel):
 
 
 class ProcessingStatus(BaseModel):
-    status: Literal["starting", "processing", "completed", "error"] = Field(
-        ..., description="Current processing status"
-    )
+    status: ProcessingStatusEnum | str = Field(..., description="Current processing status")
     progress: float = Field(..., ge=0, le=100, description="Processing progress percentage (0-100)")
     current_step: str = Field(
         ..., min_length=1, max_length=200, description="Description of the current processing step"
@@ -39,7 +37,7 @@ class ProcessingStatus(BaseModel):
         validate_assignment=True,
         json_schema_extra={
             "example": {
-                "status": "processing",
+                "status": ProcessingStatusEnum.PROCESSING.value,
                 "progress": 45.5,
                 "current_step": "Transcribing audio segment 3/8",
                 "message": "Processing video chunks...",

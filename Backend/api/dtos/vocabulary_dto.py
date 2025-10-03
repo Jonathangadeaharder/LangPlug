@@ -7,10 +7,10 @@ import re
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from core.enums import CEFRLevel
+
 # Valid language codes (ISO 639-1)
 VALID_LANGUAGES = {"de", "en", "es", "fr", "it", "pt", "ru", "zh", "ja", "ko"}
-# Valid difficulty levels
-VALID_DIFFICULTY_LEVELS = {"A1", "A2", "B1", "B2", "C1", "C2", "unknown"}
 
 
 class VocabularyWordDTO(BaseModel):
@@ -44,8 +44,9 @@ class VocabularyWordDTO(BaseModel):
     @classmethod
     def validate_difficulty(cls, v: str) -> str:
         """Validate difficulty level"""
-        if v not in VALID_DIFFICULTY_LEVELS:
-            raise ValueError(f"Invalid difficulty level. Must be one of {VALID_DIFFICULTY_LEVELS}")
+        valid_levels = {level.value for level in CEFRLevel}
+        if v not in valid_levels:
+            raise ValueError(f"Invalid difficulty level. Must be one of {valid_levels}")
         return v
 
     @field_validator("language")

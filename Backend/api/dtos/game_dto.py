@@ -7,18 +7,20 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from core.enums import GameDifficulty, GameSessionStatus, GameType
+
 
 class GameSessionDTO(BaseModel):
     """DTO for game session"""
 
     session_id: str = Field(..., description="Unique session identifier")
     user_id: str = Field(..., description="User ID")
-    game_type: str = Field(..., description="Game type (vocabulary, listening, comprehension)")
-    difficulty: str = Field(default="intermediate", description="Difficulty level")
+    game_type: GameType | str = Field(..., description="Game type")
+    difficulty: GameDifficulty | str = Field(default=GameDifficulty.INTERMEDIATE, description="Difficulty level")
     video_id: str | None = Field(None, description="Associated video ID")
     started_at: datetime = Field(..., description="Session start time")
     completed_at: datetime | None = Field(None, description="Session completion time")
-    status: str = Field(default="active", description="Session status (active, completed, paused)")
+    status: GameSessionStatus | str = Field(default=GameSessionStatus.ACTIVE, description="Session status")
     score: int = Field(default=0, ge=0, description="Current score")
     max_score: int = Field(default=100, ge=0, description="Maximum possible score")
     questions_answered: int = Field(default=0, ge=0, description="Questions answered")
@@ -31,8 +33,8 @@ class GameSessionDTO(BaseModel):
 class StartGameRequest(BaseModel):
     """DTO for starting a game session"""
 
-    game_type: str = Field(..., description="Game type (vocabulary, listening, comprehension)")
-    difficulty: str = Field(default="intermediate", description="Difficulty (beginner, intermediate, advanced)")
+    game_type: GameType | str = Field(..., description="Game type")
+    difficulty: GameDifficulty | str = Field(default=GameDifficulty.INTERMEDIATE, description="Difficulty level")
     video_id: str | None = Field(None, description="Optional video context")
     total_questions: int = Field(default=10, ge=1, le=50, description="Number of questions")
 
