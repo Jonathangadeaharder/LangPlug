@@ -37,7 +37,7 @@ ruff>=0.8.0              # Fast linter + formatter (replaces flake8, isort, blac
 mypy>=1.13.0             # Static type checker
 bandit[toml]>=1.7.10     # Security linter
 detect-secrets>=1.5.0    # Secret detection
-radon>=6.0.0             # Code complexity metrics (cyclomatic, cognitive, maintainability)
+radon>=5.1.0,<5.2.0      # Code complexity metrics (cyclomatic, cognitive, maintainability) - pinned for wily compatibility
 wily>=1.25.0             # Complexity tracking over time
 lizard>=1.17.0           # Multi-language complexity analysis
 
