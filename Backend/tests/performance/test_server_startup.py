@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import builtins
 import contextlib
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -34,15 +34,16 @@ async def test_Whenlifespan_schedules_cleanupCalled_ThenSucceeds(monkeypatch) ->
     async def fake_cleanup() -> None:
         created_tasks.append("cleanup")
 
-    # Track coroutines that get created
-    __import__("asyncio").create_task
-
     def mock_create_task(coro):
         if hasattr(coro, "__await__"):  # It's a coroutine
             # Close the coroutine to prevent warning
             with contextlib.suppress(builtins.BaseException):
                 coro.close()
         created_tasks.append(coro)
+        # Return a mock Task object with add_done_callback method
+        mock_task = Mock()
+        mock_task.add_done_callback = Mock()
+        return mock_task
 
     monkeypatch.setattr("core.app.cleanup_services", fake_cleanup)
     # Patch the global asyncio.create_task since core.app imports asyncio locally
