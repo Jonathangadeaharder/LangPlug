@@ -14,7 +14,7 @@ class TestRegisterRequestValidation:
 
     def test_validate_password_strength_valid_password(self):
         """Test password validation with valid passwords"""
-        valid_passwords = ["TestPass123", "SecurePassword1", "MyStr0ngP@ss", "ValidPass123!"]
+        valid_passwords = ["TestPass1234", "SecurePassword1", "MyStr0ngP@ss", "ValidPass123!"]
 
         for password in valid_passwords:
             request = RegisterRequest(username="testuser", password=password)

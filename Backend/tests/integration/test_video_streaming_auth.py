@@ -16,7 +16,7 @@ class TestVideoStreamingAuthentication:
     async def test_video_endpoint_with_query_token(self, async_client: AsyncClient):
         """Test that video endpoint accepts authentication via query parameter"""
         # Create a test user
-        user_data = UserCreate(username="testvideouser", email="videotest@example.com", password="TestPass123")
+        user_data = UserCreate(username="testvideouser", email="videotest@example.com", password="TestPass1234")
 
         # Register user
         response = await async_client.post(
@@ -55,7 +55,7 @@ class TestVideoStreamingAuthentication:
     async def test_video_endpoint_with_bearer_header(self, async_client: AsyncClient):
         """Test that video endpoint accepts Bearer token in Authorization header"""
         # Create a test user
-        user_data = UserCreate(username="testvideouser2", email="videotest2@example.com", password="TestPass123")
+        user_data = UserCreate(username="testvideouser2", email="videotest2@example.com", password="TestPass1234")
 
         # Register user
         response = await async_client.post(
