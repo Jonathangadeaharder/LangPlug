@@ -81,7 +81,7 @@ async def init_db():
 
 
 async def create_default_admin_user():
-    """Create default admin user with credentials admin/admin"""
+    """Create default admin user with secure credentials"""
     from passlib.context import CryptContext
     from sqlalchemy import select
 
@@ -95,8 +95,9 @@ async def create_default_admin_user():
         existing_admin = result.scalar_one_or_none()
 
         if not existing_admin:
-            # Create admin user
-            hashed_password = pwd_context.hash("admin")
+            # Create admin user with secure password meeting validation requirements
+            # Password: AdminPass123! (12+ chars, upper, lower, digit, special)
+            hashed_password = pwd_context.hash("AdminPass123!")
             admin_user = User(
                 email="admin@langplug.com",
                 username="admin",
@@ -107,7 +108,7 @@ async def create_default_admin_user():
             )
             session.add(admin_user)
             await session.commit()
-            logger.info("Default admin user created (admin/admin)")
+            logger.info("Default admin user created (username: admin, email: admin@langplug.com, password: AdminPass123!)")
 
 
 async def close_db():
