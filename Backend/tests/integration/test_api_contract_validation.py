@@ -198,12 +198,8 @@ class TestFrontendBackendContract:
         """
         service = VocabularyFilterService()
 
-        class MockWord:
-            def __init__(self):
-                self.word = "test"
-                self.difficulty_level = "A1"
-
-        filter_result = {"blocking_words": [MockWord()]}
+        # Use dict format that matches what the service expects
+        filter_result = {"blocking_words": [{"word": "test", "difficulty_level": "A1", "lemma": "test"}]}
 
         vocabulary = service.extract_vocabulary_from_result(filter_result)
 
@@ -241,16 +237,18 @@ class TestAPIContractValidation:
         """
         service = VocabularyFilterService()
 
-        class MockWord:
-            def __init__(self):
-                self.word = "Haus"
-                self.difficulty_level = "A1"
-                self.lemma = "haus"
-                self.translation = "house"
-                self.part_of_speech = "noun"
-                self.concept_id = None  # Simulates FilteredWord with None concept_id
-
-        filter_result = {"blocking_words": [MockWord()]}
+        # Use dict format that matches what the service expects
+        filter_result = {
+            "blocking_words": [
+                {
+                    "word": "Haus",
+                    "difficulty_level": "A1",
+                    "lemma": "haus",
+                    "translation": "house",
+                    "concept_id": None,  # Service will generate UUID
+                }
+            ]
+        }
         vocabulary = service.extract_vocabulary_from_result(filter_result)
 
         word = vocabulary[0]

@@ -77,14 +77,14 @@ class TestAuthApiContractCompliance:
     def test_login_endpoint_contract(self, client: TestClient):
         """Test login endpoint follows OpenAPI contract"""
         # First register a user
-        register_data = {"username": "logintest123", "email": "logintest123@example.com", "password": "LoginPass123"}
+        register_data = {"username": "logintest123", "email": "logintest123@example.com", "password": "LoginPass123!"}
         register_response = client.post("/api/auth/register", json=register_data)
 
         # Registration should succeed
         assert register_response.status_code == 201
 
         # Valid login request (FastAPI-Users uses form data for login)
-        login_request = {"username": "logintest123", "password": "LoginPass123"}
+        login_request = {"username": "logintest123", "password": "LoginPass123!"}
 
         response = client.post("/api/auth/login", data=login_request)
 
