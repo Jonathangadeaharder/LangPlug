@@ -24,6 +24,18 @@ Location: `~/.claude/hooks/powershell_wrapper.py`
 - Command pattern: `cd /mnt/c/Users/Jonandrop/IdeaProjects/LangPlug/Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m pytest ..."`
 - This ensures all dependencies are available and tests run in the correct environment
 
+### Pre-Commit Hook Failures
+
+- Symptom: `Error: "pre-commit" not found. Did you forget to activate your virtualenv?`
+- Root cause: Git hooks run outside the activated venv, so the `pre-commit` executable bundled in `api_venv` is missing from `PATH`.
+- Prevention:
+  - From WSL or Git Bash, run everything through one `powershell.exe` command so activation always happens before git operations:
+    ```bash
+    cd /mnt/c/Users/Jonandrop/IdeaProjects/LangPlug/Backend && \
+    powershell.exe -Command ". api_venv/Scripts/activate; pip install pre-commit; pre-commit install"
+    ```
+  - For subsequent commits just reuse the same pattern, chaining whatever action you need after activation, e.g. `...; pre-commit run --all-files` or `...; git commit`.
+
 ## LangPlug-Specific Testing Standards
 
 ### AI/ML Service Integration Testing Anti-Patterns

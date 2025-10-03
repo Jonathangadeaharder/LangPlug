@@ -6,7 +6,7 @@ Provides in-memory, Redis, and domain-specific caching strategies
 import hashlib
 import json
 import logging
-import pickle
+import pickle  # nosec B403
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -82,7 +82,7 @@ class InMemoryCache(CacheBackend):
     def __init__(self, max_size: int = 1000):
         self._cache: dict[str, Any] = {}
         self._ttl: dict[str, datetime] = {}
-        self._access_order: List[str] = []
+        self._access_order: list[str] = []
         self.max_size = max_size
 
     async def get(self, key: str) -> Any | None:
@@ -200,7 +200,7 @@ class EnhancedCacheManager:
                 if redis_value:
                     # Deserialize and back-fill L1
                     # nosec B301: pickle is safe here - Redis is internal trusted cache
-                    deserialized = pickle.loads(redis_value)  # nosec
+                    deserialized = pickle.loads(redis_value)  # noqa: S301  # nosec
                     config = self._domain_caches.get(domain, {"l1_ttl": 300})
                     await self._memory_cache.set(key, deserialized, config["l1_ttl"])
                     return deserialized

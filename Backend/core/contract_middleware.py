@@ -124,10 +124,7 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
         if path.startswith("/api/videos/subtitles/"):
             return True
 
-        if path in ["/openapi.json", "/docs", "/redoc"]:
-            return True
-
-        return False
+        return path in ["/openapi.json", "/docs", "/redoc"]
 
     def _validate_request_contract(self, method: str, path: str, schema: dict[str, Any]) -> JSONResponse | None:
         """Validate request against contract, return error response if invalid"""
@@ -150,11 +147,9 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
         if not self.validate_responses:
             return
 
-        if not self.validate_response_status(path, method, response.status_code, schema):
-            if self.log_violations:
-                logger.warning(
-                    f"Contract violation: Undefined response status {response.status_code} for {method} {path}"
-                )
+        status_valid = self.validate_response_status(path, method, response.status_code, schema)
+        if not status_valid and self.log_violations:
+            logger.warning(f"Contract violation: Undefined response status {response.status_code} for {method} {path}")
 
     def _add_validation_headers(self, response) -> None:
         """Add contract validation headers to response"""

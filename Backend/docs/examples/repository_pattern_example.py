@@ -8,18 +8,14 @@ Do NOT import this file in production code - it's for documentation only.
 """
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 
 from core.dependencies import (
-    current_active_user,
-    get_processing_session_repository,
     get_user_repository,
     get_user_vocabulary_progress_repository,
     get_vocabulary_repository,
 )
 from database.models import User
 from database.repositories.interfaces import (
-    ProcessingSessionRepositoryInterface,
     UserRepositoryInterface,
     UserVocabularyProgressRepositoryInterface,
     VocabularyRepositoryInterface,
@@ -35,9 +31,7 @@ router = APIRouter(prefix="/example", tags=["example"])
 
 
 @router.get("/users/{user_id}")
-async def get_user_example(
-    user_id: int, user_repo: UserRepositoryInterface = Depends(get_user_repository)
-):
+async def get_user_example(user_id: int, user_repo: UserRepositoryInterface = Depends(get_user_repository)):
     """
     Example: Get user by ID using repository
 
@@ -181,9 +175,7 @@ def get_example_service(
 
 
 @router.get("/users/{user_id}/level")
-async def get_user_level_example(
-    user_id: int, service: ExampleService = Depends(get_example_service)
-):
+async def get_user_level_example(user_id: int, service: ExampleService = Depends(get_example_service)):
     """
     Example: Using service with repository dependencies
 
@@ -276,13 +268,11 @@ async def test_example_service():
 # Key Takeaways
 # ─────────────────────────────────────────────────────────────
 
-"""
-1. ALWAYS depend on repository interfaces, not concrete implementations
-2. Inject repositories via FastAPI Depends() in routes
-3. Inject repositories via constructor in services
-4. Create mock repositories for testing
-5. Keep routes thin - business logic belongs in services
-6. Each repository handles one entity type
-7. Repository methods should have clear, single purposes
-8. Use type hints for all repository parameters and returns
-"""
+# 1. ALWAYS depend on repository interfaces, not concrete implementations
+# 2. Inject repositories via FastAPI Depends() in routes
+# 3. Inject repositories via constructor in services
+# 4. Create mock repositories for testing
+# 5. Keep routes thin - business logic belongs in services
+# 6. Each repository handles one entity type
+# 7. Repository methods should have clear, single purposes
+# 8. Use type hints for all repository parameters and returns

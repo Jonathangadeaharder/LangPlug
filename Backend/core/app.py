@@ -72,8 +72,15 @@ async def lifespan(app: FastAPI):
         # This is acceptable as it's a cleanup operation
         import asyncio
 
+        def _log_cleanup_result(task: "asyncio.Task[None]") -> None:
+            try:
+                task.result()
+            except Exception as cleanup_error:
+                logger.warning("Cleanup task failed: %s", cleanup_error, exc_info=True)
+
         try:
-            asyncio.create_task(cleanup_services())
+            cleanup_task = asyncio.create_task(cleanup_services())
+            cleanup_task.add_done_callback(_log_cleanup_result)
         except RuntimeError:
             # If no event loop is running, skip cleanup
             pass

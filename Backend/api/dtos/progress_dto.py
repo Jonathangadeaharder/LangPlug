@@ -3,8 +3,7 @@ Progress Data Transfer Objects
 API request/response models for user progress tracking
 """
 
-from datetime import date as Date
-from datetime import datetime as DateTime
+from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
@@ -26,9 +25,9 @@ class UserProgressDTO(BaseModel):
 class DailyProgressDTO(BaseModel):
     """DTO for daily progress entry"""
 
-    entry_date: Date = Field(..., description="Date of progress entry")
+    entry_date: date = Field(..., description="Date of progress entry")
     words_learned: int = Field(default=0, ge=0, description="Words learned on this day")
     words_reviewed: int = Field(default=0, ge=0, description="Words reviewed on this day")
     study_time_minutes: int = Field(default=0, ge=0, description="Study time in minutes")
     accuracy: float | None = Field(None, ge=0.0, le=100.0, description="Quiz accuracy percentage")
-    created_at: DateTime | None = Field(None, description="Entry creation timestamp")
+    created_at: datetime | None = Field(None, description="Entry creation timestamp")

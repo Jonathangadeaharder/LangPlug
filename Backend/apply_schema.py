@@ -44,8 +44,8 @@ def apply_postgresql_schema():
         commands = []
         current_command = []
 
-        for line in schema_sql.split("\n"):
-            line = line.strip()
+        for raw_line in schema_sql.split("\n"):
+            line = raw_line.strip()
             if line and not line.startswith("--"):
                 current_command.append(line)
                 if line.endswith(";"):

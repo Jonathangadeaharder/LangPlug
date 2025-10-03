@@ -5,7 +5,7 @@ Custom exceptions for LangPlug API
 from fastapi import status
 
 
-class LangPlugException(Exception):
+class LangPlugException(Exception):  # noqa: N818
     """Base exception for LangPlug"""
 
     def __init__(self, message: str, status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR):
