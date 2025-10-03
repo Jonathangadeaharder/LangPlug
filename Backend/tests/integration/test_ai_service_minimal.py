@@ -43,9 +43,9 @@ def test_whisper_tiny_hello_world():
 def test_opus_de_es_hello_world():
     """Minimal OPUS Helsinki translation test."""
     service = TranslationServiceFactory.create_service("opus-de-es")
-    result = service.translate("Hallo", source_language="de", target_language="es")
+    result = service.translate("Hallo", source_lang="de", target_lang="es")
     assert result is not None
-    assert result != "Hallo"  # Should translate German to Spanish
+    assert result.translated_text != "Hallo"  # Should translate German to Spanish
 
 
 @pytest.mark.integration
@@ -55,9 +55,9 @@ def test_opus_de_es_hello_world():
 def test_nllb_distilled_hello_world():
     """Minimal NLLB distilled translation test."""
     service = TranslationServiceFactory.create_service("nllb-distilled-600m")
-    result = service.translate("Hello", source_language="en", target_language="es")
+    result = service.translate("Hello", source_lang="en", target_lang="es")
     assert result is not None
-    assert result != "Hello"  # Should translate English to Spanish
+    assert result.translated_text != "Hello"  # Should translate English to Spanish
 
 
 @pytest.mark.integration
