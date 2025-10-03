@@ -307,7 +307,6 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
       const res = await markWordKnownApiVocabularyMarkKnownPost({
         requestBody: {
           concept_id: wordData.concept_id,
-          word: wordData.word,
           lemma: wordData.lemma,
           known: known
         }
@@ -342,7 +341,6 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
           await markWordKnownApiVocabularyMarkKnownPost({
             requestBody: {
               concept_id: wordData.concept_id,
-              word: wordData.word,
               lemma: wordData.lemma,
               known: known
             }

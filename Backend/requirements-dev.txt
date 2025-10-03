@@ -21,6 +21,9 @@ structlog>=24.0.0
 sentry-sdk[fastapi]>=2.0.0
 python-jose[cryptography]>=3.3.0
 
+# NLP dependencies (required for lemmatization in tests)
+spacy>=3.8.0,<4.0.0
+
 # Development dependencies for LangPlug backend
 # Core development tools
 pytest>=8.0.0

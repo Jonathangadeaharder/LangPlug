@@ -816,7 +816,7 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
         break
       case 'KeyS':
         e.preventDefault()
-        setSubtitleMode(prev => {
+        setSubtitleMode((prev: SubtitleMode) => {
           const modes: SubtitleMode[] = ['off', 'original', 'translation', 'both']
           const currentIndex = modes.indexOf(prev)
           return modes[(currentIndex + 1) % modes.length]

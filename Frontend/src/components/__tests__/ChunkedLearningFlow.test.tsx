@@ -69,6 +69,10 @@ describe('ChunkedLearningFlow', () => {
   it('starts processing the first chunk on mount', async () => {
     // Mock profile to be loaded so processChunk gets triggered
     sdkMock.profileGetApiProfileGet.mockResolvedValue({
+      id: 'test-user-id',
+      username: 'testuser',
+      is_admin: false,
+      created_at: '2025-01-01T00:00:00Z',
       native_language: { code: 'en', name: 'English' },
       target_language: { code: 'de', name: 'German' }
     })
@@ -104,6 +108,10 @@ describe('ChunkedLearningFlow', () => {
 
     // Mock profile to be loaded so processChunk gets triggered
     sdkMock.profileGetApiProfileGet.mockResolvedValue({
+      id: 'test-user-id',
+      username: 'testuser',
+      is_admin: false,
+      created_at: '2025-01-01T00:00:00Z',
       native_language: { code: 'en', name: 'English' },
       target_language: { code: 'de', name: 'German' }
     })
