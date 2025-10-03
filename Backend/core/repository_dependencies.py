@@ -46,9 +46,7 @@ from database.repositories.vocabulary_repository import VocabularyRepository
 from .database import get_async_session
 
 
-def get_user_repository(
-    db: Annotated[AsyncSession, Depends(get_async_session)]
-) -> UserRepositoryInterface:
+def get_user_repository(db: Annotated[AsyncSession, Depends(get_async_session)]) -> UserRepositoryInterface:
     """
     Get user repository instance
 
@@ -71,9 +69,7 @@ def get_user_repository(
     return UserRepository(db)
 
 
-def get_vocabulary_repository(
-    db: Annotated[AsyncSession, Depends(get_async_session)]
-) -> VocabularyRepositoryInterface:
+def get_vocabulary_repository(db: Annotated[AsyncSession, Depends(get_async_session)]) -> VocabularyRepositoryInterface:
     """
     Get vocabulary repository instance
 
@@ -97,7 +93,7 @@ def get_vocabulary_repository(
 
 
 def get_user_vocabulary_progress_repository(
-    db: Annotated[AsyncSession, Depends(get_async_session)]
+    db: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> UserVocabularyProgressRepositoryInterface:
     """
     Get user vocabulary progress repository instance
@@ -122,7 +118,7 @@ def get_user_vocabulary_progress_repository(
 
 
 def get_processing_session_repository(
-    db: Annotated[AsyncSession, Depends(get_async_session)]
+    db: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> ProcessingSessionRepositoryInterface:
     """
     Get processing session repository instance

@@ -3,13 +3,16 @@
 ## Test Taxonomy
 
 ### Unit Tests (`tests/unit/`)
+
 **Purpose**: Test individual functions/classes in isolation
+
 - **Speed**: < 100ms per test
 - **Dependencies**: Fully mocked, no external systems
 - **Scope**: Single function/method behavior
 - **Location**: Mirror source structure: `tests/unit/services/test_auth_service.py`
 
 **Requirements**:
+
 - ✅ All external dependencies mocked
 - ✅ Fast, deterministic execution
 - ✅ Test public APIs, not implementation details
@@ -19,13 +22,16 @@
 - ❌ No subprocess spawning
 
 ### Integration Tests (`tests/integration/`)
+
 **Purpose**: Test component interactions within process boundaries
+
 - **Speed**: < 5s per test
 - **Dependencies**: In-process only (TestClient, in-memory DB)
 - **Scope**: API endpoints, service integration, database operations
 - **Location**: `tests/integration/test_auth_endpoints.py`
 
 **Requirements**:
+
 - ✅ Use FastAPI TestClient or async client
 - ✅ In-memory databases with transaction rollback
 - ✅ Dependency injection for test doubles
@@ -35,13 +41,16 @@
 - ❌ No polling/sleep patterns
 
 ### Contract Tests (`tests/contract/`)
+
 **Purpose**: Validate API schemas and data structures
+
 - **Speed**: < 1s per test
 - **Dependencies**: Schema validation only
 - **Scope**: Request/response formats, data models
 - **Location**: `tests/contract/test_auth_contract.py`
 
 **Requirements**:
+
 - ✅ Pydantic model validation
 - ✅ OpenAPI schema compliance
 - ✅ Mock all external systems
@@ -49,13 +58,16 @@
 - ❌ No network calls
 
 ### End-to-End Tests (`tests/e2e/`)
+
 **Purpose**: Critical user journeys only
+
 - **Speed**: < 30s per test
 - **Dependencies**: Minimal, well-controlled
 - **Scope**: Complete workflows
 - **Location**: `tests/e2e/test_user_registration_flow.py`
 
 **Constraints**:
+
 - Maximum 10 E2E tests total
 - Only test critical business flows
 - Proper cleanup and isolation
@@ -64,6 +76,7 @@
 ## Anti-Patterns to Eliminate
 
 ### ❌ Loose Assertions
+
 ```python
 # BAD: Accepts both success and failure
 assert response.status_code in {200, 500}
@@ -75,6 +88,7 @@ assert "languages" in data
 ```
 
 ### ❌ Print-Based Testing
+
 ```python
 # BAD: No assertions, just output
 print(f"Test result: {result}")
@@ -85,6 +99,7 @@ assert len(result.errors) == 0
 ```
 
 ### ❌ External Process Dependencies
+
 ```python
 # BAD: Spawns real server
 subprocess.Popen(["uvicorn", "main:app"])
@@ -96,6 +111,7 @@ response = client.get("/health")
 ```
 
 ### ❌ Implementation Coupling
+
 ```python
 # BAD: Tests internal mock calls
 mock_session.execute.assert_called_exactly(3)
@@ -106,6 +122,7 @@ assert result.total_concepts == 100
 ```
 
 ### ❌ Shared State Dependencies
+
 ```python
 # BAD: Depends on seeded data
 response = client.get("/vocab/stats")  # Relies on DB state
@@ -116,6 +133,7 @@ response = client.get("/vocab/stats", auth=user.token)
 ```
 
 ### ❌ Hardcoded Credentials & External Tokens
+
 ```python
 # BAD: Real bearer token committed to source control
 headers = {"Authorization": "Bearer eyJhbGciOiJIUzI1Ni..."}
@@ -127,6 +145,7 @@ headers = make_auth_headers(test_user)
 ## Required Patterns
 
 ### ✅ Arrange-Act-Assert Structure
+
 ```python
 async def test_get_vocabulary_returns_correct_format():
     # Arrange
@@ -143,6 +162,7 @@ async def test_get_vocabulary_returns_correct_format():
 ```
 
 ### ✅ Descriptive Test Names
+
 ```python
 # Pattern: test_When<condition>_Then<expected_outcome>
 def test_When_invalid_password_provided_Then_returns_validation_error()
@@ -151,6 +171,7 @@ def test_When_vocabulary_requested_Then_returns_user_specific_data()
 ```
 
 ### ✅ Proper Error Testing
+
 ```python
 async def test_When_invalid_credentials_Then_raises_authentication_error():
     with pytest.raises(AuthenticationError) as exc_info:
@@ -160,6 +181,7 @@ async def test_When_invalid_credentials_Then_raises_authentication_error():
 ```
 
 ### ✅ Test Data Builders
+
 ```python
 def create_test_user(username: str = None, **kwargs) -> User:
     return User(
@@ -193,12 +215,12 @@ Backend/tests/
 
 ## Performance Standards
 
-| Test Type | Max Duration | Max Memory | Parallel Safe |
-|-----------|-------------|------------|---------------|
-| Unit      | 100ms       | 50MB       | ✅ Yes        |
-| Integration| 5s         | 200MB      | ✅ Yes        |
-| Contract  | 1s          | 100MB      | ✅ Yes        |
-| E2E       | 30s         | 500MB      | ❌ Sequential |
+| Test Type   | Max Duration | Max Memory | Parallel Safe |
+| ----------- | ------------ | ---------- | ------------- |
+| Unit        | 100ms        | 50MB       | ✅ Yes        |
+| Integration | 5s           | 200MB      | ✅ Yes        |
+| Contract    | 1s           | 100MB      | ✅ Yes        |
+| E2E         | 30s          | 500MB      | ❌ Sequential |
 
 ## Coverage Requirements
 
@@ -213,6 +235,7 @@ Backend/tests/
 Before merging any test changes:
 
 ### Code Quality
+
 - [ ] Test names clearly describe the scenario
 - [ ] Single responsibility per test
 - [ ] Proper arrange-act-assert structure
@@ -220,6 +243,7 @@ Before merging any test changes:
 - [ ] All assertions are explicit and meaningful
 
 ### Performance & Reliability
+
 - [ ] Tests run within time limits
 - [ ] No external dependencies in unit/integration tests
 - [ ] Proper cleanup and isolation
@@ -227,6 +251,7 @@ Before merging any test changes:
 - [ ] No hardcoded credentials or secrets
 
 ### Maintainability
+
 - [ ] Tests will survive reasonable refactoring
 - [ ] Clear failure messages
 - [ ] Minimal duplication via helpers/fixtures

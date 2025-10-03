@@ -80,7 +80,7 @@ class ErrorBoundary extends Component<Props, State> {
           <ErrorTitle>😵</ErrorTitle>
           <ErrorTitle>Oops!</ErrorTitle>
           <ErrorMessage>
-            {this.props.sectionName || 'Something'} encountered an unexpected error. 
+            {this.props.sectionName || 'Something'} encountered an unexpected error.
             Don't worry, it happens to the best of us!
           </ErrorMessage>
           <ErrorButton
@@ -101,12 +101,12 @@ export { ErrorBoundary };
 // Hook for imperatively throwing errors to the nearest error boundary
 export function useErrorHandler() {
   const [error, setError] = React.useState<Error | null>(null);
-  
+
   React.useEffect(() => {
     if (error) {
       throw error;
     }
   }, [error]);
-  
+
   return setError;
 }

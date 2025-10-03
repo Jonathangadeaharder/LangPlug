@@ -58,7 +58,6 @@ class UserDataLoader:
             logger.error(f"Error loading user known words from database: {exc}")
             return set()
 
-
     async def load_word_difficulties(self, language: str) -> dict[str, str]:
         """
         Pre-load word difficulty levels for efficiency

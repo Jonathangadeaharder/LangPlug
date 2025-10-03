@@ -108,17 +108,17 @@ export function validateApiConfig(config: ApiConfig): boolean {
     console.error('Invalid API base URL:', config.baseUrl);
     return false;
   }
-  
+
   if (config.timeout <= 0) {
     console.error('Invalid API timeout:', config.timeout);
     return false;
   }
-  
+
   if (config.retryAttempts < 0) {
     console.error('Invalid retry attempts:', config.retryAttempts);
     return false;
   }
-  
+
   return true;
 }
 
@@ -130,19 +130,19 @@ export function createApiHeaders(config: ApiConfig): Record<string, string> {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   };
-  
+
   // Add environment-specific headers
   const environment = getCurrentEnvironment();
   headers['X-Environment'] = environment;
-  
+
   // Add version header for contract versioning
   headers['X-API-Version'] = '1.0';
-  
+
   // Add request ID for tracing in non-production environments
   if (config.enableLogging) {
     headers['X-Request-ID'] = generateRequestId();
   }
-  
+
   return headers;
 }
 
@@ -159,7 +159,7 @@ function generateRequestId(): string {
 export function logApiConfig(): void {
   const config = getApiConfig();
   const environment = getCurrentEnvironment();
-  
+
   if (config.enableLogging) {
     console.log('🔧 API Configuration:', {
       environment,

@@ -24,6 +24,7 @@ High-level overview of the LangPlug Backend architecture, patterns, and design d
 ### Purpose
 
 LangPlug Backend is a **language learning platform** that combines:
+
 - 🎥 **Video content management** with subtitle processing
 - 📝 **Vocabulary tracking** with CEFR level classification
 - 🎮 **Interactive learning games** based on user's vocabulary
@@ -85,6 +86,7 @@ The system follows a **layered architecture** with clear separation of concerns:
 ```
 
 **Benefits**:
+
 - Clear separation of concerns
 - Easy to test (mock lower layers)
 - Independent layer evolution
@@ -110,6 +112,7 @@ class SQLAlchemyVocabularyRepository:
 ```
 
 **Benefits**:
+
 - Database independence (swap SQLite ↔ PostgreSQL)
 - Easier testing (mock repositories)
 - Centralized data access logic
@@ -142,6 +145,7 @@ factory.get_transcription_service("whisper")  # Returns WhisperStrategy
 ```
 
 **Benefits**:
+
 - Easy to add new AI models
 - Runtime model selection
 - Isolated model-specific logic
@@ -171,6 +175,7 @@ vocabulary_service.mark_word_as_known(user_id, word)
 ```
 
 **Benefits**:
+
 - Simple client interface
 - Complex logic hidden
 - Easier to refactor internals
@@ -201,6 +206,7 @@ api/
 ```
 
 **Responsibilities**:
+
 - HTTP request/response handling
 - Input validation (Pydantic)
 - Authentication enforcement
@@ -236,6 +242,7 @@ services/
 ```
 
 **Responsibilities**:
+
 - Business rule enforcement
 - Workflow orchestration
 - External service integration
@@ -256,6 +263,7 @@ database/
 ```
 
 **Responsibilities**:
+
 - Database schema definition
 - CRUD operations
 - Transaction management
@@ -278,6 +286,7 @@ core/
 ```
 
 **Responsibilities**:
+
 - Application configuration
 - Security enforcement
 - Logging and monitoring
@@ -359,41 +368,49 @@ core/
 ## Key Design Decisions
 
 ### ADR-001: Layered Architecture
+
 **Decision**: Use layered architecture (API → Services → Repositories → Infrastructure)
 **Rationale**: Clear separation of concerns, testability, maintainability
 **Trade-off**: More indirection, but better structure
 
 ### ADR-002: FastAPI + React Stack
+
 **Decision**: FastAPI for backend, React for frontend
 **Rationale**: Modern async Python, great docs, TypeScript support
 **Trade-off**: Learning curve, but high developer productivity
 
 ### ADR-003: SQLite → PostgreSQL
+
 **Decision**: SQLite for development, PostgreSQL for production
 **Rationale**: Simple dev setup, production scalability
 **Trade-off**: Minor differences, but async drivers abstract most
 
 ### ADR-004: JWT Authentication
+
 **Decision**: JWT tokens (access + refresh) instead of sessions
 **Rationale**: Stateless, scalable, supports SPA architecture
 **Trade-off**: Token invalidation harder, but refresh mechanism mitigates
 
 ### ADR-005: WebSockets for Real-time
+
 **Decision**: WebSocket connections for processing updates
 **Rationale**: True real-time, better than polling
 **Trade-off**: Connection management complexity
 
 ### ADR-006: Strategy Pattern for AI Models
+
 **Decision**: Abstract AI services behind strategy interfaces
 **Rationale**: Easy to swap models, test, benchmark
 **Trade-off**: Extra abstraction layer
 
 ### ADR-007: Repository Pattern
+
 **Decision**: Data access through repository interfaces
 **Rationale**: Database independence, testability
 **Trade-off**: Boilerplate, but worth it for flexibility
 
 ### ADR-008: OpenAPI-First Design
+
 **Decision**: Design API with OpenAPI/Swagger
 **Rationale**: Auto-generated docs, client generation
 **Trade-off**: Pydantic models required, but excellent validation
@@ -406,52 +423,52 @@ core/
 
 ### Backend Core
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Python** | 3.11+ | Primary language |
-| **FastAPI** | 0.100+ | Web framework |
-| **Uvicorn** | Latest | ASGI server |
-| **Pydantic** | 2.0+ | Data validation |
-| **SQLAlchemy** | 2.0+ | ORM |
-| **Alembic** | Latest | Database migrations |
+| Technology     | Version | Purpose             |
+| -------------- | ------- | ------------------- |
+| **Python**     | 3.11+   | Primary language    |
+| **FastAPI**    | 0.100+  | Web framework       |
+| **Uvicorn**    | Latest  | ASGI server         |
+| **Pydantic**   | 2.0+    | Data validation     |
+| **SQLAlchemy** | 2.0+    | ORM                 |
+| **Alembic**    | Latest  | Database migrations |
 
 ### AI/ML
 
-| Technology | Purpose |
-|------------|---------|
-| **Whisper** | Speech-to-text transcription |
-| **OPUS-MT** | Machine translation (Helsinki-NLP) |
-| **NLLB** | Alternative translation (Meta) |
-| **spaCy** | NLP, lemmatization, tokenization |
-| **Transformers** | Hugging Face model loading |
+| Technology       | Purpose                            |
+| ---------------- | ---------------------------------- |
+| **Whisper**      | Speech-to-text transcription       |
+| **OPUS-MT**      | Machine translation (Helsinki-NLP) |
+| **NLLB**         | Alternative translation (Meta)     |
+| **spaCy**        | NLP, lemmatization, tokenization   |
+| **Transformers** | Hugging Face model loading         |
 
 ### Database
 
-| Database | Use Case |
-|----------|----------|
-| **SQLite** | Development, testing |
+| Database       | Use Case                 |
+| -------------- | ------------------------ |
+| **SQLite**     | Development, testing     |
 | **PostgreSQL** | Production (recommended) |
-| **aiosqlite** | Async SQLite driver |
-| **asyncpg** | Async PostgreSQL driver |
+| **aiosqlite**  | Async SQLite driver      |
+| **asyncpg**    | Async PostgreSQL driver  |
 
 ### Testing
 
-| Tool | Purpose |
-|------|---------|
-| **pytest** | Test framework |
-| **pytest-asyncio** | Async test support |
-| **pytest-cov** | Coverage measurement |
-| **httpx** | Async HTTP client for tests |
-| **faker** | Test data generation |
+| Tool               | Purpose                     |
+| ------------------ | --------------------------- |
+| **pytest**         | Test framework              |
+| **pytest-asyncio** | Async test support          |
+| **pytest-cov**     | Coverage measurement        |
+| **httpx**          | Async HTTP client for tests |
+| **faker**          | Test data generation        |
 
 ### Code Quality
 
-| Tool | Purpose |
-|------|---------|
-| **Ruff** | Fast linter and formatter |
-| **Bandit** | Security scanner |
-| **pre-commit** | Git hooks |
-| **MyPy** | Type checking (optional) |
+| Tool           | Purpose                   |
+| -------------- | ------------------------- |
+| **Ruff**       | Fast linter and formatter |
+| **Bandit**     | Security scanner          |
+| **pre-commit** | Git hooks                 |
+| **MyPy**       | Type checking (optional)  |
 
 ---
 
@@ -486,6 +503,7 @@ core/
 ### Current State (v0.1.0)
 
 ✅ **Implemented**:
+
 - Layered architecture with clear boundaries
 - JWT authentication with refresh tokens
 - Video upload and processing pipeline
@@ -497,6 +515,7 @@ core/
 ### Future Enhancements
 
 🔮 **Planned**:
+
 - **Celery**: Background task processing (long-running jobs)
 - **Redis**: Caching and session storage
 - **Elasticsearch**: Full-text search for vocabulary
@@ -515,6 +534,7 @@ core/
 ### Q: Why FastAPI instead of Django?
 
 **A**: FastAPI offers:
+
 - Modern async/await support (better performance)
 - Automatic OpenAPI documentation
 - Built-in Pydantic validation
@@ -526,6 +546,7 @@ Django is excellent for full-stack monoliths with admin panels, but LangPlug has
 ### Q: Why not microservices?
 
 **A**: Current scale doesn't justify microservices complexity:
+
 - Single team, single codebase easier to manage
 - No independent scaling needs yet
 - Shared database simplifies transactions
@@ -536,6 +557,7 @@ Django is excellent for full-stack monoliths with admin panels, but LangPlug has
 ### Q: Why local AI models instead of APIs?
 
 **A**:
+
 - **Cost**: No per-request API fees
 - **Privacy**: User data stays on-premises
 - **Latency**: No network round-trip
@@ -547,6 +569,7 @@ Django is excellent for full-stack monoliths with admin panels, but LangPlug has
 ### Q: Why both SQLite and PostgreSQL support?
 
 **A**:
+
 - **Development**: SQLite = zero setup, fast tests
 - **Production**: PostgreSQL = scalability, concurrent writes
 - **Testing**: Both to ensure compatibility

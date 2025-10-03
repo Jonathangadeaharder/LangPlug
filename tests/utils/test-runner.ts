@@ -11,7 +11,7 @@ export class TestRunner {
    */
   async runBackendTests(): Promise<boolean> {
     console.log('Running backend tests...');
-    
+
     return new Promise((resolve) => {
       const backendTestProcess = spawn('python', ['-m', 'pytest', '--tb=short'], {
         cwd: path.resolve(__dirname, '../../Backend'),
@@ -41,7 +41,7 @@ export class TestRunner {
    */
   async runFrontendUnitTests(): Promise<boolean> {
     console.log('Running frontend unit tests...');
-    
+
     return new Promise((resolve) => {
       const frontendTestProcess = spawn('npm', ['run', 'test'], {
         cwd: path.resolve(__dirname, '../../Frontend'),
@@ -71,7 +71,7 @@ export class TestRunner {
    */
   async runE2ETests(): Promise<boolean> {
     console.log('Running E2E tests...');
-    
+
     return new Promise((resolve) => {
       const e2eTestProcess = spawn('npm', ['run', 'test:e2e'], {
         cwd: path.resolve(__dirname, '../e2e'),

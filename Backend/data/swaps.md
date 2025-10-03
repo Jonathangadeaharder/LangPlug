@@ -221,7 +221,6 @@
 (Doch, A2 -> B1)
 (Dringend, A2 -> B1)
 
-
 ## B2 -> B1 (252 swaps to build B1 from 808 to 1,200)
 
 (Abenteuerlust, B2 -> B1)
@@ -2930,6 +2929,7 @@
 ## Final Summary
 
 Total swaps: 2902
+
 - A1 -> A2: 75 swaps
 - A1 -> B1: 71 swaps
 - A2 -> B1: 65 swaps
@@ -2937,6 +2937,7 @@ Total swaps: 2902
 - B2 -> C1: 2439 swaps
 
 Target distribution:
+
 - A1: 600 words (746 -> 600)
 - A2: 600 words (665 -> 600)
 - B1: 1,200 words (808 -> 1,200)

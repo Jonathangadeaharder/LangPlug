@@ -2,33 +2,33 @@ name: Documentation Check
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   workflow_dispatch:
 
 jobs:
   docs:
     name: Check Documentation
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
-    - name: Install link checker
-      run: |
-        npm install -g markdown-link-check
+      - name: Install link checker
+        run: |
+          npm install -g markdown-link-check
 
-    - name: Check for broken links in README
-      run: |
-        markdown-link-check README.md
+      - name: Check for broken links in README
+        run: |
+          markdown-link-check README.md
 
-    - name: Check for broken links in documentation files
-      run: |
-        find docs -name "*.md" -exec markdown-link-check {} \;
+      - name: Check for broken links in documentation files
+        run: |
+          find docs -name "*.md" -exec markdown-link-check {} \;

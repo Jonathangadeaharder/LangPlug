@@ -8,13 +8,13 @@ export const E2E_CONFIG = {
   DEFAULT_TIMEOUT: 30000,
   NAVIGATION_TIMEOUT: 10000,
   SERVER_DETECTION_TIMEOUT: 5000,
-  
+
   // Browser settings
   BROWSER_OPTIONS: {
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   },
-  
+
   // Viewport settings
   VIEWPORT: {
     width: 1280,

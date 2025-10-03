@@ -52,7 +52,7 @@ export class ContractValidator {
       removeAdditional: !strictMode,
     });
     addFormats(this.ajv);
-    
+
     // Add custom formats
     this.ajv.addFormat('uuid', /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
     this.ajv.addFormat('email', /^[^\s@]+@[^\s@]+\.[^\s@]+$/);
@@ -83,13 +83,13 @@ export class ContractValidator {
 
     for (const [pathPattern, pathItem] of Object.entries(this.spec.paths)) {
       if (!pathItem) continue;
-      
+
       for (const method of ['get', 'post', 'put', 'patch', 'delete'] as const) {
         const operation = pathItem[method];
         if (!operation) continue;
 
         const key = `${method.toUpperCase()} ${pathPattern}`;
-        
+
         // Compile request body validator
         if (operation.requestBody && 'content' in operation.requestBody) {
           const content = operation.requestBody.content;
@@ -120,7 +120,7 @@ export class ContractValidator {
           for (const param of operation.parameters) {
             if ('in' in param) {
               const paramSchema = this.resolveRefs(param.schema || { type: 'string' });
-              
+
               switch (param.in) {
                 case 'query':
                   queryParams[param.name] = paramSchema;
@@ -168,25 +168,25 @@ export class ContractValidator {
    */
   private resolveRefs(schema: any): any {
     if (!schema) return schema;
-    
+
     if (schema.$ref) {
       const refPath = schema.$ref.replace('#/', '').split('/');
       let resolved: any = this.spec;
-      
+
       for (const part of refPath) {
         resolved = resolved[part];
       }
-      
+
       return this.resolveRefs(resolved);
     }
 
     if (typeof schema === 'object') {
       const resolved: any = Array.isArray(schema) ? [] : {};
-      
+
       for (const [key, value] of Object.entries(schema)) {
         resolved[key] = this.resolveRefs(value);
       }
-      
+
       return resolved;
     }
 
@@ -298,10 +298,10 @@ export class ContractValidator {
       (config: AxiosRequestConfig) => {
         const startTime = Date.now();
         (config as any).metadata = { startTime };
-        
+
         const path = this.extractPath(config.url || '');
         const method = config.method || 'GET';
-        
+
         const requestValidation = this.validateRequest(
           method,
           path,
@@ -309,14 +309,14 @@ export class ContractValidator {
           config.headers as Record<string, string>,
           config.params
         );
-        
+
         if (!requestValidation.valid) {
           console.warn('Request contract violation:', requestValidation.errors);
           if (this.strictMode) {
             throw new Error(`Contract violation: ${JSON.stringify(requestValidation.errors)}`);
           }
         }
-        
+
         return config;
       },
       (error: any) => Promise.reject(error)
@@ -328,7 +328,7 @@ export class ContractValidator {
         const duration = Date.now() - (((response.config as any).metadata?.startTime) || Date.now());
         const path = this.extractPath(response.config.url || '');
         const method = response.config.method || 'GET';
-        
+
         const responseValidation = this.validateResponse(
           method,
           path,
@@ -336,7 +336,7 @@ export class ContractValidator {
           response.data,
           response.headers as Record<string, string>
         );
-        
+
         const testResult: ContractTestResult = {
           endpoint: path,
           method: method.toUpperCase(),
@@ -345,16 +345,16 @@ export class ContractValidator {
           timestamp: new Date(),
           duration,
         };
-        
+
         this.testResults.push(testResult);
-        
+
         if (!responseValidation.valid) {
           console.warn('Response contract violation:', responseValidation.errors);
           if (this.strictMode) {
             throw new Error(`Contract violation: ${JSON.stringify(responseValidation.errors)}`);
           }
         }
-        
+
         return response;
       },
       (error: any) => Promise.reject(error)
@@ -367,26 +367,26 @@ export class ContractValidator {
   private normalizePath(path: string): string {
     // Remove query parameters
     path = path.split('?')[0];
-    
+
     // Remove base URL if present
     if (path.includes('://')) {
       const url = new URL(path);
       path = url.pathname;
     }
-    
+
     // Match against OpenAPI patterns
     if (this.spec.paths) {
       for (const pattern of Object.keys(this.spec.paths)) {
         const regex = pattern
           .replace(/\{([^}]+)\}/g, '([^/]+)') // Replace {param} with regex
           .replace(/\//g, '\\/'); // Escape slashes
-        
+
         if (new RegExp(`^${regex}$`).test(path)) {
           return pattern;
         }
       }
     }
-    
+
     return path;
   }
 
@@ -411,7 +411,7 @@ export class ContractValidator {
     const normalizedPath = this.normalizePath(path);
     const pathItem = this.spec.paths?.[normalizedPath];
     if (!pathItem) return undefined;
-    
+
     return pathItem[method.toLowerCase() as keyof OpenAPIV3.PathItemObject] as OpenAPIV3.OperationObject;
   }
 
@@ -420,7 +420,7 @@ export class ContractValidator {
    */
   private formatAjvErrors(ajvErrors: any[] | null | undefined, context: string): ValidationError[] {
     if (!ajvErrors) return [];
-    
+
     return ajvErrors.map(error => ({
       path: error.instancePath || context,
       message: error.message || 'Validation failed',
@@ -440,11 +440,11 @@ export class ContractValidator {
     violations: ContractTestResult[];
     summary: string;
   } {
-    const violations = this.testResults.filter(r => 
-      (r.request && !r.request.valid) || 
+    const violations = this.testResults.filter(r =>
+      (r.request && !r.request.valid) ||
       (r.response && !r.response.valid)
     );
-    
+
     return {
       total: this.testResults.length,
       passed: this.testResults.length - violations.length,
@@ -488,7 +488,7 @@ export class ContractValidator {
     steps: Array<{ step: number; valid: boolean; errors?: ValidationError[] }>;
   }> {
     const results: Array<{ step: number; valid: boolean; errors?: ValidationError[] }> = [];
-    
+
     for (let i = 0; i < steps.length; i++) {
       const step = steps[i];
       const requestValidation = this.validateRequest(
@@ -498,14 +498,14 @@ export class ContractValidator {
         step.headers,
         step.query
       );
-      
+
       results.push({
         step: i + 1,
         valid: requestValidation.valid,
         errors: requestValidation.errors,
       });
     }
-    
+
     return {
       name,
       valid: results.every(r => r.valid),

@@ -7,4 +7,3 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$REPO_ROOT/Backend"
 ./scripts/run_tests_postgres.sh
-

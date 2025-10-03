@@ -6,6 +6,7 @@
 ---
 
 ## Table of Contents
+
 1. [Overview](#overview)
 2. [Architecture Principles](#architecture-principles)
 3. [Service Organization](#service-organization)
@@ -20,6 +21,7 @@
 This document describes the architecture after completing a comprehensive refactoring sprint that eliminated 6 God classes and created 27 focused services following SOLID principles.
 
 ### Key Changes
+
 - **From**: Monolithic God classes with mixed responsibilities
 - **To**: Focused services with single responsibilities + facades
 - **Pattern**: Facade Pattern for backward compatibility
@@ -30,24 +32,31 @@ This document describes the architecture after completing a comprehensive refact
 ## Architecture Principles
 
 ### 1. Single Responsibility Principle (SRP)
+
 Each service has exactly **one reason to change**:
+
 - **VocabularyQueryService**: Only changes when query logic changes
 - **VocabularyProgressService**: Only changes when progress tracking changes
 - **VocabularyStatsService**: Only changes when statistics calculation changes
 
 ### 2. Facade Pattern
+
 All refactored services maintain a facade for backward compatibility:
+
 ```
 Client Code → Facade → Focused Services
 ```
 
 **Benefits**:
+
 - Zero breaking changes for existing code
 - Gradual migration possible
 - Clear entry point for external callers
 
 ### 3. Dependency Injection
+
 Services receive dependencies as constructor parameters:
+
 ```python
 class VocabularyQueryService:
     def __init__(self, db: AsyncSession):
@@ -55,17 +64,21 @@ class VocabularyQueryService:
 ```
 
 **Benefits**:
+
 - Easy to test (inject mocks)
 - Clear dependencies
 - No hidden coupling
 
 ### 4. Repository Pattern
+
 Separate data access from business logic:
+
 ```
 Business Logic Layer → Repository Layer → Database
 ```
 
 **Example**: UserVocabularyService
+
 - UserVocabularyRepository (data access)
 - UserProgressService (business logic)
 - UserStatsService (business logic)
@@ -75,6 +88,7 @@ Business Logic Layer → Repository Layer → Database
 ## Service Organization
 
 ### Directory Structure
+
 ```
 services/
 ├── vocabulary/                  # Vocabulary domain
@@ -128,6 +142,7 @@ services/
 ### 1. Vocabulary Service
 
 #### Before (1,011 lines - God Class)
+
 ```
 VocabularyService
 ├── Query methods (get_word_info, get_vocabulary_level, etc.)
@@ -139,12 +154,14 @@ VocabularyService
 ```
 
 **Problems**:
+
 - Too many responsibilities
 - Hard to test (must mock everything)
 - Hard to maintain (1000+ lines)
 - Duplicate code everywhere
 
 #### After (867 facade + 4 services)
+
 ```
 VocabularyService (Facade - 867 lines)
     ├── Delegates to VocabularyQueryService
@@ -172,6 +189,7 @@ VocabularyStatsService (Statistics)
 ```
 
 **Benefits**:
+
 - Single responsibility per service
 - Easy to test each service independently
 - Easy to extend (add new query types, etc.)
@@ -182,6 +200,7 @@ VocabularyStatsService (Statistics)
 ### 2. Direct Subtitle Processor
 
 #### Before (420 lines - God Class + Monster Method)
+
 ```
 DirectSubtitleProcessor
 └── process_subtitles() [113 lines - MONSTER METHOD]
@@ -195,12 +214,14 @@ DirectSubtitleProcessor
 ```
 
 **Problems**:
+
 - 113-line monster method doing everything
 - Hard to understand flow
 - Hard to test individual steps
 - Hard to extend (add new languages, etc.)
 
 #### After (128 facade + 5 services)
+
 ```
 DirectSubtitleProcessor (Facade - 128 lines)
     ├── Delegates to UserDataLoader
@@ -240,6 +261,7 @@ SRTFileHandler (130 lines)
 ```
 
 **Benefits**:
+
 - Monster method eliminated (113 → 14 lines in facade)
 - Each step clearly isolated
 - Language extensibility built-in
@@ -250,6 +272,7 @@ SRTFileHandler (130 lines)
 ### 3. Chunk Processor
 
 #### Before (423 lines - Partially Refactored + Monster Method)
+
 ```
 ChunkProcessingService
 ├── Already delegating to:
@@ -266,12 +289,14 @@ ChunkProcessingService
 ```
 
 **Problems**:
+
 - 104-line monster method with complex nested logic
 - Vocabulary filtering embedded in orchestrator
 - Subtitle generation mixed with file I/O
 - Hard to test selective translations
 
 #### After (254 facade + 6 services)
+
 ```
 ChunkProcessingService (Facade - 254 lines)
     ├── Delegates to ChunkTranscriptionService
@@ -305,6 +330,7 @@ TranslationManagementService (240 lines)
 ```
 
 **Benefits**:
+
 - Monster method eliminated (104 → 3 lines delegation)
 - Complex logic split into 8 focused methods
 - Each service independently testable
@@ -413,6 +439,7 @@ def get_vocabulary_query_service():
 ## Dependency Graph
 
 ### Vocabulary Domain
+
 ```
 VocabularyService (Facade)
     ↓ delegates to
@@ -430,6 +457,7 @@ VocabularyService (Facade)
 ```
 
 ### Subtitle Processing Domain
+
 ```
 DirectSubtitleProcessor (Facade)
     ↓ delegates to
@@ -450,6 +478,7 @@ DirectSubtitleProcessor (Facade)
 ```
 
 ### Chunk Processing Domain
+
 ```
 ChunkProcessingService (Facade)
     ↓ delegates to
@@ -473,6 +502,7 @@ ChunkProcessingService (Facade)
 ## Testing Strategy
 
 ### 1. Architecture Verification Tests
+
 Verify the refactored structure is correct:
 
 ```python
@@ -494,6 +524,7 @@ def test_services_are_independent():
 ```
 
 ### 2. Unit Tests for Each Service
+
 Test each service in isolation:
 
 ```python
@@ -509,6 +540,7 @@ async def test_vocabulary_query_service_get_word_info():
 ```
 
 ### 3. Integration Tests for Facade
+
 Test the facade delegates correctly:
 
 ```python
@@ -526,6 +558,7 @@ async def test_vocabulary_service_facade_delegates():
 ```
 
 ### 4. Backward Compatibility Tests
+
 Ensure existing code still works:
 
 ```python
@@ -544,6 +577,7 @@ async def test_existing_code_still_works():
 ## Migration Guide for Developers
 
 ### For New Code
+
 **Recommendation**: Use the focused services directly
 
 ```python
@@ -559,6 +593,7 @@ result = await query_service.get_word_info("Haus", "de")
 ```
 
 ### For Existing Code
+
 **No changes required** - facades maintain 100% backward compatibility
 
 ```python
@@ -571,11 +606,13 @@ result = await service.get_word_info("Haus", "de")
 ### When to Use Facade vs Service
 
 **Use Facade when**:
+
 - Maintaining existing code
 - Need multiple service operations
 - Gradual migration preferred
 
 **Use Service when**:
+
 - Writing new code
 - Only need one service's functionality
 - Want clearer dependencies
@@ -617,6 +654,7 @@ result = await service.get_word_info("Haus", "de")
 ## Future Improvements
 
 ### 1. Caching Layer
+
 Add caching to frequently accessed services:
 
 ```python
@@ -631,6 +669,7 @@ class VocabularyQueryService:
 ```
 
 ### 2. Event-Driven Architecture
+
 Emit events when important actions occur:
 
 ```python
@@ -649,6 +688,7 @@ class VocabularyProgressService:
 ```
 
 ### 3. Metrics and Monitoring
+
 Add metrics to services:
 
 ```python
@@ -677,6 +717,7 @@ The refactored architecture provides:
 ✅ **Backward Compatibility**: Existing code continues to work without changes
 
 The codebase is now ready for:
+
 - Adding new features
 - Scaling to more users
 - Onboarding new developers

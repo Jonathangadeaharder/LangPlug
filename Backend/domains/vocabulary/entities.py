@@ -5,7 +5,6 @@ These represent core business concepts independent of infrastructure concerns.
 
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
 from typing import Any
 
 from core.enums import CEFRLevel, ConfidenceLevel, WordType

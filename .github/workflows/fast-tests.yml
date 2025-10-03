@@ -2,25 +2,25 @@ name: Fast Tests
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
     paths:
-      - 'Backend/**/*.py'
-      - 'Frontend/**/*.ts'
-      - 'Frontend/**/*.tsx'
-      - 'Frontend/**/*.js'
-      - 'Frontend/**/*.jsx'
-      - '**/package.json'
-      - '**/requirements*.txt'
+      - "Backend/**/*.py"
+      - "Frontend/**/*.ts"
+      - "Frontend/**/*.tsx"
+      - "Frontend/**/*.js"
+      - "Frontend/**/*.jsx"
+      - "**/package.json"
+      - "**/requirements*.txt"
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
     paths:
-      - 'Backend/**/*.py'
-      - 'Frontend/**/*.ts'
-      - 'Frontend/**/*.tsx'
-      - 'Frontend/**/*.js'
-      - 'Frontend/**/*.jsx'
-      - '**/package.json'
-      - '**/requirements*.txt'
+      - "Backend/**/*.py"
+      - "Frontend/**/*.ts"
+      - "Frontend/**/*.tsx"
+      - "Frontend/**/*.js"
+      - "Frontend/**/*.jsx"
+      - "**/package.json"
+      - "**/requirements*.txt"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -68,7 +68,7 @@ jobs:
       - name: Setup Python Environment
         uses: ./.github/actions/setup-python
         with:
-          python-version: '3.11'
+          python-version: "3.11"
           working-directory: Backend
           requirements-file: requirements.txt
           cache-key: fast-tests
@@ -106,7 +106,7 @@ jobs:
       - name: Setup Node.js Environment
         uses: ./.github/actions/setup-node
         with:
-          node-version: '18'
+          node-version: "20"
           working-directory: Frontend
           cache-key: fast-tests
 

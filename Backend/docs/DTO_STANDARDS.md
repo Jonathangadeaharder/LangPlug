@@ -3,6 +3,7 @@
 ## Purpose
 
 DTOs provide clean separation between:
+
 - **API Layer**: Request/Response models for HTTP endpoints
 - **Domain Layer**: Business logic and service models
 - **Database Layer**: ORM models (SQLAlchemy)
@@ -30,7 +31,9 @@ api/
 ## Naming Conventions
 
 ### Response DTOs
+
 Use `EntityNameDTO` suffix for response models:
+
 ```python
 class UserDTO(BaseModel):
     """DTO for user representation"""
@@ -40,7 +43,9 @@ class UserDTO(BaseModel):
 ```
 
 ### Request DTOs
+
 Use `EntityNameRequest` suffix for request models:
+
 ```python
 class UpdateProfileRequest(BaseModel):
     """DTO for profile update request"""
@@ -49,6 +54,7 @@ class UpdateProfileRequest(BaseModel):
 ```
 
 ### Avoid
+
 - ❌ `EntityResponse`, `EntityModel` (unclear)
 - ❌ Inline definitions in route files
 - ❌ Mixing DTOs with database models
@@ -93,6 +99,7 @@ class UpdateEntityRequest(BaseModel):
 ### Field Documentation
 
 Always include descriptions for API documentation:
+
 ```python
 class UserDTO(BaseModel):
     id: int = Field(..., description="Unique user identifier")
@@ -103,6 +110,7 @@ class UserDTO(BaseModel):
 ### Validation
 
 Use Pydantic validators for business rules:
+
 ```python
 from pydantic import field_validator
 
@@ -143,6 +151,7 @@ async def update_profile(
 ### ORM Conversion
 
 Use `model_validate` for ORM → DTO conversion:
+
 ```python
 # From database model
 user_dto = UserDTO.model_validate(user)  # Requires from_attributes=True
@@ -159,6 +168,7 @@ user_dict = user_dto.model_dump()
 ### Group by Domain
 
 Each DTO file should contain related models:
+
 ```python
 # video_dto.py
 class VideoInfoDTO(BaseModel): ...
@@ -169,12 +179,14 @@ class UploadVideoRequest(BaseModel): ...
 ### Single Responsibility
 
 One DTO per use case:
+
 - ✅ `CreateUserRequest`, `UpdateUserRequest`, `UserDTO`
 - ❌ `UserRequest` (ambiguous - create or update?)
 
 ### Reusability
 
 Extract common patterns:
+
 ```python
 class PaginationParams(BaseModel):
     """Reusable pagination parameters"""
@@ -193,11 +205,13 @@ class PaginatedResponse(BaseModel, Generic[T]):
 ## Migration Path
 
 ### For New Routes
+
 1. Create DTOs in `api/dtos/entity_dto.py`
 2. Export from `api/dtos/__init__.py`
 3. Import in route: `from api.dtos import EntityDTO`
 
 ### For Existing Routes
+
 1. Identify inline BaseModel classes in route files
 2. Move to appropriate DTO file in `api/dtos/`
 3. Update imports in route file
@@ -205,6 +219,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
 5. Test endpoint still works
 
 Example:
+
 ```python
 # Before (inline DTO in route file)
 # api/routes/videos.py
@@ -260,6 +275,7 @@ class VideoListResponse(BaseModel):
 ## Anti-Patterns to Avoid
 
 ### ❌ DTOs in Multiple Locations
+
 ```python
 # DON'T: Split DTOs across dtos/ and models/
 api/dtos/user_dto.py      # UserDTO
@@ -267,6 +283,7 @@ api/models/user.py        # UserResponse (duplicate!)
 ```
 
 ### ❌ Mixing Layers
+
 ```python
 # DON'T: Import database models in route responses
 from database.models import User  # ORM model
@@ -275,6 +292,7 @@ from database.models import User  # ORM model
 ```
 
 ### ❌ Overly Generic Names
+
 ```python
 # DON'T: Ambiguous class names
 class Request(BaseModel): ...  # Too generic
@@ -282,6 +300,7 @@ class Data(BaseModel): ...     # Meaningless
 ```
 
 ### ❌ Inline Route DTOs
+
 ```python
 # DON'T: Define DTOs inside route files
 # api/routes/videos.py

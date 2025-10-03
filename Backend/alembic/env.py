@@ -12,8 +12,8 @@ sys.path.insert(0, str(project_root))
 
 # Import our models and config after path setup
 # Import all models to ensure they're registered with metadata
-from core.config import settings  # noqa: E402
-from core.database import Base  # noqa: E402
+from core.config import settings
+from core.database import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

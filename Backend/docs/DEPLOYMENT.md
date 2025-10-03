@@ -75,18 +75,21 @@ Complete guide for deploying LangPlug Backend to production environments.
 ### Server Requirements
 
 **Minimum** (Small deployment, <100 users):
+
 - 2 CPU cores
 - 4GB RAM
 - 50GB SSD
 - Ubuntu 22.04 LTS
 
 **Recommended** (Production, 1000+ users):
+
 - 4-8 CPU cores
 - 16GB RAM
 - 200GB SSD (AI models + videos require space)
 - Ubuntu 22.04 LTS
 
 **GPU** (Optional, for faster AI processing):
+
 - NVIDIA GPU with 8GB+ VRAM
 - CUDA 11.8+
 - cuDNN 8.x
@@ -277,7 +280,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", 
 **docker-compose.yml** (create in project root):
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   backend:
@@ -730,6 +733,7 @@ sudo systemctl stop langplug-blue
 Before deploying to production:
 
 ### Pre-deployment
+
 - [ ] All tests pass in staging
 - [ ] Database migrations tested
 - [ ] Environment variables configured
@@ -739,6 +743,7 @@ Before deploying to production:
 - [ ] Rollback plan documented
 
 ### Deployment
+
 - [ ] Code deployed to server
 - [ ] Dependencies installed
 - [ ] Database migrations applied
@@ -747,6 +752,7 @@ Before deploying to production:
 - [ ] Nginx configuration updated
 
 ### Post-deployment
+
 - [ ] Health check passes
 - [ ] Application accessible via HTTPS
 - [ ] Logs show no errors

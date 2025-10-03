@@ -77,7 +77,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Allow-Methods"] = "*"
         response.headers["Access-Control-Allow-Headers"] = "*"
-        response.headers["Access-Control-Expose-Headers"] = "X-Request-ID, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After"
+        response.headers["Access-Control-Expose-Headers"] = (
+            "X-Request-ID, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After"
+        )
         return response
 
     async def dispatch(self, request: Request, call_next):

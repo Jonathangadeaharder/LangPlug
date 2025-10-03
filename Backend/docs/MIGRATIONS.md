@@ -25,6 +25,7 @@ Complete guide for managing database migrations with Alembic.
 ### What are Migrations?
 
 Database migrations are **version-controlled schema changes** that allow you to:
+
 - Evolve database schema over time
 - Apply changes consistently across environments
 - Roll back problematic changes
@@ -33,6 +34,7 @@ Database migrations are **version-controlled schema changes** that allow you to:
 ### Alembic
 
 LangPlug uses **Alembic** for database migrations:
+
 - Auto-generates migrations from SQLAlchemy models
 - Supports upgrade and downgrade paths
 - Works with SQLite and PostgreSQL
@@ -227,6 +229,7 @@ def downgrade() -> None:
 ### Migration Best Practices
 
 ✅ **DO**:
+
 - Write descriptive migration messages
 - Review auto-generated migrations before applying
 - Test upgrade AND downgrade
@@ -235,6 +238,7 @@ def downgrade() -> None:
 - Commit migrations with code changes
 
 ❌ **DON'T**:
+
 - Edit applied migrations (create new ones instead)
 - Combine unrelated changes
 - Skip testing migrations
@@ -434,6 +438,7 @@ Before deploying migration:
 For large production databases, use **expand-contract pattern**:
 
 **Phase 1: Expand** (backward compatible)
+
 ```python
 # Add new column (nullable, with default)
 def upgrade():
@@ -443,6 +448,7 @@ def upgrade():
 Deploy application code that writes to both old and new fields.
 
 **Phase 2: Migrate Data**
+
 ```python
 # Populate new field from old field
 def upgrade():
@@ -453,6 +459,7 @@ def upgrade():
 ```
 
 **Phase 3: Contract** (remove old field)
+
 ```python
 # Drop old column
 def upgrade():
@@ -503,6 +510,7 @@ tail -f logs/langplug.log
 **Cause**: Migration file missing or not in correct directory
 
 **Solution**:
+
 ```bash
 # Verify migration file exists
 ls alembic/versions/abc123def456_*.py
@@ -519,6 +527,7 @@ alembic upgrade head
 **Cause**: Parallel development created branching migrations
 
 **Solution**:
+
 ```bash
 # List heads
 alembic heads
@@ -536,6 +545,7 @@ alembic upgrade head
 **Cause**: Syntax error, data issue, or constraint violation
 
 **Solution**:
+
 ```bash
 # 1. Check current migration state
 alembic current
@@ -559,6 +569,7 @@ alembic revision --autogenerate -m "fixed description"
 **Cause**: Database version doesn't match migration history
 
 **Solution**:
+
 ```bash
 # Check database version
 alembic current
@@ -579,6 +590,7 @@ alembic upgrade head
 **Cause**: Adding index or column to large table
 
 **Solution**:
+
 ```python
 # Use batch operations for large tables
 def upgrade():
@@ -692,11 +704,11 @@ def downgrade():
 
 ## Migration History
 
-| Revision | Date | Description |
-|----------|------|-------------|
-| `879b4bfbd98e` | 2024-09-01 | Initial migration |
+| Revision       | Date       | Description                       |
+| -------------- | ---------- | --------------------------------- |
+| `879b4bfbd98e` | 2024-09-01 | Initial migration                 |
 | `0b9cb76a1e84` | 2024-09-15 | Migrate to lemma-based vocabulary |
-| `10f18f66a1df` | 2024-10-01 | Add password migration tracking |
+| `10f18f66a1df` | 2024-10-01 | Add password migration tracking   |
 
 **Current Version**: `10f18f66a1df` (as of 2025-10-03)
 

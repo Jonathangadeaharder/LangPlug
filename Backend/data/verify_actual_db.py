@@ -40,7 +40,7 @@ def examine_schema(conn: sqlite3.Connection) -> dict[str, list[str]]:
 
         # Get row count for each table
         # Safe: table_name from sqlite_master system table, not user input
-        cursor2 = conn.execute(f"SELECT COUNT(*) FROM {table_name}")  # noqa: S608
+        cursor2 = conn.execute(f"SELECT COUNT(*) FROM {table_name}")
         cursor2.fetchone()[0]
 
         # Get table structure

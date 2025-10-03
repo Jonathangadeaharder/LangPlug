@@ -31,6 +31,7 @@ Backend/
 ## Getting Started
 
 ### Prerequisites
+
 - Python 3.11+
 - FFmpeg
 - Git
@@ -38,18 +39,21 @@ Backend/
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd LangPlug/Backend
 ```
 
 2. Create a virtual environment:
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 3. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -57,6 +61,7 @@ pip install -r requirements.txt
 4. Set up environment variables (see Configuration section)
 
 5. Run the development server:
+
 ```bash
 uvicorn main:app --reload
 ```
@@ -142,14 +147,17 @@ ruff format .
 ## Services
 
 ### Transcription Service
+
 - Uses OpenAI Whisper for speech-to-text conversion
 - Supports multiple model sizes (tiny, base, small, medium, large)
 
 ### Translation Service
+
 - Uses Facebook's NLLB (No Language Left Behind) for translation
 - Supports German to English translation
 
 ### Filtering Service
+
 - Filters subtitles based on user's vocabulary knowledge
 - Identifies "blocking words" that may impede comprehension
 
@@ -169,6 +177,7 @@ Logs are written to the `logs/` directory with both file and console output. Log
 
 [License information to be added]
 Notes:
+
 - Tests enforce a global timeout of 60 seconds per test via `pytest-timeout` (see `Backend/pytest.ini`).
 - In constrained sandboxes (e.g., WSL seccomp or CI with restricted syscalls), you can skip DB-heavy
   performance/security specs by setting `SKIP_DB_HEAVY_TESTS=1` for the test run:
@@ -179,15 +188,18 @@ Notes:
   initialize the async SQLite engine reliably.
 
 ### Postgres-backed Test Runs (Recommended for stability)
+
 To avoid edge cases with `aiosqlite` under async lifecycles, you can run tests against Postgres.
 
-1) Start Postgres (Docker):
+1. Start Postgres (Docker):
+
 ```bash
 cd Backend
 docker compose -f docker-compose.postgresql.yml up -d db
 ```
 
-2) Run tests pointing to the Postgres DB:
+2. Run tests pointing to the Postgres DB:
+
 ```bash
 cd Backend
 USE_TEST_POSTGRES=1 TEST_POSTGRES_URL="postgresql+asyncpg://langplug_user:langplug_password@localhost:5432/langplug" pytest

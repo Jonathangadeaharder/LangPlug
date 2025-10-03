@@ -2,17 +2,17 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
     paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.github/**.md'
+      - "**.md"
+      - "docs/**"
+      - ".github/**.md"
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
     paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.github/**.md'
+      - "**.md"
+      - "docs/**"
+      - ".github/**.md"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -39,10 +39,10 @@ jobs:
       - name: Setup Python Environment
         uses: ./.github/actions/setup-python
         with:
-          python-version: '3.11'
+          python-version: "3.11"
           working-directory: Backend
           requirements-file: requirements-dev.txt
-          install-extras: 'diff-cover'
+          install-extras: "diff-cover"
           cache-key: ${{ matrix.test-group }}
 
       - name: Run pytest (${{ matrix.test-group }})
@@ -70,8 +70,8 @@ jobs:
         with:
           coverage-file: coverage.xml
           working-directory: Backend
-          diff-coverage-threshold: '90'
-          branch-coverage-threshold: '80'
+          diff-coverage-threshold: "90"
+          branch-coverage-threshold: "80"
           artifact-name: backend-coverage-${{ matrix.test-group }}
           comment-header: coverage-${{ matrix.test-group }}
           packages: api,core,management
@@ -102,7 +102,7 @@ jobs:
       - name: Setup Node.js Environment
         uses: ./.github/actions/setup-node
         with:
-          node-version: '18'
+          node-version: "20"
           working-directory: Frontend
           cache-key: ${{ matrix.shard }}
 

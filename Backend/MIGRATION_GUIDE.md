@@ -8,6 +8,7 @@
 ## Quick Start
 
 ### TL;DR
+
 - **Existing code**: No changes needed (100% backward compatible)
 - **New code**: Use focused services directly for better clarity
 - **Migration**: Optional and gradual
@@ -15,6 +16,7 @@
 ---
 
 ## Table of Contents
+
 1. [No Breaking Changes](#no-breaking-changes)
 2. [Using New Services](#using-new-services)
 3. [Service-by-Service Guide](#service-by-service-guide)
@@ -80,6 +82,7 @@ stats = await stats_service.get_vocabulary_stats(user_id)
 ### 1. Vocabulary Service
 
 #### Old API (Facade - Still Works)
+
 ```python
 from services.vocabulary_service import VocabularyService
 
@@ -93,6 +96,7 @@ await service.mark_word_known(user_id, "Haus")
 ```
 
 #### New API (Focused Services)
+
 ```python
 from services.vocabulary import (
     VocabularyQueryService,    # For queries and lookups
@@ -114,20 +118,21 @@ stats = await stats_service.get_vocabulary_stats(user_id)
 
 #### When to Use Which?
 
-| Use Case | Recommended Approach |
-|----------|---------------------|
+| Use Case                 | Recommended Approach           |
+| ------------------------ | ------------------------------ |
 | Need multiple operations | Use facade (VocabularyService) |
-| Only need queries | Use VocabularyQueryService |
-| Only tracking progress | Use VocabularyProgressService |
-| Only need statistics | Use VocabularyStatsService |
-| Writing new feature | Use focused services |
-| Maintaining old code | Keep using facade |
+| Only need queries        | Use VocabularyQueryService     |
+| Only tracking progress   | Use VocabularyProgressService  |
+| Only need statistics     | Use VocabularyStatsService     |
+| Writing new feature      | Use focused services           |
+| Maintaining old code     | Keep using facade              |
 
 ---
 
 ### 2. Direct Subtitle Processor
 
 #### Old API (Facade - Still Works)
+
 ```python
 from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 
@@ -136,6 +141,7 @@ result = await processor.process_subtitles(subtitles, user_id, "A1", "de")
 ```
 
 #### New API (Focused Services)
+
 ```python
 from services.filterservice.subtitle_processing import (
     UserDataLoader,      # Load user data
@@ -161,19 +167,20 @@ for subtitle in subtitles:
 
 #### When to Use Which?
 
-| Use Case | Recommended Approach |
-|----------|---------------------|
+| Use Case                     | Recommended Approach                 |
+| ---------------------------- | ------------------------------------ |
 | Standard subtitle processing | Use facade (DirectSubtitleProcessor) |
-| Custom validation rules | Use WordValidator directly |
-| Custom filtering logic | Use WordFilter directly |
-| Custom file formats | Use SRTFileHandler directly |
-| Extending word validation | Subclass WordValidator |
+| Custom validation rules      | Use WordValidator directly           |
+| Custom filtering logic       | Use WordFilter directly              |
+| Custom file formats          | Use SRTFileHandler directly          |
+| Extending word validation    | Subclass WordValidator               |
 
 ---
 
 ### 3. Chunk Processor
 
 #### Old API (Facade - Still Works)
+
 ```python
 from services.processing.chunk_processor import ChunkProcessingService
 
@@ -182,6 +189,7 @@ await service.process_chunk(video_path, start_time, end_time, user_id, task_id, 
 ```
 
 #### New API (Focused Services)
+
 ```python
 from services.processing.chunk_services import (
     VocabularyFilterService,       # Filter vocabulary
@@ -202,18 +210,19 @@ translations = await translation_mgr.apply_selective_translations(srt_path, know
 
 #### When to Use Which?
 
-| Use Case | Recommended Approach |
-|----------|---------------------|
-| Standard chunk processing | Use facade (ChunkProcessingService) |
-| Custom vocabulary filtering | Use VocabularyFilterService |
-| Custom subtitle highlighting | Use SubtitleGenerationService |
-| Custom translation logic | Use TranslationManagementService |
+| Use Case                     | Recommended Approach                |
+| ---------------------------- | ----------------------------------- |
+| Standard chunk processing    | Use facade (ChunkProcessingService) |
+| Custom vocabulary filtering  | Use VocabularyFilterService         |
+| Custom subtitle highlighting | Use SubtitleGenerationService       |
+| Custom translation logic     | Use TranslationManagementService    |
 
 ---
 
 ### 4. Filtering Handler
 
 #### Old API (Facade - Still Works)
+
 ```python
 from services.filterservice.filtering_handler import FilteringHandler
 
@@ -222,6 +231,7 @@ result = await handler.filter_subtitles(subtitles, user_id, options)
 ```
 
 #### New API (Focused Services)
+
 ```python
 from services.filtering import (
     SubtitleFilter,        # Filter subtitles
@@ -245,6 +255,7 @@ analysis = await translation_analyzer.analyze(vocabulary)
 ### 5. Logging Service
 
 #### Old API (Facade - Still Works)
+
 ```python
 from services.loggingservice.logging_service import LoggingService
 
@@ -253,6 +264,7 @@ logger.log("INFO", "Message", {"context": "data"})
 ```
 
 #### New API (Focused Services)
+
 ```python
 from services.logging import (
     LogFormatterService,    # Format logs
@@ -277,6 +289,7 @@ log_manager.add_handler(handler)
 ### 6. User Vocabulary Service
 
 #### Old API (Facade - Still Works)
+
 ```python
 from services.user_vocabulary_service import UserVocabularyService
 
@@ -285,6 +298,7 @@ known_words = await service.get_user_known_words(user_id, "de")
 ```
 
 #### New API (Focused Services)
+
 ```python
 from services.user_vocabulary import (
     UserVocabularyRepository,  # Data access
@@ -309,6 +323,7 @@ progress = await progress_service.calculate_progress(user_id)
 ### Pattern 1: Dependency Injection
 
 **Old Style** (still works):
+
 ```python
 # Service creates its own dependencies
 service = VocabularyService()
@@ -316,6 +331,7 @@ result = await service.get_word_info("Haus", "de")
 ```
 
 **New Style** (recommended):
+
 ```python
 # Inject dependencies explicitly
 query_service = VocabularyQueryService(db_session)
@@ -323,6 +339,7 @@ result = await query_service.get_word_info("Haus", "de")
 ```
 
 **Benefits**:
+
 - Easier to test (inject mocks)
 - Clearer dependencies
 - Better for unit tests
@@ -332,6 +349,7 @@ result = await query_service.get_word_info("Haus", "de")
 ### Pattern 2: Service Composition
 
 **Old Style**:
+
 ```python
 # Use monolithic service for everything
 service = VocabularyService()
@@ -340,6 +358,7 @@ stats = await service.get_vocabulary_stats(user_id)
 ```
 
 **New Style**:
+
 ```python
 # Compose multiple focused services
 query_service = VocabularyQueryService()
@@ -350,6 +369,7 @@ stats = await stats_service.get_vocabulary_stats(user_id)
 ```
 
 **Benefits**:
+
 - Only load what you need
 - Clearer separation of concerns
 - Easier to mock in tests
@@ -375,6 +395,7 @@ progress = await progress_service.calculate_progress(user_id)
 ```
 
 **Benefits**:
+
 - Testable without database
 - Swap database implementations
 - Clear separation of concerns
@@ -445,12 +466,14 @@ async def test_user_progress_calculation():
 **A:** Only if you're already modifying that code. There's no urgency to migrate working code.
 
 **When to migrate**:
+
 - ✅ Already editing the file
 - ✅ Adding new features
 - ✅ Improving test coverage
 - ✅ Performance optimization needed
 
 **When NOT to migrate**:
+
 - ❌ Code works fine and untouched
 - ❌ No plans to modify
 - ❌ Just for the sake of migrating
@@ -514,6 +537,7 @@ Do you need custom logic?
 **A:** You have two options:
 
 **Option 1**: Use the facade
+
 ```python
 service = VocabularyService()
 result1 = await service.get_word_info("Haus", "de")
@@ -521,6 +545,7 @@ result2 = await service.get_vocabulary_stats(user_id)
 ```
 
 **Option 2**: Compose multiple services
+
 ```python
 query_service = VocabularyQueryService()
 stats_service = VocabularyStatsService()
@@ -530,6 +555,7 @@ result2 = await stats_service.get_vocabulary_stats(user_id)
 ```
 
 Choose based on:
+
 - Facade: Simpler, fewer imports, good for many operations
 - Composition: More explicit, better for testing, good for new code
 
@@ -540,11 +566,13 @@ Choose based on:
 **A:** Minimal differences:
 
 **Facades**:
+
 - One extra function call (negligible)
 - Load entire facade class
 - Still delegates to focused services
 
 **Focused Services**:
+
 - Direct calls (slightly faster)
 - Load only what you need
 - Smaller memory footprint
@@ -556,16 +584,19 @@ Choose based on:
 ### Q: How do I inject dependencies?
 
 **Old style** (implicit):
+
 ```python
 service = VocabularyService()  # Creates dependencies internally
 ```
 
 **New style** (explicit):
+
 ```python
 query_service = VocabularyQueryService(db_session)  # Inject explicitly
 ```
 
 **For testing**:
+
 ```python
 # Easy to inject mocks
 mock_db = Mock()
@@ -577,6 +608,7 @@ query_service = VocabularyQueryService(mock_db)
 ### Q: What about backward compatibility in the future?
 
 **A:** Facades will be maintained for at least 1 year. If we decide to remove them:
+
 1. Deprecation warnings will be added (6 months notice)
 2. Migration guide will be provided
 3. Automated migration tools may be created
@@ -588,18 +620,21 @@ query_service = VocabularyQueryService(mock_db)
 ## Migration Checklist
 
 ### For New Features ✅
+
 - [ ] Use focused services (VocabularyQueryService, etc.)
 - [ ] Inject dependencies explicitly
 - [ ] Write tests against focused services
 - [ ] Document which services you're using
 
 ### For Maintaining Existing Code ✅
+
 - [ ] Keep using facades (no changes needed)
 - [ ] Only migrate if already editing the file
 - [ ] Test thoroughly after migration
 - [ ] Update tests to match new API
 
 ### For Refactoring ✅
+
 - [ ] Identify which focused services are needed
 - [ ] Replace facade calls with focused service calls
 - [ ] Update tests to mock focused services
@@ -615,6 +650,7 @@ query_service = VocabularyQueryService(mock_db)
 **Task**: Add feature to track user's vocabulary learning streak
 
 **Recommended approach**:
+
 ```python
 from services.vocabulary import VocabularyProgressService
 
@@ -633,6 +669,7 @@ class StreakTracker:
 ```
 
 **Why this approach?**
+
 - Clear dependency (VocabularyProgressService)
 - Easy to test (mock progress_service)
 - Only loads what's needed
@@ -644,6 +681,7 @@ class StreakTracker:
 **Task**: Fix bug in existing vocabulary lookup
 
 **Recommended approach**:
+
 ```python
 # Existing code
 from services.vocabulary_service import VocabularyService
@@ -663,6 +701,7 @@ async def lookup_word(word: str, language: str):
 ```
 
 **Why this approach?**
+
 - Minimal changes (less risk)
 - Backward compatible
 - Existing tests still work
@@ -672,6 +711,7 @@ async def lookup_word(word: str, language: str):
 ### Example 3: Refactoring for Testability
 
 **Before** (hard to test):
+
 ```python
 async def process_user_vocabulary(user_id: str):
     service = VocabularyService()  # Hard to mock
@@ -681,6 +721,7 @@ async def process_user_vocabulary(user_id: str):
 ```
 
 **After** (easy to test):
+
 ```python
 from services.vocabulary import VocabularyStatsService, VocabularyProgressService
 
@@ -696,6 +737,7 @@ async def process_user_vocabulary(
 ```
 
 **Test**:
+
 ```python
 async def test_process_user_vocabulary():
     # Easy to mock

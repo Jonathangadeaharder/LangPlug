@@ -26,21 +26,21 @@ Complete guide for setting up the LangPlug Backend development environment.
 
 ### Required Software
 
-| Software | Minimum Version | Recommended | Installation |
-|----------|----------------|-------------|--------------|
-| **Python** | 3.11.0 | 3.11.7 | [python.org](https://www.python.org/downloads/) |
-| **Git** | 2.30+ | Latest | [git-scm.com](https://git-scm.com/) |
-| **FFmpeg** | 4.4+ | Latest | [ffmpeg.org](https://ffmpeg.org/download.html) |
-| **Node.js** (Frontend) | 18.0+ | 20.x LTS | [nodejs.org](https://nodejs.org/) |
+| Software               | Minimum Version | Recommended | Installation                                    |
+| ---------------------- | --------------- | ----------- | ----------------------------------------------- |
+| **Python**             | 3.11.0          | 3.11.7      | [python.org](https://www.python.org/downloads/) |
+| **Git**                | 2.30+           | Latest      | [git-scm.com](https://git-scm.com/)             |
+| **FFmpeg**             | 4.4+            | Latest      | [ffmpeg.org](https://ffmpeg.org/download.html)  |
+| **Node.js** (Frontend) | 18.0+           | 20.x LTS    | [nodejs.org](https://nodejs.org/)               |
 
 ### Optional Software
 
-| Software | Purpose | Installation |
-|----------|---------|--------------|
-| **Docker** | PostgreSQL for testing | [docker.com](https://www.docker.com/) |
-| **PostgreSQL** | Production database | [postgresql.org](https://www.postgresql.org/) |
-| **VS Code** | Recommended IDE | [code.visualstudio.com](https://code.visualstudio.com/) |
-| **PyCharm** | Alternative IDE | [jetbrains.com/pycharm](https://www.jetbrains.com/pycharm/) |
+| Software       | Purpose                | Installation                                                |
+| -------------- | ---------------------- | ----------------------------------------------------------- |
+| **Docker**     | PostgreSQL for testing | [docker.com](https://www.docker.com/)                       |
+| **PostgreSQL** | Production database    | [postgresql.org](https://www.postgresql.org/)               |
+| **VS Code**    | Recommended IDE        | [code.visualstudio.com](https://code.visualstudio.com/)     |
+| **PyCharm**    | Alternative IDE        | [jetbrains.com/pycharm](https://www.jetbrains.com/pycharm/) |
 
 ### System Requirements
 
@@ -56,6 +56,7 @@ Complete guide for setting up the LangPlug Backend development environment.
 **Why WSL2?** The project uses Python libraries that work best in a Linux environment. WSL2 provides a native Linux kernel on Windows.
 
 1. **Enable WSL2**:
+
    ```powershell
    # Run in PowerShell as Administrator
    wsl --install
@@ -63,11 +64,13 @@ Complete guide for setting up the LangPlug Backend development environment.
    ```
 
 2. **Install Ubuntu**:
+
    ```powershell
    wsl --install -d Ubuntu-22.04
    ```
 
 3. **Verify Installation**:
+
    ```bash
    wsl -l -v
    # Should show Ubuntu with VERSION 2
@@ -78,11 +81,13 @@ Complete guide for setting up the LangPlug Backend development environment.
 #### macOS
 
 1. **Install Homebrew** (package manager):
+
    ```bash
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
 
 2. **Install FFmpeg**:
+
    ```bash
    brew install ffmpeg
    ```
@@ -193,6 +198,7 @@ python install_spacy_models.py
 ```
 
 **Model Sizes**:
+
 - `de_core_news_sm` (German): ~15MB
 - `en_core_web_sm` (English): ~13MB
 - Whisper `tiny` model: ~75MB
@@ -276,10 +282,7 @@ Create `.vscode/settings.json`:
 
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
-  "python.testing.pytestArgs": [
-    "tests",
-    "-v"
-  ],
+  "python.testing.pytestArgs": ["tests", "-v"],
 
   "python.analysis.typeCheckingMode": "basic",
   "python.analysis.autoImportCompletions": true,
@@ -324,12 +327,7 @@ Create `.vscode/launch.json` for debugging:
       "type": "python",
       "request": "launch",
       "module": "uvicorn",
-      "args": [
-        "main:app",
-        "--reload",
-        "--host", "0.0.0.0",
-        "--port", "8000"
-      ],
+      "args": ["main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"],
       "jinja": true,
       "justMyCode": false,
       "env": {
@@ -341,11 +339,7 @@ Create `.vscode/launch.json` for debugging:
       "type": "python",
       "request": "launch",
       "module": "pytest",
-      "args": [
-        "${file}",
-        "-v",
-        "-s"
-      ],
+      "args": ["${file}", "-v", "-s"],
       "console": "integratedTerminal",
       "justMyCode": false
     }
@@ -616,6 +610,7 @@ powershell.exe -Command ". api_venv/Scripts/activate; python -m pytest"
 ```
 
 For more testing information, see:
+
 - **[TEST_REPORT.md](../TEST_REPORT.md)** - Test suite status and metrics
 - **[TESTING_BEST_PRACTICES.md](../TESTING_BEST_PRACTICES.md)** - Testing guidelines
 
@@ -738,6 +733,7 @@ pre-commit run
 ```
 
 **Hooks configured**:
+
 - ✅ Ruff linting (code quality)
 - ✅ Ruff formatting (code style)
 - ✅ Bandit (security scanning)
@@ -854,14 +850,14 @@ DEEPL_API_KEY=your-api-key
 
 ### Environment Variable Reference
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `LANGPLUG_HOST` | `0.0.0.0` | Server bind address |
-| `LANGPLUG_PORT` | `8000` | Server port |
-| `LANGPLUG_DEBUG` | `False` | Enable debug mode (detailed errors) |
-| `LANGPLUG_SECRET_KEY` | *Required* | Secret for JWT tokens (min 32 chars) |
-| `LANGPLUG_TRANSCRIPTION_MODEL` | `tiny` | Whisper model size |
-| `DATABASE_URL` | SQLite default | Database connection URL |
+| Variable                       | Default        | Description                          |
+| ------------------------------ | -------------- | ------------------------------------ |
+| `LANGPLUG_HOST`                | `0.0.0.0`      | Server bind address                  |
+| `LANGPLUG_PORT`                | `8000`         | Server port                          |
+| `LANGPLUG_DEBUG`               | `False`        | Enable debug mode (detailed errors)  |
+| `LANGPLUG_SECRET_KEY`          | _Required_     | Secret for JWT tokens (min 32 chars) |
+| `LANGPLUG_TRANSCRIPTION_MODEL` | `tiny`         | Whisper model size                   |
+| `DATABASE_URL`                 | SQLite default | Database connection URL              |
 
 For complete reference, see **[CONFIGURATION.md](CONFIGURATION.md)** (to be created in Phase 2, Task 2.2).
 
@@ -876,6 +872,7 @@ For complete reference, see **[CONFIGURATION.md](CONFIGURATION.md)** (to be crea
 **Symptoms**: `python` still points to system Python
 
 **Solution**:
+
 ```bash
 # Deactivate any active environment
 deactivate
@@ -894,6 +891,7 @@ which python  # Should show api_venv path
 **Symptoms**: `ModuleNotFoundError` despite running `pip install`
 
 **Solution**:
+
 ```bash
 # Verify pip is from virtual environment
 which pip  # Should show api_venv path
@@ -910,6 +908,7 @@ pip cache purge
 **Symptoms**: Alembic errors when running `upgrade head`
 
 **Solution**:
+
 ```bash
 # Reset database (DEVELOPMENT ONLY - destroys data)
 rm data/langplug.db
@@ -924,6 +923,7 @@ alembic upgrade head
 **Symptoms**: `FFmpeg not installed` error when processing videos
 
 **Solution**:
+
 ```bash
 # Linux/WSL
 sudo apt install ffmpeg
@@ -940,6 +940,7 @@ ffmpeg -version
 **Symptoms**: Bus errors, SQLite async issues
 
 **Solution**:
+
 ```bash
 # Option 1: Use PostgreSQL for testing (recommended)
 docker compose -f docker-compose.postgresql.yml up -d db
@@ -957,6 +958,7 @@ powershell.exe -Command ". api_venv/Scripts/activate; python -m pytest"
 **Symptoms**: `Address already in use` when starting server
 
 **Solution**:
+
 ```bash
 # Find process using port 8000
 lsof -i :8000  # Linux/macOS
@@ -973,6 +975,7 @@ uvicorn main:app --port 8001
 **Symptoms**: Slow first run or errors about missing models
 
 **Solution**:
+
 ```bash
 # Manually download spaCy models
 python -m spacy download de_core_news_sm
@@ -1030,12 +1033,14 @@ Once your environment is set up:
 ## Development Workflow Checklist
 
 Before starting work:
+
 - [ ] Virtual environment activated
 - [ ] Latest code pulled from main
 - [ ] Dependencies up to date (`pip install -r requirements.txt`)
 - [ ] Database migrations applied (`alembic upgrade head`)
 
 Before committing:
+
 - [ ] Tests pass (`python -m pytest`)
 - [ ] Code is formatted (`ruff format .`)
 - [ ] Linting passes (`ruff check .`)
@@ -1043,6 +1048,7 @@ Before committing:
 - [ ] Changes are tested
 
 Before pushing:
+
 - [ ] Commit message follows conventions (see CLAUDE.md)
 - [ ] No sensitive data in commits
 - [ ] Branch is up to date with main

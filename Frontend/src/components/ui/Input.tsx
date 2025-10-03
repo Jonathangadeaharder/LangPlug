@@ -51,11 +51,11 @@ const variantStyles = {
   default: css`
     background: ${({ theme }) => theme.colors.background};
     border: 2px solid ${({ theme }) => theme.colors.border};
-    
+
     &:hover:not(:disabled) {
       border-color: ${({ theme }) => theme.colors.textSecondary};
     }
-    
+
     &:focus {
       border-color: ${({ theme }) => theme.colors.primary};
       box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
@@ -64,11 +64,11 @@ const variantStyles = {
   filled: css`
     background: ${({ theme }) => theme.colors.surface};
     border: 2px solid transparent;
-    
+
     &:hover:not(:disabled) {
       background: ${({ theme }) => theme.colors.surfaceHover};
     }
-    
+
     &:focus {
       background: ${({ theme }) => theme.colors.background};
       border-color: ${({ theme }) => theme.colors.primary};
@@ -78,11 +78,11 @@ const variantStyles = {
   outlined: css`
     background: transparent;
     border: 2px solid ${({ theme }) => theme.colors.border};
-    
+
     &:hover:not(:disabled) {
       border-color: ${({ theme }) => theme.colors.text};
     }
-    
+
     &:focus {
       border-color: ${({ theme }) => theme.colors.primary};
       background: ${({ theme }) => theme.colors.background};
@@ -102,7 +102,7 @@ const StyledInput = styled.input<{
   padding: ${({ theme, hasIcon, iconPosition }) => {
     const base = `${theme.spacing.sm} ${theme.spacing.md}`;
     if (!hasIcon) return base;
-    return iconPosition === 'left' 
+    return iconPosition === 'left'
       ? `${theme.spacing.sm} ${theme.spacing.md} ${theme.spacing.sm} calc(${theme.spacing.md} * 2.5)`
       : `${theme.spacing.sm} calc(${theme.spacing.md} * 2.5) ${theme.spacing.sm} ${theme.spacing.md}`;
   }};
@@ -112,35 +112,35 @@ const StyledInput = styled.input<{
   border-radius: ${({ theme }) => theme.radius.md};
   transition: all ${({ theme }) => theme.transitions.fast};
   outline: none;
-  
+
   ${({ variant = 'default' }) => variantStyles[variant]}
-  
+
   ${({ hasError, theme }) => hasError && css`
     border-color: ${theme.colors.error} !important;
-    
+
     &:focus {
       box-shadow: 0 0 0 3px ${theme.colors.error}20 !important;
     }
   `}
-  
+
   ${({ hasSuccess, theme }) => hasSuccess && css`
     border-color: ${theme.colors.success} !important;
-    
+
     &:focus {
       box-shadow: 0 0 0 3px ${theme.colors.success}20 !important;
     }
   `}
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     background: ${({ theme }) => theme.colors.surface};
   }
-  
+
   &::placeholder {
     color: ${({ theme }) => theme.colors.textLight};
   }
-  
+
   /* Remove autofill background */
   &:-webkit-autofill,
   &:-webkit-autofill:hover,
@@ -247,7 +247,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
           {...props}
         />
       </InputContainer>
-      
+
       <AnimatePresence mode="wait">
         {(error || success || helperText) && (
           <HelperText

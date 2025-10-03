@@ -13,13 +13,13 @@ export class DatabaseHelpers {
     try {
       // Create a test user
       await this.createTestUser();
-      
+
       // Login with the test user to get auth token
       const token = await this.loginTestUser();
-      
+
       // Create sample videos, vocabulary, etc.
       await this.createSampleContent(token);
-      
+
       console.log('Test data seeded successfully');
     } catch (error) {
       console.error('Failed to seed test data:', error);
@@ -34,13 +34,13 @@ export class DatabaseHelpers {
     try {
       // Login with the test user to get auth token
       const token = await this.loginTestUser();
-      
+
       // Delete test content
       await this.deleteSampleContent(token);
-      
+
       // Delete the test user
       await this.deleteTestUser(token);
-      
+
       console.log('Test data cleaned successfully');
     } catch (error) {
       console.error('Failed to clean test data:', error);
@@ -75,13 +75,13 @@ export class DatabaseHelpers {
       const formData = new URLSearchParams();
       formData.append('username', this.TEST_USER_EMAIL);
       formData.append('password', this.TEST_USER_PASSWORD);
-      
+
       const response = await axios.post(`${this.API_BASE_URL}/auth/login`, formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       });
-      
+
       return response.data.access_token;
     } catch (error) {
       console.error('Failed to login test user:', error);
@@ -117,7 +117,7 @@ export class DatabaseHelpers {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       console.log('Sample content created');
     } catch (error) {
       console.error('Failed to create sample content:', error);

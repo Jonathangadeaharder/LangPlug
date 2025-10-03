@@ -5,4 +5,3 @@ test-postgres: backend-test-postgres
 
 backend-test-postgres:
 	cd Backend && ./scripts/run_tests_postgres.sh
-

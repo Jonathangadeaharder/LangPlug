@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS word_category_associations (
     word_id INTEGER NOT NULL,
     category_id INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     FOREIGN KEY (word_id) REFERENCES vocabulary(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES word_categories(id) ON DELETE CASCADE,
     UNIQUE(word_id, category_id)
@@ -186,7 +186,7 @@ CREATE INDEX IF NOT EXISTS idx_user_sessions_active ON user_sessions(is_active);
 
 -- View: Word Statistics
 CREATE VIEW IF NOT EXISTS word_statistics AS
-SELECT 
+SELECT
     language,
     COUNT(*) as total_vocabulary_words,
     AVG(frequency) as avg_frequency,
@@ -199,7 +199,7 @@ GROUP BY language;
 
 -- View: Unknown Words Statistics
 CREATE VIEW IF NOT EXISTS unknown_words_statistics AS
-SELECT 
+SELECT
     language,
     COUNT(*) as total_unknown_words,
     SUM(frequency_count) as total_frequency,
@@ -212,7 +212,7 @@ GROUP BY language;
 
 -- View: Learning Progress Summary
 CREATE VIEW IF NOT EXISTS learning_progress_summary AS
-SELECT 
+SELECT
     ulp.user_id,
     COUNT(*) as total_words_learning,
     AVG(ulp.confidence_level) as avg_confidence,
@@ -225,7 +225,7 @@ GROUP BY ulp.user_id;
 
 -- View: Recent Activity
 CREATE VIEW IF NOT EXISTS recent_activity AS
-SELECT 
+SELECT
     'session' as activity_type,
     ps.id as activity_id,
     ps.session_type as activity_description,
@@ -234,7 +234,7 @@ SELECT
 FROM processing_sessions ps
 WHERE ps.start_time >= datetime('now', '-30 days')
 UNION ALL
-SELECT 
+SELECT
     'word_discovery' as activity_type,
     swd.id as activity_id,
     'Word discovered: ' || swd.word as activity_description,
@@ -247,7 +247,7 @@ ORDER BY activity_time DESC;
 -- Triggers for Automatic Updates
 
 -- Update vocabulary updated_at timestamp
-CREATE TRIGGER IF NOT EXISTS update_vocabulary_timestamp 
+CREATE TRIGGER IF NOT EXISTS update_vocabulary_timestamp
 AFTER UPDATE ON vocabulary
 FOR EACH ROW
 BEGIN
@@ -255,7 +255,7 @@ BEGIN
 END;
 
 -- Update unknown words last_encountered timestamp
-CREATE TRIGGER IF NOT EXISTS update_unknown_words_timestamp 
+CREATE TRIGGER IF NOT EXISTS update_unknown_words_timestamp
 AFTER UPDATE ON unknown_words
 FOR EACH ROW
 WHEN NEW.frequency_count > OLD.frequency_count
@@ -264,7 +264,7 @@ BEGIN
 END;
 
 -- Update learning progress last_reviewed timestamp
-CREATE TRIGGER IF NOT EXISTS update_learning_progress_timestamp 
+CREATE TRIGGER IF NOT EXISTS update_learning_progress_timestamp
 AFTER UPDATE ON user_learning_progress
 FOR EACH ROW
 WHEN NEW.review_count > OLD.review_count

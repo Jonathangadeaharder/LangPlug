@@ -58,6 +58,7 @@ Backend/
 ## Using Repositories in Routes
 
 ### Before (Direct Database Access)
+
 ```python
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
@@ -79,6 +80,7 @@ async def get_user(
 ```
 
 ### After (Repository Pattern)
+
 ```python
 from fastapi import APIRouter, Depends
 from database.repositories.interfaces import UserRepositoryInterface
@@ -98,6 +100,7 @@ async def get_user(
 ## Using Repositories in Services
 
 ### Constructor Injection Pattern
+
 ```python
 from database.repositories.interfaces import UserRepositoryInterface
 
@@ -122,6 +125,7 @@ class AuthService:
 ```
 
 ### Service Dependency Injection
+
 ```python
 # core/service_dependencies.py
 from database.repositories.interfaces import UserRepositoryInterface
@@ -138,6 +142,7 @@ def get_auth_service(
 ## Available Repository Interfaces
 
 ### UserRepositoryInterface
+
 ```python
 # CRUD operations
 user = await user_repo.get_by_id(user_id)
@@ -152,6 +157,7 @@ await user_repo.update_last_login(user_id)
 ```
 
 ### VocabularyRepositoryInterface
+
 ```python
 # CRUD operations
 word = await vocab_repo.get_by_id(word_id)
@@ -161,6 +167,7 @@ words = await vocab_repo.search_words(query="Haus", language="de")
 ```
 
 ### UserVocabularyProgressRepositoryInterface
+
 ```python
 # Progress tracking
 progress = await progress_repo.get_user_progress(user_id, language="de")
@@ -169,6 +176,7 @@ updated = await progress_repo.mark_word_known(user_id, vocab_id, is_known=True)
 ```
 
 ### ProcessingSessionRepositoryInterface
+
 ```python
 # Session management
 session = await session_repo.get_by_session_id(session_id)
@@ -179,6 +187,7 @@ sessions = await session_repo.get_user_sessions(user_id, status="active")
 ## Creating a New Repository
 
 ### 1. Define Interface in `interfaces.py`
+
 ```python
 from abc import ABC, abstractmethod
 
@@ -197,6 +206,7 @@ class GameSessionRepositoryInterface(BaseRepositoryInterface[Any, str]):
 ```
 
 ### 2. Create Concrete Implementation
+
 ```python
 # database/repositories/game_session_repository.py
 from sqlalchemy import select
@@ -222,6 +232,7 @@ class GameSessionRepository(BaseRepository[GameSession], GameSessionRepositoryIn
 ```
 
 ### 3. Add Dependency Injection Function
+
 ```python
 # core/repository_dependencies.py
 def get_game_session_repository(
@@ -232,6 +243,7 @@ def get_game_session_repository(
 ```
 
 ### 4. Export from `dependencies.py`
+
 ```python
 # core/dependencies.py
 try:
@@ -306,6 +318,7 @@ When migrating a service to use repositories:
 ## Anti-Patterns to Avoid
 
 ### ❌ Service Creating Repository Directly
+
 ```python
 class MyService:
     def __init__(self, db: AsyncSession):
@@ -313,6 +326,7 @@ class MyService:
 ```
 
 ### ✅ Repository Injected via Interface
+
 ```python
 class MyService:
     def __init__(self, user_repo: UserRepositoryInterface):
@@ -320,6 +334,7 @@ class MyService:
 ```
 
 ### ❌ Mixing Database Access Methods
+
 ```python
 class MyService:
     def __init__(self, db: AsyncSession, user_repo: UserRepositoryInterface):
@@ -333,6 +348,7 @@ class MyService:
 ```
 
 ### ✅ Consistent Repository Usage
+
 ```python
 class MyService:
     def __init__(self, user_repo: UserRepositoryInterface):

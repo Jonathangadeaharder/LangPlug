@@ -5,6 +5,7 @@ This directory contains end-to-end (E2E) workflow tests for the LangPlug applica
 ## Anti-Patterns Eliminated
 
 ### ❌ What We Removed
+
 - **Array Index Selectors**: No more `buttons[0]` or `elements[1]`
 - **DOM Element Counting**: No more testing number of elements as primary assertion
 - **Status Code Tolerance**: No more accepting multiple status codes as valid
@@ -14,6 +15,7 @@ This directory contains end-to-end (E2E) workflow tests for the LangPlug applica
 - **Puppeteer Anti-patterns**: Removed brittle querySelector arrays and style-based selections
 
 ### ✅ What We Implemented
+
 - **Semantic Selectors**: `data-testid`, `role` queries, semantic CSS selectors
 - **Business Outcome Verification**: Testing actual user workflows and results
 - **Robust Element Selection**: Multiple fallback selectors with proper error handling
@@ -42,61 +44,66 @@ e2e/
 ## Key Improvements
 
 ### 1. Semantic Element Selection
+
 ```typescript
 // ❌ Old anti-pattern
 const button = buttons[0];
 await button.click();
 
 // ✅ New approach
-const knowButton = page.locator('[data-testid="know-button"]').or(
-  page.getByRole('button', { name: /know|correct|yes/i }).or(
-    page.locator('.know-answer-button')
-  )
-);
+const knowButton = page
+  .locator('[data-testid="know-button"]')
+  .or(
+    page
+      .getByRole("button", { name: /know|correct|yes/i })
+      .or(page.locator(".know-answer-button")),
+  );
 await expect(knowButton).toBeVisible();
 await knowButton.click();
 ```
 
 ### 2. Business Outcome Verification
+
 ```typescript
 // ❌ Old anti-pattern
 expect(buttons.length).toBe(3);
 
 // ✅ New approach
-await expect(
-  page.locator('[data-testid="user-menu"]')
-).toBeVisible();
+await expect(page.locator('[data-testid="user-menu"]')).toBeVisible();
 // Verify user can access protected features
 const vocabularySection = page.locator('[data-testid="vocabulary-list"]');
 await expect(vocabularySection).toBeVisible();
 ```
 
 ### 3. Proper Error Handling
+
 ```typescript
 // ✅ Robust element selection with fallbacks
-const submitButton = page.locator('button[type="submit"]').or(
-  page.getByRole('button', { name: /register/i })
-);
+const submitButton = page
+  .locator('button[type="submit"]')
+  .or(page.getByRole("button", { name: /register/i }));
 
 if (!(await submitButton.isVisible())) {
-  throw new Error('Registration submit button not found');
+  throw new Error("Registration submit button not found");
 }
 await submitButton.click();
 ```
 
 ### 4. API-Based Test Data
+
 ```typescript
 // ✅ Create test data through API, not UI manipulation
 const testUser = await testDataManager.createTestUser({
-  username: 'e2euser',
-  email: 'e2e@langplug.com',
-  password: 'TestPassword123!'
+  username: "e2euser",
+  email: "e2e@langplug.com",
+  password: "TestPassword123!",
 });
 ```
 
 ## Running Tests
 
 ### Prerequisites
+
 ```bash
 cd tests
 npm install
@@ -104,6 +111,7 @@ npm run playwright:install
 ```
 
 ### Test Execution
+
 ```bash
 # Run all E2E tests
 npm run playwright:test
@@ -119,6 +127,7 @@ npm run playwright:report
 ```
 
 ### Through Unified Test Runner
+
 ```bash
 # Run only E2E tests
 npm run test:e2e
@@ -130,13 +139,16 @@ npm run test:all
 ## Test Environment
 
 ### Automatic Setup
+
 The E2E tests automatically:
+
 1. Start backend server on port 8001
 2. Start frontend server on port 3001
 3. Set up test database with clean state
 4. Create isolated test data for each test
 
 ### Configuration
+
 - **Backend**: `http://localhost:8001` (test environment)
 - **Frontend**: `http://localhost:3001` (test environment)
 - **Database**: SQLite test database with automatic cleanup
@@ -145,24 +157,28 @@ The E2E tests automatically:
 ## Workflow Tests
 
 ### Authentication Workflow
+
 - User registration and login
 - Access control verification
 - Error handling for invalid credentials
 - Logout and session management
 
 ### Vocabulary Learning Workflow
+
 - Vocabulary game progression
 - Custom vocabulary creation
 - Difficulty-based filtering
 - Progress tracking
 
 ### Video Processing Workflow
+
 - Video upload and processing
 - Processing status monitoring
 - Error handling and retry
 - Vocabulary extraction verification
 
 ### Complete Learning Workflow
+
 - Full user journey from video upload to vocabulary mastery
 - Integration between all features
 - Progress tracking across sessions
@@ -171,18 +187,21 @@ The E2E tests automatically:
 ## Best Practices
 
 ### Element Selection Priority
+
 1. **data-testid attributes**: `[data-testid="element-id"]`
 2. **Role-based queries**: `page.getByRole('button', { name: /text/i })`
 3. **Semantic CSS selectors**: `input[type="email"]`, `button[type="submit"]`
 4. **Text-based fallbacks**: `page.getByText(/pattern/i)`
 
 ### Assertions
+
 - Test business outcomes, not implementation details
 - Use specific, meaningful error messages
 - Wait for elements to be visible before interaction
 - Verify actual data persistence through API when possible
 
 ### Test Data Management
+
 - Create data through API, not UI
 - Clean up after each test
 - Use unique identifiers (timestamps, UUIDs)
@@ -191,12 +210,14 @@ The E2E tests automatically:
 ## Debugging
 
 ### Common Issues
+
 1. **Element not found**: Check selector priority and fallbacks
 2. **Test timeouts**: Verify services are running and responsive
 3. **Flaky tests**: Add proper waits and stable selectors
 4. **Cross-platform issues**: Use relative paths and dynamic URLs
 
 ### Debug Tools
+
 ```bash
 # Run specific test with debug
 npx playwright test authentication.workflow.test.ts --debug

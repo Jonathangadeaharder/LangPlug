@@ -82,14 +82,14 @@ const StyledCard = styled(motion.div).withConfig({
 const CardHeader = styled.div`
   padding: ${({ theme }) => theme.spacing.md};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  
+
   h3 {
     margin: 0;
     font-size: ${({ theme }) => theme.typography.fontSize.xl};
     font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
     color: ${({ theme }) => theme.colors.text};
   }
-  
+
   p {
     margin: ${({ theme }) => theme.spacing.xs} 0 0;
     font-size: ${({ theme }) => theme.typography.fontSize.sm};
@@ -115,14 +115,14 @@ const CardImage = styled.div<{ height?: string }>`
   width: 100%;
   height: ${({ height }) => height || '200px'};
   overflow: hidden;
-  
+
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform ${({ theme }) => theme.transitions.slow};
   }
-  
+
   &:hover img {
     transform: scale(1.05);
   }

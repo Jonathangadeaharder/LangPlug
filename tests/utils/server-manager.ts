@@ -36,7 +36,7 @@ export class ServerManager {
         }
       }
     }
-    
+
     return new Promise((resolve, reject) => {
       // Start backend server using the Windows command from AGENTS.md
       // Ensure reload is disabled and TESTING mode is enabled to avoid heavy init and watchfiles issues

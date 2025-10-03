@@ -81,7 +81,7 @@ export class ParallelTestRunner extends EventEmitter {
   }> {
     this.results = [];
     const startTime = Date.now();
-    
+
     // Load OpenAPI spec if contract validation is enabled
     if (options.contractValidation) {
       const projectRoot = path.resolve(__dirname, '..', '..');
@@ -106,7 +106,7 @@ export class ParallelTestRunner extends EventEmitter {
 
     // Generate summary
     const summary = this.generateSummary(Date.now() - startTime);
-    
+
     // Cleanup
     await this.cleanup();
 
@@ -123,7 +123,7 @@ export class ParallelTestRunner extends EventEmitter {
   private async runIsolatedSuites(suites: TestSuite[], options: TestRunOptions): Promise<void> {
     const parallel = options.parallel !== false;
     const maxConcurrent = parallel ? Math.min(this.maxWorkers, suites.length) : 1;
-    
+
     const queue = [...suites];
     const running: Promise<void>[] = [];
 
@@ -162,12 +162,12 @@ export class ParallelTestRunner extends EventEmitter {
    */
   private async runIsolatedSuite(suite: TestSuite, options: TestRunOptions): Promise<void> {
     const envId = `${suite.name}-${Date.now()}`;
-    
+
     try {
       // Create isolated environment
       const environment = await this.orchestrator.createEnvironment(envId);
       await this.orchestrator.startEnvironment(envId);
-      
+
       this.environments.set(suite.name, environment);
       this.emit('suite:start', suite);
 
@@ -183,7 +183,7 @@ export class ParallelTestRunner extends EventEmitter {
           environment,
           options
         );
-        
+
         this.results.push(result);
         this.emit('test:complete', result);
 
@@ -209,24 +209,24 @@ export class ParallelTestRunner extends EventEmitter {
    */
   private async runSharedSuites(suites: TestSuite[], options: TestRunOptions): Promise<void> {
     const envId = `shared-${Date.now()}`;
-    
+
     try {
       // Create shared environment
       const environment = await this.orchestrator.createEnvironment(envId);
       await this.orchestrator.startEnvironment(envId);
-      
+
       this.emit('environment:ready', environment);
 
       // Run all shared suites
       for (const suite of suites) {
         this.emit('suite:start', suite);
-        
+
         const suiteResults = await this.runSuiteInEnvironment(
           suite,
           environment,
           options
         );
-        
+
         this.results.push(...suiteResults);
         this.emit('suite:complete', suite);
 
@@ -251,13 +251,13 @@ export class ParallelTestRunner extends EventEmitter {
   ): Promise<TestResult[]> {
     const results: TestResult[] = [];
     const parallel = suite.parallel !== false && options.parallel !== false;
-    
+
     if (parallel) {
       // Run test files in parallel
       const promises = suite.files
         .filter(file => !options.filter || file.includes(options.filter))
         .map(file => this.runTestFile(file, suite, environment, options));
-      
+
       const fileResults = await Promise.all(promises);
       results.push(...fileResults);
     } else {
@@ -266,17 +266,17 @@ export class ParallelTestRunner extends EventEmitter {
         if (options.filter && !file.includes(options.filter)) {
           continue;
         }
-        
+
         const result = await this.runTestFile(file, suite, environment, options);
         results.push(result);
-        
+
         // Check for bail condition
         if (options.bail && result.failed > 0) {
           break;
         }
       }
     }
-    
+
     return results;
   }
 
@@ -291,13 +291,13 @@ export class ParallelTestRunner extends EventEmitter {
   ): Promise<TestResult> {
     const startTime = Date.now();
     this.emit('file:start', { file, suite: suite.name });
-    
+
     let result: TestResult;
-    
+
     try {
       // Generate test data for this file
       const testData = await this.testDataManager.createScenario('basic');
-      
+
       // Run the appropriate test command based on suite type
       const testResult = await this.executeTestCommand(
         file,
@@ -306,7 +306,7 @@ export class ParallelTestRunner extends EventEmitter {
         testData,
         options
       );
-      
+
       result = {
         suite: suite.name,
         file,
@@ -317,7 +317,7 @@ export class ParallelTestRunner extends EventEmitter {
         duration: Date.now() - startTime,
         failures: testResult.failures,
       };
-      
+
       // Add contract violations if any
       if (options.contractValidation) {
         const violations = this.orchestrator.getContractViolations();
@@ -343,27 +343,27 @@ export class ParallelTestRunner extends EventEmitter {
         }],
       };
     }
-    
+
     // Handle retries if configured
     if (result.failed > 0 && options.retries && options.retries > 0) {
       this.emit('file:retry', { file, attempt: 1 });
-      
+
       for (let attempt = 1; attempt <= options.retries; attempt++) {
         const retryResult = await this.runTestFile(file, suite, environment, {
           ...options,
           retries: 0, // Don't retry the retry
         });
-        
+
         if (retryResult.failed === 0) {
           result = retryResult;
           this.emit('file:retry:success', { file, attempt });
           break;
         }
-        
+
         this.emit('file:retry:failed', { file, attempt });
       }
     }
-    
+
     this.emit('file:complete', { file, result });
     return result;
   }
@@ -379,7 +379,7 @@ export class ParallelTestRunner extends EventEmitter {
     options: TestRunOptions
   ): Promise<any> {
     const { spawn } = await import('child_process');
-    
+
     return new Promise((resolve, reject) => {
       let command: string;
       let args: string[] = [];
@@ -391,7 +391,7 @@ export class ParallelTestRunner extends EventEmitter {
         TEST_DATA: JSON.stringify(testData),
         NODE_ENV: 'test',
       };
-      
+
       const projectRoot = path.resolve(__dirname, '..', '..');
 
       switch (suite.type) {
@@ -421,12 +421,12 @@ export class ParallelTestRunner extends EventEmitter {
           env.E2E_FRONTEND_URL = environment.frontend.url;
           env.E2E_BACKEND_URL = environment.backend.url;
           break;
-          
+
         default:
           reject(new Error(`Unknown suite type: ${suite.type}`));
           return;
       }
-      
+
       if (options.coverage) {
         if (command === 'npm') {
           args.push('--', '--coverage');
@@ -434,30 +434,30 @@ export class ParallelTestRunner extends EventEmitter {
           args = ['-m', 'pytest', file, '--cov', '--cov-report=json'];
         }
       }
-      
+
       const child = spawn(command, args, {
         cwd,
         env,
         stdio: options.verbose ? 'inherit' : 'pipe',
       });
-      
+
       let stdout = '';
       let stderr = '';
-      
+
       if (!options.verbose) {
         child.stdout?.on('data', (data) => {
           stdout += data.toString();
         });
-        
+
         child.stderr?.on('data', (data) => {
           stderr += data.toString();
         });
       }
-      
+
       child.on('close', (code) => {
         const output = stdout + stderr;
         const result = this.parseTestOutput(output, suite.type);
-        
+
         if (code === 0) {
           resolve(result);
         } else {
@@ -465,9 +465,9 @@ export class ParallelTestRunner extends EventEmitter {
           resolve(result);
         }
       });
-      
+
       child.on('error', reject);
-      
+
       // Apply timeout if specified
       if (options.timeout || suite.timeout) {
         setTimeout(() => {
@@ -489,7 +489,7 @@ export class ParallelTestRunner extends EventEmitter {
       skipped: 0,
       failures: [] as TestFailure[],
     };
-    
+
     // Parse based on test framework output
     if (type === 'unit' && output.includes('pytest')) {
       // Parse pytest output
@@ -509,7 +509,7 @@ export class ParallelTestRunner extends EventEmitter {
         result.tests = parseInt(testMatch[3]);
       }
     }
-    
+
     // Extract failure details (simplified)
     const failureMatches = output.matchAll(/FAIL.*?\n(.*?)\n/g);
     for (const match of failureMatches) {
@@ -518,7 +518,7 @@ export class ParallelTestRunner extends EventEmitter {
         error: 'Test failed',
       });
     }
-    
+
     return result;
   }
 
@@ -541,19 +541,19 @@ export class ParallelTestRunner extends EventEmitter {
     let skipped = 0;
     const suites = new Set<string>();
     const failedSuites = new Set<string>();
-    
+
     for (const result of this.results) {
       total += result.tests;
       passed += result.passed;
       failed += result.failed;
       skipped += result.skipped;
       suites.add(result.suite);
-      
+
       if (result.failed > 0) {
         failedSuites.add(result.suite);
       }
     }
-    
+
     return {
       total,
       passed,
@@ -599,7 +599,7 @@ export class ParallelTestRunner extends EventEmitter {
     <p>Pass Rate: ${summary.passRate.toFixed(2)}%</p>
     <p>Duration: ${(summary.duration / 1000).toFixed(2)}s</p>
   </div>
-  
+
   <h2>Results</h2>
   <table>
     <thead>
@@ -625,7 +625,7 @@ export class ParallelTestRunner extends EventEmitter {
       `).join('')}
     </tbody>
   </table>
-  
+
   ${this.results.filter(r => r.failures && r.failures.length > 0).map(r => `
     <div class="suite">
       <h3>${r.suite} - ${path.basename(r.file)}</h3>
@@ -639,7 +639,7 @@ export class ParallelTestRunner extends EventEmitter {
   `).join('')}
 </body>
 </html>`;
-    
+
     await fs.writeFile(outputPath, html);
     this.emit('report:generated', outputPath);
   }
@@ -653,10 +653,10 @@ export class ParallelTestRunner extends EventEmitter {
       await worker.terminate();
     }
     this.workers.clear();
-    
+
     // Cleanup environments
     await this.orchestrator.cleanup();
-    
+
     // Clear test data
     this.testDataManager.clearAll();
   }

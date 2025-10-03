@@ -7,4 +7,3 @@ $ScriptDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 $RepoRoot = Resolve-Path (Join-Path $ScriptDir "..")
 Set-Location (Join-Path $RepoRoot "Backend")
 ./scripts/run_tests_postgres.ps1
-

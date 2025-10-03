@@ -28,6 +28,7 @@ Comprehensive Python coding standards and best practices for LangPlug Backend de
 ### Core Principles
 
 **Code is read more often than written**. Optimize for:
+
 - **Readability**: Clear, self-documenting code
 - **Maintainability**: Easy to modify and extend
 - **Testability**: Designed for comprehensive testing
@@ -199,17 +200,17 @@ result = (
 
 ### General Rules
 
-| Element | Convention | Example |
-|---------|------------|---------|
-| **Module** | snake_case | `vocabulary_service.py` |
-| **Package** | snake_case | `authservice/` |
-| **Class** | PascalCase | `VocabularyService` |
-| **Function** | snake_case | `get_vocabulary_words()` |
-| **Method** | snake_case | `process_chunk()` |
-| **Variable** | snake_case | `user_id`, `word_count` |
-| **Constant** | UPPER_SNAKE_CASE | `MAX_RETRIES`, `DEFAULT_TIMEOUT` |
-| **Private** | _leading_underscore | `_internal_helper()` |
-| **Protected** | _leading_underscore | `_validate_input()` |
+| Element       | Convention           | Example                          |
+| ------------- | -------------------- | -------------------------------- |
+| **Module**    | snake_case           | `vocabulary_service.py`          |
+| **Package**   | snake_case           | `authservice/`                   |
+| **Class**     | PascalCase           | `VocabularyService`              |
+| **Function**  | snake_case           | `get_vocabulary_words()`         |
+| **Method**    | snake_case           | `process_chunk()`                |
+| **Variable**  | snake_case           | `user_id`, `word_count`          |
+| **Constant**  | UPPER_SNAKE_CASE     | `MAX_RETRIES`, `DEFAULT_TIMEOUT` |
+| **Private**   | \_leading_underscore | `_internal_helper()`             |
+| **Protected** | \_leading_underscore | `_validate_input()`              |
 
 ### Specific Guidelines
 
@@ -1237,6 +1238,7 @@ def test_calculate_cefr_level_for_various_words(word, expected_level):
 ### Before Submitting Code
 
 #### Functionality
+
 - [ ] Code works as expected
 - [ ] All tests pass (including new tests)
 - [ ] Edge cases handled
@@ -1244,6 +1246,7 @@ def test_calculate_cefr_level_for_various_words(word, expected_level):
 - [ ] No regressions introduced
 
 #### Code Quality
+
 - [ ] Follows PEP 8 and project style guide
 - [ ] Functions < 20 lines (or well-justified if longer)
 - [ ] Clear, descriptive names
@@ -1252,18 +1255,21 @@ def test_calculate_cefr_level_for_various_words(word, expected_level):
 - [ ] DRY principle followed (no duplication)
 
 #### Documentation
+
 - [ ] Public APIs have docstrings
 - [ ] Complex logic explained with comments
 - [ ] Type hints added for function signatures
 - [ ] README updated if needed
 
 #### Testing
+
 - [ ] Unit tests added for new functionality
 - [ ] Integration tests added if needed
 - [ ] Test coverage maintained (80%+)
 - [ ] Tests are deterministic and isolated
 
 #### Security
+
 - [ ] No hardcoded credentials or secrets
 - [ ] Input validation implemented
 - [ ] SQL injection protected (use parameterized queries)
@@ -1271,6 +1277,7 @@ def test_calculate_cefr_level_for_various_words(word, expected_level):
 - [ ] Authentication/authorization checks present
 
 #### Performance
+
 - [ ] No unnecessary database queries (N+1 problem)
 - [ ] Async operations used where appropriate
 - [ ] Large datasets handled efficiently (pagination, streaming)
@@ -1279,6 +1286,7 @@ def test_calculate_cefr_level_for_various_words(word, expected_level):
 ### During Code Review
 
 #### As Reviewer
+
 - [ ] Understand the change (ask questions if unclear)
 - [ ] Check for logic errors
 - [ ] Verify test coverage
@@ -1286,6 +1294,7 @@ def test_calculate_cefr_level_for_various_words(word, expected_level):
 - [ ] Approve if LGTM (Looks Good To Me)
 
 #### As Author
+
 - [ ] Respond to all comments
 - [ ] Explain design decisions
 - [ ] Make requested changes or discuss alternatives

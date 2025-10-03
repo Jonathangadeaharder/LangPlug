@@ -9,6 +9,7 @@ Previously, tests used hardcoded URLs like `"/api/auth/me"` which would break wh
 ## 🛠️ How It Works
 
 ### 1. Named Routes
+
 All FastAPI routes now have unique `name` parameters following the `resource_action` convention:
 
 ```python
@@ -24,6 +25,7 @@ async def get_current_user_info():
 ```
 
 ### 2. URL Builder Pattern
+
 Tests use the `url_builder.py` utility to generate URLs dynamically:
 
 ```python
@@ -91,10 +93,12 @@ def test_video_streaming(client, url_builder):
 ## 📋 Available Route Names
 
 ### Authentication Routes
+
 - `auth_get_current_user` - GET /api/auth/me
 - `auth_test_prefix` - GET /api/auth/test-prefix
 
 ### Video Routes
+
 - `get_videos` - GET /api/videos
 - `stream_video` - GET /api/videos/{series}/{episode}
 - `upload_video_to_series` - POST /api/videos/upload/{series}
@@ -107,6 +111,7 @@ def test_video_streaming(client, url_builder):
 - `get_user_videos` - GET /api/videos/user
 
 ### Vocabulary Routes
+
 - `get_vocabulary_stats` - GET /api/vocabulary/stats
 - `get_blocking_words` - GET /api/vocabulary/blocking-words
 - `mark_word_known` - POST /api/vocabulary/mark-known
@@ -116,6 +121,7 @@ def test_video_streaming(client, url_builder):
 - `bulk_mark_level` - POST /api/vocabulary/library/bulk-mark
 
 ### Processing Routes
+
 - `process_chunk` - POST /api/processing/chunk
 - `transcribe_video` - POST /api/processing/transcribe
 - `filter_subtitles` - POST /api/processing/filter-subtitles
@@ -125,6 +131,7 @@ def test_video_streaming(client, url_builder):
 - `get_task_progress` - GET /api/processing/progress/{task_id}
 
 ### Profile Routes
+
 - `profile_get` - GET /api/profile
 - `profile_update_languages` - PUT /api/profile/languages
 - `profile_get_supported_languages` - GET /api/profile/languages
@@ -132,23 +139,27 @@ def test_video_streaming(client, url_builder):
 - `profile_update_settings` - PUT /api/profile/settings
 
 ### Progress Routes
+
 - `progress_get_user` - GET /api/progress/user
 - `progress_update_user` - POST /api/progress/update
 - `progress_get_daily` - GET /api/progress/daily
 
 ### Game Routes
+
 - `game_start_session` - POST /api/game/start
 - `game_get_session` - GET /api/game/session/{session_id}
 - `game_submit_answer` - POST /api/game/answer
 - `game_get_user_sessions` - GET /api/game/sessions
 
 ### Debug Routes
+
 - `debug_receive_frontend_logs` - POST /api/debug/frontend-logs
 - `debug_health` - GET /api/debug/health
 - `debug_test_minimal` - POST /api/debug/test-minimal
 - `debug_test_with_data` - POST /api/debug/test-with-data
 
 ### Logs Routes
+
 - `logs_receive_frontend` - POST /api/logs/frontend
 - `logs_list_files` - GET /api/logs/list
 - `logs_download_file` - GET /api/logs/download/{filename}
@@ -156,12 +167,15 @@ def test_video_streaming(client, url_builder):
 ## 🔧 Tools
 
 ### Finding Hardcoded URLs
+
 ```bash
 python tests/convert_hardcoded_urls.py
 ```
+
 This tool scans test files and identifies hardcoded URLs that should be converted.
 
 ### Running Robust Tests
+
 ```bash
 # Run all robust tests
 python -m pytest tests/robust_*.py -v
@@ -174,16 +188,19 @@ python -m pytest tests/robust_video_tests.py -v
 ## 📈 Benefits
 
 ### URL Divergence Prevention
+
 - Tests automatically adapt when route prefixes change
 - No more broken tests due to URL structure changes
 - Future-proof against API versioning
 
 ### Maintainability
+
 - Single source of truth for route names
 - Type-safe URL generation
 - Clear error messages for missing routes
 
 ### Test Reliability
+
 - Eliminates hardcoded URL maintenance burden
 - Consistent URL generation across all tests
 - Better test coverage with parameter validation
@@ -193,6 +210,7 @@ python -m pytest tests/robust_video_tests.py -v
 ### Converting Existing Tests
 
 1. **Add URL Builder Fixture**:
+
 ```python
 @pytest.fixture
 def url_builder(client):
@@ -201,6 +219,7 @@ def url_builder(client):
 ```
 
 2. **Replace Hardcoded URLs**:
+
 ```python
 # Before
 response = client.get("/api/auth/me")
@@ -211,6 +230,7 @@ response = client.get(url)
 ```
 
 3. **Handle Path Parameters**:
+
 ```python
 # Before
 response = client.get(f"/api/videos/{series}/{episode}")
@@ -223,6 +243,7 @@ response = client.get(url)
 ### Common Patterns
 
 **Authentication Tests**:
+
 ```python
 def test_protected_endpoint(client, url_builder):
     url = url_builder.url_for("protected_route_name")
@@ -231,6 +252,7 @@ def test_protected_endpoint(client, url_builder):
 ```
 
 **Parameter Validation**:
+
 ```python
 def test_invalid_parameters(client, url_builder):
     url = url_builder.url_for("route_with_params", param="invalid_value")
@@ -239,6 +261,7 @@ def test_invalid_parameters(client, url_builder):
 ```
 
 **Security Tests**:
+
 ```python
 def test_sql_injection_protection(client, url_builder):
     malicious_input = "'; DROP TABLE users; --"
@@ -259,20 +282,25 @@ def test_sql_injection_protection(client, url_builder):
 ### Common Issues
 
 **Route Not Found Error**:
+
 ```python
 ValueError: Route 'my_route_name' not found in app routes
 ```
+
 - Check if the route name exists in the route definition
 - Verify the route is properly included in the app
 
 **Missing Path Parameters**:
+
 ```python
 url = url_builder.url_for("stream_video")  # Missing series, episode
 ```
+
 - Provide all required path parameters
 - Check the route definition for required parameters
 
 **Import Errors**:
+
 - Ensure `url_builder.py` is in the same directory or properly imported
 - Check that the `main` module can be imported for the app instance
 

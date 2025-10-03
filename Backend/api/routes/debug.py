@@ -128,7 +128,7 @@ async def log_frontend_entry(payload: FrontendLogEntry | FrontendLogBatch):
             "success": True,
             "status": "logged",
             "count": len(payload.logs),
-            "timestamp": payload.logs[0].timestamp if payload.logs else None
+            "timestamp": payload.logs[0].timestamp if payload.logs else None,
         }
     else:
         # Handle single entry (backward compatibility)

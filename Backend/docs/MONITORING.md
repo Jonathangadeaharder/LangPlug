@@ -48,13 +48,13 @@ Guide for monitoring, logging, and observability in production.
 
 LangPlug uses **5 log levels**:
 
-| Level | When to Use | Example |
-|-------|-------------|---------|
-| **DEBUG** | Development details | `"Executing query: SELECT * FROM users WHERE id=123"` |
-| **INFO** | Normal operations | `"User logged in: johndoe"` |
-| **WARNING** | Potential issues | `"API rate limit approaching for user 123"` |
-| **ERROR** | Errors that don't stop app | `"Failed to process video chunk: timeout"` |
-| **CRITICAL** | System-breaking errors | `"Database connection lost"` |
+| Level        | When to Use                | Example                                               |
+| ------------ | -------------------------- | ----------------------------------------------------- |
+| **DEBUG**    | Development details        | `"Executing query: SELECT * FROM users WHERE id=123"` |
+| **INFO**     | Normal operations          | `"User logged in: johndoe"`                           |
+| **WARNING**  | Potential issues           | `"API rate limit approaching for user 123"`           |
+| **ERROR**    | Errors that don't stop app | `"Failed to process video chunk: timeout"`            |
+| **CRITICAL** | System-breaking errors     | `"Database connection lost"`                          |
 
 **Production**: Use `WARNING` level (only warnings, errors, critical)
 **Staging**: Use `INFO` level
@@ -63,6 +63,7 @@ LangPlug uses **5 log levels**:
 ### Log Configuration
 
 **Environment Variable**:
+
 ```bash
 # Production
 LANGPLUG_LOG_LEVEL=WARNING
@@ -76,6 +77,7 @@ LANGPLUG_LOG_FORMAT=detailed
 ### Log Formats
 
 **JSON Format** (recommended for production):
+
 ```json
 {
   "timestamp": "2025-10-03T10:30:45.123Z",
@@ -92,6 +94,7 @@ LANGPLUG_LOG_FORMAT=detailed
 ```
 
 **Detailed Format** (development):
+
 ```
 2025-10-03 10:30:45,123 - ERROR - services.processing.chunk_processor:142 - Failed to transcribe audio
   user_id: 123e4567
@@ -142,7 +145,7 @@ print("User logged in")
 
 ```yaml
 # docker-compose.monitoring.yml
-version: '3.8'
+version: "3.8"
 
 services:
   elasticsearch:
@@ -171,6 +174,7 @@ services:
 ```
 
 **Logstash configuration** (`logstash.conf`):
+
 ```
 input {
   file {
@@ -203,7 +207,7 @@ output {
 
 ```yaml
 # docker-compose.loki.yml
-version: '3.8'
+version: "3.8"
 
 services:
   loki:
@@ -235,6 +239,7 @@ services:
 ### Application Health Endpoint
 
 **Basic health check**:
+
 ```python
 @app.get("/health")
 async def health_check():
@@ -242,6 +247,7 @@ async def health_check():
 ```
 
 **Detailed health check** (database, AI models, disk space):
+
 ```python
 @app.get("/health/detailed")
 async def detailed_health_check(db: Session = Depends(get_db)):
@@ -283,6 +289,7 @@ async def detailed_health_check(db: Session = Depends(get_db)):
 ### External Health Monitoring
 
 **UptimeRobot** (free tier):
+
 - Monitor: https://app.langplug.com/health
 - Check interval: 5 minutes
 - Alert: Email/SMS when down
@@ -296,11 +303,13 @@ async def detailed_health_check(db: Session = Depends(get_db)):
 ### Prometheus + Grafana
 
 **Install Prometheus exporter**:
+
 ```bash
 pip install prometheus-fastapi-instrumentator
 ```
 
 **Add to `main.py`**:
+
 ```python
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -313,6 +322,7 @@ Instrumentator().instrument(app).expose(app)
 **Metrics endpoint**: `http://localhost:8000/metrics`
 
 **Example metrics**:
+
 ```
 # HTTP request duration
 http_request_duration_seconds_bucket{le="0.5",method="GET",path="/api/profile"} 1234
@@ -329,6 +339,7 @@ http_requests_inprogress{method="GET",path="/api/processing/chunk"} 5
 ### Custom Metrics
 
 **Add business metrics**:
+
 ```python
 from prometheus_client import Counter, Histogram, Gauge
 
@@ -363,15 +374,15 @@ active_users.set(count_active_users())
 
 **Key metrics to track**:
 
-| Metric | Description | Threshold |
-|--------|-------------|-----------|
-| **Request Rate** | Requests per second | Alert if >1000 |
-| **Error Rate** | 4xx/5xx responses | Alert if >5% |
-| **Response Time (P95)** | 95th percentile latency | Alert if >1000ms |
-| **CPU Usage** | Server CPU utilization | Alert if >80% |
-| **Memory Usage** | Server memory utilization | Alert if >90% |
-| **Disk Usage** | Disk space remaining | Alert if <10% |
-| **Database Connections** | Active DB connections | Alert if >80% pool |
+| Metric                   | Description               | Threshold          |
+| ------------------------ | ------------------------- | ------------------ |
+| **Request Rate**         | Requests per second       | Alert if >1000     |
+| **Error Rate**           | 4xx/5xx responses         | Alert if >5%       |
+| **Response Time (P95)**  | 95th percentile latency   | Alert if >1000ms   |
+| **CPU Usage**            | Server CPU utilization    | Alert if >80%      |
+| **Memory Usage**         | Server memory utilization | Alert if >90%      |
+| **Disk Usage**           | Disk space remaining      | Alert if <10%      |
+| **Database Connections** | Active DB connections     | Alert if >80% pool |
 
 ---
 
@@ -380,6 +391,7 @@ active_users.set(count_active_users())
 ### Alert Rules
 
 **Prometheus alert rules** (`alerts.yml`):
+
 ```yaml
 groups:
   - name: langplug_alerts
@@ -427,27 +439,29 @@ groups:
 ### Alert Destinations
 
 **Slack webhook**:
+
 ```yaml
 # alertmanager.yml
 receivers:
-  - name: 'slack'
+  - name: "slack"
     slack_configs:
-      - api_url: 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL'
-        channel: '#alerts'
-        title: '{{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+      - api_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+        channel: "#alerts"
+        title: "{{ .GroupLabels.alertname }}"
+        text: "{{ range .Alerts }}{{ .Annotations.description }}{{ end }}"
 ```
 
 **Email**:
+
 ```yaml
 receivers:
-  - name: 'email'
+  - name: "email"
     email_configs:
-      - to: 'ops@langplug.com'
-        from: 'alerts@langplug.com'
-        smarthost: 'smtp.gmail.com:587'
-        auth_username: 'alerts@langplug.com'
-        auth_password: '${SMTP_PASSWORD}'
+      - to: "ops@langplug.com"
+        from: "alerts@langplug.com"
+        smarthost: "smtp.gmail.com:587"
+        auth_username: "alerts@langplug.com"
+        auth_password: "${SMTP_PASSWORD}"
 ```
 
 ---
@@ -459,6 +473,7 @@ receivers:
 #### High CPU Usage
 
 **Check**:
+
 ```bash
 # Find process consuming CPU
 top -u langplug
@@ -468,6 +483,7 @@ tail -f /var/log/langplug/langplug.log | grep "duration"
 ```
 
 **Solutions**:
+
 - Scale horizontally (add more workers)
 - Optimize AI model (use smaller model)
 - Add caching (Redis)
@@ -476,6 +492,7 @@ tail -f /var/log/langplug/langplug.log | grep "duration"
 #### Memory Leaks
 
 **Check**:
+
 ```bash
 # Monitor memory over time
 watch -n 5 "ps aux | grep uvicorn"
@@ -485,6 +502,7 @@ cat /proc/$(pgrep -f uvicorn)/status | grep VmRSS
 ```
 
 **Solutions**:
+
 - Use smaller AI models
 - Implement batch processing
 - Clear caches periodically
@@ -493,6 +511,7 @@ cat /proc/$(pgrep -f uvicorn)/status | grep VmRSS
 #### Database Connection Pool Exhausted
 
 **Check**:
+
 ```bash
 # PostgreSQL active connections
 psql -U langplug -d langplug -c \
@@ -500,6 +519,7 @@ psql -U langplug -d langplug -c \
 ```
 
 **Solutions**:
+
 - Increase pool size in SQLAlchemy
 - Fix slow queries (add indexes)
 - Ensure connections are properly closed
@@ -508,17 +528,20 @@ psql -U langplug -d langplug -c \
 ### Log Analysis
 
 **Find errors in last hour**:
+
 ```bash
 journalctl -u langplug --since "1 hour ago" | grep ERROR
 ```
 
 **Most common errors**:
+
 ```bash
 grep ERROR /var/log/langplug/*.log | \
   cut -d':' -f4- | sort | uniq -c | sort -rn | head -10
 ```
 
 **Slowest endpoints**:
+
 ```bash
 grep "duration" /var/log/langplug/*.log | \
   awk '{print $NF, $(NF-2)}' | sort -rn | head -20

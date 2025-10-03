@@ -1,20 +1,25 @@
 # Test Isolation & Database Setup Guide
 
 ## Overview
+
 This guide explains how to use the test isolation infrastructure to ensure reliable, deterministic tests with proper state cleanup.
 
 ## Core Isolation Principles
 
 ### 1. Complete Test Independence
+
 Each test should run as if it's the only test in the suite:
+
 - No shared state between tests
 - No dependencies on test execution order
 - Deterministic outcomes regardless of parallel execution
 
 ### 2. Database Isolation Levels
+
 Different test types require different isolation levels:
 
 #### Level 1: In-Memory Database (Default)
+
 ```python
 @pytest.mark.anyio
 async def test_basic_functionality(async_client):
@@ -25,6 +30,7 @@ async def test_basic_functionality(async_client):
 ```
 
 #### Level 2: Transaction Rollback (Recommended for Database Tests)
+
 ```python
 @pytest.mark.anyio
 async def test_database_operations(async_client, isolated_db_session):
@@ -38,6 +44,7 @@ async def test_database_operations(async_client, isolated_db_session):
 ```
 
 #### Level 3: Clean Database State (For Complex Scenarios)
+
 ```python
 @pytest.mark.anyio
 async def test_complex_workflow(async_client, clean_database):
@@ -48,6 +55,7 @@ async def test_complex_workflow(async_client, clean_database):
 ```
 
 #### Level 4: Seeded Database (For Integration Tests)
+
 ```python
 @pytest.mark.anyio
 async def test_with_known_data(async_client, seeded_database):
@@ -62,6 +70,7 @@ async def test_with_known_data(async_client, seeded_database):
 ### Database Fixtures
 
 #### `app` - Per-Test Application Instance
+
 ```python
 def test_endpoint_behavior(app):
     # Fresh FastAPI app with per-test SQLite database
@@ -70,6 +79,7 @@ def test_endpoint_behavior(app):
 ```
 
 #### `async_client` - In-Process HTTP Client
+
 ```python
 @pytest.mark.anyio
 async def test_api_endpoint(async_client):
@@ -80,6 +90,7 @@ async def test_api_endpoint(async_client):
 ```
 
 #### `isolated_db_session` - Transaction-Based Isolation
+
 ```python
 @pytest.mark.anyio
 async def test_database_changes(isolated_db_session):
@@ -92,6 +103,7 @@ async def test_database_changes(isolated_db_session):
 ```
 
 #### `clean_database` - Empty Database State
+
 ```python
 @pytest.mark.anyio
 async def test_from_clean_state(clean_database, app):
@@ -105,6 +117,7 @@ async def test_from_clean_state(clean_database, app):
 ```
 
 #### `seeded_database` - Pre-Populated Test Data
+
 ```python
 @pytest.mark.anyio
 async def test_with_seed_data(seeded_database, app):
@@ -119,6 +132,7 @@ async def test_with_seed_data(seeded_database, app):
 ### Test State Management
 
 #### `test_pollution_detector` (Auto-Used)
+
 ```python
 # Automatically detects mock pollution and state leakage
 # Warns if too many mock objects accumulate
@@ -126,6 +140,7 @@ async def test_with_seed_data(seeded_database, app):
 ```
 
 #### `clean_mock_session` - Fresh Mock Session
+
 ```python
 def test_service_with_clean_mocks(clean_mock_session):
     # Guaranteed fresh mock session
@@ -135,6 +150,7 @@ def test_service_with_clean_mocks(clean_mock_session):
 ```
 
 #### `database_state_validator` - State Consistency Checking
+
 ```python
 @pytest.mark.anyio
 async def test_database_consistency(database_state_validator, app):
@@ -228,11 +244,13 @@ async def test_cleanup_verification(async_client, clean_database, app):
 ## Performance Considerations
 
 ### Fast Test Execution
+
 - **In-Memory SQLite**: Tests run 10x faster than external databases
 - **Transaction Rollback**: Faster than table truncation for complex data
 - **Per-Test Isolation**: Enables safe parallel test execution
 
 ### Memory Management
+
 ```python
 # Tests automatically clean up database connections
 # No manual cleanup required for standard fixtures
@@ -252,6 +270,7 @@ async def custom_resource():
 ### Common Issues
 
 #### Test Pollution
+
 ```python
 # Symptom: Tests pass individually but fail in suite
 # Cause: Shared state or inadequate cleanup
@@ -263,6 +282,7 @@ async def test_isolated_behavior(async_client, isolated_db_session):
 ```
 
 #### Database Lock Errors
+
 ```python
 # Symptom: SQLite database lock errors
 # Cause: Unclosed database connections
@@ -275,6 +295,7 @@ async def test_with_proper_session(async_client):
 ```
 
 #### Mock State Leakage
+
 ```python
 # Symptom: Mocks affect unrelated tests
 # Cause: Mock objects not properly isolated
@@ -287,6 +308,7 @@ def test_with_clean_mocks(clean_mock_session):
 ### Debug Tools
 
 #### Test State Inspection
+
 ```python
 @pytest.mark.anyio
 async def test_debug_state(app, database_state_validator):
@@ -303,6 +325,7 @@ async def test_debug_state(app, database_state_validator):
 ## Migration from Legacy Tests
 
 ### Before: External Dependencies
+
 ```python
 # OLD: Flaky, slow, environment-dependent
 def test_with_real_server():
@@ -313,6 +336,7 @@ def test_with_real_server():
 ```
 
 ### After: Isolated In-Process
+
 ```python
 # NEW: Fast, reliable, deterministic
 @pytest.mark.anyio
@@ -324,6 +348,7 @@ async def test_health_endpoint(async_client):
 ```
 
 ### Before: Shared Database State
+
 ```python
 # OLD: Tests affect each other
 def test_user_creation():
@@ -336,6 +361,7 @@ def test_user_count():
 ```
 
 ### After: Isolated State
+
 ```python
 # NEW: Independent, reliable
 @pytest.mark.anyio
@@ -357,6 +383,7 @@ async def test_user_count_starts_at_zero(async_client, clean_database):
 ## Test Categorization
 
 ### Mark Tests by Isolation Requirements
+
 ```python
 @pytest.mark.unit
 def test_pure_function():
@@ -375,6 +402,7 @@ async def test_complete_workflow(seeded_database, async_client):
 ```
 
 ### Run Tests by Category
+
 ```bash
 # Fast unit tests only
 pytest -m unit
@@ -392,6 +420,7 @@ pytest
 ## Summary
 
 The test isolation infrastructure provides:
+
 - **Zero shared state** between tests
 - **Deterministic execution** regardless of order
 - **Fast, reliable** test runs with in-memory databases

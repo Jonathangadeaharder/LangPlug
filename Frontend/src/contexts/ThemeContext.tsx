@@ -163,16 +163,16 @@ const ToggleButton = styled(motion.button)`
   box-shadow: ${({ theme }) => theme.shadows.lg};
   z-index: ${({ theme }) => theme.zIndex.fixed};
   transition: all ${({ theme }) => theme.transitions.normal};
-  
+
   &:hover {
     transform: scale(1.1);
     box-shadow: ${({ theme }) => theme.shadows.xl};
   }
-  
+
   &:active {
     transform: scale(0.95);
   }
-  
+
   svg {
     width: 24px;
     height: 24px;

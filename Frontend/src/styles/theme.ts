@@ -9,35 +9,35 @@ export const lightTheme = {
     primary: '#FF6B6B',      // Vibrant red (Netflix-inspired)
     primaryDark: '#EE5A52',
     primaryLight: '#FF8787',
-    
+
     secondary: '#4ECDC4',    // Teal accent
     secondaryDark: '#38B2AA',
     secondaryLight: '#6DD5CE',
-    
+
     success: '#52C41A',      // Green
     warning: '#FAAD14',      // Orange
     error: '#F5222D',        // Red
     info: '#1890FF',         // Blue
-    
+
     // Neutrals
     background: '#FFFFFF',
     surface: '#F8F9FA',
     surfaceHover: '#F0F2F5',
-    
+
     text: '#1A1A1A',
     textSecondary: '#6C757D',
     textLight: '#ADB5BD',
     textInverse: '#FFFFFF',
-    
+
     border: '#E1E4E8',
     borderLight: '#F0F2F5',
-    
+
     // Semantic
     disabled: '#D1D5DB',
     overlay: 'rgba(0, 0, 0, 0.5)',
     shadow: 'rgba(0, 0, 0, 0.1)',
   },
-  
+
   // Typography
   typography: {
     fontFamily: {
@@ -45,7 +45,7 @@ export const lightTheme = {
       secondary: '"Poppins", "Inter", sans-serif',
       mono: '"JetBrains Mono", "Courier New", monospace',
     },
-    
+
     fontSize: {
       xs: '0.75rem',    // 12px
       sm: '0.875rem',   // 14px
@@ -57,7 +57,7 @@ export const lightTheme = {
       '4xl': '2.25rem', // 36px
       '5xl': '3rem',    // 48px
     },
-    
+
     fontWeight: {
       light: 300,
       regular: 400,
@@ -66,7 +66,7 @@ export const lightTheme = {
       bold: 700,
       extrabold: 800,
     },
-    
+
     lineHeight: {
       tight: 1.2,
       normal: 1.5,
@@ -74,7 +74,7 @@ export const lightTheme = {
       loose: 2,
     },
   },
-  
+
   // Spacing
   spacing: {
     xs: '0.25rem',   // 4px
@@ -86,7 +86,7 @@ export const lightTheme = {
     '3xl': '4rem',   // 64px
     '4xl': '6rem',   // 96px
   },
-  
+
   // Border Radius
   radius: {
     none: '0',
@@ -97,7 +97,7 @@ export const lightTheme = {
     '2xl': '1.5rem', // 24px
     full: '9999px',
   },
-  
+
   // Shadows
   shadows: {
     none: 'none',
@@ -107,18 +107,18 @@ export const lightTheme = {
     xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
     '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
     inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
-    
+
     // Colored shadows
     primary: '0 10px 40px -10px rgba(255, 107, 107, 0.35)',
     secondary: '0 10px 40px -10px rgba(78, 205, 196, 0.35)',
   },
-  
+
   // Transitions
   transitions: {
     fast: '150ms ease-in-out',
     normal: '250ms ease-in-out',
     slow: '350ms ease-in-out',
-    
+
     easing: {
       easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
       easeOut: 'cubic-bezier(0, 0, 0.2, 1)',
@@ -126,7 +126,7 @@ export const lightTheme = {
       bounce: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
     },
   },
-  
+
   // Z-index layers
   zIndex: {
     dropdown: 1000,
@@ -138,7 +138,7 @@ export const lightTheme = {
     tooltip: 1070,
     toast: 1080,
   },
-  
+
   // Breakpoints
   breakpoints: {
     xs: '480px',
@@ -148,7 +148,7 @@ export const lightTheme = {
     xl: '1280px',
     '2xl': '1536px',
   },
-  
+
   // Grid
   grid: {
     columns: 12,
@@ -162,29 +162,29 @@ export const darkTheme = {
   ...lightTheme,
   colors: {
     ...lightTheme.colors,
-    
+
     // Override colors for dark mode
     primary: '#FF6B6B',
     primaryDark: '#FF5252',
     primaryLight: '#FF8A80',
-    
+
     background: '#0A0A0A',
     surface: '#1A1A1A',
     surfaceHover: '#252525',
-    
+
     text: '#F0F0F0',
     textSecondary: '#B0B0B0',
     textLight: '#808080',
     textInverse: '#0A0A0A',
-    
+
     border: '#2D2D2D',
     borderLight: '#1F1F1F',
-    
+
     disabled: '#4A4A4A',
     overlay: 'rgba(0, 0, 0, 0.8)',
     shadow: 'rgba(0, 0, 0, 0.3)',
   },
-  
+
   shadows: {
     ...lightTheme.shadows,
     sm: '0 1px 2px 0 rgba(0, 0, 0, 0.2)',
@@ -192,7 +192,7 @@ export const darkTheme = {
     lg: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
     xl: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3)',
     '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
-    
+
     primary: '0 10px 40px -10px rgba(255, 107, 107, 0.5)',
     secondary: '0 10px 40px -10px rgba(78, 205, 196, 0.5)',
   },

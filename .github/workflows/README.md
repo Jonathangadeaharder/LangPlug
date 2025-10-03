@@ -41,34 +41,36 @@ This directory contains optimized GitHub Actions workflows designed for performa
 
 ### Primary Workflows
 
-| Workflow | Purpose | Triggers | Duration Target |
-|----------|---------|----------|----------------|
-| `fast-tests.yml` | Quick validation | Code changes | < 5 minutes |
-| `tests.yml` | Comprehensive CI | Push/PR to main | < 15 minutes |
-| `docker-build.yml` | Container builds | Docker-related changes | < 20 minutes |
-| `security-scan.yml` | Security analysis | Daily/on changes | < 10 minutes |
-| `e2e-tests.yml` | End-to-end testing | Main branch changes | < 30 minutes |
+| Workflow            | Purpose            | Triggers               | Duration Target |
+| ------------------- | ------------------ | ---------------------- | --------------- |
+| `fast-tests.yml`    | Quick validation   | Code changes           | < 5 minutes     |
+| `tests.yml`         | Comprehensive CI   | Push/PR to main        | < 15 minutes    |
+| `docker-build.yml`  | Container builds   | Docker-related changes | < 20 minutes    |
+| `security-scan.yml` | Security analysis  | Daily/on changes       | < 10 minutes    |
+| `e2e-tests.yml`     | End-to-end testing | Main branch changes    | < 30 minutes    |
 
 ### Specialized Workflows
 
-| Workflow | Purpose | When to Use |
-|----------|---------|-------------|
-| `contract-tests.yml` | API contract validation | Breaking changes |
-| `tests-nightly.yml` | Extended test suite | Nightly runs |
-| `code-quality.yml` | Linting and formatting | Code changes |
-| `docs-check.yml` | Documentation validation | Doc changes |
+| Workflow             | Purpose                  | When to Use      |
+| -------------------- | ------------------------ | ---------------- |
+| `contract-tests.yml` | API contract validation  | Breaking changes |
+| `tests-nightly.yml`  | Extended test suite      | Nightly runs     |
+| `code-quality.yml`   | Linting and formatting   | Code changes     |
+| `docs-check.yml`     | Documentation validation | Doc changes      |
 
 ## 🔧 Usage Guidelines
 
 ### For Developers
 
 1. **Fast Feedback Loop**
+
    ```bash
    # Push to feature branch triggers fast-tests.yml
    git push origin feature/my-change
    ```
 
 2. **Full Validation**
+
    ```bash
    # Create PR triggers comprehensive tests.yml
    gh pr create --title "My Feature" --body "Description"
@@ -83,6 +85,7 @@ This directory contains optimized GitHub Actions workflows designed for performa
 ### For Maintainers
 
 1. **Performance Monitoring**
+
    ```bash
    # Weekly performance review
    ./scripts/monitoring/workflow-performance.sh trends
@@ -137,12 +140,14 @@ This directory contains optimized GitHub Actions workflows designed for performa
 #### Common Issues
 
 1. **Cache Misses**
+
    ```bash
    # Check cache keys and invalidation patterns
    grep -r "cache-key" .github/
    ```
 
 2. **Workflow Failures**
+
    ```bash
    # Analyze recent failures
    ./scripts/monitoring/workflow-performance.sh failures

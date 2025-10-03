@@ -67,23 +67,23 @@ export const NetflixButton = styled.button<{ variant?: 'primary' | 'secondary' }
   font-weight: 600;
   font-size: 16px;
   transition: all 0.3s ease;
-  
+
   ${props => props.variant === 'secondary' ? `
     background-color: rgba(109, 109, 110, 0.7);
     color: white;
-    
+
     &:hover {
       background-color: rgba(109, 109, 110, 0.9);
     }
   ` : `
     background-color: #e50914;
     color: white;
-    
+
     &:hover {
       background-color: #f40612;
     }
   `}
-  
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -96,7 +96,7 @@ export const Card = styled.div`
   padding: 24px;
   margin: 16px 0;
   transition: transform 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-4px);
   }
@@ -107,11 +107,11 @@ export const Grid = styled.div<{ columns?: number }>`
   grid-template-columns: repeat(${props => props.columns || 3}, 1fr);
   gap: 20px;
   padding: 20px 0;
-  
+
   @media (max-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
   }

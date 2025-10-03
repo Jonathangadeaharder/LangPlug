@@ -1,44 +1,44 @@
-name: 'Generate Coverage Report'
-description: 'Generate and upload comprehensive coverage reports with diff analysis'
+name: "Generate Coverage Report"
+description: "Generate and upload comprehensive coverage reports with diff analysis"
 inputs:
   coverage-file:
-    description: 'Path to coverage XML file'
+    description: "Path to coverage XML file"
     required: true
   working-directory:
-    description: 'Working directory'
+    description: "Working directory"
     required: false
-    default: '.'
+    default: "."
   diff-coverage-threshold:
-    description: 'Minimum diff coverage percentage'
+    description: "Minimum diff coverage percentage"
     required: false
-    default: '90'
+    default: "90"
   branch-coverage-threshold:
-    description: 'Minimum branch coverage percentage'
+    description: "Minimum branch coverage percentage"
     required: false
-    default: '80'
+    default: "80"
   artifact-name:
-    description: 'Name for coverage artifacts'
+    description: "Name for coverage artifacts"
     required: false
-    default: 'coverage-report'
+    default: "coverage-report"
   comment-header:
-    description: 'Header for PR comment'
+    description: "Header for PR comment"
     required: false
-    default: 'coverage'
+    default: "coverage"
   packages:
-    description: 'Comma-separated list of packages to analyze'
+    description: "Comma-separated list of packages to analyze"
     required: false
-    default: 'api,core,management'
+    default: "api,core,management"
 
 outputs:
   overall-coverage:
-    description: 'Overall line coverage percentage'
+    description: "Overall line coverage percentage"
     value: ${{ steps.parse-coverage.outputs.overall-coverage }}
   diff-coverage-passed:
-    description: 'Whether diff coverage meets threshold'
+    description: "Whether diff coverage meets threshold"
     value: ${{ steps.diff-coverage.outputs.passed }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Install diff-cover
       shell: bash

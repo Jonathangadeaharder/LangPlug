@@ -68,12 +68,12 @@ export function validateApiResponse<T>(
   context?: string
 ): T {
   const result = schema.safeParse(data);
-  
+
   if (!result.success) {
     const errorMessage = `Schema validation failed${context ? ` for ${context}` : ''}`;
     throw new SchemaValidationError(errorMessage, result.error.issues);
   }
-  
+
   return result.data;
 }
 

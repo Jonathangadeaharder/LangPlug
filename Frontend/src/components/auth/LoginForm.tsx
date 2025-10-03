@@ -52,11 +52,11 @@ const Input = styled.input`
   border-radius: 4px;
   color: white;
   font-size: 16px;
-  
+
   &::placeholder {
     color: #8c8c8c;
   }
-  
+
   &:focus {
     background: #454545;
   }
@@ -72,11 +72,11 @@ const LoginButton = styled(NetflixButton)`
 const SignUpText = styled.p`
   color: #737373;
   margin-top: 16px;
-  
+
   a {
     color: white;
     text-decoration: none;
-    
+
     &:hover {
       text-decoration: underline;
     }
@@ -88,23 +88,23 @@ const RememberMe = styled.div`
   justify-content: space-between;
   align-items: center;
   margin: 16px 0;
-  
+
   label {
     display: flex;
     align-items: center;
     color: #b3b3b3;
     cursor: pointer;
-    
+
     input {
       margin-right: 8px;
     }
   }
-  
+
   a {
     color: #b3b3b3;
     text-decoration: none;
     font-size: 13px;
-    
+
     &:hover {
       text-decoration: underline;
     }
@@ -116,7 +116,7 @@ export const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState('')
-  
+
   const { login, isLoading, error: authError, isAuthenticated } = useAuthStore()
   const navigate = useNavigate()
 
@@ -156,7 +156,7 @@ export const LoginForm: React.FC = () => {
       <LoginCard>
         <Logo>LangPlug</Logo>
         <Title>Sign In</Title>
-        
+
         <form onSubmit={handleSubmit}>
           <Input
             type="email"
@@ -166,7 +166,7 @@ export const LoginForm: React.FC = () => {
             disabled={isLoading}
             data-testid="login-email-input"
           />
-          
+
           <Input
             type="password"
             placeholder="Password"
@@ -175,17 +175,17 @@ export const LoginForm: React.FC = () => {
             disabled={isLoading}
             data-testid="login-password-input"
           />
-          
+
           {error && <ErrorMessage data-testid="login-error">{error}</ErrorMessage>}
-          
-          <LoginButton 
-            type="submit" 
+
+          <LoginButton
+            type="submit"
             disabled={isLoading}
             data-testid="login-submit-button"
           >
             {isLoading ? 'Signing In...' : 'Sign In'}
           </LoginButton>
-          
+
           <RememberMe>
             <label>
               <input
@@ -198,7 +198,7 @@ export const LoginForm: React.FC = () => {
             <a href="/forgot-password">Need help?</a>
           </RememberMe>
         </form>
-        
+
         <SignUpText>
           New to LangPlug? <a href="/register">Sign up now</a>.
         </SignUpText>

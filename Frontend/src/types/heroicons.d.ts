@@ -1,9 +1,9 @@
 // Type declarations for @heroicons/react
 declare module '@heroicons/react/24/solid' {
   import { ComponentType, SVGProps } from 'react'
-  
+
   type HeroIcon = ComponentType<SVGProps<SVGSVGElement> & { className?: string }>
-  
+
   export const PlayIcon: HeroIcon
   export const PauseIcon: HeroIcon
   export const SpeakerWaveIcon: HeroIcon
@@ -31,9 +31,9 @@ declare module '@heroicons/react/24/solid' {
 
 declare module '@heroicons/react/24/outline' {
   import { ComponentType, SVGProps } from 'react'
-  
+
   export interface HeroIcon extends ComponentType<SVGProps<SVGSVGElement>> {}
-  
+
   export const PlayIcon: HeroIcon
   export const PauseIcon: HeroIcon
   export const SpeakerWaveIcon: HeroIcon
@@ -44,7 +44,7 @@ declare module '@heroicons/react/24/outline' {
   export const ClockIcon: HeroIcon
   export const CheckIcon: HeroIcon
   export const XMarkIcon: HeroIcon
-  
+
   // Add more icons as needed
   const Icons: Record<string, HeroIcon>
   export = Icons

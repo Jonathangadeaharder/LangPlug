@@ -7,21 +7,25 @@ This document describes the **robust, best-practice testing infrastructure** imp
 ## Key Features
 
 ### 1. **Contract-Driven Testing**
+
 - **OpenAPI Contract Validation**: Automatic validation of all API requests and responses against the OpenAPI specification
 - **Contract Violations Detection**: Real-time detection and reporting of contract violations
 - **Schema Evolution Support**: Handles multiple API versions and schema migrations
 
 ### 2. **Test Isolation & Parallelization**
+
 - **Isolated Test Environments**: Each test suite runs in its own isolated environment
 - **Parallel Execution**: Tests run in parallel with configurable worker pools
 - **Resource Management**: Automatic port allocation and cleanup
 
 ### 3. **Comprehensive Test Data Management**
+
 - **Consistent Fixtures**: Centralized test data generation and management
 - **Scenario-Based Testing**: Pre-configured test scenarios (basic, comprehensive, performance)
 - **Data Validation**: Automatic validation of test data consistency
 
 ### 4. **Robust Server Management**
+
 - **Automatic Server Lifecycle**: Start, health check, and shutdown of test servers
 - **Dynamic Port Detection**: Automatic detection and allocation of available ports
 - **Retry Logic**: Built-in retry mechanisms for flaky operations
@@ -31,7 +35,9 @@ This document describes the **robust, best-practice testing infrastructure** imp
 ### Infrastructure Layer (`tests/infrastructure/`)
 
 #### 1. Test Orchestrator (`test-orchestrator.ts`)
+
 Manages test environments and server lifecycles:
+
 ```typescript
 const orchestrator = new TestOrchestrator();
 const environment = await orchestrator.createEnvironment();
@@ -39,29 +45,35 @@ await orchestrator.startEnvironment(environment.id);
 ```
 
 #### 2. Contract Validator (`contract-validator.ts`)
+
 Validates API contracts against OpenAPI spec:
+
 ```typescript
 const validator = new ContractValidator();
-await validator.loadSpec('openapi_spec.json');
+await validator.loadSpec("openapi_spec.json");
 validator.createAxiosInterceptor(apiClient);
 ```
 
 #### 3. Test Data Manager (`test-data-manager.ts`)
+
 Generates and manages test data:
+
 ```typescript
 const dataManager = new TestDataManager();
 const testUser = dataManager.generateUser();
-const scenario = await dataManager.createScenario('comprehensive');
+const scenario = await dataManager.createScenario("comprehensive");
 ```
 
 #### 4. Parallel Test Runner (`parallel-test-runner.ts`)
+
 Executes tests in parallel with proper isolation:
+
 ```typescript
 const runner = new ParallelTestRunner();
 const results = await runner.runSuites(testSuites, {
   parallel: true,
   maxWorkers: 4,
-  contractValidation: true
+  contractValidation: true,
 });
 ```
 
@@ -106,26 +118,26 @@ npm test -- --bail --coverage --report
 ### Contract Tests Example
 
 ```typescript
-import { ContractValidator } from '../infrastructure/contract-validator';
-import { TestDataManager } from '../infrastructure/test-data-manager';
+import { ContractValidator } from "../infrastructure/contract-validator";
+import { TestDataManager } from "../infrastructure/test-data-manager";
 
-describe('API Contract Tests', () => {
+describe("API Contract Tests", () => {
   let validator: ContractValidator;
   let dataManager: TestDataManager;
 
   beforeAll(async () => {
     validator = new ContractValidator();
-    await validator.loadSpec('openapi_spec.json');
+    await validator.loadSpec("openapi_spec.json");
     dataManager = new TestDataManager();
   });
 
-  test('should validate endpoint contract', async () => {
+  test("should validate endpoint contract", async () => {
     const testData = dataManager.generateUser();
 
     const validation = validator.validateRequest(
-      'POST',
-      '/api/auth/register',
-      testData
+      "POST",
+      "/api/auth/register",
+      testData,
     );
 
     expect(validation.valid).toBe(true);
@@ -136,9 +148,9 @@ describe('API Contract Tests', () => {
 ### E2E Tests Example
 
 ```typescript
-import { TestDataManager } from '../infrastructure/test-data-manager';
+import { TestDataManager } from "../infrastructure/test-data-manager";
 
-describe('E2E Authentication Flow', () => {
+describe("E2E Authentication Flow", () => {
   let dataManager: TestDataManager;
 
   beforeAll(async () => {
@@ -146,7 +158,7 @@ describe('E2E Authentication Flow', () => {
     await waitForServers(); // Helper to ensure servers are ready
   });
 
-  test('complete registration flow', async () => {
+  test("complete registration flow", async () => {
     const testUser = dataManager.generateUser();
     // Test implementation
   });
@@ -185,29 +197,35 @@ describe('E2E Authentication Flow', () => {
 ### Common Issues and Solutions
 
 #### 1. Port Conflicts
+
 **Issue**: "Port already in use" errors
 **Solution**: The infrastructure automatically allocates ports from a pool (9000-9100)
 
 #### 2. Test Timeouts
+
 **Issue**: Tests timing out
 **Solution**: Increase timeout in test suite configuration or specific test
 
 #### 3. Contract Violations
+
 **Issue**: Unexpected contract violations
 **Solution**: Check OpenAPI spec is up-to-date, use non-strict mode for E2E
 
 #### 4. Flaky Tests
+
 **Issue**: Intermittent test failures
 **Solution**: Use built-in retry mechanism with `--retries=3`
 
 ### Debug Mode
 
 Enable verbose logging:
+
 ```bash
 npm test -- --verbose
 ```
 
 Generate detailed reports:
+
 ```bash
 npm test -- --report
 ```
@@ -225,6 +243,7 @@ The new infrastructure provides:
 ## Migration from Old Infrastructure
 
 ### Before (Old Infrastructure)
+
 ```javascript
 // Manual server management
 const serverManager = new ServerManager();
@@ -232,17 +251,18 @@ await serverManager.startBackend();
 await serverManager.waitForBackend();
 
 // No contract validation
-const response = await axios.post('/api/auth/login', data);
+const response = await axios.post("/api/auth/login", data);
 ```
 
 ### After (New Infrastructure)
+
 ```javascript
 // Automatic environment management
 const environment = await orchestrator.createEnvironment();
 
 // Built-in contract validation
 validator.createAxiosInterceptor(apiClient);
-const response = await apiClient.post('/api/auth/login', data);
+const response = await apiClient.post("/api/auth/login", data);
 // Contract automatically validated!
 ```
 
@@ -251,18 +271,20 @@ const response = await apiClient.post('/api/auth/login', data);
 ### 1. Custom Test Scenarios
 
 Create custom scenarios in test data manager:
+
 ```typescript
-const scenario = await dataManager.createScenario('performance');
+const scenario = await dataManager.createScenario("performance");
 // Generates 100 users, 100 videos, 1000 vocabulary items
 ```
 
 ### 2. Contract Evolution
 
 Handle multiple API versions:
+
 ```typescript
 validator.loadSpecFromObject({
-  openapi: '3.1.0',
-  info: { version: '2.0' },
+  openapi: "3.1.0",
+  info: { version: "2.0" },
   // ...
 });
 ```
@@ -270,8 +292,9 @@ validator.loadSpecFromObject({
 ### 3. Test Monitoring
 
 Real-time test monitoring with event emitters:
+
 ```typescript
-runner.on('test:complete', (result) => {
+runner.on("test:complete", (result) => {
   console.log(`Test completed: ${result.file}`);
 });
 ```

@@ -11,6 +11,7 @@
 ## Build Commands
 
 ### Backend (Python/FastAPI)
+
 ```bash
 # Install dependencies
 pip install -r requirements.txt
@@ -26,6 +27,7 @@ cmd.exe /c start.bat
 ```
 
 ### Frontend (TypeScript/React)
+
 ```bash
 # Install dependencies
 npm install
@@ -40,6 +42,7 @@ cmd.exe /c "npm run dev"
 ## Linting Commands
 
 ### Backend
+
 ```bash
 # Run linter (Ruff)
 cd Backend && ruff check .
@@ -52,6 +55,7 @@ cd Backend && ruff format .
 ```
 
 ### Frontend
+
 ```bash
 # Run ESLint
 cd Frontend && npm run lint
@@ -63,6 +67,7 @@ cd Frontend && npm run lint -- --fix
 ## Test Commands
 
 ### Backend (Python/Pytest)
+
 ```bash
 # Run all tests
 cd Backend && pytest
@@ -84,6 +89,7 @@ cd Backend && pytest tests/api/test_processing_contract_improved.py --collect-on
 ```
 
 ### Frontend (TypeScript/Vitest)
+
 ```bash
 # Run all tests
 cd Frontend && npm run test
@@ -140,7 +146,7 @@ cd Frontend && npm run test -- --watch
 ### Frontend (TypeScript/React)
 
 1. **Imports**:
-   - Path aliases (@/*) for internal modules
+   - Path aliases (@/\*) for internal modules
    - Type-only imports with `import type {}`
    - Default imports for libraries
 
@@ -158,6 +164,7 @@ cd Frontend && npm run test -- --watch
    - UPPER_CASE for constants
 
 ### Testing Best Practices
+
 - Use transaction rollback for test isolation
 - Follow FastAPI-Users API behavior (form data for login)
 - Auth responses: {"access_token": "...", "token_type": "bearer"}
@@ -165,6 +172,7 @@ cd Frontend && npm run test -- --watch
 - Generate unique test data with AuthTestHelper.generate_unique_user_data()
 
 ### WSL/Windows Interoperability
+
 - Execute Python with api_venv
 - Windows Python: /mnt/e/path/to/python.exe
 - Run .bat files: cmd.exe /c filename.bat

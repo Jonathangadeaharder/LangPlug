@@ -154,17 +154,17 @@ async function discoverTestFiles(): Promise<void> {
 async function findTestFiles(dir: string, ...extensions: string[]): Promise<string[]> {
   const files: string[] = [];
   const items = await fs.readdir(dir, { withFileTypes: true });
-  
+
   for (const item of items) {
     const fullPath = path.join(dir, item.name);
-    
+
     if (item.isDirectory() && !item.name.includes('node_modules')) {
       files.push(...await findTestFiles(fullPath, ...extensions));
     } else if (item.isFile() && extensions.some(ext => item.name.endsWith(ext))) {
       files.push(fullPath);
     }
   }
-  
+
   return files;
 }
 
@@ -173,46 +173,46 @@ async function findTestFiles(dir: string, ...extensions: string[]): Promise<stri
  */
 async function runTests(): Promise<void> {
   console.log(chalk.bold.cyan('\n🚀 LangPlug Test Runner\n'));
-  
+
   try {
     // Discover test files
     console.log(chalk.yellow('📁 Discovering test files...'));
     await discoverTestFiles();
-    
+
     // Filter suites based on options
     let suitesToRun = testSuites;
     if (options.suite && options.suite !== 'all') {
-      suitesToRun = testSuites.filter(s => 
+      suitesToRun = testSuites.filter(s =>
         s.name.includes(options.suite!) || s.type === options.suite
       );
-      
+
       if (suitesToRun.length === 0) {
         throw new Error(`No test suite found matching: ${options.suite}`);
       }
     }
-    
+
     // Remove empty suites
     suitesToRun = suitesToRun.filter(s => s.files.length > 0);
-    
+
     if (suitesToRun.length === 0) {
       console.log(chalk.yellow('⚠️  No test files found'));
       process.exit(0);
     }
-    
+
     // Display test plan
     console.log(chalk.cyan('\n📋 Test Plan:'));
     for (const suite of suitesToRun) {
       console.log(chalk.white(`  • ${suite.name}: ${suite.files.length} files`));
     }
-    
+
     // Initialize test runner
     const runner = new ParallelTestRunner(options.maxWorkers);
-    
+
     // Set up event listeners for progress reporting
     runner.on('suite:start', (suite: TestSuite) => {
       console.log(chalk.cyan(`\n▶️  Running ${suite.name} tests...`));
     });
-    
+
     runner.on('file:complete', ({ file, result }: any) => {
       const fileName = path.basename(file);
       if (result.failed > 0) {
@@ -223,20 +223,20 @@ async function runTests(): Promise<void> {
         console.log(chalk.green(`  ✓ ${fileName}: ${result.passed} passed`));
       }
     });
-    
+
     runner.on('contract:violation', (violation: any) => {
       console.log(chalk.red(`\n⚠️  Contract Violation: ${violation.endpoint}`));
       console.log(chalk.red(`   ${violation.message}`));
     });
-    
+
     runner.on('file:retry', ({ file, attempt }: any) => {
       console.log(chalk.yellow(`  🔄 Retrying ${path.basename(file)} (attempt ${attempt})...`));
     });
-    
+
     // Run tests
     console.log(chalk.cyan('\n🏃 Running tests...\n'));
     const startTime = Date.now();
-    
+
     const { success, results, summary } = await runner.runSuites(suitesToRun, {
       parallel: options.parallel,
       bail: options.bail,
@@ -247,7 +247,7 @@ async function runTests(): Promise<void> {
       contractValidation: options.contractValidation,
       filter: options.filter,
     });
-    
+
     // Display summary
     const duration = Date.now() - startTime;
     console.log(chalk.bold.cyan('\n📊 Test Summary\n'));
@@ -257,11 +257,11 @@ async function runTests(): Promise<void> {
     console.log(chalk.yellow(`  Skipped:  ${summary.skipped}`));
     console.log(chalk.blue(`  Duration: ${(duration / 1000).toFixed(2)}s`));
     console.log(chalk.magenta(`  Pass Rate: ${summary.passRate.toFixed(1)}%`));
-    
+
     // Display failures if any
     if (summary.failed > 0) {
       console.log(chalk.bold.red('\n❌ Failed Tests:\n'));
-      
+
       for (const result of results) {
         if (result.failures && result.failures.length > 0) {
           console.log(chalk.red(`\n  ${result.suite} - ${path.basename(result.file)}:`));
@@ -270,7 +270,7 @@ async function runTests(): Promise<void> {
             console.log(chalk.gray(`      ${failure.error}`));
           }
         }
-        
+
         if (result.contractViolations && result.contractViolations.length > 0) {
           console.log(chalk.red(`\n  Contract Violations in ${result.file}:`));
           for (const violation of result.contractViolations) {
@@ -279,7 +279,7 @@ async function runTests(): Promise<void> {
         }
       }
     }
-    
+
     // Generate HTML report if requested
     if (options.report) {
       const projectRoot = path.resolve(__dirname, '..');
@@ -287,14 +287,14 @@ async function runTests(): Promise<void> {
       await runner.generateHTMLReport(reportPath);
       console.log(chalk.cyan(`\n📄 HTML report generated: ${reportPath}`));
     }
-    
+
     // Generate coverage report if requested
     if (options.coverage) {
       console.log(chalk.cyan('\n📈 Coverage report:'));
       // Coverage would be generated by the test frameworks
       console.log(chalk.gray('  Coverage reports generated in respective test directories'));
     }
-    
+
     // Exit with appropriate code
     if (success) {
       console.log(chalk.bold.green('\n✅ All tests passed!\n'));
@@ -318,7 +318,7 @@ async function runTests(): Promise<void> {
  */
 async function watchTests(): Promise<void> {
   const chokidar = await import('chokidar');
-  
+
   console.log(chalk.bold.cyan('\n👀 Watch Mode Enabled\n'));
   console.log(chalk.gray('Watching for file changes...\n'));
 
@@ -339,27 +339,27 @@ async function watchTests(): Promise<void> {
       persistent: true
     }),
   ];
-  
+
   let isRunning = false;
   let pendingRun = false;
-  
+
   const runTestsDebounced = async () => {
     if (isRunning) {
       pendingRun = true;
       return;
     }
-    
+
     isRunning = true;
     console.clear();
     await runTests();
     isRunning = false;
-    
+
     if (pendingRun) {
       pendingRun = false;
       await runTestsDebounced();
     }
   };
-  
+
   // Set up event handlers
   for (const watcher of watchers) {
     watcher.on('change', (path: string) => {
@@ -367,10 +367,10 @@ async function watchTests(): Promise<void> {
       runTestsDebounced();
     });
   }
-  
+
   // Run initial tests
   await runTests();
-  
+
   // Keep process alive
   process.stdin.resume();
 }

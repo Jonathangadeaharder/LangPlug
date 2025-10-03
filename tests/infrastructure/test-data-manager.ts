@@ -73,7 +73,7 @@ export class TestDataManager {
   private vocabulary: Map<string, TestVocabulary> = new Map();
   private progress: Map<string, TestProgress> = new Map();
   private fixtures: Map<string, any> = new Map();
-  
+
   constructor() {
     this.loadDefaultFixtures();
   }
@@ -135,7 +135,7 @@ export class TestDataManager {
       createdAt: overrides.createdAt || new Date(),
       ...overrides,
     };
-    
+
     this.users.set(user.id, user);
     return user;
   }
@@ -155,20 +155,20 @@ export class TestDataManager {
     const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const numbers = '0123456789';
     const special = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-    
+
     let password = '';
     password += faker.helpers.arrayElement(uppercase.split(''));
     password += faker.helpers.arrayElement(lowercase.split(''));
     password += faker.helpers.arrayElement(numbers.split(''));
     password += faker.helpers.arrayElement(special.split(''));
-    
+
     const remaining = 8 + Math.floor(Math.random() * 8);
     const all = lowercase + uppercase + numbers + special;
-    
+
     for (let i = 0; i < remaining; i++) {
       password += faker.helpers.arrayElement(all.split(''));
     }
-    
+
     return password.split('').sort(() => Math.random() - 0.5).join('');
   }
 
@@ -189,7 +189,7 @@ export class TestDataManager {
       createdAt: overrides.createdAt || new Date(),
       ...overrides,
     };
-    
+
     this.videos.set(video.id, video);
     return video;
   }
@@ -200,7 +200,7 @@ export class TestDataManager {
   generateSubtitles(videoId: string, count: number = 10): TestSubtitle[] {
     const subtitles: TestSubtitle[] = [];
     let currentTime = 0;
-    
+
     for (let i = 0; i < count; i++) {
       const duration = faker.number.int({ min: 2, max: 8 });
       const subtitle: TestSubtitle = {
@@ -212,11 +212,11 @@ export class TestDataManager {
         text: faker.lorem.sentence(),
         translation: faker.lorem.sentence(),
       };
-      
+
       subtitles.push(subtitle);
       currentTime += duration;
     }
-    
+
     return subtitles;
   }
 
@@ -230,7 +230,7 @@ export class TestDataManager {
       'Pizza', 'Qualität', 'Regen', 'Sonne', 'Tag', 'Universität', 'Vater',
       'Wasser', 'Xylophon', 'Yoga', 'Zeit',
     ];
-    
+
     return Array.from({ length: count }, () => {
       const word = faker.helpers.arrayElement(germanWords) + faker.number.int({ min: 1, max: 999 });
       const vocab: TestVocabulary = {
@@ -244,7 +244,7 @@ export class TestDataManager {
         tags: faker.lorem.words(2).split(' '),
         ...overrides,
       };
-      
+
       this.vocabulary.set(vocab.id, vocab);
       return vocab;
     });
@@ -264,7 +264,7 @@ export class TestDataManager {
       startedAt: faker.date.past(),
       completedAt: faker.datatype.boolean() ? faker.date.recent() : undefined,
     };
-    
+
     this.progress.set(progress.id, progress);
     return progress;
   }
@@ -304,12 +304,12 @@ export class TestDataManager {
         scenario.users = this.generateUsers(5);
         scenario.videos = Array.from({ length: 10 }, () => this.generateVideo());
         scenario.vocabulary = this.generateVocabulary(50);
-        
+
         // Add subtitles to videos
         scenario.videos.forEach(video => {
           video.subtitles = this.generateSubtitles(video.id);
         });
-        
+
         // Generate progress for each user
         scenario.users.forEach(user => {
           scenario.videos.forEach(video => {
@@ -317,7 +317,7 @@ export class TestDataManager {
               scenario.progress.push(this.generateProgress(user.id, video.id, 'video'));
             }
           });
-          
+
           scenario.vocabulary.slice(0, 10).forEach(vocab => {
             scenario.progress.push(this.generateProgress(user.id, vocab.id, 'vocabulary'));
           });
@@ -365,7 +365,7 @@ export class TestDataManager {
       vocabulary: Array.from(this.vocabulary.values()),
       progress: Array.from(this.progress.values()),
     };
-    
+
     await fs.writeJson(filePath, data, { spaces: 2 });
   }
 
@@ -443,7 +443,7 @@ export class TestDataManager {
   } {
     const start = (page - 1) * pageSize;
     const paginatedItems = items.slice(start, start + pageSize);
-    
+
     return {
       items: paginatedItems,
       total: items.length,
@@ -458,7 +458,7 @@ export class TestDataManager {
    */
   validateDataConsistency(): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     // Check progress references
     this.progress.forEach(p => {
       if (!this.users.has(p.userId)) {
@@ -471,7 +471,7 @@ export class TestDataManager {
         errors.push(`Progress ${p.id} references non-existent vocabulary ${p.vocabularyId}`);
       }
     });
-    
+
     // Check video subtitles
     this.videos.forEach(v => {
       if (v.subtitles) {
@@ -482,7 +482,7 @@ export class TestDataManager {
         });
       }
     });
-    
+
     return {
       valid: errors.length === 0,
       errors,

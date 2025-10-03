@@ -43,6 +43,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
 ### Application Settings
 
 #### `LANGPLUG_HOST`
+
 - **Type**: String (IP address)
 - **Default**: `0.0.0.0`
 - **Description**: Server bind address
@@ -56,6 +57,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `LANGPLUG_PORT`
+
 - **Type**: Integer
 - **Default**: `8000`
 - **Description**: Server port number
@@ -66,12 +68,14 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `LANGPLUG_DEBUG`
+
 - **Type**: Boolean
 - **Default**: `False`
 - **Description**: Enable debug mode (detailed error messages, auto-reload)
 - **Valid Values**: `True`, `False`, `1`, `0`
 - **Security**: ⚠️ **NEVER** enable in production
 - **Example**:
+
   ```bash
   # Development
   LANGPLUG_DEBUG=True
@@ -81,6 +85,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `LANGPLUG_ENVIRONMENT`
+
 - **Type**: String (enum)
 - **Default**: `development`
 - **Description**: Application environment
@@ -99,6 +104,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
 ### Path Configuration
 
 #### `LANGPLUG_VIDEOS_PATH`
+
 - **Type**: String (directory path)
 - **Default**: `../videos`
 - **Description**: Root directory for video storage
@@ -107,6 +113,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   - Sufficient disk space (videos are large)
   - Can be absolute or relative path
 - **Example**:
+
   ```bash
   # Relative path
   LANGPLUG_VIDEOS_PATH=../videos
@@ -119,6 +126,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `LANGPLUG_DATA_PATH`
+
 - **Type**: String (directory path)
 - **Default**: `./data`
 - **Description**: Directory for databases, user data, caches
@@ -132,6 +140,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `LANGPLUG_LOGS_PATH`
+
 - **Type**: String (directory path)
 - **Default**: `./logs`
 - **Description**: Directory for application logs
@@ -148,6 +157,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
 ### Security Configuration
 
 #### `LANGPLUG_SECRET_KEY`
+
 - **Type**: String
 - **Default**: None (must be provided)
 - **Description**: Secret key for JWT token signing and encryption
@@ -168,12 +178,14 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `LANGPLUG_SESSION_TIMEOUT_HOURS`
+
 - **Type**: Integer
 - **Default**: `24`
 - **Description**: Session expiration time in hours
 - **Valid Values**: 1-168 (1 hour to 7 days)
 - **Security**: Shorter is more secure, longer is more convenient
 - **Example**:
+
   ```bash
   # Development: Long sessions
   LANGPLUG_SESSION_TIMEOUT_HOURS=168
@@ -183,6 +195,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `LANGPLUG_CORS_ORIGINS`
+
 - **Type**: Comma-separated list of URLs
 - **Default**: `http://localhost:3000`
 - **Description**: Allowed CORS origins for frontend
@@ -192,6 +205,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   - Comma-separated for multiple origins
 - **Security**: Only allow trusted frontend URLs
 - **Example**:
+
   ```bash
   # Development
   LANGPLUG_CORS_ORIGINS=http://localhost:3000,http://localhost:5173
@@ -205,22 +219,26 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
 ### Database Configuration
 
 #### `DATABASE_URL`
+
 - **Type**: String (database URL)
 - **Default**: `sqlite+aiosqlite:///./data/langplug.db`
 - **Description**: Database connection string
 - **Formats**:
 
   **SQLite** (Development):
+
   ```bash
   DATABASE_URL=sqlite+aiosqlite:///./data/langplug.db
   ```
 
   **PostgreSQL** (Production):
+
   ```bash
   DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/database
   ```
 
   **PostgreSQL with SSL**:
+
   ```bash
   DATABASE_URL=postgresql+asyncpg://user:password@host:5432/db?ssl=require
   ```
@@ -236,6 +254,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
 ### AI Services Configuration
 
 #### `LANGPLUG_TRANSCRIPTION_SERVICE`
+
 - **Type**: String (enum)
 - **Default**: `whisper`
 - **Description**: Transcription service to use
@@ -248,6 +267,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `LANGPLUG_TRANSCRIPTION_MODEL`
+
 - **Type**: String (enum)
 - **Default**: `tiny`
 - **Description**: Whisper model size
@@ -271,6 +291,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `LANGPLUG_TRANSLATION_SERVICE`
+
 - **Type**: String (enum)
 - **Default**: `opus`
 - **Description**: Translation service to use
@@ -283,11 +304,13 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `LANGPLUG_TRANSLATION_MODEL`
+
 - **Type**: String
 - **Default**: Auto-selected based on language pair
 - **Description**: Specific translation model to use
 - **Format**: `{service}-{source}-{target}`
 - **Examples**:
+
   ```bash
   # German to English
   LANGPLUG_TRANSLATION_MODEL=opus-de-en
@@ -304,6 +327,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
 ### Language Settings
 
 #### `LANGPLUG_DEFAULT_NATIVE_LANGUAGE`
+
 - **Type**: String (ISO 639-1 code)
 - **Default**: `en`
 - **Description**: Default native language for new users
@@ -314,6 +338,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `LANGPLUG_DEFAULT_TARGET_LANGUAGE`
+
 - **Type**: String (ISO 639-1 code)
 - **Default**: `de`
 - **Description**: Default target learning language for new users
@@ -328,6 +353,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
 ### Logging Configuration
 
 #### `LANGPLUG_LOG_LEVEL`
+
 - **Type**: String (enum)
 - **Default**: `INFO`
 - **Description**: Minimum log level to record
@@ -342,6 +368,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `LANGPLUG_LOG_FORMAT`
+
 - **Type**: String (enum)
 - **Default**: `detailed`
 - **Description**: Log output format
@@ -350,6 +377,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   - `detailed` - Include module, function, line number
   - `json` - Structured JSON logs (for log aggregation)
 - **Example**:
+
   ```bash
   # Development
   LANGPLUG_LOG_FORMAT=detailed
@@ -363,6 +391,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
 ### Optional Features
 
 #### `LANGPLUG_RATE_LIMIT_ENABLED`
+
 - **Type**: Boolean
 - **Default**: `False`
 - **Description**: Enable API rate limiting
@@ -374,6 +403,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `REDIS_URL`
+
 - **Type**: String (Redis URL)
 - **Default**: None
 - **Description**: Redis connection for caching/rate limiting
@@ -384,6 +414,7 @@ LangPlug Backend reads configuration from multiple sources (in order of preceden
   ```
 
 #### `CELERY_BROKER_URL`
+
 - **Type**: String (Broker URL)
 - **Default**: None
 - **Description**: Celery task queue broker (for background tasks)
@@ -491,6 +522,7 @@ LANGPLUG_CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 ```
 
 **Characteristics**:
+
 - Debug mode enabled
 - Verbose logging
 - Small AI models for speed
@@ -512,6 +544,7 @@ LANGPLUG_CORS_ORIGINS=https://staging.langplug.com
 ```
 
 **Characteristics**:
+
 - Production-like configuration
 - PostgreSQL database
 - Medium AI models
@@ -537,6 +570,7 @@ LANGPLUG_RATE_LIMIT_ENABLED=True
 ```
 
 **Characteristics**:
+
 - Debug disabled
 - Minimal logging (warnings and errors)
 - JSON logs for aggregation
@@ -589,6 +623,7 @@ python -c "import secrets; print(secrets.token_urlsafe(24))"
    - Generated randomly
 
 2. **Restrict permissions**:
+
    ```sql
    -- Create limited user
    CREATE USER langplug_app WITH PASSWORD 'strong_password';
@@ -631,6 +666,7 @@ class Settings(BaseSettings):
 ```
 
 **Validation Failures**:
+
 - Application will not start
 - Clear error message shown
 - Fix configuration and restart
@@ -639,15 +675,15 @@ class Settings(BaseSettings):
 
 All configuration has sensible defaults:
 
-| Variable | Default | Notes |
-|----------|---------|-------|
-| `LANGPLUG_HOST` | `0.0.0.0` | Listen on all interfaces |
-| `LANGPLUG_PORT` | `8000` | Standard FastAPI port |
-| `LANGPLUG_DEBUG` | `False` | Safe default (production) |
-| `LANGPLUG_ENVIRONMENT` | `development` | Explicit environment required |
-| `LANGPLUG_LOG_LEVEL` | `INFO` | Balance verbosity/performance |
-| `LANGPLUG_TRANSCRIPTION_MODEL` | `tiny` | Fastest model for development |
-| `DATABASE_URL` | SQLite in `./data` | No external dependencies |
+| Variable                       | Default            | Notes                         |
+| ------------------------------ | ------------------ | ----------------------------- |
+| `LANGPLUG_HOST`                | `0.0.0.0`          | Listen on all interfaces      |
+| `LANGPLUG_PORT`                | `8000`             | Standard FastAPI port         |
+| `LANGPLUG_DEBUG`               | `False`            | Safe default (production)     |
+| `LANGPLUG_ENVIRONMENT`         | `development`      | Explicit environment required |
+| `LANGPLUG_LOG_LEVEL`           | `INFO`             | Balance verbosity/performance |
+| `LANGPLUG_TRANSCRIPTION_MODEL` | `tiny`             | Fastest model for development |
+| `DATABASE_URL`                 | SQLite in `./data` | No external dependencies      |
 
 ---
 
@@ -658,6 +694,7 @@ All configuration has sensible defaults:
 #### **"SECRET_KEY must be at least 32 characters"**
 
 **Solution**:
+
 ```bash
 # Generate new secret
 python -c "import secrets; print(secrets.token_urlsafe(32))"
@@ -669,6 +706,7 @@ LANGPLUG_SECRET_KEY=<generated-secret>
 #### **"Invalid DATABASE_URL format"**
 
 **Solution**:
+
 ```bash
 # Check URL format:
 # sqlite+aiosqlite:///path/to/db.db
@@ -680,6 +718,7 @@ LANGPLUG_SECRET_KEY=<generated-secret>
 #### **"CORS origin not allowed"**
 
 **Solution**:
+
 ```bash
 # Add frontend URL to LANGPLUG_CORS_ORIGINS
 LANGPLUG_CORS_ORIGINS=http://localhost:3000,http://localhost:5173
@@ -692,6 +731,7 @@ LANGPLUG_CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 #### **"Video path not found"**
 
 **Solution**:
+
 ```bash
 # Verify path exists
 ls -la ../videos  # or your configured path
@@ -712,6 +752,7 @@ chmod 755 ../videos
 1. **Restart server** (changes require restart)
 2. **Check file location** (`.env` must be in `Backend/` directory)
 3. **Check syntax** (no spaces around `=`):
+
    ```bash
    # ❌ BAD
    LANGPLUG_PORT = 8000
@@ -719,7 +760,9 @@ chmod 755 ../videos
    # ✅ GOOD
    LANGPLUG_PORT=8000
    ```
+
 4. **Check quotes** (usually not needed):
+
    ```bash
    # Simple values - no quotes
    LANGPLUG_PORT=8000

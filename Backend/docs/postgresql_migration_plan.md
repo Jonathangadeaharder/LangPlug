@@ -1,15 +1,18 @@
 # PostgreSQL Migration Plan
 
 ## Overview
+
 This document outlines the plan to migrate the LangPlug application from SQLite to PostgreSQL for production deployment. SQLite is not suitable for production web applications due to its limitations with concurrent access and scalability.
 
 ## Current State
+
 - Database: SQLite
 - Connection: Direct file-based access
 - Session Storage: Database-backed (user_sessions table)
 - Schema: Defined in `schema.sql`
 
 ## Target State
+
 - Database: PostgreSQL
 - Connection: Connection pooling via SQLAlchemy
 - Session Storage: Database-backed (same user_sessions table)
@@ -18,11 +21,13 @@ This document outlines the plan to migrate the LangPlug application from SQLite 
 ## Migration Steps
 
 ### 1. Environment Setup
+
 - Install PostgreSQL server
 - Create database and user for LangPlug
 - Configure PostgreSQL settings for optimal performance
 
 ### 2. Schema Migration
+
 - Convert SQLite schema to PostgreSQL-compatible format
 - Handle data type differences:
   - SQLite `INTEGER` → PostgreSQL `SERIAL` for auto-incrementing IDs
@@ -31,18 +36,21 @@ This document outlines the plan to migrate the LangPlug application from SQLite 
 - Update indexes and constraints for PostgreSQL syntax
 
 ### 3. Code Changes
+
 - Update database connection strings
 - Modify DatabaseManager to use PostgreSQL
 - Update repository classes to work with PostgreSQL
 - Test all database operations
 
 ### 4. Data Migration
+
 - Export data from SQLite
 - Transform data to match PostgreSQL schema
 - Import data into PostgreSQL
 - Validate data integrity
 
 ### 5. Testing
+
 - Test all application features with PostgreSQL
 - Performance testing under load
 - Verify data consistency
@@ -51,6 +59,7 @@ This document outlines the plan to migrate the LangPlug application from SQLite 
 ## Configuration Changes
 
 ### Environment Variables
+
 ```bash
 # Current SQLite configuration
 DATABASE_URL=sqlite:///./vocabulary.db
@@ -60,6 +69,7 @@ DATABASE_URL=postgresql://username:password@localhost:5432/langplug
 ```
 
 ### Connection Pooling
+
 ```python
 # Current SQLite connection
 engine = create_engine("sqlite:///./vocabulary.db")
@@ -75,15 +85,19 @@ engine = create_engine(
 ```
 
 ## Required Dependencies
+
 Add to `requirements.txt`:
+
 ```
 psycopg2-binary>=2.9.0
 ```
 
 ## Docker Configuration
+
 Update `docker-compose.yml` to include PostgreSQL service:
+
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   db:
     image: postgres:15
@@ -108,12 +122,14 @@ volumes:
 ```
 
 ## Migration Timeline
+
 1. Week 1: Environment setup and schema conversion
 2. Week 2: Code changes and testing
 3. Week 3: Data migration and validation
 4. Week 4: Performance testing and deployment
 
 ## Rollback Plan
+
 - Maintain SQLite backup during migration
 - Quick rollback procedure to SQLite if issues arise
 - Monitor application performance post-migration

@@ -39,32 +39,32 @@ const sizeStyles = {
 
 const variantStyles = {
   primary: css`
-    background: linear-gradient(135deg, 
-      #FF6B6B 0%, 
+    background: linear-gradient(135deg,
+      #FF6B6B 0%,
       #EE5A52 100%
     );
     color: white;
     border: none;
     box-shadow: 0 10px 40px -10px rgba(255, 107, 107, 0.35);
-    
+
     &:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
-    
+
     &:active:not(:disabled) {
       transform: translateY(0);
     }
   `,
   secondary: css`
-    background: linear-gradient(135deg, 
-      #4ECDC4 0%, 
+    background: linear-gradient(135deg,
+      #4ECDC4 0%,
       #38B2AA 100%
     );
     color: white;
     border: none;
     box-shadow: 0 10px 40px -10px rgba(78, 205, 196, 0.35);
-    
+
     &:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -74,7 +74,7 @@ const variantStyles = {
     background: transparent;
     color: #FF6B6B;
     border: 2px solid #FF6B6B;
-    
+
     &:hover:not(:disabled) {
       background: #FF6B6B;
       color: white;
@@ -85,7 +85,7 @@ const variantStyles = {
     background: transparent;
     color: #1A1A1A;
     border: none;
-    
+
     &:hover:not(:disabled) {
       background: #F8F9FA;
     }
@@ -94,7 +94,7 @@ const variantStyles = {
     background: #F5222D;
     color: white;
     border: none;
-    
+
     &:hover:not(:disabled) {
       background: #F5222D;
       filter: brightness(0.9);
@@ -116,23 +116,23 @@ const StyledButton = styled(motion.button)<ButtonProps>`
   transition: all 150ms ease-in-out;
   white-space: nowrap;
   user-select: none;
-  
+
   ${({ size = 'medium' }) => sizeStyles[size]}
   ${({ variant = 'primary' }) => variantStyles[variant]}
   ${({ fullWidth }) => fullWidth && css`
     width: 100%;
   `}
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-  
+
   &:focus-visible {
     outline: 2px solid #FF6B6B;
     outline-offset: 2px;
   }
-  
+
   /* Ripple effect */
   &::before {
     content: '';
@@ -146,7 +146,7 @@ const StyledButton = styled(motion.button)<ButtonProps>`
     transform: translate(-50%, -50%);
     transition: width 0.6s, height 0.6s;
   }
-  
+
   &:active::before {
     width: 300px;
     height: 300px;

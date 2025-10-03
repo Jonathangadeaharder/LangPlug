@@ -3,6 +3,7 @@
 Script to run all currently passing tests.
 This provides a baseline for verifying that core functionality works.
 """
+
 import os
 import subprocess
 import sys
@@ -18,7 +19,9 @@ def run_tests():
 
     # Test command with timeout
     cmd = [
-        "api_venv/Scripts/python.exe", "-m", "pytest",
+        "api_venv/Scripts/python.exe",
+        "-m",
+        "pytest",
         # Unit tests that pass
         "tests/unit/test_subtitle_chunk_generation.py",
         "tests/unit/test_vocabulary_service.py",
@@ -47,7 +50,8 @@ def run_tests():
         "tests/api/test_videos_errors.py::test_upload_subtitle_missing_video",
         "tests/api/test_auth_endpoints.py::test_register_endpoint",
         # Add timeout and verbose flags
-        "-v", "--timeout=60"
+        "-v",
+        "--timeout=60",
     ]
 
     print("Running passing tests...")
@@ -77,6 +81,7 @@ def run_tests():
     except Exception as e:
         print(f"[ERROR] Error running tests: {e}")
         return False
+
 
 if __name__ == "__main__":
     success = run_tests()

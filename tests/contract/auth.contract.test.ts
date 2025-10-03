@@ -17,10 +17,10 @@ describe('Authentication API Contract', () => {
     // Initialize contract validator with OpenAPI spec
     contractValidator = new ContractValidator();
     await contractValidator.loadSpec('../../openapi_spec.json');
-    
+
     // Initialize test data manager
     testDataManager = new TestDataManager();
-    
+
     // Create axios client with contract validation
     apiClient = axios.create({
       baseURL: API_BASE_URL,
@@ -28,7 +28,7 @@ describe('Authentication API Contract', () => {
         'Content-Type': 'application/json',
       },
     });
-    
+
     // Apply contract validation interceptors
     contractValidator.createAxiosInterceptor(apiClient);
   });
@@ -42,26 +42,26 @@ describe('Authentication API Contract', () => {
     it('should validate successful registration contract', async () => {
       // Generate unique test user
       const userData = testDataManager.generateUser();
-      
+
       const requestData = {
         username: userData.username,
         email: userData.email,
         password: userData.password,
       };
-      
+
       // Validate request contract
       const requestValidation = contractValidator.validateRequest(
         'POST',
         '/api/auth/register',
         requestData
       );
-      
+
       expect(requestValidation.valid).toBe(true);
       expect(requestValidation.errors).toBeUndefined();
-      
+
       // Make actual API call
       const response = await apiClient.post('/api/auth/register', requestData);
-      
+
       // Validate response contract
       const responseValidation = contractValidator.validateResponse(
         'POST',
@@ -69,7 +69,7 @@ describe('Authentication API Contract', () => {
         response.status,
         response.data
       );
-      
+
       expect(responseValidation.valid).toBe(true);
       expect(response.status).toBe(201);
       expect(response.data).toHaveProperty('id');
@@ -78,14 +78,14 @@ describe('Authentication API Contract', () => {
 
     it('should validate duplicate email error contract', async () => {
       const userData = testDataManager.generateUser();
-      
+
       // Register user first
       await apiClient.post('/api/auth/register', {
         username: userData.username,
         email: userData.email,
         password: userData.password,
       });
-      
+
       // Try to register with same email
       try {
         await apiClient.post('/api/auth/register', {
@@ -102,7 +102,7 @@ describe('Authentication API Contract', () => {
           error.response.status,
           error.response.data
         );
-        
+
         expect(responseValidation.valid).toBe(true);
         expect(error.response.status).toBe(400);
         expect(error.response.data).toHaveProperty('detail');
@@ -115,13 +115,13 @@ describe('Authentication API Contract', () => {
         email: 'not-an-email', // Invalid email format
         password: 'short', // Too short
       };
-      
+
       const validation = contractValidator.validateRequest(
         'POST',
         '/api/auth/register',
         invalidData
       );
-      
+
       expect(validation.valid).toBe(false);
       expect(validation.errors).toBeDefined();
       expect(validation.errors!.length).toBeGreaterThan(0);
@@ -130,7 +130,7 @@ describe('Authentication API Contract', () => {
 
   describe('POST /api/auth/login', () => {
     let testUser: any;
-    
+
     beforeAll(async () => {
       // Create a test user for login tests
       testUser = testDataManager.generateUser();
@@ -146,23 +146,23 @@ describe('Authentication API Contract', () => {
         username: testUser.email, // FastAPI-Users uses email as username
         password: testUser.password,
       };
-      
+
       // Validate request contract
       const requestValidation = contractValidator.validateRequest(
         'POST',
         '/api/auth/login',
         loginData
       );
-      
+
       expect(requestValidation.valid).toBe(true);
-      
+
       // Make actual API call
       const response = await apiClient.post('/api/auth/login', loginData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
-      
+
       // Validate response contract
       const responseValidation = contractValidator.validateResponse(
         'POST',
@@ -170,7 +170,7 @@ describe('Authentication API Contract', () => {
         response.status,
         response.data
       );
-      
+
       expect(responseValidation.valid).toBe(true);
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty('access_token');
@@ -182,7 +182,7 @@ describe('Authentication API Contract', () => {
         username: testUser.email,
         password: 'wrong_password',
       };
-      
+
       try {
         await apiClient.post('/api/auth/login', loginData, {
           headers: {
@@ -198,7 +198,7 @@ describe('Authentication API Contract', () => {
           error.response.status,
           error.response.data
         );
-        
+
         expect(responseValidation.valid).toBe(true);
         expect(error.response.status).toBe(400);
       }
@@ -207,7 +207,7 @@ describe('Authentication API Contract', () => {
 
   describe('GET /api/auth/me', () => {
     let authToken: string;
-    
+
     beforeAll(async () => {
       // Create and login a test user
       const testUser = testDataManager.generateUser();
@@ -216,7 +216,7 @@ describe('Authentication API Contract', () => {
         email: testUser.email,
         password: testUser.password,
       });
-      
+
       const loginResponse = await apiClient.post('/api/auth/login', {
         username: testUser.email,
         password: testUser.password,
@@ -225,7 +225,7 @@ describe('Authentication API Contract', () => {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
-      
+
       authToken = loginResponse.data.access_token;
     });
 
@@ -236,7 +236,7 @@ describe('Authentication API Contract', () => {
           'Authorization': `Bearer ${authToken}`,
         },
       });
-      
+
       // Validate response contract
       const responseValidation = contractValidator.validateResponse(
         'GET',
@@ -244,7 +244,7 @@ describe('Authentication API Contract', () => {
         response.status,
         response.data
       );
-      
+
       expect(responseValidation.valid).toBe(true);
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty('id');
@@ -265,7 +265,7 @@ describe('Authentication API Contract', () => {
           error.response.status,
           error.response.data
         );
-        
+
         expect(responseValidation.valid).toBe(true);
         expect(error.response.status).toBe(401);
       }
@@ -275,7 +275,7 @@ describe('Authentication API Contract', () => {
   describe('Contract Validation Workflow', () => {
     it('should validate complete authentication workflow', async () => {
       const userData = testDataManager.generateUser();
-      
+
       // Define workflow steps
       const workflow = await contractValidator.validateWorkflow(
         'Complete Authentication Flow',
@@ -320,7 +320,7 @@ describe('Authentication API Contract', () => {
           },
         ]
       );
-      
+
       expect(workflow.valid).toBe(true);
       expect(workflow.steps.every(step => step.valid)).toBe(true);
     });
@@ -333,7 +333,7 @@ describe('Authentication API Contract', () => {
     console.log(`   Total API calls: ${report.total}`);
     console.log(`   ✅ Passed: ${report.passed}`);
     console.log(`   ❌ Failed: ${report.failed}`);
-    
+
     if (report.violations.length > 0) {
       console.log('\n⚠️  Contract Violations:');
       report.violations.forEach(violation => {

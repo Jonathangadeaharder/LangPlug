@@ -96,6 +96,7 @@ LangPlug uses **JWT (JSON Web Tokens)** for authentication:
 **Endpoint**: `POST /api/auth/register`
 
 **Request**:
+
 ```json
 {
   "username": "johndoe",
@@ -105,6 +106,7 @@ LangPlug uses **JWT (JSON Web Tokens)** for authentication:
 ```
 
 **Response** (201 Created):
+
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174000",
@@ -117,6 +119,7 @@ LangPlug uses **JWT (JSON Web Tokens)** for authentication:
 ```
 
 **Password Requirements**:
+
 - Minimum 8 characters
 - At least one uppercase letter
 - At least one lowercase letter
@@ -128,6 +131,7 @@ LangPlug uses **JWT (JSON Web Tokens)** for authentication:
 **Endpoint**: `POST /api/auth/login`
 
 **Request**:
+
 ```json
 {
   "username": "johndoe",
@@ -136,6 +140,7 @@ LangPlug uses **JWT (JSON Web Tokens)** for authentication:
 ```
 
 **Response** (200 OK):
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -145,6 +150,7 @@ LangPlug uses **JWT (JSON Web Tokens)** for authentication:
 ```
 
 **Headers Received**:
+
 ```
 Set-Cookie: refresh_token=<refresh_token>; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800
 ```
@@ -164,6 +170,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **Request**: No body (refresh token from cookie)
 
 **Response** (200 OK):
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -173,6 +180,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **Token Lifetimes**:
+
 - Access Token: 30 minutes
 - Refresh Token: 7 days
 
@@ -185,15 +193,18 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 Endpoints that return lists support pagination:
 
 **Query Parameters**:
+
 - `skip` (integer): Number of items to skip (default: 0)
 - `limit` (integer): Maximum items to return (default: 50, max: 100)
 
 **Example**:
+
 ```
 GET /api/vocabulary/library?skip=0&limit=20
 ```
 
 **Response**:
+
 ```json
 {
   "items": [...],
@@ -212,6 +223,7 @@ GET /api/vocabulary/library?level=A1&status=learning
 ```
 
 **Common Filters**:
+
 - `level`: CEFR level (A1, A2, B1, B2, C1, C2)
 - `status`: Word status (learning, known, unknown)
 - `search`: Text search query
@@ -226,6 +238,7 @@ GET /api/videos?sort=created_at&order=desc
 ```
 
 **Sort Options**:
+
 - `sort`: Field to sort by (word, created_at, difficulty, etc.)
 - `order`: `asc` (ascending) or `desc` (descending)
 
@@ -234,6 +247,7 @@ GET /api/videos?sort=created_at&order=desc
 Some endpoints support batch operations:
 
 **Example** (Mark multiple words):
+
 ```json
 POST /api/vocabulary/mark-batch
 
@@ -251,25 +265,26 @@ POST /api/vocabulary/mark-batch
 
 ### HTTP Status Codes
 
-| Code | Meaning | When It Occurs |
-|------|---------|----------------|
-| 200 | OK | Request succeeded |
-| 201 | Created | Resource created successfully |
-| 204 | No Content | Success with no response body |
-| 400 | Bad Request | Invalid request data |
-| 401 | Unauthorized | Missing or invalid authentication |
-| 403 | Forbidden | Authenticated but not authorized |
-| 404 | Not Found | Resource doesn't exist |
-| 409 | Conflict | Resource already exists (e.g., duplicate username) |
-| 422 | Unprocessable Entity | Validation error |
-| 429 | Too Many Requests | Rate limit exceeded |
-| 500 | Internal Server Error | Server error (bug or outage) |
+| Code | Meaning               | When It Occurs                                     |
+| ---- | --------------------- | -------------------------------------------------- |
+| 200  | OK                    | Request succeeded                                  |
+| 201  | Created               | Resource created successfully                      |
+| 204  | No Content            | Success with no response body                      |
+| 400  | Bad Request           | Invalid request data                               |
+| 401  | Unauthorized          | Missing or invalid authentication                  |
+| 403  | Forbidden             | Authenticated but not authorized                   |
+| 404  | Not Found             | Resource doesn't exist                             |
+| 409  | Conflict              | Resource already exists (e.g., duplicate username) |
+| 422  | Unprocessable Entity  | Validation error                                   |
+| 429  | Too Many Requests     | Rate limit exceeded                                |
+| 500  | Internal Server Error | Server error (bug or outage)                       |
 
 ### Error Response Format
 
 All errors return JSON with `detail` field:
 
 **Simple Error**:
+
 ```json
 {
   "detail": "User not found"
@@ -277,6 +292,7 @@ All errors return JSON with `detail` field:
 ```
 
 **Validation Error** (422):
+
 ```json
 {
   "detail": [
@@ -297,6 +313,7 @@ All errors return JSON with `detail` field:
 ### Error Handling Examples
 
 **Python**:
+
 ```python
 import requests
 
@@ -319,23 +336,24 @@ else:
 ```
 
 **JavaScript**:
+
 ```javascript
 try {
-  const response = await fetch('http://localhost:8000/api/auth/login', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({username: 'johndoe', password: 'wrong'})
+  const response = await fetch("http://localhost:8000/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "johndoe", password: "wrong" }),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.detail || 'Request failed');
+    throw new Error(error.detail || "Request failed");
   }
 
   const data = await response.json();
-  console.log('Logged in:', data.access_token);
+  console.log("Logged in:", data.access_token);
 } catch (error) {
-  console.error('Login failed:', error.message);
+  console.error("Login failed:", error.message);
 }
 ```
 
@@ -459,21 +477,21 @@ if __name__ == "__main__":
 
 ```javascript
 class LangPlugClient {
-  constructor(baseUrl = 'http://localhost:8000') {
+  constructor(baseUrl = "http://localhost:8000") {
     this.baseUrl = baseUrl;
     this.accessToken = null;
   }
 
   async register(username, email, password) {
     const response = await fetch(`${this.baseUrl}/api/auth/register`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username, email, password})
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password }),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Registration failed');
+      throw new Error(error.detail || "Registration failed");
     }
 
     return await response.json();
@@ -481,15 +499,15 @@ class LangPlugClient {
 
   async login(username, password) {
     const response = await fetch(`${this.baseUrl}/api/auth/login`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username, password}),
-      credentials: 'include'  // Important: Store refresh token cookie
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+      credentials: "include", // Important: Store refresh token cookie
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Login failed');
+      throw new Error(error.detail || "Login failed");
     }
 
     const data = await response.json();
@@ -499,59 +517,62 @@ class LangPlugClient {
 
   _getHeaders() {
     if (!this.accessToken) {
-      throw new Error('Not authenticated. Call login() first.');
+      throw new Error("Not authenticated. Call login() first.");
     }
     return {
-      'Authorization': `Bearer ${this.accessToken}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${this.accessToken}`,
+      "Content-Type": "application/json",
     };
   }
 
   async getProfile() {
     const response = await fetch(`${this.baseUrl}/api/profile`, {
       headers: this._getHeaders(),
-      credentials: 'include'
+      credentials: "include",
     });
 
-    if (!response.ok) throw new Error('Failed to get profile');
+    if (!response.ok) throw new Error("Failed to get profile");
     return await response.json();
   }
 
   async getVocabulary(skip = 0, limit = 50) {
-    const params = new URLSearchParams({skip, limit});
+    const params = new URLSearchParams({ skip, limit });
     const response = await fetch(
       `${this.baseUrl}/api/vocabulary/library?${params}`,
-      {headers: this._getHeaders(), credentials: 'include'}
+      { headers: this._getHeaders(), credentials: "include" },
     );
 
-    if (!response.ok) throw new Error('Failed to get vocabulary');
+    if (!response.ok) throw new Error("Failed to get vocabulary");
     return await response.json();
   }
 
   async markWord(word, status) {
     const response = await fetch(`${this.baseUrl}/api/vocabulary/mark-known`, {
-      method: 'POST',
+      method: "POST",
       headers: this._getHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({word, status})
+      credentials: "include",
+      body: JSON.stringify({ word, status }),
     });
 
-    if (!response.ok) throw new Error('Failed to mark word');
+    if (!response.ok) throw new Error("Failed to mark word");
     return await response.json();
   }
 
   async uploadVideo(file, series) {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
-    const response = await fetch(`${this.baseUrl}/api/videos/upload/${series}`, {
-      method: 'POST',
-      headers: {'Authorization': `Bearer ${this.accessToken}`},
-      credentials: 'include',
-      body: formData
-    });
+    const response = await fetch(
+      `${this.baseUrl}/api/videos/upload/${series}`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${this.accessToken}` },
+        credentials: "include",
+        body: formData,
+      },
+    );
 
-    if (!response.ok) throw new Error('Failed to upload video');
+    if (!response.ok) throw new Error("Failed to upload video");
     return await response.json();
   }
 }
@@ -562,26 +583,25 @@ const client = new LangPlugClient();
 async function main() {
   try {
     // Register
-    await client.register('testuser', 'test@example.com', 'SecurePass123!');
+    await client.register("testuser", "test@example.com", "SecurePass123!");
 
     // Login
-    const tokens = await client.login('testuser', 'SecurePass123!');
-    console.log('Logged in:', tokens.access_token.substring(0, 20) + '...');
+    const tokens = await client.login("testuser", "SecurePass123!");
+    console.log("Logged in:", tokens.access_token.substring(0, 20) + "...");
 
     // Get profile
     const profile = await client.getProfile();
-    console.log('User:', profile.username);
+    console.log("User:", profile.username);
 
     // Get vocabulary
     const vocab = await client.getVocabulary(0, 10);
-    console.log('Vocabulary items:', vocab.items?.length || 0);
+    console.log("Vocabulary items:", vocab.items?.length || 0);
 
     // Mark word
-    const result = await client.markWord('Hallo', 'known');
-    console.log('Marked word:', result);
-
+    const result = await client.markWord("Hallo", "known");
+    console.log("Marked word:", result);
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error("Error:", error.message);
   }
 }
 
@@ -591,19 +611,19 @@ main();
 #### Using Axios
 
 ```javascript
-import axios from 'axios';
+import axios from "axios";
 
 class LangPlugClient {
-  constructor(baseUrl = 'http://localhost:8000') {
+  constructor(baseUrl = "http://localhost:8000") {
     this.client = axios.create({
       baseURL: baseUrl,
-      withCredentials: true  // Important for cookies
+      withCredentials: true, // Important for cookies
     });
 
     this.accessToken = null;
 
     // Add auth interceptor
-    this.client.interceptors.request.use(config => {
+    this.client.interceptors.request.use((config) => {
       if (this.accessToken) {
         config.headers.Authorization = `Bearer ${this.accessToken}`;
       }
@@ -612,8 +632,8 @@ class LangPlugClient {
 
     // Add response error handler
     this.client.interceptors.response.use(
-      response => response,
-      async error => {
+      (response) => response,
+      async (error) => {
         if (error.response?.status === 401 && this.accessToken) {
           // Token expired, try refresh
           try {
@@ -627,57 +647,65 @@ class LangPlugClient {
           }
         }
         throw error;
-      }
+      },
     );
   }
 
   async register(username, email, password) {
-    const response = await this.client.post('/api/auth/register', {
-      username, email, password
+    const response = await this.client.post("/api/auth/register", {
+      username,
+      email,
+      password,
     });
     return response.data;
   }
 
   async login(username, password) {
-    const response = await this.client.post('/api/auth/login', {
-      username, password
+    const response = await this.client.post("/api/auth/login", {
+      username,
+      password,
     });
     this.accessToken = response.data.access_token;
     return response.data;
   }
 
   async refreshToken() {
-    const response = await this.client.post('/api/auth/token/refresh');
+    const response = await this.client.post("/api/auth/token/refresh");
     this.accessToken = response.data.access_token;
     return response.data;
   }
 
   async getProfile() {
-    const response = await this.client.get('/api/profile');
+    const response = await this.client.get("/api/profile");
     return response.data;
   }
 
   async getVocabulary(skip = 0, limit = 50) {
-    const response = await this.client.get('/api/vocabulary/library', {
-      params: {skip, limit}
+    const response = await this.client.get("/api/vocabulary/library", {
+      params: { skip, limit },
     });
     return response.data;
   }
 
   async markWord(word, status) {
-    const response = await this.client.post('/api/vocabulary/mark-known', {
-      word, status
+    const response = await this.client.post("/api/vocabulary/mark-known", {
+      word,
+      status,
     });
     return response.data;
   }
 
   async uploadVideo(file, series) {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
-    const response = await this.client.post(`/api/videos/upload/${series}`, formData, {
-      headers: {'Content-Type': 'multipart/form-data'}
-    });
+    const response = await this.client.post(
+      `/api/videos/upload/${series}`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
     return response.data;
   }
 }
@@ -688,6 +716,7 @@ export default LangPlugClient;
 ### cURL Examples
 
 #### Register
+
 ```bash
 curl -X POST "http://localhost:8000/api/auth/register" \
   -H "Content-Type: application/json" \
@@ -699,6 +728,7 @@ curl -X POST "http://localhost:8000/api/auth/register" \
 ```
 
 #### Login
+
 ```bash
 curl -X POST "http://localhost:8000/api/auth/login" \
   -H "Content-Type: application/json" \
@@ -710,6 +740,7 @@ curl -X POST "http://localhost:8000/api/auth/login" \
 ```
 
 #### Get Profile (with token)
+
 ```bash
 curl -X GET "http://localhost:8000/api/profile" \
   -H "Authorization: Bearer <access_token>" \
@@ -717,6 +748,7 @@ curl -X GET "http://localhost:8000/api/profile" \
 ```
 
 #### Upload Video
+
 ```bash
 curl -X POST "http://localhost:8000/api/videos/upload/my-series" \
   -H "Authorization: Bearer <access_token>" \
@@ -777,7 +809,7 @@ asyncio.run(connect_websocket("your_access_token"))
 
 ```javascript
 class WebSocketClient {
-  constructor(baseUrl = 'ws://localhost:8000') {
+  constructor(baseUrl = "ws://localhost:8000") {
     this.baseUrl = baseUrl;
     this.ws = null;
   }
@@ -788,19 +820,21 @@ class WebSocketClient {
 
       this.ws.onopen = () => {
         // Send authentication
-        this.ws.send(JSON.stringify({
-          type: 'auth',
-          token: accessToken
-        }));
+        this.ws.send(
+          JSON.stringify({
+            type: "auth",
+            token: accessToken,
+          }),
+        );
       };
 
       this.ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
 
-        if (data.type === 'auth_success') {
+        if (data.type === "auth_success") {
           resolve();
         } else {
-          console.log('Message:', data);
+          console.log("Message:", data);
         }
       };
 
@@ -809,7 +843,7 @@ class WebSocketClient {
       };
 
       this.ws.onclose = () => {
-        console.log('WebSocket closed');
+        console.log("WebSocket closed");
       };
     });
   }
@@ -818,7 +852,7 @@ class WebSocketClient {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
     } else {
-      throw new Error('WebSocket not connected');
+      throw new Error("WebSocket not connected");
     }
   }
 
@@ -835,8 +869,8 @@ await wsClient.connect(accessToken);
 
 // Subscribe to updates
 wsClient.send({
-  type: 'subscribe',
-  channel: 'processing_updates'
+  type: "subscribe",
+  channel: "processing_updates",
 });
 ```
 
@@ -846,24 +880,25 @@ wsClient.send({
 
 ### Quick Reference
 
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/api/auth/register` | POST | No | Register new user |
-| `/api/auth/login` | POST | No | Login and get tokens |
-| `/api/auth/token/refresh` | POST | Cookie | Refresh access token |
-| `/api/auth/me` | GET | Yes | Get current user info |
-| `/api/profile` | GET | Yes | Get user profile |
-| `/api/profile/languages` | PUT | Yes | Update language preferences |
-| `/api/vocabulary/library` | GET | Yes | Get vocabulary library |
-| `/api/vocabulary/mark-known` | POST | Yes | Mark word status |
-| `/api/vocabulary/stats` | GET | Yes | Get learning statistics |
-| `/api/videos` | GET | Yes | List videos |
-| `/api/videos/upload/{series}` | POST | Yes | Upload video |
-| `/api/game/start` | POST | Yes | Start game session |
-| `/api/game/answer` | POST | Yes | Submit answer |
-| `/ws/connect` | WS | Yes | WebSocket connection |
+| Endpoint                      | Method | Auth   | Description                 |
+| ----------------------------- | ------ | ------ | --------------------------- |
+| `/api/auth/register`          | POST   | No     | Register new user           |
+| `/api/auth/login`             | POST   | No     | Login and get tokens        |
+| `/api/auth/token/refresh`     | POST   | Cookie | Refresh access token        |
+| `/api/auth/me`                | GET    | Yes    | Get current user info       |
+| `/api/profile`                | GET    | Yes    | Get user profile            |
+| `/api/profile/languages`      | PUT    | Yes    | Update language preferences |
+| `/api/vocabulary/library`     | GET    | Yes    | Get vocabulary library      |
+| `/api/vocabulary/mark-known`  | POST   | Yes    | Mark word status            |
+| `/api/vocabulary/stats`       | GET    | Yes    | Get learning statistics     |
+| `/api/videos`                 | GET    | Yes    | List videos                 |
+| `/api/videos/upload/{series}` | POST   | Yes    | Upload video                |
+| `/api/game/start`             | POST   | Yes    | Start game session          |
+| `/api/game/answer`            | POST   | Yes    | Submit answer               |
+| `/ws/connect`                 | WS     | Yes    | WebSocket connection        |
 
 For complete API documentation, visit:
+
 - **Interactive docs**: http://localhost:8000/docs
 - **Route documentation**: See enhanced docstrings in `api/routes/` modules
 
@@ -874,12 +909,14 @@ For complete API documentation, visit:
 ### 1. Token Management
 
 ✅ **DO**:
+
 - Store access token in memory (not localStorage)
 - Store refresh token in HTTP-only cookie
 - Implement automatic token refresh
 - Handle 401 responses gracefully
 
 ❌ **DON'T**:
+
 - Store tokens in localStorage (XSS risk)
 - Share tokens between users
 - Use tokens after logout
@@ -888,6 +925,7 @@ For complete API documentation, visit:
 ### 2. Error Handling
 
 ✅ **DO**:
+
 - Check response status codes
 - Parse error details
 - Show user-friendly messages
@@ -895,6 +933,7 @@ For complete API documentation, visit:
 - Implement retry logic for network errors
 
 ❌ **DON'T**:
+
 - Ignore error responses
 - Show raw error messages to users
 - Retry indefinitely
@@ -903,6 +942,7 @@ For complete API documentation, visit:
 ### 3. Performance
 
 ✅ **DO**:
+
 - Use pagination for large datasets
 - Implement request caching
 - Batch operations when possible
@@ -910,6 +950,7 @@ For complete API documentation, visit:
 - Compress large requests
 
 ❌ **DON'T**:
+
 - Fetch all data at once
 - Poll frequently (use WebSockets)
 - Send unnecessary requests
@@ -918,6 +959,7 @@ For complete API documentation, visit:
 ### 4. Security
 
 ✅ **DO**:
+
 - Use HTTPS in production
 - Validate input on client side
 - Sanitize user-generated content
@@ -925,6 +967,7 @@ For complete API documentation, visit:
 - Use secure password requirements
 
 ❌ **DON'T**:
+
 - Send sensitive data in URLs
 - Trust client-side validation alone
 - Store passwords in plain text
@@ -942,22 +985,23 @@ For complete API documentation, visit:
    - `accessToken`: (leave empty, will be set automatically)
 
 2. **Pre-request Script** (for authenticated requests):
+
    ```javascript
    // Check if access token exists
-   const accessToken = pm.environment.get('accessToken');
+   const accessToken = pm.environment.get("accessToken");
    if (accessToken) {
-       pm.request.headers.add({
-           key: 'Authorization',
-           value: `Bearer ${accessToken}`
-       });
+     pm.request.headers.add({
+       key: "Authorization",
+       value: `Bearer ${accessToken}`,
+     });
    }
    ```
 
 3. **Test Script** (for login request):
    ```javascript
    if (pm.response.code === 200) {
-       const jsonData = pm.response.json();
-       pm.environment.set('accessToken', jsonData.access_token);
+     const jsonData = pm.response.json();
+     pm.environment.set("accessToken", jsonData.access_token);
    }
    ```
 

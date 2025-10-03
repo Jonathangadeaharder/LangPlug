@@ -35,12 +35,12 @@ The LangPlug Backend test suite is a comprehensive collection of **1,619 automat
 
 ### Test Distribution
 
-| Category | Count | Percentage |
-|----------|-------|------------|
-| Unit Tests | ~1,200 | 74% |
-| Integration Tests | ~350 | 22% |
-| E2E Tests | ~69 | 4% |
-| **Total** | **1,619** | **100%** |
+| Category          | Count     | Percentage |
+| ----------------- | --------- | ---------- |
+| Unit Tests        | ~1,200    | 74%        |
+| Integration Tests | ~350      | 22%        |
+| E2E Tests         | ~69       | 4%         |
+| **Total**         | **1,619** | **100%**   |
 
 ---
 
@@ -90,6 +90,7 @@ tests/
 Unit tests verify individual components in isolation. They are fast, focused, and make up the majority of the test suite.
 
 **Key Areas Covered**:
+
 - ✅ Service layer logic (authentication, vocabulary, processing)
 - ✅ Data validation and serialization (Pydantic models)
 - ✅ Business rules and calculations
@@ -98,6 +99,7 @@ Unit tests verify individual components in isolation. They are fast, focused, an
 - ✅ Error handling and edge cases
 
 **Example Test Files**:
+
 - `tests/unit/services/authservice/test_token_service.py` - JWT token generation and validation
 - `tests/unit/services/vocabulary/test_service_integration.py` - Vocabulary service logic
 - `tests/unit/services/processing/test_chunk_processor.py` - Video chunk processing
@@ -105,6 +107,7 @@ Unit tests verify individual components in isolation. They are fast, focused, an
 - `tests/unit/core/test_file_security.py` - File security validation
 
 **Running Unit Tests**:
+
 ```bash
 cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m pytest tests/unit/ -v"
 ```
@@ -118,6 +121,7 @@ cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m py
 Integration tests verify that multiple components work together correctly. They test API contracts, database interactions, and service integrations.
 
 **Key Areas Covered**:
+
 - ✅ API endpoint contracts (request/response validation)
 - ✅ Authentication flows (registration, login, token refresh)
 - ✅ Database operations (CRUD, transactions, rollback)
@@ -126,6 +130,7 @@ Integration tests verify that multiple components work together correctly. They 
 - ✅ File upload and processing workflows
 
 **Example Test Files**:
+
 - `tests/api/test_auth_contract_improved.py` - Authentication API contracts
 - `tests/api/test_video_contract_improved.py` - Video management API
 - `tests/api/test_processing_contract_improved.py` - Video processing API
@@ -133,6 +138,7 @@ Integration tests verify that multiple components work together correctly. They 
 - `tests/integration/test_vocabulary_service_integration.py` - Vocabulary service integration
 
 **Running Integration Tests**:
+
 ```bash
 cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m pytest tests/integration/ tests/api/ -v"
 ```
@@ -146,16 +152,19 @@ cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m py
 E2E tests verify complete user workflows from start to finish, simulating real-world usage scenarios.
 
 **Key Scenarios Covered**:
+
 - ✅ User registration → Login → Video upload → Processing → Subtitle generation
 - ✅ Vocabulary tracking and progress updates
 - ✅ Game session flows
 - ✅ Error handling and recovery
 
 **Test Files**:
+
 - `tests/e2e_simple.py` - Basic E2E smoke tests (authentication, video CRUD)
 - `tests/e2e_subtitle_verification.py` - Complete subtitle processing workflow
 
 **Running E2E Tests**:
+
 ```bash
 cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m pytest tests/e2e_*.py -v"
 ```
@@ -169,6 +178,7 @@ cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m py
 Security tests verify authentication, authorization, input validation, and protection against common vulnerabilities.
 
 **Key Areas Covered**:
+
 - ✅ Authentication bypass prevention
 - ✅ Authorization checks (user vs admin)
 - ✅ SQL injection prevention
@@ -177,6 +187,7 @@ Security tests verify authentication, authorization, input validation, and prote
 - ✅ Rate limiting (when enabled)
 
 **Running Security Tests**:
+
 ```bash
 cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m pytest tests/security/ -v"
 ```
@@ -190,12 +201,14 @@ cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m py
 Performance tests measure execution time and resource usage for critical operations.
 
 **Key Areas Covered**:
+
 - ✅ API endpoint response times
 - ✅ Database query performance
 - ✅ Large file processing
 - ✅ Concurrent request handling
 
 **Running Performance Tests**:
+
 ```bash
 cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m pytest tests/performance/ -v"
 ```
@@ -206,16 +219,16 @@ cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m py
 
 ### Current Coverage (Estimated)
 
-| Component | Coverage | Status |
-|-----------|----------|--------|
-| API Routes | 85% | ✅ Good |
-| Core Services | 80% | ✅ Good |
-| Authentication | 95% | ✅ Excellent |
-| Vocabulary Services | 85% | ✅ Good |
-| Processing Services | 75% | ⚠️ Acceptable |
-| Utilities | 70% | ⚠️ Acceptable |
-| Database Repositories | 80% | ✅ Good |
-| **Overall** | **~80%** | **✅ Good** |
+| Component             | Coverage | Status        |
+| --------------------- | -------- | ------------- |
+| API Routes            | 85%      | ✅ Good       |
+| Core Services         | 80%      | ✅ Good       |
+| Authentication        | 95%      | ✅ Excellent  |
+| Vocabulary Services   | 85%      | ✅ Good       |
+| Processing Services   | 75%      | ⚠️ Acceptable |
+| Utilities             | 70%      | ⚠️ Acceptable |
+| Database Repositories | 80%      | ✅ Good       |
+| **Overall**           | **~80%** | **✅ Good**   |
 
 ### Measuring Coverage
 
@@ -312,25 +325,25 @@ The LangPlug test suite follows **modern async testing patterns**:
 
 ### Key Testing Tools
 
-| Tool | Purpose |
-|------|---------|
-| **pytest** | Test framework and runner |
-| **pytest-asyncio** | Async test support |
-| **pytest-xdist** | Parallel test execution |
-| **pytest-cov** | Coverage measurement |
-| **httpx** | Async HTTP client for API tests |
-| **faker** | Generate realistic test data |
-| **factory-boy** | Test data builders |
+| Tool               | Purpose                         |
+| ------------------ | ------------------------------- |
+| **pytest**         | Test framework and runner       |
+| **pytest-asyncio** | Async test support              |
+| **pytest-xdist**   | Parallel test execution         |
+| **pytest-cov**     | Coverage measurement            |
+| **httpx**          | Async HTTP client for API tests |
+| **faker**          | Generate realistic test data    |
+| **factory-boy**    | Test data builders              |
 
 ### Important Fixtures
 
 Defined in `tests/conftest.py`:
 
-| Fixture | Purpose |
-|---------|---------|
-| `async_client` | Async HTTP client for API requests |
-| `test_db` | Isolated database session |
-| `test_user` | Authenticated test user |
+| Fixture        | Purpose                             |
+| -------------- | ----------------------------------- |
+| `async_client` | Async HTTP client for API requests  |
+| `test_db`      | Isolated database session           |
+| `test_user`    | Authenticated test user             |
 | `auth_headers` | Authentication headers for requests |
 
 ### Test Helpers
@@ -377,18 +390,21 @@ cd Backend && SKIP_DB_HEAVY_TESTS=1 powershell.exe -Command ". api_venv/Scripts/
 ### October 2025
 
 ✅ **Linting and Code Quality**
+
 - Fixed 72 B904 exception chaining errors across 35 files
 - Configured comprehensive Ruff linting with documented ignore rules
 - Set up bandit security linter for vulnerability detection
 - Configured pre-commit hooks for automated quality checks
 
 ✅ **Test Infrastructure**
+
 - All 911/911 tests passing (100% pass rate)
 - Improved test isolation and cleanup
 - Enhanced async testing patterns
 - Better error messages and debugging
 
 ✅ **Security Testing**
+
 - Added file security validation tests
 - Added transaction management tests
 - Added password validator tests
@@ -397,12 +413,14 @@ cd Backend && SKIP_DB_HEAVY_TESTS=1 powershell.exe -Command ". api_venv/Scripts/
 ### September 2025
 
 ✅ **Test Architecture Modernization**
+
 - Migrated to async test patterns (HTTPX AsyncClient)
 - Implemented real authentication flows in tests
 - Added named route URL generation
 - Improved database transaction isolation
 
 ✅ **Coverage Expansion**
+
 - Added E2E subtitle verification tests
 - Expanded vocabulary service test coverage
 - Added chunk processing resource management tests
@@ -415,6 +433,7 @@ cd Backend && SKIP_DB_HEAVY_TESTS=1 powershell.exe -Command ". api_venv/Scripts/
 ### Test Writing Guidelines
 
 For guidelines on writing high-quality tests, see:
+
 - **[TESTING_BEST_PRACTICES.md](TESTING_BEST_PRACTICES.md)** - Comprehensive testing guide
 - **[CLAUDE.md](../CLAUDE.md)** - Project-wide development standards
 
@@ -433,6 +452,7 @@ For guidelines on writing high-quality tests, see:
 ### Pre-commit Hooks
 
 Configured in `.pre-commit-config.yaml`:
+
 - ✅ Ruff linting (formatting and code quality)
 - ✅ Bandit security scanning
 - ✅ Trailing whitespace, end-of-file fixes
@@ -461,6 +481,7 @@ cd Backend && pre-commit run
 ### Tests Fail with Database Errors
 
 **Solution**: Ensure clean database state
+
 ```bash
 # Delete test database and restart
 rm -rf tests/.pytest-db/*.db
@@ -470,6 +491,7 @@ cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m py
 ### Tests Timeout in WSL
 
 **Solution**: Use PostgreSQL instead of SQLite
+
 ```bash
 # Start PostgreSQL
 docker compose -f docker-compose.postgresql.yml up -d db
@@ -481,6 +503,7 @@ cd Backend && USE_TEST_POSTGRES=1 TEST_POSTGRES_URL="postgresql+asyncpg://langpl
 ### Import Errors
 
 **Solution**: Ensure virtual environment is activated
+
 ```bash
 cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m pytest"
 ```
@@ -488,6 +511,7 @@ cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; python -m py
 ### Coverage Report Not Generated
 
 **Solution**: Install coverage dependencies
+
 ```bash
 cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; pip install pytest-cov"
 ```
@@ -510,6 +534,7 @@ cd Backend && powershell.exe -Command ". api_venv/Scripts/activate; pip install 
 ### Coverage Gaps
 
 Areas that need more test coverage:
+
 - WebSocket connections and real-time updates
 - Error recovery scenarios
 - Edge cases in AI model integrations
@@ -534,6 +559,7 @@ When adding new tests:
 ## Contact & Support
 
 For test-related questions:
+
 - Review [TESTING_BEST_PRACTICES.md](TESTING_BEST_PRACTICES.md)
 - Check test examples in `tests/` directory
 - Review project standards in [CLAUDE.md](../CLAUDE.md)

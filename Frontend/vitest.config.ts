@@ -19,14 +19,14 @@ export default defineConfig({
         inline: ['framer-motion']
       }
     },
-    
+
     // Timeout configuration
     testTimeout: 30000,
     hookTimeout: 10000,
-    
+
     // Watch mode configuration
     watch: false, // Disable by default for CI
-    
+
     // Test organization
     include: [
       'src/**/*.{test,spec}.{js,jsx,ts,tsx}',
@@ -40,7 +40,7 @@ export default defineConfig({
       '**/cypress/**',
       '**/.{idea,git,cache,output,temp}/**',
     ],
-    
+
     // Coverage configuration
     coverage: {
       enabled: false,
@@ -72,33 +72,33 @@ export default defineConfig({
         lines: 60,
       },
     },
-    
+
     // Reporter configuration
     reporters: ['default', 'html'],
     outputFile: {
       html: './test-results/index.html',
       json: './test-results/results.json',
     },
-    
+
     // Performance optimizations
     threads: false, // Disabled to avoid bus error in WSL
     maxThreads: 4,
     minThreads: 1,
-    
+
     // Retry configuration
     retry: 2,
-    
+
     // Mock configuration
     mockReset: true,
     clearMocks: true,
     restoreMocks: true,
-    
+
     // Benchmark configuration (optional)
     benchmark: {
       include: ['**/*.bench.{js,ts}'],
     },
   },
-  
+
   // Path resolution handled by vite-tsconfig-paths plugin
   resolve: {
     alias: {
@@ -106,7 +106,7 @@ export default defineConfig({
       'framer-motion': fileURLToPath(new URL('./src/test/mocks/framer-motion.ts', import.meta.url)),
     },
   },
-  
+
   // Build configuration for test environment
   build: {
     sourcemap: true,

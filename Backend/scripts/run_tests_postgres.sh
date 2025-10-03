@@ -23,4 +23,3 @@ pytest -v
 
 echo "[Done] Tests completed. To stop Postgres:"
 echo "  docker compose -f docker-compose.postgresql.yml stop db"
-

@@ -6,13 +6,13 @@ This document describes the comprehensive backend test performance optimizations
 
 ## Performance Results
 
-| Metric | Before Optimization | After Optimization | Improvement |
-|--------|-------------------|------------------|-------------|
-| **Single test execution** | 2-3 seconds | 0.18-0.41 seconds | **10-15x faster** |
-| **Authentication tests** | Timeout/failures | 6.14s for 11 tests | **✅ 100% passing** |
-| **Parallel execution** | Not working | 12.89s for 14 tests (2 workers) | **✅ Functional** |
-| **Database setup** | 500-750ms per test | <50ms per test | **15x faster** |
-| **Password hashing** | 200ms per operation | <1ms per operation | **200x faster** |
+| Metric                    | Before Optimization | After Optimization              | Improvement         |
+| ------------------------- | ------------------- | ------------------------------- | ------------------- |
+| **Single test execution** | 2-3 seconds         | 0.18-0.41 seconds               | **10-15x faster**   |
+| **Authentication tests**  | Timeout/failures    | 6.14s for 11 tests              | **✅ 100% passing** |
+| **Parallel execution**    | Not working         | 12.89s for 14 tests (2 workers) | **✅ Functional**   |
+| **Database setup**        | 500-750ms per test  | <50ms per test                  | **15x faster**      |
+| **Password hashing**      | 200ms per operation | <1ms per operation              | **200x faster**     |
 
 ## Architecture Changes
 
@@ -21,6 +21,7 @@ This document describes the comprehensive backend test performance optimizations
 **Problem**: In-memory SQLite databases (`sqlite:///:memory:`) create separate instances for sync and async connections, causing "no such table" errors.
 
 **Solution**: Shared temporary file-based SQLite with optimized settings
+
 ```python
 # Before (broken)
 sync_url = "sqlite:///:memory:"
@@ -34,6 +35,7 @@ async_url = f"sqlite+aiosqlite:///{db_file.name}?cache=shared"
 ```
 
 **Benefits**:
+
 - Shared state between sync/async operations
 - Automatic cleanup after test completion
 - Still fast with StaticPool and connection reuse
@@ -43,6 +45,7 @@ async_url = f"sqlite+aiosqlite:///{db_file.name}?cache=shared"
 **Problem**: bcrypt operations take 200ms each, causing authentication tests to be extremely slow.
 
 **Solution**: Method-level mocking of FastAPI-Users PasswordHelper
+
 ```python
 @pytest.fixture(autouse=True)
 def fast_passwords():
@@ -66,6 +69,7 @@ def fast_passwords():
 ```
 
 **Benefits**:
+
 - <1ms password operations vs 200ms bcrypt
 - Backward compatibility with real bcrypt hashes
 - Deterministic results for testing
@@ -75,6 +79,7 @@ def fast_passwords():
 **Problem**: Service initialization loads heavy dependencies (Whisper: 10+ seconds).
 
 **Solution**: Lightweight service mocks in `tests/fixtures/mock_services.py`
+
 ```python
 @pytest.fixture(autouse=True)
 def mock_heavy_services():
@@ -91,6 +96,7 @@ def mock_heavy_services():
 ```
 
 **Benefits**:
+
 - Prevents 10+ second service loading delays
 - Provides predictable, fast responses
 - Preserves test isolation
@@ -100,6 +106,7 @@ def mock_heavy_services():
 **Problem**: Tests running on both asyncio and trio backends, causing duplicate execution.
 
 **Solution**: Force asyncio-only execution in pytest configuration
+
 ```ini
 # pytest.ini
 [tool:pytest]
@@ -111,6 +118,7 @@ env =
 ```
 
 **Benefits**:
+
 - Eliminates duplicate test execution
 - Faster async operations
 - More predictable timing
@@ -118,6 +126,7 @@ env =
 ### 5. Parallel Execution Setup
 
 **Configuration**: pytest-xdist with optimized settings
+
 ```ini
 # pytest.ini - Parallel execution options
 parallel_addopts =
@@ -127,6 +136,7 @@ parallel_addopts =
 ```
 
 **Usage**:
+
 ```bash
 # Run tests in parallel
 pytest -n 2  # Use 2 workers
@@ -134,6 +144,7 @@ pytest -n auto  # Auto-detect worker count
 ```
 
 **Benefits**:
+
 - Scales with available CPU cores
 - Worksteal distribution for optimal load balancing
 - Works with file-based database sharing
@@ -152,6 +163,7 @@ Backend/tests/
 ## Key Configuration Files
 
 ### pytest.ini
+
 ```ini
 [pytest]
 testpaths = tests
@@ -173,16 +185,19 @@ env =
 ```
 
 ### conftest.py - Database Setup
+
 - Temporary file-based SQLite with shared cache
 - Automatic table creation and cleanup
 - Dependency injection for async sessions
 
 ### fast_auth.py - Authentication Optimization
+
 - FastAPI-Users PasswordHelper method patching
 - Deterministic fast hashing for tests
 - Backward compatibility with real bcrypt hashes
 
 ### mock_services.py - Service Mocking
+
 - Automatic heavy service mocking
 - External HTTP request blocking
 - Predictable service responses

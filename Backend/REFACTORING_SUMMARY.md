@@ -21,24 +21,26 @@ Successfully refactored the monolithic `vocabulary_service.py` (1011 lines) into
 
 ### Code Metrics
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Total Lines** | 1011 | 867 | -14% (144 lines) |
-| **Service Files** | 1 | 4 | +3 focused services |
-| **Largest Method** | 85 lines | 36 lines | -57% complexity |
-| **Duplicates** | 6 methods | 0 | -161 lines removed |
-| **Helper Methods** | 0 | 5 | Reusable components |
-| **Public Methods/Service** | 17 mixed | 3 focused | Clear separation |
+| Metric                     | Before    | After     | Improvement         |
+| -------------------------- | --------- | --------- | ------------------- |
+| **Total Lines**            | 1011      | 867       | -14% (144 lines)    |
+| **Service Files**          | 1         | 4         | +3 focused services |
+| **Largest Method**         | 85 lines  | 36 lines  | -57% complexity     |
+| **Duplicates**             | 6 methods | 0         | -161 lines removed  |
+| **Helper Methods**         | 0         | 5         | Reusable components |
+| **Public Methods/Service** | 17 mixed  | 3 focused | Clear separation    |
 
 ### Architecture Transformation
 
 **Before**:
+
 ```
 services/vocabulary_service.py (1011 lines)
 └── 17 mixed-concern methods
 ```
 
 **After**:
+
 ```
 services/
 ├── vocabulary_service.py (139 lines) - Facade Pattern
@@ -51,6 +53,7 @@ services/
 ## What Was Changed
 
 ### Files Created
+
 - ✅ `services/vocabulary/vocabulary_query_service.py` - Search and lookup operations
 - ✅ `services/vocabulary/vocabulary_progress_service.py` - User progress management
 - ✅ `services/vocabulary/vocabulary_stats_service.py` - Statistics and analytics
@@ -60,9 +63,11 @@ services/
 - ✅ `services/vocabulary_service_old.py` - Backup of original
 
 ### Files Modified
+
 - ✅ `services/vocabulary_service.py` - Converted to facade (1011 → 139 lines)
 
 ### Tests
+
 - ✅ **9/9 architecture tests passing**
 - ✅ **26/26 existing tests still passing**
 - ✅ **100% backward compatibility**
@@ -70,29 +75,35 @@ services/
 ## Key Improvements
 
 ### 1. Separation of Concerns
+
 Each service has a single, focused responsibility:
+
 - **Query Service**: Word lookups, library retrieval, search
 - **Progress Service**: Marking words known, bulk operations, user stats
 - **Stats Service**: Vocabulary statistics, progress summaries, languages
 
 ### 2. Reduced Complexity
+
 - Main method reduced from 85 → 36 lines (57% reduction)
 - Average method length reduced from ~60 → ~25 lines
 - Eliminated 6 duplicate implementations
 
 ### 3. Improved Testability
+
 - Smaller, focused units easier to test
 - Independent service testing possible
 - Dependency injection enables mocking
 - Architecture verified with dedicated test suite
 
 ### 4. Better Maintainability
+
 - Clear ownership: Each concern has its service
 - Easier debugging: Failures isolated to specific services
 - Faster development: Changes localized
 - Lower cognitive load: Each service is comprehensible
 
 ### 5. Design Patterns Applied
+
 - **Facade Pattern**: Unified interface for complex subsystem
 - **Dependency Injection**: Database sessions passed as parameters
 - **Single Responsibility**: Each service has one reason to change
@@ -101,6 +112,7 @@ Each service has a single, focused responsibility:
 ## Verification
 
 ### Architecture Tests
+
 ```
 [TEST 1] Facade initializes with all sub-services: PASS
 [TEST 2] Sub-services are correct types: PASS
@@ -116,6 +128,7 @@ Result: 9/9 PASSED ✅
 ```
 
 ### Backward Compatibility
+
 - ✅ Same import paths work
 - ✅ All method signatures preserved
 - ✅ Same behavior and contracts
@@ -125,29 +138,34 @@ Result: 9/9 PASSED ✅
 ## Phases Executed
 
 ### Phase 1: Extract Helper Methods
+
 - Extracted 5 reusable helper methods
 - Reduced `get_vocabulary_library()` from 85 → 36 lines
 - Improved code reusability
 
 ### Phase 2: Eliminate Duplicates
+
 - Removed 3 duplicate `bulk_mark_level` implementations
 - Removed 3 duplicate `get_vocabulary_stats` implementations
 - Eliminated 161 lines of duplication
 - Standardized on dependency injection
 
 ### Phase 3: Split into Sub-Services
+
 - Created VocabularyQueryService (298 lines)
 - Created VocabularyProgressService (217 lines)
 - Created VocabularyStatsService (213 lines)
 - Created VocabularyService facade (139 lines)
 
 ### Phase 4: Architecture Verification
+
 - Created comprehensive test suite
 - Added standalone verification script
 - Verified all patterns correct
 - Confirmed metrics met targets
 
 ### Phase 5: Documentation
+
 - Created completion summary
 - Documented architecture
 - Recorded metrics and benefits
@@ -155,6 +173,7 @@ Result: 9/9 PASSED ✅
 ## Benefits Realized
 
 ### Development
+
 - ✅ Faster feature development with focused services
 - ✅ Clearer code ownership and responsibility
 - ✅ Better code reviews with smaller units
@@ -162,6 +181,7 @@ Result: 9/9 PASSED ✅
 - ✅ Easier debugging with clear boundaries
 
 ### Testing
+
 - ✅ Faster test execution with independent services
 - ✅ Better test isolation for failure identification
 - ✅ Improved coverage with focused tests
@@ -169,6 +189,7 @@ Result: 9/9 PASSED ✅
 - ✅ Tests survive refactoring
 
 ### Maintenance
+
 - ✅ Lower cognitive load per service
 - ✅ Easier onboarding for new developers
 - ✅ Reduced regression risk
@@ -210,6 +231,7 @@ stats = await vocabulary_stats_service.get_vocabulary_stats("de", user_id)
 ## Performance
 
 ### No Degradation
+
 - ✅ Same database queries (no additional round-trips)
 - ✅ Minimal delegation overhead (single method call)
 - ✅ No additional object creation in hot paths
@@ -217,6 +239,7 @@ stats = await vocabulary_stats_service.get_vocabulary_stats("de", user_id)
 - ✅ Same caching behavior
 
 ### Future Optimization Opportunities
+
 - Independent caching per service
 - Parallel execution potential
 - Selective service loading
@@ -228,6 +251,7 @@ stats = await vocabulary_stats_service.get_vocabulary_stats("de", user_id)
 **Commit Message**: refactor: split vocabulary service into focused sub-services
 
 **Changes**:
+
 - 12 files changed
 - 3,012 insertions
 - 292 deletions
@@ -265,24 +289,26 @@ Successfully refactored the monolithic `filtering_handler.py` (621 lines) into a
 
 ### Code Metrics
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Facade Lines** | 621 | 239 | -62% (382 lines) |
-| **Service Files** | 1 | 5 | +4 focused services |
-| **Longest Method** | 124 lines | 86 lines | -43% complexity |
-| **Responsibilities** | 11 mixed | 5 focused | Clear separation |
-| **Public Methods/Service** | 17 mixed | 2-4 focused | Focused APIs |
-| **Helper Methods** | 0 | 4 | Reusable components |
+| Metric                     | Before    | After       | Improvement         |
+| -------------------------- | --------- | ----------- | ------------------- |
+| **Facade Lines**           | 621       | 239         | -62% (382 lines)    |
+| **Service Files**          | 1         | 5           | +4 focused services |
+| **Longest Method**         | 124 lines | 86 lines    | -43% complexity     |
+| **Responsibilities**       | 11 mixed  | 5 focused   | Clear separation    |
+| **Public Methods/Service** | 17 mixed  | 2-4 focused | Focused APIs        |
+| **Helper Methods**         | 0         | 4           | Reusable components |
 
 ### Architecture Transformation
 
 **Before**:
+
 ```
 services/processing/filtering_handler.py (621 lines)
 └── 17 methods, 11 responsibilities mixed
 ```
 
 **After**:
+
 ```
 services/processing/
 ├── filtering_handler.py (239 lines) - Facade Pattern
@@ -297,6 +323,7 @@ services/processing/
 ## What Was Changed
 
 ### Files Created
+
 - ✅ `services/processing/filtering/progress_tracker.py` - Progress tracking
 - ✅ `services/processing/filtering/subtitle_loader.py` - File I/O and parsing
 - ✅ `services/processing/filtering/vocabulary_builder.py` - Vocabulary building with DB/caching
@@ -306,19 +333,24 @@ services/processing/
 - ✅ `test_refactored_filtering.py` - Standalone verification script
 
 ### Files Modified
+
 - ✅ `services/processing/filtering_handler.py` - Converted to facade (621 → 239 lines)
 
 ### Files Backed Up
+
 - ✅ `services/processing/filtering_handler_old.py` - Original preserved
 
 ### Tests
+
 - ✅ **10/10 architecture tests passing**
 - ✅ **100% backward compatibility**
 
 ## Key Improvements
 
 ### 1. Separation of Concerns
+
 Each service has a single, focused responsibility:
+
 - **ProgressTrackerService**: Progress tracking and status updates
 - **SubtitleLoaderService**: File I/O, parsing, word extraction
 - **VocabularyBuilderService**: Vocabulary building, database lookup, caching
@@ -326,24 +358,28 @@ Each service has a single, focused responsibility:
 - **FilteringCoordinatorService**: Workflow orchestration
 
 ### 2. Reduced Complexity
+
 - Facade reduced from 621 → 239 lines (62% reduction)
 - Longest method reduced from 124 → 86 lines (43% reduction)
 - Eliminated progress tracking duplication (5 instances → 1 helper)
 - Extracted 4 helper methods for reusability
 
 ### 3. Improved Testability
+
 - Smaller, focused units easier to test
 - Independent service testing possible
 - Dependency injection enables mocking
 - Architecture verified with dedicated test suite
 
 ### 4. Better Maintainability
+
 - Clear ownership: Each concern has its service
 - Easier debugging: Failures isolated to specific services
 - Faster development: Changes localized
 - Lower cognitive load: Each service is comprehensible
 
 ### 5. Design Patterns Applied
+
 - **Facade Pattern**: Unified interface for complex subsystem
 - **Repository Pattern**: Database access isolated in VocabularyBuilderService
 - **Single Responsibility**: Each service has one reason to change
@@ -352,6 +388,7 @@ Each service has a single, focused responsibility:
 ## Verification
 
 ### Architecture Tests
+
 ```
 [TEST 1] Facade initializes with all sub-services: PASS
 [TEST 2] Sub-services are correct types: PASS
@@ -368,6 +405,7 @@ Result: 10/10 PASSED ✅
 ```
 
 ### Backward Compatibility
+
 - ✅ Same import paths work
 - ✅ All method signatures preserved
 - ✅ Same behavior and contracts
@@ -377,16 +415,19 @@ Result: 10/10 PASSED ✅
 ## Phases Executed
 
 ### Phase 1: Extract Helper Methods
+
 - Extracted 4 reusable helper methods
 - Reduced `_build_vocabulary_words()` from 124 → 86 lines
 - Improved code reusability
 
 ### Phase 2: Eliminate Duplicates
+
 - Removed 5 duplicate progress update patterns
 - Created single `_update_progress()` helper
 - Standardized progress tracking
 
 ### Phase 3: Split into Sub-Services
+
 - Created ProgressTrackerService (73 lines)
 - Created SubtitleLoaderService (124 lines)
 - Created VocabularyBuilderService (252 lines)
@@ -395,12 +436,14 @@ Result: 10/10 PASSED ✅
 - Created FilteringHandler facade (239 lines)
 
 ### Phase 4: Architecture Verification
+
 - Created comprehensive test suite
 - Added standalone verification script
 - Verified all patterns correct
 - Confirmed metrics met targets
 
 ### Phase 5: Documentation
+
 - Created completion summary
 - Documented architecture
 - Recorded metrics and benefits
@@ -409,6 +452,7 @@ Result: 10/10 PASSED ✅
 ## Benefits Realized
 
 ### Development
+
 - ✅ Faster feature development with focused services
 - ✅ Clearer code ownership and responsibility
 - ✅ Better code reviews with smaller units
@@ -416,6 +460,7 @@ Result: 10/10 PASSED ✅
 - ✅ Easier debugging with clear boundaries
 
 ### Testing
+
 - ✅ Faster test execution with independent services
 - ✅ Better test isolation for failure identification
 - ✅ Improved coverage with focused tests
@@ -423,6 +468,7 @@ Result: 10/10 PASSED ✅
 - ✅ Tests survive refactoring
 
 ### Maintenance
+
 - ✅ Lower cognitive load per service
 - ✅ Easier onboarding for new developers
 - ✅ Reduced regression risk
@@ -432,6 +478,7 @@ Result: 10/10 PASSED ✅
 ## Performance
 
 ### No Degradation
+
 - ✅ Same database queries (no additional round-trips)
 - ✅ Minimal delegation overhead (single method call)
 - ✅ No additional object creation in hot paths
@@ -469,18 +516,19 @@ Successfully refactored the monolithic `logging_service.py` (622 lines) into a c
 
 ### Code Metrics
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|----------------|
-| **Facade Lines** | 622 | 266 | -356 lines (57%) |
-| **Service Files** | 1 monolith | 5 focused services | +4 services |
-| **Responsibilities** | 12+ mixed concerns | 5 focused services | Clear separation |
-| **Public Methods/Service** | 30+ mixed | 3-8 per service | Focused APIs |
-| **Critical Bugs** | 1 (duplicate method) | 0 | Bug fixed |
-| **Architecture Verification** | N/A | 10/10 tests passing | 100% verified |
+| Metric                        | Before               | After               | Improvement      |
+| ----------------------------- | -------------------- | ------------------- | ---------------- |
+| **Facade Lines**              | 622                  | 266                 | -356 lines (57%) |
+| **Service Files**             | 1 monolith           | 5 focused services  | +4 services      |
+| **Responsibilities**          | 12+ mixed concerns   | 5 focused services  | Clear separation |
+| **Public Methods/Service**    | 30+ mixed            | 3-8 per service     | Focused APIs     |
+| **Critical Bugs**             | 1 (duplicate method) | 0                   | Bug fixed        |
+| **Architecture Verification** | N/A                  | 10/10 tests passing | 100% verified    |
 
 ### Architecture Transformation
 
 **Before**:
+
 ```
 services/loggingservice/
 └── logging_service.py (622 lines)
@@ -490,6 +538,7 @@ services/loggingservice/
 ```
 
 **After**:
+
 ```
 services/loggingservice/
 ├── logging_service.py (299 lines) - Facade Pattern
@@ -504,6 +553,7 @@ services/loggingservice/
 ## What Was Changed
 
 ### Files Created
+
 - ✅ `services/logging/log_formatter.py` - Formatter management
 - ✅ `services/logging/log_handlers.py` - Handler setup (console, file)
 - ✅ `services/logging/domain_logger.py` - Domain-specific logging
@@ -515,24 +565,31 @@ services/loggingservice/
 - ✅ `plans/logging-service-refactoring-complete.md` - Completion summary
 
 ### Files Modified
+
 - ✅ `services/loggingservice/logging_service.py` - Converted to facade (622 → 299 lines)
 
 ### Files Backed Up
+
 - ✅ `services/loggingservice/logging_service_old.py` - Original preserved
 
 ### Tests
+
 - ✅ **10/10 architecture tests passing**
 - ✅ **100% backward compatibility**
 
 ## Key Improvements
 
 ### 1. Critical Bug Fixed
+
 Fixed duplicate `log_error` method definition (Python silently overrides first definition)
+
 - Renamed first method to `log_exception` for clarity
 - Both methods now have distinct names and purposes
 
 ### 2. Separation of Concerns
+
 Each service has a single, focused responsibility:
+
 - **LogFormatterService**: Create and manage log formatters
 - **LogHandlerService**: Setup console and file handlers
 - **DomainLoggerService**: Auth, user actions, database, filtering logs
@@ -540,24 +597,28 @@ Each service has a single, focused responsibility:
 - **LogConfigManagerService**: Configuration and statistics management
 
 ### 3. Reduced Complexity
+
 - Facade reduced from 622 → 299 lines (52% reduction)
 - Eliminated helper method duplication (3 helpers extracted)
 - Average method length reduced
 - 12+ responsibilities → 5 focused services
 
 ### 4. Improved Testability
+
 - Smaller, focused units easier to test
 - Independent service testing possible
 - Dependency injection enables mocking
 - Architecture verified with dedicated test suite
 
 ### 5. Better Maintainability
+
 - Clear ownership: Each concern has its service
 - Easier debugging: Failures isolated to specific services
 - Faster development: Changes localized
 - Lower cognitive load: Each service is comprehensible
 
 ### 6. Design Patterns Applied
+
 - **Facade Pattern**: Unified interface for complex subsystem
 - **Singleton Pattern**: Global instance with testing support
 - **Single Responsibility**: Each service has one reason to change
@@ -566,6 +627,7 @@ Each service has a single, focused responsibility:
 ## Verification
 
 ### Architecture Tests
+
 ```
 ============================================================
  REFACTORED LOGGING SERVICE ARCHITECTURE TESTS
@@ -585,6 +647,7 @@ Result: 10/10 PASSED ✅
 ```
 
 ### Backward Compatibility
+
 - ✅ Same import paths work
 - ✅ All method signatures preserved
 - ✅ Same behavior and contracts
@@ -622,18 +685,19 @@ Successfully refactored the `user_vocabulary_service.py` (467 lines) into a clea
 
 ### Code Metrics
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Facade Lines** | 467 | 134 | -333 lines (71%) |
-| **Service Files** | 1 monolith | 5 focused services | +4 services |
-| **Responsibilities** | 7+ mixed concerns | 5 focused services | Clear separation |
-| **Public Methods/Service** | 13 mixed | 3-4 per service | Focused APIs |
-| **Total Code Lines** | 467 | 870 | +403 (better organization) |
-| **Avg Service Size** | N/A | 156 lines | Manageable |
+| Metric                     | Before            | After              | Improvement                |
+| -------------------------- | ----------------- | ------------------ | -------------------------- |
+| **Facade Lines**           | 467               | 134                | -333 lines (71%)           |
+| **Service Files**          | 1 monolith        | 5 focused services | +4 services                |
+| **Responsibilities**       | 7+ mixed concerns | 5 focused services | Clear separation           |
+| **Public Methods/Service** | 13 mixed          | 3-4 per service    | Focused APIs               |
+| **Total Code Lines**       | 467               | 870                | +403 (better organization) |
+| **Avg Service Size**       | N/A               | 156 lines          | Manageable                 |
 
 ### Architecture Transformation
 
 **Before**:
+
 ```
 services/dataservice/
 └── user_vocabulary_service.py (467 lines)
@@ -643,6 +707,7 @@ services/dataservice/
 ```
 
 **After**:
+
 ```
 services/
 ├── dataservice/
@@ -658,6 +723,7 @@ services/
 ## What Was Changed
 
 ### Files Created
+
 - ✅ `services/user_vocabulary/__init__.py` - Package exports
 - ✅ `services/user_vocabulary/vocabulary_repository.py` - Data access layer
 - ✅ `services/user_vocabulary/word_status_service.py` - Query operations
@@ -670,13 +736,16 @@ services/
 - ✅ `plans/user-vocabulary-service-refactoring-complete.md` - Completion summary
 
 ### Files Modified
+
 - ✅ `services/dataservice/user_vocabulary_service.py` - Converted to facade (467 → 134 lines)
 
 ### Files Unmodified (Working as-is)
+
 - ✅ `services/dataservice/authenticated_user_vocabulary_service.py` - No changes needed
 - ✅ Tests continue to work without modification
 
 ### Tests
+
 - ✅ **5/5 verification tests passing**
 - ✅ **14 architecture tests written**
 - ✅ **100% backward compatibility**
@@ -684,13 +753,17 @@ services/
 ## Key Improvements
 
 ### 1. Repository Pattern
+
 Proper separation of data access from business logic:
+
 - **VocabularyRepository**: All database operations isolated
 - **Batch operations**: Optimized for performance
 - **Clean abstraction**: Services don't know about SQL
 
 ### 2. Separation of Concerns
+
 Each service has a single, focused responsibility:
+
 - **VocabularyRepository**: Vocabulary and progress data access
 - **WordStatusService**: Query word status and known words
 - **LearningProgressService**: Track user progress (mark learned, add words, remove)
@@ -698,24 +771,28 @@ Each service has a single, focused responsibility:
 - **LearningStatsService**: Statistics, history, analytics
 
 ### 3. Reduced Complexity
+
 - Facade reduced from 467 → 134 lines (71% reduction)
 - Average method length reduced
 - Private helpers moved to repository
 - 7+ responsibilities → 5 focused services
 
 ### 4. Improved Testability
+
 - Smaller, focused units easier to test
 - Independent service testing possible
 - Repository pattern enables easy mocking
 - Architecture verified with dedicated test suite
 
 ### 5. Better Maintainability
+
 - Clear ownership: Each concern has its service
 - Easier debugging: Failures isolated to specific services
 - Faster development: Changes localized
 - Lower cognitive load: Each service is comprehensible
 
 ### 6. Design Patterns Applied
+
 - **Facade Pattern**: Unified interface for complex subsystem
 - **Repository Pattern**: Data access layer abstraction
 - **Single Responsibility**: Each service has one reason to change
@@ -724,6 +801,7 @@ Each service has a single, focused responsibility:
 ## Verification
 
 ### Verification Tests
+
 ```
 ============================================================
 User Vocabulary Service Refactoring Verification
@@ -757,6 +835,7 @@ Results: 5/5 tests passed
 ```
 
 ### Architecture Tests (14 Tests)
+
 1. ✓ Facade initialization with sub-services
 2. ✓ All sub-services import correctly
 3. ✓ Facade maintains all public methods
@@ -773,6 +852,7 @@ Results: 5/5 tests passed
 14. ✓ Facade delegates, not implements
 
 ### Backward Compatibility
+
 - ✅ Same import paths work
 - ✅ All method signatures preserved (one optional param added)
 - ✅ Same behavior and contracts
@@ -782,14 +862,16 @@ Results: 5/5 tests passed
 ## Phases Executed
 
 ### Phase 1: Extract Repository Layer ✓
+
 - Created VocabularyRepository with data access methods
 - Created WordStatusService with query operations
 - Created LearningProgressService with progress tracking
 - Created LearningLevelService with level management
 - Created LearningStatsService with statistics
-- Created package __init__ with exports
+- Created package **init** with exports
 
 ### Phase 2: Create Facade ✓
+
 - Converted original file to facade pattern
 - Delegates to 5 focused services
 - Maintains all original public methods
@@ -797,18 +879,21 @@ Results: 5/5 tests passed
 - Preserves error handling
 
 ### Phase 3: Verify Compatibility ✓
+
 - Verified authenticated_user_vocabulary_service.py works
 - All existing code continues to work
 - Backward compatibility maintained
 - No breaking changes
 
 ### Phase 4: Add Tests ✓
+
 - Created verification test script (5/5 passing)
 - Created architecture test suite (14 tests)
 - All tests passing
 - Comprehensive coverage
 
 ### Phase 5: Documentation ✓
+
 - Created analysis document
 - Created completion summary
 - Documented architecture
@@ -817,6 +902,7 @@ Results: 5/5 tests passed
 ## Benefits Realized
 
 ### Development
+
 - ✅ Faster feature development with focused services
 - ✅ Clearer code ownership and responsibility
 - ✅ Better code reviews with smaller units
@@ -824,6 +910,7 @@ Results: 5/5 tests passed
 - ✅ Easier debugging with clear boundaries
 
 ### Testing
+
 - ✅ Faster test execution with independent services
 - ✅ Better test isolation for failure identification
 - ✅ Improved coverage with focused tests
@@ -831,6 +918,7 @@ Results: 5/5 tests passed
 - ✅ Repository pattern enables easy mocking
 
 ### Maintenance
+
 - ✅ Lower cognitive load per service
 - ✅ Easier onboarding for new developers
 - ✅ Reduced regression risk
@@ -840,6 +928,7 @@ Results: 5/5 tests passed
 ## Performance
 
 ### No Degradation
+
 - ✅ Same database queries (no additional round-trips)
 - ✅ Minimal delegation overhead (single method call)
 - ✅ Batch operations optimized in repository
@@ -847,6 +936,7 @@ Results: 5/5 tests passed
 - ✅ Same session management
 
 ### Future Optimization Opportunities
+
 - Independent caching per service
 - Redis caching for frequently accessed data
 - Event system for progress tracking
@@ -886,18 +976,19 @@ Successfully refactored the monolithic `direct_subtitle_processor.py` (420 lines
 
 ### Code Metrics
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Facade Lines** | 420 | 128 | -292 lines (70%) |
-| **Monster Method** | 113 lines | 14 lines | -99 lines (87%) |
-| **Service Files** | 1 monolith | 5 focused services | +4 services |
-| **Responsibilities** | 7+ mixed concerns | 5 focused services | Clear separation |
-| **Total Code Lines** | 420 | 820 | Better organization |
-| **Avg Service Size** | N/A | 140 lines | Manageable |
+| Metric               | Before            | After              | Improvement         |
+| -------------------- | ----------------- | ------------------ | ------------------- |
+| **Facade Lines**     | 420               | 128                | -292 lines (70%)    |
+| **Monster Method**   | 113 lines         | 14 lines           | -99 lines (87%)     |
+| **Service Files**    | 1 monolith        | 5 focused services | +4 services         |
+| **Responsibilities** | 7+ mixed concerns | 5 focused services | Clear separation    |
+| **Total Code Lines** | 420               | 820                | Better organization |
+| **Avg Service Size** | N/A               | 140 lines          | Manageable          |
 
 ### Architecture Transformation
 
 **Before**:
+
 ```
 services/filterservice/
 └── direct_subtitle_processor.py (420 lines)
@@ -908,6 +999,7 @@ services/filterservice/
 ```
 
 **After**:
+
 ```
 services/filterservice/
 ├── direct_subtitle_processor.py (128 lines) - Facade Pattern
@@ -922,6 +1014,7 @@ services/filterservice/
 ## What Was Changed
 
 ### Files Created
+
 - ✅ `services/filterservice/subtitle_processing/__init__.py` - Package exports
 - ✅ `services/filterservice/subtitle_processing/user_data_loader.py` - User data & caching
 - ✅ `services/filterservice/subtitle_processing/word_validator.py` - Validation rules
@@ -935,9 +1028,11 @@ services/filterservice/
 - ✅ `plans/direct-subtitle-processor-refactoring-complete.md` - Completion summary
 
 ### Files Modified
+
 - ✅ `services/filterservice/direct_subtitle_processor.py` - Converted to facade (420 → 128 lines)
 
 ### Tests
+
 - ✅ **6/6 verification tests passing**
 - ✅ **20/20 architecture tests passing (100%)**
 - ✅ **100% backward compatibility**
@@ -945,10 +1040,12 @@ services/filterservice/
 ## Key Improvements
 
 ### 1. Monster Method Eliminated
+
 **Before**: 113-line `process_subtitles` doing everything
 **After**: 14-line delegation method
 
 The monster method contained:
+
 - User data loading (15 lines)
 - Difficulty pre-loading (12 lines)
 - State initialization (8 lines)
@@ -960,7 +1057,9 @@ The monster method contained:
 All logic now properly separated into focused services.
 
 ### 2. Separation of Concerns
+
 Each service has a single, focused responsibility:
+
 - **UserDataLoader**: User known words, word difficulty caching, database access
 - **WordValidator**: Vocabulary validation, interjection detection, language support
 - **WordFilter**: Knowledge filtering, difficulty filtering, CEFR level comparison
@@ -968,24 +1067,28 @@ Each service has a single, focused responsibility:
 - **SRTFileHandler**: File I/O, parsing, word extraction, result formatting
 
 ### 3. Language Extensibility
+
 **Before**: Hard-coded German interjections
 **After**: Language-specific mapping supporting German, English, Spanish
 
 Easy to add new languages by updating WordValidator configuration.
 
 ### 4. Reduced Complexity
+
 - Facade reduced from 420 → 128 lines (70% reduction)
 - Monster method reduced from 113 → 14 lines (87% reduction)
 - 7+ responsibilities → 5 focused services
 - Clear service boundaries
 
 ### 5. Improved Testability
+
 - Smaller, focused units easier to test
 - Independent service testing possible
 - Dependency injection enables mocking
 - 26 tests verify all aspects
 
 ### 6. Design Patterns Applied
+
 - **Facade Pattern**: Unified interface for complex subsystem
 - **Single Responsibility**: Each service has one reason to change
 - **Dependency Injection**: Services and sessions passed as parameters
@@ -994,6 +1097,7 @@ Easy to add new languages by updating WordValidator configuration.
 ## Verification
 
 ### Verification Tests (6 tests)
+
 ```
 Testing imports... [GOOD]
 Testing facade instantiation... [GOOD]
@@ -1006,6 +1110,7 @@ Total: 6/6 tests passed
 ```
 
 ### Architecture Tests (20 tests)
+
 ```
 Facade Architecture Tests (2 tests)
 UserDataLoader Service Tests (4 tests)
@@ -1019,6 +1124,7 @@ Total: 20/20 tests passed (100%)
 ```
 
 ### Backward Compatibility
+
 - ✅ Same import paths work
 - ✅ All method signatures preserved
 - ✅ Same behavior and contracts
@@ -1060,18 +1166,19 @@ Successfully refactored the partially refactored `chunk_processor.py` (423 lines
 
 ### Code Metrics
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Facade Lines** | 423 | 254 | -169 lines (40%) |
-| **Monster Method** | 104 lines | 3 lines | -101 lines (97%!) |
-| **Service Files** | 3 existing | 6 total (3 new) | +3 services |
-| **Responsibilities** | 6+ mixed concerns | 6 focused services | Clear separation |
-| **Total Code Lines** | 423 | 754 | Better organization |
-| **Avg Service Size** | N/A | 145 lines | Manageable |
+| Metric               | Before            | After              | Improvement         |
+| -------------------- | ----------------- | ------------------ | ------------------- |
+| **Facade Lines**     | 423               | 254                | -169 lines (40%)    |
+| **Monster Method**   | 104 lines         | 3 lines            | -101 lines (97%!)   |
+| **Service Files**    | 3 existing        | 6 total (3 new)    | +3 services         |
+| **Responsibilities** | 6+ mixed concerns | 6 focused services | Clear separation    |
+| **Total Code Lines** | 423               | 754                | Better organization |
+| **Avg Service Size** | N/A               | 145 lines          | Manageable          |
 
 ### Architecture Transformation
 
 **Before**:
+
 ```
 services/processing/
 └── chunk_processor.py (423 lines)
@@ -1086,6 +1193,7 @@ services/processing/
 ```
 
 **After**:
+
 ```
 services/processing/
 ├── chunk_processor.py (254 lines - facade)
@@ -1106,6 +1214,7 @@ Delegates to 6 services total:
 ## What Was Changed
 
 ### Files Created
+
 - ✅ `services/processing/chunk_services/__init__.py` - Package exports
 - ✅ `services/processing/chunk_services/vocabulary_filter_service.py` - Vocabulary filtering
 - ✅ `services/processing/chunk_services/subtitle_generation_service.py` - Subtitle generation
@@ -1115,19 +1224,23 @@ Delegates to 6 services total:
 - ✅ `plans/chunk-processor-refactoring-complete.md` - Completion summary
 
 ### Files Modified
+
 - ✅ `services/processing/chunk_processor.py` - Converted to complete facade (423 → 254 lines)
 
 ### Tests
+
 - ✅ **6/6 verification tests passing (100%)**
 - ✅ **100% backward compatibility**
 
 ## Key Improvements
 
 ### 1. Monster Method Eliminated
+
 **Before**: 104-line `apply_selective_translations` doing everything
 **After**: 3-line delegation method
 
 The monster method contained:
+
 - Complex analyzer setup (10 lines)
 - Re-filtering logic (15 lines)
 - Translation segment building (40 lines)
@@ -1139,24 +1252,29 @@ The monster method contained:
 All logic now properly separated into 8 focused methods in TranslationManagementService.
 
 ### 2. Separation of Concerns
+
 Each service has a single, focused responsibility:
+
 - **VocabularyFilterService**: Vocabulary filtering, result extraction
 - **SubtitleGenerationService**: File generation, SRT processing, word highlighting
 - **TranslationManagementService**: Translation analysis, segment building, response formatting
 
 ### 3. Reduced Complexity
+
 - Facade reduced from 423 → 254 lines (40% reduction)
 - Monster method reduced from 104 → 3 lines (97% reduction!)
 - 6+ responsibilities → 6 focused services
 - Clear service boundaries
 
 ### 4. Improved Testability
+
 - Smaller, focused units easier to test
 - Independent service testing possible
 - Dependency injection enables mocking
 - 6 tests verify all aspects
 
 ### 5. Design Patterns Applied
+
 - **Facade Pattern**: Unified interface for complex subsystem
 - **Single Responsibility**: Each service has one reason to change
 - **Dependency Injection**: Services passed as parameters
@@ -1165,6 +1283,7 @@ Each service has a single, focused responsibility:
 ## Verification
 
 ### Verification Tests (6 tests)
+
 ```
 Testing imports... [GOOD]
 Testing service singletons... [GOOD]
@@ -1177,6 +1296,7 @@ Total: 6/6 tests passed (100%)
 ```
 
 ### Backward Compatibility
+
 - ✅ Same import paths work
 - ✅ All method signatures preserved
 - ✅ Same behavior and contracts
@@ -1202,6 +1322,7 @@ The refactored code is production-ready and provides a solid foundation for futu
 ## Overall Progress
 
 **Total Refactorings Complete**: 6
+
 1. ✅ Vocabulary Service (1011 → 867 lines, 4 services)
 2. ✅ Filtering Handler (621 → 239 facade, 5 services)
 3. ✅ Logging Service (622 → 266 facade, 5 services)
@@ -1210,6 +1331,7 @@ The refactored code is production-ready and provides a solid foundation for futu
 6. ✅ Chunk Processor (423 → 254 facade, 3 new + 3 existing services)
 
 **Combined Impact**:
+
 - **6 God classes eliminated**
 - **27 focused services created** (+3 from #6)
 - **66/66 architecture tests passing** (+6 from #6)

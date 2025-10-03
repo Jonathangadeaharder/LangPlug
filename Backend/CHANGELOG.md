@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Comprehensive documentation suite (Architecture, API, Testing, Deployment, Monitoring)
 - CODE_STYLE.md with coding standards and best practices
 - Enhanced docstrings for API routes and service layer
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2024-10-02
 
 ### Added
+
 - Initial backend architecture with layered design
 - JWT authentication with access and refresh tokens
 - User registration and login endpoints
@@ -50,15 +52,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Strategy pattern for AI model selection
 
 ### Changed
+
 - Migrated vocabulary system to lemma-based approach
 - Updated password migration tracking
 
 ### Fixed
+
 - API error handling and response standardization
 - Player issues and subtitle synchronization
 - Translation of all subtitle segments (not just vocabulary)
 
 ### Security
+
 - Implemented Argon2 password hashing
 - Added CSRF protection (planned)
 - File upload security validation
@@ -70,18 +75,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Release Types
 
 ### Major Version (X.0.0)
+
 - Breaking changes to API
 - Database schema changes requiring migration
 - Significant architecture refactoring
 - Removal of deprecated features
 
 ### Minor Version (0.X.0)
+
 - New features and functionality
 - Non-breaking API changes
 - Performance improvements
 - New endpoints
 
 ### Patch Version (0.0.X)
+
 - Bug fixes
 - Security patches
 - Documentation updates
@@ -92,50 +100,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Change Categories
 
 ### Added
+
 New features, endpoints, or functionality added to the project.
 
 Examples:
+
 - New API endpoint: `POST /api/vocabulary/bulk`
 - New service: VocabularyStatsService
 - New AI model support: Parakeet transcription
 
 ### Changed
+
 Changes to existing functionality that don't break compatibility.
 
 Examples:
+
 - Improved transcription accuracy
 - Updated error messages
 - Enhanced logging format
 - Performance optimization
 
 ### Deprecated
+
 Features that will be removed in future versions (but still work).
 
 Examples:
+
 - Deprecated endpoint: `GET /api/old-vocabulary` (use `/api/vocabulary/words` instead)
 - Deprecated configuration: `OLD_CONFIG_VAR` (use `NEW_CONFIG_VAR` instead)
 
 ### Removed
+
 Features, endpoints, or functionality removed from the project.
 
 Examples:
+
 - Removed deprecated endpoint: `GET /api/old-vocabulary`
 - Removed legacy authentication system
 - Removed backward compatibility layer
 
 ### Fixed
+
 Bug fixes and error corrections.
 
 Examples:
+
 - Fixed authentication token expiration bug
 - Fixed video upload memory leak
 - Fixed subtitle timing synchronization
 - Resolved N+1 query problem in vocabulary service
 
 ### Security
+
 Security improvements, vulnerability fixes, and security-related changes.
 
 Examples:
+
 - Fixed SQL injection vulnerability in vocabulary search
 - Updated dependencies to patch security issues
 - Implemented rate limiting to prevent abuse
@@ -158,15 +178,18 @@ When adding entries to the changelog:
 
 ```markdown
 ### Added
+
 - New endpoint `POST /api/vocabulary/{word}/examples` for retrieving word usage examples
 - Vocabulary spaced repetition algorithm (SRS) for optimized learning (#123)
 - Export vocabulary to CSV functionality via `GET /api/vocabulary/export` (#456)
 
 ### Fixed
+
 - Fixed memory leak in video processing pipeline when handling large files (#789)
 - Resolved race condition in concurrent vocabulary updates (#234)
 
 ### Security
+
 - Updated FastAPI to 0.104.0 to address CVE-2023-12345
 ```
 

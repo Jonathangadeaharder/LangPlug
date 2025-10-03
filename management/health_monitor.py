@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class HealthMonitor:
     """Monitors server health and handles auto-recovery"""
-    
+
     def __init__(
         self,
         servers: Dict,
@@ -28,24 +28,24 @@ class HealthMonitor:
         self.monitoring = False
         self.sleep_interval = sleep_interval
         self.sleep_fn = sleep_fn or time.sleep
-        
+
     def start_monitoring(self):
         """Start the health monitoring thread"""
         if self.monitoring:
             return
-            
+
         self.monitoring = True
         self.monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)
         self.monitor_thread.start()
         logger.info("Health monitoring started")
-    
+
     def stop_monitoring(self):
         """Stop the health monitoring thread"""
         self.monitoring = False
         if self.monitor_thread:
             self.monitor_thread.join(timeout=5)
         logger.info("Health monitoring stopped")
-    
+
     def _monitor_loop(self):
         """Main monitoring loop"""
         while self.monitoring:
@@ -81,23 +81,23 @@ class HealthMonitor:
                 if server.health_check_failures > 0:
                     logger.info("%s server health recovered", name)
                     server.health_check_failures = 0
-    
+
     def _recover_server(self, server) -> bool:
         """Attempt to recover a failed server"""
         try:
             # Stop the failed server
             logger.info(f"Stopping failed {server.name} server")
             self.manager.stop_server(server.name)
-            
+
             # Wait a moment
             time.sleep(5)
-            
+
             # Restart the server
             logger.info(f"Restarting {server.name} server")
             success = self.manager.start_server(server.name)
-            
+
             return success
-            
+
         except Exception as e:
             logger.error(f"Error recovering server {server.name}: {e}")
             return False

@@ -1,40 +1,40 @@
-name: 'Setup Node.js Environment'
-description: 'Configure Node.js environment with intelligent package manager detection and caching'
+name: "Setup Node.js Environment"
+description: "Configure Node.js environment with intelligent package manager detection and caching"
 inputs:
   node-version:
-    description: 'Node.js version to setup'
+    description: "Node.js version to setup"
     required: false
-    default: '18'
+    default: "18"
   working-directory:
-    description: 'Working directory for Node.js operations'
+    description: "Working directory for Node.js operations"
     required: false
-    default: './Frontend'
+    default: "./Frontend"
   package-manager:
-    description: 'Package manager to use (auto, npm, yarn, pnpm)'
+    description: "Package manager to use (auto, npm, yarn, pnpm)"
     required: false
-    default: 'auto'
+    default: "auto"
   cache-key:
-    description: 'Additional cache key suffix'
+    description: "Additional cache key suffix"
     required: false
-    default: ''
+    default: ""
   frozen-lockfile:
-    description: 'Use frozen lockfile for installation'
+    description: "Use frozen lockfile for installation"
     required: false
-    default: 'true'
+    default: "true"
 
 outputs:
   cache-hit:
-    description: 'Whether cache was hit'
+    description: "Whether cache was hit"
     value: ${{ steps.cache.outputs.cache-hit }}
   package-manager:
-    description: 'Detected package manager'
+    description: "Detected package manager"
     value: ${{ steps.detect-pm.outputs.manager }}
   lockfile-path:
-    description: 'Path to lockfile'
+    description: "Path to lockfile"
     value: ${{ steps.detect-pm.outputs.lockfile }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Detect package manager
       id: detect-pm

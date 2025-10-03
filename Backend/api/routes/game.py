@@ -13,7 +13,6 @@ from core.database import get_async_session
 from core.dependencies import current_active_user
 from database.models import User
 from services.gameservice import GameSessionService
-from services.gameservice.game_question_service import GameDifficulty, GameType
 from services.gameservice.game_session_service import (
     AnswerRequest,
     GameSession,

@@ -26,6 +26,7 @@ A Netflix-style German language learning platform built with React, TypeScript, 
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or yarn
 
@@ -69,22 +70,26 @@ src/
 ## Key Components
 
 ### Authentication Flow
+
 - Login/Register forms with validation
 - Protected routes with automatic redirection
 - Session management with persistent storage
 
 ### Video Selection
+
 - Netflix-style grid layout
 - Series and episode browsing
 - Subtitle availability indicators
 
 ### Vocabulary Game
+
 - Tinder-style card swiping interface
 - Progress tracking
 - Difficulty level indicators
 - Responsive touch/mouse controls
 
 ### Learning Player
+
 - Custom video player controls
 - 5-minute segment learning
 - Subtitle toggle

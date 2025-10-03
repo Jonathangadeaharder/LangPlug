@@ -108,7 +108,9 @@ async def create_default_admin_user():
             )
             session.add(admin_user)
             await session.commit()
-            logger.info("Default admin user created (username: admin, email: admin@langplug.com, password: AdminPass123!)")
+            logger.info(
+                "Default admin user created (username: admin, email: admin@langplug.com, password: AdminPass123!)"
+            )
 
 
 async def close_db():

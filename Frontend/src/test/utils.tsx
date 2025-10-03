@@ -1,33 +1,33 @@
 /**
  * DEPRECATED: Legacy SRT parsing utility
- * 
+ *
  * This file contained duplicate SRT parsing logic that has been replaced
  * with a proper API-based approach. The frontend no longer parses SRT files
  * directly - instead, it uses the backend API as the single source of truth.
- * 
+ *
  * Migration Guide:
  * ================
- * 
+ *
  * OLD APPROACH (deprecated):
  * ```ts
  * import { parseSRT } from './utils'
  * const parsed = parseSRT(srtContent)
  * ```
- * 
+ *
  * NEW APPROACH (recommended):
  * ```ts
  * import { srtApi } from '../utils/srtApi'
  * const result = await srtApi.parseSRTContent(srtContent)
  * const segments = result.segments
  * ```
- * 
+ *
  * Benefits of the new approach:
  * - Single source of truth for SRT parsing logic (backend)
  * - Better error handling and validation
  * - Consistent parsing behavior across the application
  * - Proper testing with mocked API responses
  * - No code duplication between frontend and backend
- * 
+ *
  * For proper tests, see: subtitle-parsing.test.ts
  */
 

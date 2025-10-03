@@ -1,37 +1,37 @@
-name: 'Setup Python Environment'
-description: 'Configure Python environment with caching and dependencies'
+name: "Setup Python Environment"
+description: "Configure Python environment with caching and dependencies"
 inputs:
   python-version:
-    description: 'Python version to setup'
+    description: "Python version to setup"
     required: false
-    default: '3.11'
+    default: "3.11"
   working-directory:
-    description: 'Working directory for Python operations'
+    description: "Working directory for Python operations"
     required: false
-    default: './Backend'
+    default: "./Backend"
   requirements-file:
-    description: 'Requirements file to install'
+    description: "Requirements file to install"
     required: false
-    default: 'requirements-dev.txt'
+    default: "requirements-dev.txt"
   cache-key:
-    description: 'Additional cache key suffix'
+    description: "Additional cache key suffix"
     required: false
-    default: ''
+    default: ""
   install-extras:
-    description: 'Extra packages to install'
+    description: "Extra packages to install"
     required: false
-    default: ''
+    default: ""
 
 outputs:
   cache-hit:
-    description: 'Whether cache was hit'
+    description: "Whether cache was hit"
     value: ${{ steps.cache.outputs.cache-hit }}
   python-path:
-    description: 'Path to Python executable'
+    description: "Path to Python executable"
     value: ${{ steps.setup-python.outputs.python-path }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Setup Python
       id: setup-python

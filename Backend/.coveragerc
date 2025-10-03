@@ -23,4 +23,3 @@ skip_covered = false
 [html]
 directory = htmlcov
 title = LangPlug Backend Coverage Report
-

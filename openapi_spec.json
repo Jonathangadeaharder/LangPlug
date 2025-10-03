@@ -42,9 +42,7 @@
     },
     "/api/auth/login": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Auth:Jwt-Bearer.Login",
         "operationId": "auth_jwt_bearer_login_api_auth_login_post",
         "requestBody": {
@@ -111,9 +109,7 @@
     },
     "/api/auth/logout": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Auth:Jwt-Bearer.Logout",
         "operationId": "auth_jwt_bearer_logout_api_auth_logout_post",
         "responses": {
@@ -138,9 +134,7 @@
     },
     "/api/auth/register": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Register:Register",
         "operationId": "register_register_api_auth_register_post",
         "requestBody": {
@@ -206,9 +200,7 @@
     },
     "/api/auth/me": {
       "get": {
-        "tags": [
-          "authentication"
-        ],
+        "tags": ["authentication"],
         "summary": "Auth Get Current User",
         "description": "Get current user information",
         "operationId": "auth_get_current_user_api_auth_me_get",
@@ -233,9 +225,7 @@
     },
     "/api/videos": {
       "get": {
-        "tags": [
-          "videos"
-        ],
+        "tags": ["videos"],
         "summary": "Get Videos",
         "description": "Get list of available videos/series",
         "operationId": "get_videos_api_videos_get",
@@ -264,9 +254,7 @@
     },
     "/api/videos/subtitles/{subtitle_path}": {
       "get": {
-        "tags": [
-          "videos"
-        ],
+        "tags": ["videos"],
         "summary": "Get Subtitles",
         "description": "Serve subtitle files - Requires authentication",
         "operationId": "get_subtitles_api_videos_subtitles__subtitle_path__get",
@@ -310,9 +298,7 @@
     },
     "/api/videos/{series}/{episode}": {
       "get": {
-        "tags": [
-          "videos"
-        ],
+        "tags": ["videos"],
         "summary": "Stream Video",
         "description": "Stream video file - Requires authentication",
         "operationId": "stream_video_api_videos__series___episode__get",
@@ -365,9 +351,7 @@
     },
     "/api/videos/subtitle/upload": {
       "post": {
-        "tags": [
-          "videos"
-        ],
+        "tags": ["videos"],
         "summary": "Upload Subtitle",
         "description": "Upload subtitle file for a video - Requires authentication",
         "operationId": "upload_subtitle_api_videos_subtitle_upload_post",
@@ -421,9 +405,7 @@
     },
     "/api/videos/scan": {
       "post": {
-        "tags": [
-          "videos"
-        ],
+        "tags": ["videos"],
         "summary": "Scan Videos",
         "description": "Scan videos directory for new videos - Requires authentication",
         "operationId": "scan_videos_api_videos_scan_post",
@@ -446,9 +428,7 @@
     },
     "/api/videos/user": {
       "get": {
-        "tags": [
-          "videos"
-        ],
+        "tags": ["videos"],
         "summary": "Get User Videos",
         "description": "Get videos for the current user (alias for get_available_videos)",
         "operationId": "get_user_videos_api_videos_user_get",
@@ -478,9 +458,7 @@
     },
     "/api/videos/{video_id}/vocabulary": {
       "get": {
-        "tags": [
-          "videos"
-        ],
+        "tags": ["videos"],
         "summary": "Get Video Vocabulary",
         "description": "Get vocabulary words extracted from a video",
         "operationId": "get_video_vocabulary_api_videos__video_id__vocabulary_get",
@@ -530,9 +508,7 @@
     },
     "/api/videos/{video_id}/status": {
       "get": {
-        "tags": [
-          "videos"
-        ],
+        "tags": ["videos"],
         "summary": "Get Video Status",
         "description": "Get processing status for a video",
         "operationId": "get_video_status_api_videos__video_id__status_get",
@@ -578,9 +554,7 @@
     },
     "/api/videos/upload": {
       "post": {
-        "tags": [
-          "videos"
-        ],
+        "tags": ["videos"],
         "summary": "Upload Video Generic",
         "description": "Upload a new video file (generic endpoint) - Requires authentication",
         "operationId": "upload_video_generic_api_videos_upload_post",
@@ -635,9 +609,7 @@
     },
     "/api/videos/upload/{series}": {
       "post": {
-        "tags": [
-          "videos"
-        ],
+        "tags": ["videos"],
         "summary": "Upload Video To Series",
         "description": "Upload a new video file to a series - Requires authentication",
         "operationId": "upload_video_to_series_api_videos_upload__series__post",
@@ -691,9 +663,7 @@
     },
     "/api/process/chunk": {
       "post": {
-        "tags": [
-          "processing"
-        ],
+        "tags": ["processing"],
         "summary": "Process Chunk",
         "description": "Process a specific chunk of video for vocabulary learning",
         "operationId": "process_chunk_api_process_chunk_post",
@@ -736,9 +706,7 @@
     },
     "/api/process/transcribe": {
       "post": {
-        "tags": [
-          "processing"
-        ],
+        "tags": ["processing"],
         "summary": "Transcribe Video",
         "description": "Transcribe video to generate subtitles",
         "operationId": "transcribe_video_api_process_transcribe_post",
@@ -781,9 +749,7 @@
     },
     "/api/process/filter-subtitles": {
       "post": {
-        "tags": [
-          "processing"
-        ],
+        "tags": ["processing"],
         "summary": "Filter Subtitles",
         "description": "Filter subtitles based on user's vocabulary knowledge",
         "operationId": "filter_subtitles_api_process_filter_subtitles_post",
@@ -826,9 +792,7 @@
     },
     "/api/process/translate-subtitles": {
       "post": {
-        "tags": [
-          "processing"
-        ],
+        "tags": ["processing"],
         "summary": "Translate Subtitles",
         "description": "Translate subtitles from one language to another",
         "operationId": "translate_subtitles_api_process_translate_subtitles_post",
@@ -871,9 +835,7 @@
     },
     "/api/process/prepare-episode": {
       "post": {
-        "tags": [
-          "processing"
-        ],
+        "tags": ["processing"],
         "summary": "Prepare Episode",
         "description": "Starts the full pipeline to prepare an episode for learning.",
         "operationId": "prepare_episode_api_process_prepare_episode_post",
@@ -916,9 +878,7 @@
     },
     "/api/process/full-pipeline": {
       "post": {
-        "tags": [
-          "processing"
-        ],
+        "tags": ["processing"],
         "summary": "Full Pipeline",
         "description": "Run a full processing pipeline: Transcribe -> Filter -> Translate",
         "operationId": "full_pipeline_api_process_full_pipeline_post",
@@ -961,9 +921,7 @@
     },
     "/api/process/progress/{task_id}": {
       "get": {
-        "tags": [
-          "processing"
-        ],
+        "tags": ["processing"],
         "summary": "Get Task Progress",
         "description": "Get progress of a background task",
         "operationId": "get_task_progress_api_process_progress__task_id__get",
@@ -1007,9 +965,7 @@
     },
     "/api/vocabulary/languages": {
       "get": {
-        "tags": [
-          "vocabulary"
-        ],
+        "tags": ["vocabulary"],
         "summary": "Get Supported Languages",
         "description": "Get list of supported languages",
         "operationId": "get_supported_languages_api_vocabulary_languages_get",
@@ -1029,9 +985,7 @@
     },
     "/api/vocabulary/stats": {
       "get": {
-        "tags": [
-          "vocabulary"
-        ],
+        "tags": ["vocabulary"],
         "summary": "Get Vocabulary Stats",
         "description": "Get vocabulary statistics for the current user",
         "operationId": "get_vocabulary_stats_api_vocabulary_stats_get",
@@ -1098,9 +1052,7 @@
     },
     "/api/vocabulary/library/{level}": {
       "get": {
-        "tags": [
-          "vocabulary"
-        ],
+        "tags": ["vocabulary"],
         "summary": "Get Vocabulary Level",
         "description": "Get vocabulary words for a specific level with user's known status",
         "operationId": "get_vocabulary_level_api_vocabulary_library__level__get",
@@ -1187,9 +1139,7 @@
     },
     "/api/vocabulary/mark-known": {
       "post": {
-        "tags": [
-          "vocabulary"
-        ],
+        "tags": ["vocabulary"],
         "summary": "Mark Word Known",
         "description": "Mark a word concept as known or unknown",
         "operationId": "mark_word_known_api_vocabulary_mark_known_post",
@@ -1232,9 +1182,7 @@
     },
     "/api/vocabulary/library/bulk-mark": {
       "post": {
-        "tags": [
-          "vocabulary"
-        ],
+        "tags": ["vocabulary"],
         "summary": "Bulk Mark Level",
         "description": "Mark all words in a level as known or unknown",
         "operationId": "bulk_mark_level_api_vocabulary_library_bulk_mark_post",
@@ -1277,9 +1225,7 @@
     },
     "/api/vocabulary/test-data": {
       "get": {
-        "tags": [
-          "vocabulary"
-        ],
+        "tags": ["vocabulary"],
         "summary": "Get Test Data",
         "description": "Get test data to verify the multilingual setup works",
         "operationId": "get_test_data_api_vocabulary_test_data_get",
@@ -1297,9 +1243,7 @@
     },
     "/api/vocabulary/blocking-words": {
       "get": {
-        "tags": [
-          "vocabulary"
-        ],
+        "tags": ["vocabulary"],
         "summary": "Get Blocking Words",
         "description": "Get words that would block comprehension from video subtitles",
         "operationId": "get_blocking_words_api_vocabulary_blocking_words_get",
@@ -1345,9 +1289,7 @@
     },
     "/api/profile": {
       "get": {
-        "tags": [
-          "profile"
-        ],
+        "tags": ["profile"],
         "summary": "Profile Get",
         "description": "Get current user's profile",
         "operationId": "profile_get_api_profile_get",
@@ -1372,9 +1314,7 @@
     },
     "/api/profile/languages": {
       "get": {
-        "tags": [
-          "profile"
-        ],
+        "tags": ["profile"],
         "summary": "Profile Get Supported Languages",
         "description": "Get list of supported languages",
         "operationId": "profile_get_supported_languages_api_profile_languages_get",
@@ -1399,9 +1339,7 @@
         }
       },
       "put": {
-        "tags": [
-          "profile"
-        ],
+        "tags": ["profile"],
         "summary": "Profile Update Languages",
         "description": "Update user's language preferences",
         "operationId": "profile_update_languages_api_profile_languages_put",
@@ -1448,9 +1386,7 @@
     },
     "/api/profile/settings": {
       "get": {
-        "tags": [
-          "profile"
-        ],
+        "tags": ["profile"],
         "summary": "Profile Get Settings",
         "description": "Get user settings",
         "operationId": "profile_get_settings_api_profile_settings_get",
@@ -1473,9 +1409,7 @@
         ]
       },
       "put": {
-        "tags": [
-          "profile"
-        ],
+        "tags": ["profile"],
         "summary": "Profile Update Settings",
         "description": "Update user settings",
         "operationId": "profile_update_settings_api_profile_settings_put",
@@ -1520,9 +1454,7 @@
     },
     "/api/progress/user": {
       "get": {
-        "tags": [
-          "progress"
-        ],
+        "tags": ["progress"],
         "summary": "Progress Get User",
         "description": "Get progress data for the current user",
         "operationId": "progress_get_user_api_progress_user_get",
@@ -1547,9 +1479,7 @@
     },
     "/api/progress/update": {
       "post": {
-        "tags": [
-          "progress"
-        ],
+        "tags": ["progress"],
         "summary": "Progress Update User",
         "description": "Update user progress data",
         "operationId": "progress_update_user_api_progress_update_post",
@@ -1594,9 +1524,7 @@
     },
     "/api/progress/daily": {
       "get": {
-        "tags": [
-          "progress"
-        ],
+        "tags": ["progress"],
         "summary": "Progress Get Daily",
         "description": "Get daily progress for the last N days",
         "operationId": "progress_get_daily_api_progress_daily_get",
@@ -1647,9 +1575,7 @@
     },
     "/api/game/start": {
       "post": {
-        "tags": [
-          "game"
-        ],
+        "tags": ["game"],
         "summary": "Game Start Session",
         "description": "Start a new game session",
         "operationId": "game_start_session_api_game_start_post",
@@ -1694,9 +1620,7 @@
     },
     "/api/game/session/{session_id}": {
       "get": {
-        "tags": [
-          "game"
-        ],
+        "tags": ["game"],
         "summary": "Game Get Session",
         "description": "Get a specific game session",
         "operationId": "game_get_session_api_game_session__session_id__get",
@@ -1742,9 +1666,7 @@
     },
     "/api/game/answer": {
       "post": {
-        "tags": [
-          "game"
-        ],
+        "tags": ["game"],
         "summary": "Game Submit Answer",
         "description": "Submit an answer for a game question",
         "operationId": "game_submit_answer_api_game_answer_post",
@@ -1787,9 +1709,7 @@
     },
     "/api/game/sessions": {
       "get": {
-        "tags": [
-          "game"
-        ],
+        "tags": ["game"],
         "summary": "Game Get User Sessions",
         "description": "Get user's game sessions",
         "operationId": "game_get_user_sessions_api_game_sessions_get",
@@ -1840,9 +1760,7 @@
     },
     "/api/srt/parse": {
       "post": {
-        "tags": [
-          "SRT Utilities"
-        ],
+        "tags": ["SRT Utilities"],
         "summary": "Parse Srt Content",
         "description": "Parse SRT content and return structured data.\n\nThis endpoint replaces frontend SRT parsing logic, ensuring\nthe backend is the single source of truth for SRT processing.\n\nArgs:\n    request: SRT content to parse\n    \nReturns:\n    Parsed SRT segments with metadata\n    \nRaises:\n    HTTPException: If parsing fails",
         "operationId": "parse_srt_content_api_srt_parse_post",
@@ -1882,9 +1800,7 @@
     },
     "/api/srt/parse-file": {
       "post": {
-        "tags": [
-          "SRT Utilities"
-        ],
+        "tags": ["SRT Utilities"],
         "summary": "Parse Srt File",
         "description": "Parse an uploaded SRT file and return structured data.\n\nArgs:\n    file: Uploaded SRT file\n    \nReturns:\n    Parsed SRT segments with metadata\n    \nRaises:\n    HTTPException: If file processing fails",
         "operationId": "parse_srt_file_api_srt_parse_file_post",
@@ -1922,9 +1838,7 @@
     },
     "/api/srt/convert-to-srt": {
       "post": {
-        "tags": [
-          "SRT Utilities"
-        ],
+        "tags": ["SRT Utilities"],
         "summary": "Convert To Srt",
         "description": "Convert structured segment data back to SRT format.\n\nArgs:\n    request: Segments to convert\n    \nReturns:\n    SRT formatted content\n    \nRaises:\n    HTTPException: If conversion fails",
         "operationId": "convert_to_srt_api_srt_convert_to_srt_post",
@@ -1962,9 +1876,7 @@
     },
     "/api/srt/validate": {
       "get": {
-        "tags": [
-          "SRT Utilities"
-        ],
+        "tags": ["SRT Utilities"],
         "summary": "Validate Srt Content",
         "description": "Validate SRT content without full parsing.\n\nArgs:\n    content: SRT content to validate\n    \nReturns:\n    Validation result with issues found",
         "operationId": "validate_srt_content_api_srt_validate_get",
@@ -2041,11 +1953,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "session_id",
-          "question_id",
-          "user_answer"
-        ],
+        "required": ["session_id", "question_id", "user_answer"],
         "title": "AnswerRequest",
         "description": "Request model for submitting an answer"
       },
@@ -2061,10 +1969,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "access_token",
-          "token_type"
-        ],
+        "required": ["access_token", "token_type"],
         "title": "BearerResponse"
       },
       "Body_auth_jwt_bearer_login_api_auth_login_post": {
@@ -2120,10 +2025,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "title": "Body_auth_jwt_bearer_login_api_auth_login_post"
       },
       "Body_parse_srt_file_api_srt_parse_file_post": {
@@ -2135,9 +2037,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "file"
-        ],
+        "required": ["file"],
         "title": "Body_parse_srt_file_api_srt_parse_file_post"
       },
       "Body_upload_subtitle_api_videos_subtitle_upload_post": {
@@ -2149,9 +2049,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "subtitle_file"
-        ],
+        "required": ["subtitle_file"],
         "title": "Body_upload_subtitle_api_videos_subtitle_upload_post"
       },
       "Body_upload_video_generic_api_videos_upload_post": {
@@ -2163,9 +2061,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "video_file"
-        ],
+        "required": ["video_file"],
         "title": "Body_upload_video_generic_api_videos_upload_post"
       },
       "Body_upload_video_to_series_api_videos_upload__series__post": {
@@ -2177,9 +2073,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "video_file"
-        ],
+        "required": ["video_file"],
         "title": "Body_upload_video_to_series_api_videos_upload__series__post"
       },
       "BulkMarkRequest": {
@@ -2204,11 +2098,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "level",
-          "target_language",
-          "known"
-        ],
+        "required": ["level", "target_language", "known"],
         "title": "BulkMarkRequest",
         "description": "Request to bulk mark words as known/unknown"
       },
@@ -2234,11 +2124,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "video_path",
-          "start_time",
-          "end_time"
-        ],
+        "required": ["video_path", "start_time", "end_time"],
         "title": "ChunkProcessingRequest",
         "example": {
           "end_time": 180.0,
@@ -2257,9 +2143,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "segments"
-        ],
+        "required": ["segments"],
         "title": "ConvertToSRTRequest",
         "description": "Request model for converting segments to SRT format."
       },
@@ -2296,9 +2180,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "date"
-        ],
+        "required": ["date"],
         "title": "DailyProgress",
         "description": "Daily progress model"
       },
@@ -2320,9 +2202,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "detail"
-        ],
+        "required": ["detail"],
         "title": "ErrorModel"
       },
       "FilterRequest": {
@@ -2335,9 +2215,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "video_path"
-        ],
+        "required": ["video_path"],
         "title": "FilterRequest"
       },
       "FullPipelineRequest": {
@@ -2368,18 +2246,12 @@
           }
         },
         "type": "object",
-        "required": [
-          "video_path"
-        ],
+        "required": ["video_path"],
         "title": "FullPipelineRequest"
       },
       "GameDifficulty": {
         "type": "string",
-        "enum": [
-          "beginner",
-          "intermediate",
-          "advanced"
-        ],
+        "enum": ["beginner", "intermediate", "advanced"],
         "title": "GameDifficulty",
         "description": "Valid difficulty levels"
       },
@@ -2472,22 +2344,13 @@
           }
         },
         "type": "object",
-        "required": [
-          "session_id",
-          "user_id",
-          "game_type",
-          "start_time"
-        ],
+        "required": ["session_id", "user_id", "game_type", "start_time"],
         "title": "GameSession",
         "description": "Game session model"
       },
       "GameType": {
         "type": "string",
-        "enum": [
-          "vocabulary",
-          "listening",
-          "comprehension"
-        ],
+        "enum": ["vocabulary", "listening", "comprehension"],
         "title": "GameType",
         "description": "Valid game types"
       },
@@ -2516,10 +2379,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "native_language",
-          "target_language"
-        ],
+        "required": ["native_language", "target_language"],
         "title": "LanguagePreferences",
         "description": "Language preference update model"
       },
@@ -2535,9 +2395,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "languages"
-        ],
+        "required": ["languages"],
         "title": "LanguagesResponse",
         "description": "Response containing supported languages"
       },
@@ -2556,10 +2414,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "concept_id",
-          "known"
-        ],
+        "required": ["concept_id", "known"],
         "title": "MarkKnownRequest",
         "description": "Request to mark a word as known/unknown"
       },
@@ -2571,9 +2426,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "content"
-        ],
+        "required": ["content"],
         "title": "ParseSRTRequest",
         "description": "Request model for parsing SRT content."
       },
@@ -2596,11 +2449,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "segments",
-          "total_segments",
-          "duration"
-        ],
+        "required": ["segments", "total_segments", "duration"],
         "title": "ParseSRTResponse",
         "description": "Response model for parsed SRT data."
       },
@@ -2630,11 +2479,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "status",
-          "progress",
-          "current_step"
-        ],
+        "required": ["status", "progress", "current_step"],
         "title": "ProcessingStatus"
       },
       "SRTSegmentResponse": {
@@ -2667,12 +2512,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "index",
-          "start_time",
-          "end_time",
-          "text"
-        ],
+        "required": ["index", "start_time", "end_time", "text"],
         "title": "SRTSegmentResponse",
         "description": "Response model for SRT segment data."
       },
@@ -2705,9 +2545,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "game_type"
-        ],
+        "required": ["game_type"],
         "title": "StartGameRequest",
         "description": "Request model for starting a game session"
       },
@@ -2748,10 +2586,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "code",
-          "name"
-        ],
+        "required": ["code", "name"],
         "title": "SupportedLanguage",
         "description": "Supported language information"
       },
@@ -2765,9 +2600,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "video_path"
-        ],
+        "required": ["video_path"],
         "title": "TranscribeRequest"
       },
       "TranslateRequest": {
@@ -2796,11 +2629,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "video_path",
-          "source_lang",
-          "target_lang"
-        ],
+        "required": ["video_path", "source_lang", "target_lang"],
         "title": "TranslateRequest"
       },
       "UserCreate": {
@@ -2856,11 +2685,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "email",
-          "password",
-          "username"
-        ],
+        "required": ["email", "password", "username"],
         "title": "UserCreate"
       },
       "UserProfile": {
@@ -2998,9 +2823,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "user_id"
-        ],
+        "required": ["user_id"],
         "title": "UserProgress",
         "description": "User progress model"
       },
@@ -3257,11 +3080,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
+        "required": ["loc", "msg", "type"],
         "title": "ValidationError"
       },
       "VideoInfo": {
@@ -3387,12 +3206,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "levels",
-          "target_language",
-          "total_words",
-          "total_known"
-        ],
+        "required": ["levels", "target_language", "total_words", "total_known"],
         "title": "VocabularyStats",
         "description": "Vocabulary statistics across all levels",
         "example": {
@@ -3549,11 +3363,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "concept_id",
-          "word",
-          "difficulty_level"
-        ],
+        "required": ["concept_id", "word", "difficulty_level"],
         "title": "VocabularyWord",
         "description": "Single vocabulary word with translations"
       }

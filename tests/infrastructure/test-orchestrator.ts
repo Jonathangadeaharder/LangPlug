@@ -82,7 +82,7 @@ export class TestOrchestrator extends EventEmitter {
   private readonly maxRetries = 60;
   private readonly retryDelay = 1000;
   private readonly portPool: Set<number> = new Set();
-  
+
   constructor() {
     super();
     this.contractValidation = {
@@ -187,7 +187,7 @@ export class TestOrchestrator extends EventEmitter {
    */
   private parseEndpoints(spec: any): Map<string, EndpointContract> {
     const endpoints = new Map<string, EndpointContract>();
-    
+
     for (const [path, methods] of Object.entries(spec.paths || {})) {
       for (const [method, definition] of Object.entries(methods as any)) {
         const key = `${method.toUpperCase()} ${path}`;
@@ -201,7 +201,7 @@ export class TestOrchestrator extends EventEmitter {
         });
       }
     }
-    
+
     return endpoints;
   }
 
@@ -211,7 +211,7 @@ export class TestOrchestrator extends EventEmitter {
   private validateRequest(config: any): void {
     const key = `${config.method?.toUpperCase()} ${config.url?.pathname}`;
     const contract = this.contractValidation.endpoints.get(key);
-    
+
     if (contract?.requestSchema && config.data) {
       // Validate request body against schema
       const validation = this.validateSchema(config.data, contract.requestSchema);
@@ -236,7 +236,7 @@ export class TestOrchestrator extends EventEmitter {
   private validateResponse(response: any): void {
     const key = `${response.config.method?.toUpperCase()} ${new URL(response.config.url).pathname}`;
     const contract = this.contractValidation.endpoints.get(key);
-    
+
     if (contract?.responseSchema && response.data) {
       // Validate response body against schema
       const validation = this.validateSchema(response.data, contract.responseSchema);
@@ -261,7 +261,7 @@ export class TestOrchestrator extends EventEmitter {
   private validateSchema(data: any, schema: any): { valid: boolean; errors: string[] } {
     // Simple schema validation - would use ajv in production
     const errors: string[] = [];
-    
+
     if (schema.type === 'object' && schema.properties) {
       for (const [key, propSchema] of Object.entries(schema.properties as any)) {
         if (schema.required?.includes(key) && !(key in data)) {
@@ -273,7 +273,7 @@ export class TestOrchestrator extends EventEmitter {
         }
       }
     }
-    
+
     return { valid: errors.length === 0, errors };
   }
 
@@ -284,10 +284,10 @@ export class TestOrchestrator extends EventEmitter {
     const envId = id || uuidv4();
     const tempDir = path.join(os.tmpdir(), 'langplug-tests', envId);
     const logDir = path.join(tempDir, 'logs');
-    
+
     await fs.ensureDir(tempDir);
     await fs.ensureDir(logDir);
-    
+
     const environment: TestEnvironment = {
       id: envId,
       backend: {
@@ -305,10 +305,10 @@ export class TestOrchestrator extends EventEmitter {
       tempDir,
       logDir,
     };
-    
+
     this.environments.set(envId, environment);
     this.emit('environment:created', environment);
-    
+
     return environment;
   }
 
@@ -387,7 +387,7 @@ export class TestOrchestrator extends EventEmitter {
         `${config.name}-${Date.now()}.log`
       );
       const logStream = fs.createWriteStream(logFile, { flags: 'a' });
-      
+
       instance.startTime = new Date();
       instance.process = spawn(config.command, config.args, {
         cwd: config.cwd,
@@ -396,16 +396,16 @@ export class TestOrchestrator extends EventEmitter {
         // Create new process group for better process management
         detached: process.platform !== 'win32',
       });
-      
+
       instance.pid = instance.process.pid;
-      
+
       // Handle stdout
       instance.process.stdout?.on('data', (data) => {
         const output = data.toString();
         instance.logs.push(output);
         logStream.write(`[STDOUT] ${output}`);
         this.emit('server:log', { server: config.name, data: output });
-        
+
         // Check for ready patterns
         if (config.readyPatterns?.some(pattern => pattern.test(output))) {
           instance.ready = true;
@@ -414,7 +414,7 @@ export class TestOrchestrator extends EventEmitter {
           this.emit('server:ready', instance);
         }
       });
-      
+
       // Handle stderr
       instance.process.stderr?.on('data', (data) => {
         const error = data.toString();
@@ -422,7 +422,7 @@ export class TestOrchestrator extends EventEmitter {
         logStream.write(`[STDERR] ${error}`);
         this.emit('server:error', { server: config.name, data: error });
       });
-      
+
       // Handle process exit
       instance.process.on('exit', (code) => {
         logStream.end();
@@ -431,14 +431,14 @@ export class TestOrchestrator extends EventEmitter {
           reject(new Error(`${config.name} exited with code ${code}`));
         }
       });
-      
+
       // Handle process error
       instance.process.on('error', (error) => {
         logStream.end();
         this.emit('server:error', { server: config.name, error });
         reject(error);
       });
-      
+
       // Wait for ready or timeout
       const timeout = setTimeout(() => {
         if (!instance.ready) {
@@ -446,7 +446,7 @@ export class TestOrchestrator extends EventEmitter {
           reject(new Error(`${config.name} failed to start within ${config.startupTimeout}ms`));
         }
       }, config.startupTimeout || 30000);
-      
+
       this.once('server:ready', (readyInstance) => {
         if (readyInstance === instance) {
           clearTimeout(timeout);
@@ -544,7 +544,7 @@ export class TestOrchestrator extends EventEmitter {
   async waitForHealth(instance: ServerInstance): Promise<void> {
     const { config } = instance;
     if (!config.healthEndpoint) return;
-    
+
     for (let i = 0; i < this.maxRetries; i++) {
       try {
         const url = `${instance.url}${config.healthEndpoint}`;
@@ -558,7 +558,7 @@ export class TestOrchestrator extends EventEmitter {
       }
       await new Promise(resolve => setTimeout(resolve, this.retryDelay));
     }
-    
+
     throw new Error(`${config.name} health check failed after ${this.maxRetries} retries`);
   }
 
@@ -568,21 +568,21 @@ export class TestOrchestrator extends EventEmitter {
   async startEnvironment(envId: string): Promise<void> {
     const environment = this.environments.get(envId);
     if (!environment) throw new Error(`Environment ${envId} not found`);
-    
+
     // Start backend first
     await this.startServer(environment.backend);
     await this.waitForHealth(environment.backend);
-    
+
     // Update frontend config with backend URL
     environment.frontend.config.env = {
       ...environment.frontend.config.env,
       VITE_API_URL: environment.backend.url || `http://localhost:${environment.backend.port}`,
     };
-    
+
     // Start frontend
     await this.startServer(environment.frontend);
     await this.waitForHealth(environment.frontend);
-    
+
     this.emit('environment:started', environment);
   }
 
@@ -592,15 +592,15 @@ export class TestOrchestrator extends EventEmitter {
   async stopEnvironment(envId: string): Promise<void> {
     const environment = this.environments.get(envId);
     if (!environment) return;
-    
+
     await Promise.all([
       this.stopServer(environment.backend),
       this.stopServer(environment.frontend),
     ]);
-    
+
     // Clean up temp directory
     await fs.remove(environment.tempDir);
-    
+
     this.environments.delete(envId);
     this.emit('environment:stopped', envId);
   }

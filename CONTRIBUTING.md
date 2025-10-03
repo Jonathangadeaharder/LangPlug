@@ -5,6 +5,7 @@ engineering. Every change must respect both contract-driven development (CDD) an
 protective test philosophy.
 
 ## Prerequisites
+
 - Install backend dependencies with the documented virtualenv (`Backend/requirements-dev.txt`).
 - Install frontend dependencies via `npm install` in `Frontend/`.
 - Install tooling required for linting, testing, and contract validation:
@@ -16,6 +17,7 @@ protective test philosophy.
   PowerShell wrapper shown in the development guide).
 
 ## Core Workflow
+
 1. **Start With a Contract**
    - Create or update the shared API contract (OpenAPI spec, schema modules, or gRPC proto) before any
      implementation.
@@ -37,6 +39,7 @@ protective test philosophy.
    - Run the full validation suite (lint, unit, contract tests) locally before opening a pull request.
 
 ## Contract Lifecycle Requirements
+
 - **Definition**: Contracts live beside their owning service (`Backend/api/openapi_spec.py`, frontend
   schema modules, etc.). Every change must include documentation that explains the new behavior.
 - **Review**: All contract updates require peer review. Highlight impacted consumers and expected
@@ -51,6 +54,7 @@ protective test philosophy.
   paths in `docs/` and the PR body.
 
 ## Protective Testing Expectations (80/20)
+
 - Keep tests behavior-focused. Avoid asserting internal implementation details, private attributes,
   or call counts.
 - Tests must read like specifications. Use descriptive names (e.g., `test_register_returns_token`).
@@ -64,6 +68,7 @@ protective test philosophy.
   why extra coverage exists.
 
 ## Pull Request Expectations
+
 - Update relevant documentation (`docs/`, feature guides, API references) alongside code changes.
 - Run and attach results for:
   - `cd Backend && pytest`
@@ -76,6 +81,7 @@ protective test philosophy.
 - Complete the review checklists in `docs/review_checklists.md` before requesting review.
 
 ## Filing and Reviewing Changes
+
 - Use draft pull requests to share WIP contract proposals early. Mark sections that still need
   approvals from stakeholders.
 - Keep commits scoped: one contract update per commit where possible, followed by implementation and
@@ -84,6 +90,7 @@ protective test philosophy.
   notes).
 
 ## Testing Notes and Pitfalls
+
 - Prefer in-process HTTP tests using `httpx.AsyncClient` with `ASGITransport(app=create_app())`.
 - For DB-backed API tests, rely on the `async_client` and `db_session` fixtures in `Backend/tests/conftest.py` which:
   - Use a single, file-backed SQLite database per run to avoid in-memory/StaticPool deadlocks.
@@ -92,6 +99,7 @@ protective test philosophy.
 - If your environment has restricted syscalls, prefer `pytest.mark.asyncio` in new async tests rather than AnyIO’s trio mode.
 
 ## Support
+
 If you are unsure how to apply the policies, open a discussion in the project's communication channel
 or tag the platform maintainers. When in doubt, pause implementation until the contract is approved
 and protective tests are in place.

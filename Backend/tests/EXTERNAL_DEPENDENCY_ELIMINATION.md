@@ -1,11 +1,13 @@
 # External Dependency Elimination Guide
 
 ## Overview
+
 This document outlines the systematic elimination of external process dependencies from integration tests to improve reliability, speed, and maintainability.
 
 ## Problems with External Dependencies
 
 ### Identified Issues
+
 1. **Process Spawning**: Tests spawn real uvicorn processes using `subprocess.Popen`
 2. **Polling Loops**: Tests use `time.sleep()` loops to wait for server readiness
 3. **Port Conflicts**: Tests use hardcoded ports that can conflict with running services
@@ -14,6 +16,7 @@ This document outlines the systematic elimination of external process dependenci
 6. **Slow Execution**: Starting/stopping real servers adds significant overhead
 
 ### Problematic Files
+
 - `tests/integration/test_api_integration.py` - Spawns uvicorn, uses polling
 - `tests/integration/test_server_integration.py` - Real HTTP server tests
 - `tests/management/test_server_manager.py` - Process management tests
@@ -22,6 +25,7 @@ This document outlines the systematic elimination of external process dependenci
 ## Solution: In-Process Testing
 
 ### New Approach
+
 Replace external process dependencies with FastAPI's TestClient and dependency injection:
 
 ```python
@@ -48,6 +52,7 @@ async def test_endpoint(async_client):
 ```
 
 ### Benefits
+
 1. **Deterministic**: No timing dependencies or race conditions
 2. **Fast**: No process startup/shutdown overhead
 3. **Isolated**: Each test runs in clean isolation
@@ -57,7 +62,9 @@ async def test_endpoint(async_client):
 ## Implementation Strategy
 
 ### 1. Identify External Dependencies
+
 Search for these patterns:
+
 - `subprocess.Popen`
 - `uvicorn.*--port`
 - `time.sleep`
@@ -68,6 +75,7 @@ Search for these patterns:
 ### 2. Replace with In-Process Alternatives
 
 #### Server Testing
+
 ```python
 # Replace real server with TestClient
 @pytest.mark.anyio
@@ -78,6 +86,7 @@ async def test_endpoint_functionality(async_client):
 ```
 
 #### Database Testing
+
 ```python
 # Replace real database with in-memory/mocked
 @pytest.fixture
@@ -89,6 +98,7 @@ async def mock_database_session():
 ```
 
 #### Authentication Testing
+
 ```python
 # Replace manual auth flows with helper utilities
 from tests.helpers import AsyncAuthHelper
@@ -114,6 +124,7 @@ For each problematic test file:
 ## File Transformation Examples
 
 ### Before: External Process Test
+
 ```python
 class TestServerIntegration:
     def test_server_startup(self):
@@ -127,6 +138,7 @@ class TestServerIntegration:
 ```
 
 ### After: In-Process Test
+
 ```python
 class TestServerEndpoints:
     @pytest.mark.anyio
@@ -140,6 +152,7 @@ class TestServerEndpoints:
 ## Exceptions and Special Cases
 
 ### When External Dependencies Are Necessary
+
 Some tests legitimately need external dependencies:
 
 1. **End-to-End Tests**: Full system integration
@@ -147,6 +160,7 @@ Some tests legitimately need external dependencies:
 3. **Infrastructure Tests**: Testing deployment/operations
 
 ### Handling These Cases
+
 - Move to separate `e2e/` or `smoke/` test directories
 - Mark with `@pytest.mark.e2e` or `@pytest.mark.slow`
 - Skip by default in CI (`pytest -m "not e2e"`)
@@ -155,6 +169,7 @@ Some tests legitimately need external dependencies:
 ## Migration Checklist
 
 ### For Each Problematic Test File:
+
 - [ ] Identify all external dependencies (processes, databases, files)
 - [ ] Create in-process equivalent using TestClient/mocks
 - [ ] Replace polling loops with deterministic checks
@@ -164,6 +179,7 @@ Some tests legitimately need external dependencies:
 - [ ] Update test documentation
 
 ### Quality Gates:
+
 - [ ] All unit tests run < 1s each
 - [ ] All integration tests run < 5s each
 - [ ] No `subprocess.Popen` in unit/integration tests
@@ -173,11 +189,13 @@ Some tests legitimately need external dependencies:
 ## Results
 
 ### Performance Improvements
+
 - **Test Execution**: 10x faster (no process startup/shutdown)
 - **Reliability**: 99%+ pass rate (eliminated race conditions)
 - **Developer Experience**: Instant feedback, easy debugging
 
 ### Maintainability Improvements
+
 - **No Environment Setup**: Tests run on any machine
 - **Parallel Execution**: Safe to run tests concurrently
 - **Clear Failures**: Deterministic failure modes

@@ -7,7 +7,7 @@ Isolated from session management and scoring logic.
 
 import logging
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, field_validator
 
 from core.enums import GameDifficulty, GameType
 
@@ -78,9 +78,7 @@ class GameQuestionService:
         else:  # comprehension
             return self._generate_comprehension_questions(total_questions)
 
-    def _normalize_enum_values(
-        self, game_type: str | GameType, difficulty: str | GameDifficulty
-    ) -> tuple[str, str]:
+    def _normalize_enum_values(self, game_type: str | GameType, difficulty: str | GameDifficulty) -> tuple[str, str]:
         """Normalize enum values to strings"""
         if isinstance(game_type, GameType):
             game_type = game_type.value

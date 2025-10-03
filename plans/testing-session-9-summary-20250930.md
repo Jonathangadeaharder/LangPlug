@@ -230,7 +230,7 @@ mock_session.commit.assert_called_once()  # ✅ KEPT
 6. **commit.assert_not_called()**: Testing internal transaction decision
    - **Alternative**: Test exception is raised
 
-7. **Internal method assertions**: Testing private method calls (_execute__, *track*_)
+7. **Internal method assertions**: Testing private method calls (_execute\_\_, *track*_)
    - **Alternative**: Test public interface behavior
 
 8. **Delegation assertions**: Testing wrapper service calls underlying service

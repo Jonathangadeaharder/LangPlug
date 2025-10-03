@@ -131,7 +131,7 @@ describe('Auth API Contract Tests', () => {
       expect(userResponse.is_superuser).toBeTypeOf('boolean');
       expect(userResponse.is_active).toBeTypeOf('boolean');
       expect(userResponse.created_at).toBeTypeOf('string');
-      
+
       // last_login is optional
       expect(userResponse.last_login === null || typeof userResponse.last_login === 'string').toBe(true);
     });

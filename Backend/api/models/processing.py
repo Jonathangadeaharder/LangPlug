@@ -108,9 +108,6 @@ class SelectiveTranslationRequest(BaseModel):
 
     model_config = ConfigDict(
         json_schema_extra={
-            "example": {
-                "srt_path": "/subtitles/episode_german.srt",
-                "known_words": ["der", "die", "das", "und", "ist"]
-            }
+            "example": {"srt_path": "/subtitles/episode_german.srt", "known_words": ["der", "die", "das", "und", "ist"]}
         }
     )

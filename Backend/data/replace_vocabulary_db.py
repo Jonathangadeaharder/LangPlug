@@ -87,7 +87,7 @@ class VocabularyDatabaseReplacer:
 
             for table in tables_to_clear:
                 # Safe: table names are from hardcoded whitelist, not user input
-                cursor.execute(f"DELETE FROM {table}")  # noqa: S608
+                cursor.execute(f"DELETE FROM {table}")
                 deleted_count = cursor.rowcount
                 self.logger.info(f"Cleared {deleted_count} records from {table}")
 

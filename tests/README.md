@@ -106,12 +106,12 @@ assert(response.data.access_token.length > 50);
 const authResult = await WorkflowAssertions.assertAuthenticationWorkflow(
   page,
   credentials,
-  '/dashboard'
+  "/dashboard",
 );
-assertResult(authResult, 'login-workflow');
+assertResult(authResult, "login-workflow");
 
 // Use isolated test sessions
-await withTestSession('test-name', async (session) => {
+await withTestSession("test-name", async (session) => {
   // Test logic with automatic cleanup
 });
 ```
@@ -120,14 +120,14 @@ await withTestSession('test-name', async (session) => {
 
 ```typescript
 // DOM element counting (NEVER)
-const elements = await page.$$('.vocab-word');
+const elements = await page.$$(".vocab-word");
 expect(elements.length).toBeGreaterThan(0); // ❌
 
 // Status code tolerance (NEVER)
 expect([200, 500]).toContain(response.status); // ❌
 
 // Array index selectors (NEVER)
-await page.click('button:nth-child(1)'); // ❌
+await page.click("button:nth-child(1)"); // ❌
 
 // Mock call counting (NEVER)
 expect(mockFn).toHaveBeenCalledTimes(3); // ❌
@@ -169,12 +169,13 @@ async def test_login_with_email_succeeds(test_user_credentials):
 **Technology**: Puppeteer + Jest with semantic selectors
 
 ```typescript
-it('should complete full registration workflow', async () => {
-  await withTestSession('registration', async (session) => {
+it("should complete full registration workflow", async () => {
+  await withTestSession("registration", async (session) => {
     const formExists = await DomAssertions.assertElementExists(
-      page, '[data-testid="registration-form"]'
+      page,
+      '[data-testid="registration-form"]',
     );
-    assertResult(formExists, 'registration-form-presence');
+    assertResult(formExists, "registration-form-presence");
   });
 });
 ```
@@ -186,8 +187,8 @@ it('should complete full registration workflow', async () => {
 **Technology**: Playwright with behavior assertions
 
 ```typescript
-test('complete user registration and login flow', async ({ page }) => {
-  await withTestSession('e2e-auth-flow', async (session) => {
+test("complete user registration and login flow", async ({ page }) => {
+  await withTestSession("e2e-auth-flow", async (session) => {
     await page.fill('[data-testid="email-input"]', session.user.email);
     await page.click('[data-testid="register-button"]');
     await expect(page).toHaveURL(/\/(dashboard|videos)/);
@@ -229,7 +230,7 @@ All tests use isolated test sessions with automatic cleanup:
 
 ```typescript
 // Creates unique user, videos, vocabulary for this test
-await withTestSession('test-name', async (session) => {
+await withTestSession("test-name", async (session) => {
   // session.user - unique test user
   // session.videos - test video files
   // session.vocabulary - test vocabulary data
@@ -237,7 +238,7 @@ await withTestSession('test-name', async (session) => {
 });
 
 // For authenticated tests
-await withAuthenticatedUser('test-name', async (session, user) => {
+await withAuthenticatedUser("test-name", async (session, user) => {
   // user.accessToken - valid auth token
   // Automatic user cleanup
 });
@@ -312,16 +313,19 @@ npx ts-node tests/run-all-tests.ts --json
 ### Common Issues
 
 **Tests fail with "Element not found"**
+
 - Check that `data-testid` attributes exist in components
 - Verify selectors match actual DOM structure
 - Use browser dev tools to inspect elements
 
 **API tests fail with connection errors**
+
 - Ensure backend server is running
 - Check environment variables for correct URLs
 - Verify firewall/network settings
 
 **E2E tests timeout**
+
 - Increase timeout with `--timeout=60`
 - Check if frontend/backend servers are responding
 - Run with `--verbose` for detailed logs
@@ -358,9 +362,12 @@ cd Frontend && npm test -- --watch
 <div data-testid="error-message" class="error">Error text</div>
 
 <!-- Avoid: Implementation-dependent selectors -->
-<button class="btn btn-primary">Sign In</button> <!-- Styling classes -->
-<input id="input_1234">                          <!-- Generated IDs -->
-<div>Error text</div>                            <!-- No semantic meaning -->
+<button class="btn btn-primary">Sign In</button>
+<!-- Styling classes -->
+<input id="input_1234" />
+<!-- Generated IDs -->
+<div>Error text</div>
+<!-- No semantic meaning -->
 ```
 
 ## Migration Notes
@@ -368,6 +375,7 @@ cd Frontend && npm test -- --watch
 ### From Old Test System
 
 The old test files have been removed:
+
 - `tests/integration/frontend-integration.test.ts` → `tests/integration/frontend-behavior-tests.test.ts`
 - `tests/e2e/simple-*.ts` → `tests/e2e/workflow-tests.test.ts`
 - `Backend/test_login.py` → `Backend/tests/api/test_auth_login_workflow.py`

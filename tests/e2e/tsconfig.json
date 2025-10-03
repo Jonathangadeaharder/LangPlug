@@ -10,10 +10,6 @@
     "resolveJsonModule": true,
     "types": ["jest", "node", "puppeteer"]
   },
-  "include": [
-    "**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
 }

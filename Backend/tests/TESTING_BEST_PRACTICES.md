@@ -9,6 +9,7 @@ This document outlines the best practices for testing in the LangPlug Backend pr
 ### Base Classes
 
 #### DatabaseTestBase (`tests/base.py`)
+
 - **Purpose**: Provides standardized database session mocking with proper isolation
 - **Usage**: Inherit from this class for any test that needs database interaction
 - **Key Features**:
@@ -29,6 +30,7 @@ class TestMyService(DatabaseTestBase):
 ```
 
 #### ServiceTestBase (`tests/base.py`)
+
 - **Purpose**: Enhanced database testing for service layer tests
 - **Usage**: For testing business logic services that interact with the database
 - **Key Features**:
@@ -37,6 +39,7 @@ class TestMyService(DatabaseTestBase):
   - Transaction validation
 
 #### RouteTestBase (`tests/base.py`)
+
 - **Purpose**: API route testing with proper dependency injection mocking
 - **Usage**: For testing FastAPI routes and endpoints
 - **Key Features**:
@@ -71,6 +74,7 @@ mock_context = StandardMockPatterns.mock_fastapi_dependency_context(mock_session
 
 **Scope**: Individual functions and methods in isolation
 **Principles**:
+
 - Test one function at a time
 - Mock external dependencies while keeping fixtures lightweight
 - Focus on business logic that surfaces through return values or observable side-effects
@@ -78,6 +82,7 @@ mock_context = StandardMockPatterns.mock_fastapi_dependency_context(mock_session
 - Fast execution (< 100ms per test)
 
 **Example Structure**:
+
 ```python
 class TestAuthService(ServiceTestBase):
     async def test_register_user_success(self, isolated_mock_session):
@@ -101,6 +106,7 @@ class TestAuthService(ServiceTestBase):
 
 **Scope**: Multiple components working together
 **Principles**:
+
 - Test component interactions
 - Use in-memory databases when possible
 - Validate data flow between layers
@@ -110,6 +116,7 @@ class TestAuthService(ServiceTestBase):
 
 **Scope**: HTTP endpoint testing
 **Principles**:
+
 - Test complete request/response cycle
 - Mock database dependencies
 - Validate status codes and response structure
@@ -118,7 +125,9 @@ class TestAuthService(ServiceTestBase):
 ## Mock Isolation Strategies
 
 ### The Problem
+
 Tests can fail due to mock pollution, where mocks from one test affect another test. This manifests as:
+
 - Tests that pass individually but fail in groups
 - Intermittent failures
 - Tests dependent on execution order
@@ -126,6 +135,7 @@ Tests can fail due to mock pollution, where mocks from one test affect another t
 ### Solution: Proper Mock Isolation
 
 #### 1. Use Fresh Mock Instances
+
 ```python
 # ❌ BAD: Shared mock instance
 @pytest.fixture
@@ -139,6 +149,7 @@ def fresh_mock_session():
 ```
 
 #### 2. Configure Mock State Per Test
+
 ```python
 def test_user_exists(self, auth_service):
     service, mock_session = auth_service
@@ -152,6 +163,7 @@ def test_user_exists(self, auth_service):
 ```
 
 #### 3. Use Context Managers for Patches
+
 ```python
 def test_with_external_dependency(self):
     with patch('module.external_service') as mock_service:
@@ -387,6 +399,7 @@ def test_with_debugging(self, mock_session):
 ### Upgrading Existing Tests
 
 1. **Inherit from Base Classes**:
+
    ```python
    # Before
    class TestMyService:
@@ -398,6 +411,7 @@ def test_with_debugging(self, mock_session):
    ```
 
 2. **Use Standardized Mocks**:
+
    ```python
    # Before
    mock_session = AsyncMock()
@@ -407,6 +421,7 @@ def test_with_debugging(self, mock_session):
    ```
 
 3. **Add Validation**:
+
    ```python
    # Before
    result = await service.create_user(data)
@@ -424,6 +439,7 @@ def test_with_debugging(self, mock_session):
 ## Performance Guidelines
 
 ### Target Metrics
+
 - **Unit tests**: < 100ms per test
 - **Integration tests**: < 1s per test
 - **Mock cleanup rate**: > 80%
@@ -432,6 +448,7 @@ def test_with_debugging(self, mock_session):
 ### Performance Monitoring
 
 The test infrastructure automatically monitors:
+
 - Execution time per test
 - Memory usage patterns
 - Mock cleanup rates
@@ -442,6 +459,7 @@ Results are reported at the end of each test session.
 ## Conclusion
 
 Following these best practices will lead to:
+
 - **Reliable tests**: Consistent results across environments
 - **Maintainable tests**: Easy to understand and modify
 - **Fast feedback**: Quick identification of issues

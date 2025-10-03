@@ -25,4 +25,3 @@ python -m pytest -v
 
 Write-Host "[Done] Tests completed. To stop Postgres:"
 Write-Host "  docker compose -f docker-compose.postgresql.yml stop db"
-

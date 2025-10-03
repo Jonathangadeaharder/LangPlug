@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.enums import GameDifficulty, GameSessionStatus, GameType
 from database.models import GameSession as GameSessionRecord
 
-from .game_question_service import GameQuestion, GameQuestionService
+from .game_question_service import GameQuestionService
 from .game_scoring_service import GameScoringService
 
 logger = logging.getLogger(__name__)

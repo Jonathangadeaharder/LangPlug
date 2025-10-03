@@ -25,12 +25,14 @@ Qwen Code CLI has been configured to ignore specific directories and file types 
 The main configuration file includes:
 
 #### File Filtering Options:
+
 - `respectGitIgnore: true` - Honors all patterns in .gitignore files
 - `enableRecursiveFileSearch: true` - Enables deep directory traversal
 - `excludePatterns` - Explicit patterns to exclude
 - `includePatterns` - File types to include in searches
 
 #### Key Excluded Directories:
+
 - **Dependencies**: `node_modules`, `venv`, `env`, virtual environments
 - **Build outputs**: `dist`, `build`, `out`, `.next`, `.nuxt`
 - **Cache directories**: `.cache`, `.pytest_cache`, `.mypy_cache`, `.ruff_cache`
@@ -41,6 +43,7 @@ The main configuration file includes:
 - **Backup files**: `.backup`, `.bak`, `.old`, backup directories
 
 #### Included File Types:
+
 - Source code: `.py`, `.ts`, `.tsx`, `.js`, `.jsx`
 - Configuration: `.json`, `.yml`, `.yaml`, `.toml`, `.ini`
 - Documentation: `.md`, `.txt`
@@ -96,6 +99,7 @@ playwright/.cache/
 Based on the LangPlug project structure analysis, the following directories are specifically excluded:
 
 ### Backend Directory:
+
 - `Backend/venv/` - Python virtual environment
 - `Backend/data/*.db*` - Database files and WAL files
 - `Backend/videos/` - Video content directory
@@ -103,11 +107,13 @@ Based on the LangPlug project structure analysis, the following directories are 
 - `Backend/.pytest_cache/` - Pytest cache
 
 ### Frontend Directory:
+
 - `Frontend/node_modules/` - Node.js dependencies (if present)
 - `Frontend/dist/` - Build output
 - Build tool caches
 
 ### Root Level:
+
 - `videos/` - Video content directory
 - `.claude/` - Claude AI configuration
 - Various log and temporary files
@@ -137,6 +143,7 @@ The configuration includes performance settings:
 To verify the configuration is working:
 
 ### 1. Check Qwen Code CLI Recognition
+
 ```bash
 # Navigate to project root
 cd c:\Users\Jonandrop\IdeaProjects\LangPlug
@@ -146,6 +153,7 @@ qwen --help
 ```
 
 ### 2. Test Search Exclusions
+
 ```bash
 # These searches should NOT return results from excluded directories:
 qwen search "import" --include-pattern="*.py"
@@ -159,6 +167,7 @@ qwen search "*.db"
 ```
 
 ### 3. Test Search Inclusions
+
 ```bash
 # These searches should work normally:
 qwen search "FastAPI" --include-pattern="*.py"
@@ -172,6 +181,7 @@ qwen search "export" --include-pattern="*.ts"
 ```
 
 ### 4. Verify File Filtering
+
 ```bash
 # List files that Qwen Code CLI will index:
 qwen list-files
@@ -181,6 +191,7 @@ qwen list-files
 ## Configuration Hierarchy
 
 Qwen Code CLI uses this configuration priority order:
+
 1. Command-line arguments (highest priority)
 2. Environment variables
 3. **Project settings** (`.qwen/settings.json`) ← Our configuration
@@ -191,18 +202,21 @@ Qwen Code CLI uses this configuration priority order:
 ## Troubleshooting
 
 ### If exclusions aren't working:
+
 1. Verify `.qwen/settings.json` syntax is valid JSON
 2. Check that `respectGitIgnore` is set to `true`
 3. Ensure `.gitignore` patterns are correctly formatted
 4. Try clearing Qwen Code CLI cache: `qwen clear-cache`
 
 ### If searches are too slow:
+
 1. Add more specific `excludePatterns`
 2. Reduce `indexingDepth` in `codeAnalysis`
 3. Lower `maxFileSize` limit
 4. Increase `cacheTimeout` for better caching
 
 ### If important files are excluded:
+
 1. Add specific patterns to `includePatterns`
 2. Use more specific `excludePatterns` instead of broad wildcards
 3. Check `.gitignore` for overly broad patterns
@@ -210,6 +224,7 @@ Qwen Code CLI uses this configuration priority order:
 ## Maintenance
 
 Regularly review and update:
+
 1. **New dependencies**: Add new package manager directories
 2. **Build tools**: Add new build output directories
 3. **IDE changes**: Update IDE-specific exclusions

@@ -206,7 +206,7 @@ assert known_words1 == known_words2  # ✅ Test behavior (fresh data returned)
 7. **commit.assert_not_called()**: Testing internal transaction decision
    - **Alternative**: Test exception is raised
 
-8. **Internal method assertions**: Testing private method calls (_execute__, *track*_)
+8. **Internal method assertions**: Testing private method calls (_execute\_\_, *track*_)
    - **Alternative**: Test public interface behavior
 
 9. **Delegation assertions**: Testing wrapper service calls underlying service

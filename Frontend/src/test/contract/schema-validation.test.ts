@@ -225,10 +225,10 @@ describe('Schema Validation Tests', () => {
 
     it('should provide safe parsing option', () => {
       const invalidUser = { id: 'invalid' };
-      
+
       const result = UserResponseSchema.safeParse(invalidUser);
       expect(result.success).toBe(false);
-      
+
       if (!result.success) {
         expect(result.error.issues).toBeDefined();
       }

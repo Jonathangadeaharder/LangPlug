@@ -25,7 +25,7 @@ export class PortDetector {
    */
   static async detectRunningPorts(timeout = 5000): Promise<ServerPorts> {
     console.log('🔍 Detecting running server ports...');
-    
+
     const [frontend, backend] = await Promise.all([
       this.detectFrontendPort(timeout),
       this.detectBackendPort(timeout)
@@ -45,22 +45,22 @@ export class PortDetector {
     // Try known working ports for the frontend
     const testPorts = [3000, 3001, 3002, 3003, 3004, 5173];
     const hosts = ['localhost', '127.0.0.1'];
-    
+
     for (const port of testPorts) {
       for (const host of hosts) {
         const url = `http://${host}:${port}`;
         try {
-          const response = await axios.get(url, { 
+          const response = await axios.get(url, {
             timeout: Math.min(timeout, 3000), // Shorter timeout to avoid hanging
             validateStatus: () => true,
             proxy: false
           });
-          
+
           // Simplified detection - just check for HTML response
-          if (response.status === 200 && 
+          if (response.status === 200 &&
               typeof response.data === 'string' &&
               response.data.toLowerCase().includes('html')) {
-            
+
             console.log(`✅ Frontend detected at ${url}`);
             return { url, port };
           }
@@ -70,7 +70,7 @@ export class PortDetector {
         }
       }
     }
-    
+
     // Fallback: assume port 3000 if servers should be running
     console.log('⚠️ Using fallback frontend URL: http://localhost:3000');
     return { url: 'http://localhost:3000', port: 3000 };
@@ -82,18 +82,18 @@ export class PortDetector {
   private static async detectBackendPort(timeout: number) {
     // Try known working ports for the backend
     const testPorts = [8000, 8001];
-    
+
     for (const port of testPorts) {
       const url = `http://127.0.0.1:${port}`;
-      
+
       try {
         // Try the health endpoint first (more reliable than docs)
-        const response = await axios.get(`${url}/health`, { 
+        const response = await axios.get(`${url}/health`, {
           timeout: Math.min(timeout, 3000),
           validateStatus: () => true,
           proxy: false
         });
-        
+
         if (response.status === 200) {
           console.log(`✅ Backend detected at ${url}`);
           return { url, port };
@@ -103,7 +103,7 @@ export class PortDetector {
         continue;
       }
     }
-    
+
     // Fallback: assume port 8000 if servers should be running
     console.log('⚠️ Using fallback backend URL: http://127.0.0.1:8000');
     return { url: 'http://127.0.0.1:8000', port: 8000 };
@@ -140,15 +140,15 @@ export class PortDetector {
    */
   static async getRequiredServerUrls(): Promise<{ frontendUrl: string; backendUrl: string }> {
     const ports = await this.detectRunningPorts();
-    
+
     if (!ports.frontend) {
       throw new Error('Frontend server not detected. Please start the frontend server (npm run dev)');
     }
-    
+
     if (!ports.backend) {
       throw new Error('Backend server not detected. Please start the backend server (python main.py)');
     }
-    
+
     return {
       frontendUrl: ports.frontend.url,
       backendUrl: ports.backend.url

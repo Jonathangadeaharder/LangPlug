@@ -18,8 +18,8 @@ from .config import ServerStatus
 
 class Server:
     """Represents a managed server instance"""
-    
-    def __init__(self, name: str, port: int, health_url: str, start_cmd: List[str], 
+
+    def __init__(self, name: str, port: int, health_url: str, start_cmd: List[str],
                  cwd: Path, startup_time: int = 10, max_retries: int = 3):
         self.name = name
         self.port = port
@@ -33,7 +33,7 @@ class Server:
         self.status = ServerStatus.STOPPED
         self.start_time: Optional[datetime] = None
         self.health_check_failures = 0
-        
+
     def is_port_in_use(self) -> bool:
         """Check if the server's port is already in use"""
         try:
@@ -43,16 +43,16 @@ class Server:
                 return result == 0
         except:
             return False
-    
+
     def check_health(self) -> bool:
         """Check if server is healthy via HTTP endpoint"""
         if not self.health_url:
             return self.pid is not None and psutil.pid_exists(self.pid)
-        
+
         if requests is None:
             # Fallback to process check if requests not available
             return self.pid is not None and psutil.pid_exists(self.pid)
-        
+
         try:
             # For frontend, accept any response (Vite may return 404 for root)
             if self.name == "frontend":
@@ -64,7 +64,7 @@ class Server:
                 return response.status_code == 200
         except:
             return False
-    
+
     def is_process_alive(self) -> bool:
         """Check if the process is still running"""
         if not self.pid:
@@ -73,12 +73,12 @@ class Server:
             return psutil.pid_exists(self.pid)
         except:
             return False
-    
+
     def get_process_info(self) -> Dict:
         """Get detailed process information"""
         if not self.pid or not psutil.pid_exists(self.pid):
             return {}
-        
+
         try:
             proc = psutil.Process(self.pid)
             return {

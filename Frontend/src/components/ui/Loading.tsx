@@ -18,10 +18,10 @@ const spin = keyframes`
 `;
 
 const bounce = keyframes`
-  0%, 80%, 100% { 
+  0%, 80%, 100% {
     transform: scale(0);
   }
-  40% { 
+  40% {
     transform: scale(1);
   }
 `;
@@ -84,7 +84,7 @@ const LoadingContainer = styled.div.withConfig({
     bottom: 0;
     z-index: ${({ theme }) => theme.zIndex.modal};
   `}
-  
+
   ${({ overlay, theme }) => overlay && css`
     background: ${theme.colors.overlay};
     backdrop-filter: blur(4px);
@@ -157,7 +157,7 @@ const NetflixBar = styled.div<{ index: number; color?: string }>`
   top: 50%;
   transform-origin: center;
   animation: ${netflix} 2s ease-in-out ${({ index }) => index * 0.15}s infinite;
-  
+
   ${({ index }) => css`
     transform: translate(-50%, -50%) rotate(${index * 30}deg);
   `}
@@ -172,9 +172,9 @@ const LoadingText = styled(motion.p)`
 `;
 
 // Skeleton loader for content
-export const Skeleton = styled.div<{ 
-  width?: string; 
-  height?: string; 
+export const Skeleton = styled.div<{
+  width?: string;
+  height?: string;
   radius?: string;
   animation?: boolean;
 }>`
@@ -184,7 +184,7 @@ export const Skeleton = styled.div<{
   border-radius: ${({ radius, theme }) => radius || theme.radius.md};
   position: relative;
   overflow: hidden;
-  
+
   ${({ animation = true }) => animation && css`
     &::after {
       content: '';
@@ -201,7 +201,7 @@ export const Skeleton = styled.div<{
       );
       animation: shimmer 2s linear infinite;
     }
-    
+
     @keyframes shimmer {
       0% {
         transform: translateX(-100%);
@@ -239,7 +239,7 @@ export const Loading: React.FC<LoadingProps> = ({
             ))}
           </DotsContainer>
         );
-      
+
       case 'bars':
         return (
           <BarsContainer>
@@ -253,12 +253,12 @@ export const Loading: React.FC<LoadingProps> = ({
             ))}
           </BarsContainer>
         );
-      
+
       case 'pulse':
         return (
           <PulseRing size={sizeValue.spinner} color={color} />
         );
-      
+
       case 'netflix':
         return (
           <NetflixContainer>
@@ -267,7 +267,7 @@ export const Loading: React.FC<LoadingProps> = ({
             ))}
           </NetflixContainer>
         );
-      
+
       default:
         return (
           <Spinner size={sizeValue.spinner} color={color} />

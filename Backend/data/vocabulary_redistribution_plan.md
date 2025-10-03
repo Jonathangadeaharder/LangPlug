@@ -3,36 +3,41 @@
 ## Current Distribution vs Target
 
 | Level | Current | Target | Change Needed |
-|-------|---------|---------|---------------|
-| A1    | 746     | 600     | -146          |
-| A2    | 665     | 600     | -65           |
-| B1    | 808     | 1,200   | +392          |
-| B2    | 2,692   | 2,500   | -192          |
-| C1    | 2,367   | 5,000   | +2,633        |
+| ----- | ------- | ------ | ------------- |
+| A1    | 746     | 600    | -146          |
+| A2    | 665     | 600    | -65           |
+| B1    | 808     | 1,200  | +392          |
+| B2    | 2,692   | 2,500  | -192          |
+| C1    | 2,367   | 5,000  | +2,633        |
 
 ## Analysis of Misplaced Vocabulary
 
 ### A1 Level Issues
+
 - Contains advanced words like "Abonnement", "automatisch", "Arbeitserlaubnis"
 - Has complex grammatical forms and compound words
 - Includes words that require cultural context beyond basic daily life
 
 ### A2 Level Issues
+
 - Contains some B1-level vocabulary
 - Mixed complexity within categories
 - Some words require intermediate grammar understanding
 
 ### B1 Level Issues
+
 - Needs more intermediate vocabulary to reach target
 - Currently missing many common workplace/education terms
 - Lacks sufficient transitional vocabulary between A2 and B2
 
 ### B2 Level Issues
+
 - Contains many C1-level academic and specialized terms
 - Has advanced compound words and technical vocabulary
 - Over-represents certain semantic fields
 
 ### C1 Level Issues
+
 - Severely under-populated for advanced level
 - Needs significant addition of academic, professional, and specialized vocabulary
 - Missing complex grammatical structures and abstract concepts
@@ -40,6 +45,7 @@
 ## Detailed Swap Recommendations
 
 ### Phase 1: A1 → A2 (75 words)
+
 Move overly complex A1 words to A2:
 
 1. Abonnement → A2 (subscription concept requires understanding of ongoing services)
@@ -119,6 +125,7 @@ Move overly complex A1 words to A2:
 75. Behaupten → A2 (assertion)
 
 ### Phase 2: A1 → B1 (71 words)
+
 Move very complex A1 words directly to B1:
 
 1. Behindern → B1 (obstruction concept)
@@ -194,6 +201,7 @@ Move very complex A1 words directly to B1:
 71. Dauer → B1 (duration concept)
 
 ### Phase 3: A2 → B1 (65 words)
+
 Move all remaining A2 words to B1 to reach A2 target:
 
 1. Abschließen → B1 (completion concept)
@@ -263,6 +271,7 @@ Move all remaining A2 words to B1 to reach A2 target:
 65. Datei → B1 (digital file concept)
 
 ### Phase 4: B2 → B1 (252 words)
+
 Move less complex B2 words to B1:
 
 [Selected 252 B2 words that are more appropriate for B1 level based on frequency of use, grammatical complexity, and semantic accessibility]
@@ -277,9 +286,10 @@ Move less complex B2 words to B1:
 8. Abstand → B1 (distance)
 9. Abteil → B1 (compartment)
 10. Abzug → B1 (deduction)
-[... continuing with remaining 242 words...]
+    [... continuing with remaining 242 words...]
 
 ### Phase 5: B2 → C1 (2825 words)
+
 Move advanced B2 vocabulary to C1:
 
 [This includes all remaining B2 words that represent advanced vocabulary, technical terms, academic language, complex grammatical structures, and specialized professional terminology]
@@ -289,21 +299,24 @@ Move advanced B2 vocabulary to C1:
 3. Abstammung → C1 (genealogical concept)
 4. Achterbahn → C1 (metaphorical usage potential)
 5. Ackerbau → C1 (agricultural terminology)
-[... continuing with remaining 2820 words...]
+   [... continuing with remaining 2820 words...]
 
 ## Implementation Strategy
 
 ### Phase 1 Priority: Basic Level Corrections
+
 1. Move overly complex words out of A1 and A2
 2. Ensure A1 contains only absolute basics: family, food, basic actions
 3. Ensure A2 contains common conversational topics
 
 ### Phase 2 Priority: Intermediate Building
+
 1. Build B1 to proper size with transitional vocabulary
 2. Include workplace basics, education terms, social concepts
 3. Balance concrete and abstract concepts appropriately
 
 ### Phase 3 Priority: Advanced Completion
+
 1. Move sophisticated vocabulary to C1
 2. Include academic, professional, and specialized terms
 3. Ensure C1 reflects advanced language proficiency requirements
@@ -311,6 +324,7 @@ Move advanced B2 vocabulary to C1:
 ## Linguistic Justification Principles
 
 ### A1 Level Criteria:
+
 - High-frequency daily vocabulary
 - Concrete concepts
 - Basic family, food, time, numbers
@@ -318,6 +332,7 @@ Move advanced B2 vocabulary to C1:
 - Cultural universals
 
 ### A2 Level Criteria:
+
 - Extended daily situations
 - Basic work/education vocabulary
 - Simple abstract concepts
@@ -325,6 +340,7 @@ Move advanced B2 vocabulary to C1:
 - Cultural specifics
 
 ### B1 Level Criteria:
+
 - Workplace communication
 - Education and career topics
 - Complex past and future
@@ -332,6 +348,7 @@ Move advanced B2 vocabulary to C1:
 - Cultural comparison
 
 ### B2 Level Criteria:
+
 - Professional communication
 - Academic topics
 - Complex grammatical structures
@@ -339,6 +356,7 @@ Move advanced B2 vocabulary to C1:
 - Specialized interests
 
 ### C1 Level Criteria:
+
 - Academic and professional mastery
 - Complex abstract concepts
 - Nuanced expression

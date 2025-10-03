@@ -64,6 +64,7 @@
 ```
 
 **Distribution Goal**:
+
 - **Unit Tests**: 70-75% (fast, focused, isolated)
 - **Integration Tests**: 20-25% (API contracts, service integration)
 - **E2E Tests**: 3-5% (critical user workflows)
@@ -639,6 +640,7 @@ def random_user():
 ### When to Mock
 
 ✅ **DO mock**:
+
 - External APIs (OpenAI, translation services)
 - Slow operations (AI model inference)
 - File system operations (in unit tests)
@@ -646,6 +648,7 @@ def random_user():
 - Random number generation
 
 ❌ **DON'T mock**:
+
 - Your own business logic
 - Database operations (use transactions instead)
 - Simple functions
@@ -918,6 +921,7 @@ def test_delete_user_removes_from_database():
 Before submitting a test, verify:
 
 ### Functionality
+
 - [ ] Test has a clear, descriptive name
 - [ ] Test verifies behavior, not implementation
 - [ ] Test is focused on one scenario
@@ -925,24 +929,28 @@ Before submitting a test, verify:
 - [ ] Expected outcomes are clearly asserted
 
 ### Independence
+
 - [ ] Test does not depend on other tests
 - [ ] Test does not share mutable state
 - [ ] Test cleans up after itself
 - [ ] Test can run in any order
 
 ### Maintainability
+
 - [ ] Test uses fixtures appropriately
 - [ ] Test avoids duplication (DRY principle)
 - [ ] Test has docstring explaining what it verifies
 - [ ] Test is easy to understand
 
 ### Performance
+
 - [ ] Unit test runs in < 100ms
 - [ ] Integration test runs in < 1s
 - [ ] Test does not sleep unnecessarily
 - [ ] Test uses appropriate mocking
 
 ### Coverage
+
 - [ ] Test covers happy path
 - [ ] Test covers error cases
 - [ ] Test covers edge cases

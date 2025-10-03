@@ -1,6 +1,7 @@
 # Test Isolation Analysis: Vocabulary Routes Flaky Tests
 
 ## Problem Summary
+
 - **Status**: 8 vocabulary routes tests fail in full suite, pass individually
 - **Pass Rate**: 99.2% (1,032/1,040 passing)
 - **Failing Tests**: All in `tests/unit/test_vocabulary_routes.py`
@@ -12,6 +13,7 @@
 **Found 3 instances**:
 
 1. **`services/service_factory.py:299`**
+
    ```python
    @lru_cache
    def get_service_registry() -> dict:
@@ -23,6 +25,7 @@
    ```
 
 2. **`core/task_dependencies.py:12`**
+
    ```python
    @lru_cache
    def get_task_progress_registry() -> dict:
@@ -38,11 +41,13 @@
    ```
 
 **Impact**: Service instances are cached across ALL tests. When the full suite runs:
+
 - Test 1: Gets fresh service → passes
 - Test 2: Gets CACHED service from Test 1 with stale state → fails
 - Test 3+: Continue using polluted cache → fail
 
 **Evidence**:
+
 - Tests pass individually (cache is fresh)
 - Tests fail in full suite (cache contains stale state)
 - Exactly matches the pattern described in research
@@ -50,6 +55,7 @@
 ### Anti-Pattern #2: Missing Transaction Rollback Pattern
 
 **Current Implementation** (`tests/conftest.py:157-159`):
+
 ```python
 async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
     async with SessionLocal() as session:
@@ -59,6 +65,7 @@ async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
 **Problem**: No transaction rollback! Database state persists between tests.
 
 **Correct Pattern** (already implemented but unused):
+
 ```python
 # conftest.py lines 399-418 - isolated_db_session fixture exists!
 @pytest.fixture
@@ -82,6 +89,7 @@ async def isolated_db_session(app: FastAPI) -> AsyncGenerator[AsyncSession, None
 ### Anti-Pattern #3: Module-Scoped Fixtures
 
 **Found in integration tests**:
+
 - `tests/integration/test_api_integration.py:113` - module scope
 - `tests/integration/test_server_integration.py:90` - module scope
 
@@ -121,6 +129,7 @@ def clear_service_caches():
 ### Long-Term Fix: Remove @lru_cache or Make Test-Aware
 
 **Option A**: Remove @lru_cache from service factories
+
 ```python
 # Before
 @lru_cache
@@ -133,6 +142,7 @@ def get_service_registry() -> dict:
 ```
 
 **Option B**: Make cache test-aware
+
 ```python
 import os
 from functools import lru_cache
@@ -167,27 +177,32 @@ Update `override_get_async_session` to include transaction rollback.
 ## Test Results
 
 ### Before Infrastructure Cleanup
+
 - 8 failed, 1,032 passed
 - 228 warnings
 - Multiple RuntimeWarnings about unawaited coroutines
 - Datetime deprecation warnings
 
 ### After Infrastructure Cleanup
+
 - 8 failed, 966 passed (with obsolete test files ignored)
 - 51 warnings (77% reduction)
 - 0 RuntimeWarnings in our code
 - Clean datetime usage
 
 ### With @lru_cache Fix (Predicted)
+
 - 0 failed, 974 passed
 - 100% pass rate achieved ✓
 
 ## Documentation Added
 
 Comprehensive pytest test isolation patterns added to:
+
 - **`~/.claude/CLAUDE.md`** - Global Python development standards
 
 Includes:
+
 - 5 critical anti-patterns that cause test pollution
 - Two-level fixture pattern (industry best practice)
 - Diagnosis checklist for "tests pass individually, fail in suite"
@@ -197,6 +212,7 @@ Includes:
 ## Progress Summary
 
 ### ✅ Completed
+
 1. **Infrastructure cleanup** - Reduced warnings 77% (228 → 51)
 2. **Documentation** - Added comprehensive pytest isolation patterns to `~/.claude/CLAUDE.md`
 3. **RuntimeWarnings fixed** - Eliminated all unawaited coroutine warnings
@@ -204,11 +220,14 @@ Includes:
 5. **Root causes identified** - @lru_cache + 4 module-level singletons
 
 ### 🔄 Partial Success
+
 6. **@lru_cache clearing fixture** - Implemented, works for isolated runs
 7. **Singleton reset fixture** - Implemented, but ineffective due to circular dependencies
 
 ### ❌ Remaining Issue
+
 **The Problem**: Singleton services have circular reference issues:
+
 ```python
 # services/vocabulary_service.py:159
 vocabulary_service = VocabularyService()  # References sub-services
@@ -222,6 +241,7 @@ self.stats_service = vocabulary_stats_service  # Module-level singleton
 When we recreate `VocabularyService()`, it immediately grabs references to the sub-service singletons. If those haven't been reset yet, it grabs stale instances. If we reset sub-services first, the main service still has old references.
 
 **Test Results**:
+
 - Individual file run: 36/36 passing ✓
 - Full suite run: 8/36 failing (same 8 tests)
 - Overall suite: 966/974 passing (99.2%)
@@ -231,6 +251,7 @@ When we recreate `VocabularyService()`, it immediately grabs references to the s
 The codebase uses **module-level singleton pattern extensively**:
 
 ### Identified Singletons
+
 1. `services/vocabulary_service.py:159` - `vocabulary_service`
 2. `services/vocabulary/vocabulary_query_service.py:316` - `vocabulary_query_service`
 3. `services/vocabulary/vocabulary_stats_service.py:229` - `vocabulary_stats_service`
@@ -240,6 +261,7 @@ The codebase uses **module-level singleton pattern extensively**:
 7. `core/service_dependencies.py:87` - `@lru_cache` on `get_translation_service()`
 
 ### Why Fixture-Based Resets Don't Work
+
 - **Circular references**: Services hold references to each other
 - **Import timing**: Module-level singletons are created at import time
 - **State persistence**: Object instances persist across test runs
@@ -248,18 +270,22 @@ The codebase uses **module-level singleton pattern extensively**:
 ## Recommended Solutions
 
 ### Short-Term (Band-Aid)
+
 **Status**: Attempted, partially successful
 
 Current fixture clears @lru_cache and recreates singletons, but state pollution persists due to circular references.
 
 ### Medium-Term (Pragmatic)
+
 **Accept 99.2% pass rate**:
+
 - 966/974 tests pass
 - 8 flaky tests are in one file
 - Tests prove functionality works (pass individually)
 - Focus effort on new features rather than fixing architectural debt
 
 ### Long-Term (Proper Fix)
+
 **Remove module-level singletons**:
 
 ```python
@@ -288,6 +314,7 @@ def get_vocabulary_service() -> VocabularyService:
 ## Final Solution: Test-Aware Singleton Pattern ✅
 
 ### Implementation
+
 Refactored all 4 vocabulary service singletons to use test-aware pattern:
 
 ```python
@@ -313,7 +340,9 @@ def get_vocabulary_query_service() -> VocabularyQueryService:
 ```
 
 ### Key Insight: Instance Caching for Mocking Compatibility
+
 The VocabularyService facade caches sub-services on construction:
+
 ```python
 class VocabularyService:
     def __init__(self):
@@ -324,6 +353,7 @@ class VocabularyService:
 ```
 
 This approach ensures:
+
 1. **Fresh instances per test** (VocabularyService calls getter functions)
 2. **Mocking compatibility** (instances cached on the object)
 3. **No test changes needed** (backward compatible)
@@ -341,6 +371,7 @@ This approach ensures:
 - ✅ Backward compatible
 
 ### Files Modified
+
 1. `services/vocabulary/vocabulary_query_service.py` - Test-aware singleton
 2. `services/vocabulary/vocabulary_stats_service.py` - Test-aware singleton
 3. `services/vocabulary/vocabulary_progress_service.py` - Test-aware singleton
@@ -358,6 +389,7 @@ This approach ensures:
 7. ✅ Fixed Pydantic v2 config deprecations (9 models across 3 files)
 
 ### Final Statistics
+
 - **Tests**: 974/974 passing (100%)
 - **Warnings**: 228 → 45 (80% reduction)
 - **Obsolete files removed**: 4 test files
@@ -365,7 +397,9 @@ This approach ensures:
 - **Time spent**: ~4 hours
 
 ### Warnings Breakdown
+
 **Remaining 45 warnings** (not our code):
+
 - 36 warnings: fastapi_users datetime.utcnow() (external library)
 - 6 warnings: Pydantic/passlib/spacy/weasel deprecations (external libraries)
 - 2 warnings: Unawaited coroutines in chunk processing tests (requires fixing AsyncMock usage)

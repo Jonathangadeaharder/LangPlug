@@ -1,6 +1,7 @@
 # Implementation Coupling Elimination Guide
 
 ## Overview
+
 This document outlines the systematic elimination of implementation coupling from unit tests to improve maintainability, refactorability, and test reliability.
 
 ## Problems with Implementation Coupling
@@ -8,6 +9,7 @@ This document outlines the systematic elimination of implementation coupling fro
 ### Identified Anti-Patterns
 
 #### 1. Mock Call Assertion Testing
+
 ```python
 # BAD: Testing implementation details
 mock_session.add.assert_called_once()
@@ -17,24 +19,28 @@ mock_session.delete.assert_called_once_with(mock_progress)
 ```
 
 **Problems**:
+
 - Tests break when implementation changes (even if behavior stays same)
 - Focuses on "how" instead of "what"
 - Creates brittle tests that resist refactoring
 - Makes code harder to improve without breaking tests
 
 #### 2. Private Method Testing
+
 ```python
 # BAD: Testing private implementation
 result = await service._get_user_known_concepts(1, "de")
 ```
 
 **Problems**:
+
 - Couples tests to internal structure
 - Private methods are implementation details that should change freely
 - Prevents refactoring internal structure
 - Tests don't reflect actual usage patterns
 
 #### 3. Complex Mock Setup Chains
+
 ```python
 # BAD: Hard-coding precise execution sequence
 mock_session.execute.side_effect = [
@@ -46,12 +52,14 @@ mock_session.execute.side_effect = [
 ```
 
 **Problems**:
+
 - Tests become coupled to exact query sequence
 - Harmless database query optimization breaks tests
 - Difficult to understand what behavior is being tested
 - Setup code is longer and more complex than the actual test
 
 #### 4. Infrastructure Mock Introspection
+
 ```python
 # BAD: Testing mock internal state
 mock_result.scalars.return_value.all.return_value = [mock_data]
@@ -59,6 +67,7 @@ mock_session.execute.return_value = mock_result
 ```
 
 **Problems**:
+
 - Tests know too much about ORM/database layer structure
 - Changes to database abstraction break unrelated tests
 - Tests become database-implementation specific
@@ -68,6 +77,7 @@ mock_session.execute.return_value = mock_result
 ### Core Principles
 
 #### 1. Test Observable Behavior, Not Implementation
+
 ```python
 # GOOD: Testing what the service does
 @pytest.mark.anyio
@@ -92,6 +102,7 @@ async def test_When_concept_marked_known_Then_user_progress_updated(self, servic
 ```
 
 #### 2. Use Test Doubles That Model Behavior
+
 ```python
 # GOOD: Behavior-focused test double
 class MockVocabularyRepository:
@@ -108,6 +119,7 @@ class MockVocabularyRepository:
 ```
 
 #### 3. Test Public API Only
+
 ```python
 # GOOD: Testing only public interface
 async def test_When_vocabulary_stats_requested_Then_correct_totals_returned(self, service):
@@ -122,6 +134,7 @@ async def test_When_vocabulary_stats_requested_Then_correct_totals_returned(self
 ```
 
 #### 4. Focus on State Changes and Return Values
+
 ```python
 # GOOD: Testing state changes and outputs
 async def test_When_user_marks_multiple_concepts_Then_stats_reflect_progress(self, service, repository):
@@ -143,7 +156,9 @@ async def test_When_user_marks_multiple_concepts_Then_stats_reflect_progress(sel
 ## Refactoring Strategy
 
 ### Step 1: Identify Coupling Patterns
+
 Search for these anti-patterns:
+
 - `.assert_called_once()`
 - `.call_count`
 - `._private_method()`
@@ -151,7 +166,9 @@ Search for these anti-patterns:
 - Mock setup longer than actual test
 
 ### Step 2: Create Behavior-Focused Test Doubles
+
 Instead of mocking infrastructure:
+
 ```python
 # Replace this pattern:
 mock_session = AsyncMock()
@@ -170,6 +187,7 @@ class MockRepository:
 ```
 
 ### Step 3: Test State Changes and Outputs
+
 ```python
 # Replace assertion testing:
 mock_session.add.assert_called_once()
@@ -187,6 +205,7 @@ assert final_count == initial_count + 1
 ```
 
 ### Step 4: Use Data Builders for Complex Setup
+
 ```python
 # Replace complex mock chains with data builders
 user = UserBuilder().with_username("testuser").as_admin().build()
@@ -194,6 +213,7 @@ concepts = TestDataSets.create_german_vocabulary_set()
 ```
 
 ### Step 5: Test Edge Cases Through Public Interface
+
 ```python
 # Test error conditions through public methods
 async def test_When_invalid_concept_id_provided_Then_appropriate_error_returned(self, service):
@@ -205,16 +225,19 @@ async def test_When_invalid_concept_id_provided_Then_appropriate_error_returned(
 ## Benefits of Behavior-Focused Testing
 
 ### Maintainability
+
 - **Refactoring Freedom**: Internal implementation can change without breaking tests
 - **Clear Intent**: Tests document what the code should do, not how it does it
 - **Reduced Brittleness**: Tests survive harmless implementation changes
 
 ### Reliability
+
 - **Deterministic**: Tests focus on predictable state changes
 - **No Race Conditions**: No timing dependencies on mock call order
 - **Clear Failure Modes**: When tests fail, it's clear what behavior broke
 
 ### Design Quality
+
 - **Better APIs**: Writing behavior-focused tests often reveals API design issues
 - **Looser Coupling**: Reduces coupling between components
 - **Easier Testing**: Well-designed public interfaces are easier to test
@@ -222,6 +245,7 @@ async def test_When_invalid_concept_id_provided_Then_appropriate_error_returned(
 ## Migration Checklist
 
 ### For Each Coupled Test:
+
 - [ ] Identify what behavior the test is trying to verify
 - [ ] Remove all `.assert_called_*` and `.call_count` assertions
 - [ ] Replace mock setup with behavior-focused test doubles
@@ -230,6 +254,7 @@ async def test_When_invalid_concept_id_provided_Then_appropriate_error_returned(
 - [ ] Ensure test survives reasonable refactoring scenarios
 
 ### Quality Gates:
+
 - [ ] No tests call private methods (methods starting with `_`)
 - [ ] No tests assert on mock call counts or call arguments
 - [ ] All test setup focuses on input data, not mock configuration
@@ -239,6 +264,7 @@ async def test_When_invalid_concept_id_provided_Then_appropriate_error_returned(
 ## Common Refactoring Patterns
 
 ### Pattern 1: Database Call Testing
+
 ```python
 # Before: Implementation coupling
 mock_session.execute.assert_called_once()
@@ -250,6 +276,7 @@ assert user_exists is True
 ```
 
 ### Pattern 2: Complex Mock Chains
+
 ```python
 # Before: Complex mock setup
 mock_session.execute.side_effect = [
@@ -264,6 +291,7 @@ repository.mark_user_knows_concepts(user_id, count=20)
 ```
 
 ### Pattern 3: Private Method Testing
+
 ```python
 # Before: Testing private methods
 result = await service._get_user_known_concepts(user_id)
@@ -276,11 +304,13 @@ assert stats["total_known"] > 0
 ## Exception Cases
 
 ### When Mock Assertions Are Appropriate
+
 1. **Integration Points**: Testing that external services are called correctly
 2. **Side Effects**: When the primary value is in the side effect, not the return
 3. **Infrastructure**: Testing that infrastructure components are used correctly
 
 ### Examples of Appropriate Mock Testing
+
 ```python
 # Testing external service integration
 email_service = Mock()
@@ -298,12 +328,14 @@ The key is that these are testing the **interaction contract** with external sys
 ## Results
 
 ### Before Refactoring
+
 - Tests break when internal database queries are optimized
 - 40+ lines of mock setup for simple behavior tests
 - Tests fail when private methods are renamed or refactored
 - Difficult to understand what behavior is being tested
 
 ### After Refactoring
+
 - Tests survive major internal refactoring
 - 10-15 lines of clear, intent-revealing test code
 - Tests document expected behavior clearly
