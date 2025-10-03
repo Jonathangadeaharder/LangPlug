@@ -8,7 +8,20 @@ import pytest
 from services.translationservice.factory import TranslationServiceFactory
 from services.translationservice.interface import ITranslationService
 
+# Check if PyTorch is available
+try:
+    import torch  # noqa: F401
 
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+
+skip_if_no_torch = pytest.mark.skipif(
+    not TORCH_AVAILABLE, reason="PyTorch not installed (required for translation models)"
+)
+
+
+@skip_if_no_torch
 class TestTranslationFactoryParameterVariations:
     """Test factory service creation with all parameter variations"""
 
@@ -106,6 +119,7 @@ class TestTranslationFactoryParameterVariations:
             assert isinstance(service, ITranslationService)
 
 
+@skip_if_no_torch
 class TestTranslationFactoryChunkProcessingScenario:
     """Test factory usage as it appears in chunk processing"""
 
@@ -139,6 +153,7 @@ class TestTranslationFactoryChunkProcessingScenario:
         assert all(isinstance(s, ITranslationService) for s in services)
 
 
+@skip_if_no_torch
 class TestTranslationFactoryServiceRegistry:
     """Test service registry functionality"""
 
