@@ -25,9 +25,7 @@ vi.mock('@/components/LearningPlayer', () => ({
   LearningPlayer: () => <div data-testid="learning-player">Learning Player</div>
 }))
 
-vi.mock('@/components/PipelineProgress', () => ({
-  PipelineProgress: () => <div data-testid="pipeline-progress">Pipeline Progress</div>
-}))
+// PipelineProgress route removed - component no longer used
 
 vi.mock('@/components/ChunkedLearningPage', () => ({
   ChunkedLearningPage: () => <div data-testid="chunked-learning">Chunked Learning</div>
@@ -224,16 +222,7 @@ describe('App Component', () => {
       expect(screen.getByTestId('chunked-learning')).toBeInTheDocument()
     })
 
-    it('renders pipeline progress route', () => {
-      render(
-        <MemoryRouter initialEntries={['/pipeline/test-series/test-episode']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
-
-      expect(screen.getByTestId('protected-route')).toBeInTheDocument()
-      expect(screen.getByTestId('pipeline-progress')).toBeInTheDocument()
-    })
+    // Pipeline progress route removed from app - test no longer needed
 
     it('renders vocabulary library route', () => {
       render(
