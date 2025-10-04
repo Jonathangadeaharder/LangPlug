@@ -41,7 +41,7 @@ jobs:
         with:
           name: frontend-contract-test-results
           path: Frontend/coverage/
-          retention-days: 30
+          retention-days: 14
 
   backend-contract-tests:
     runs-on: ubuntu-latest
@@ -99,7 +99,7 @@ jobs:
         with:
           name: backend-contract-test-results
           path: Backend/htmlcov/
-          retention-days: 30
+          retention-days: 14
 
   integration-contract-tests:
     if: ${{ false }}
@@ -181,7 +181,7 @@ jobs:
         with:
           name: contract-test-report
           path: contract-test-report.md
-          retention-days: 30
+          retention-days: 14
 
   notify-contract-failures:
     if: ${{ false }}

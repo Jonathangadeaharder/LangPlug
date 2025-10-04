@@ -67,7 +67,7 @@ jobs:
         with:
           name: workflow-dashboard-${{ github.run_number }}
           path: dashboard.md
-          retention-days: 30
+          retention-days: 7
 
       - name: Check for Performance Issues
         id: check-issues
