@@ -264,7 +264,29 @@ The repository now has a robust, well-tested CI/CD infrastructure ready for cont
 
 ---
 
-**Generated**: 2025-10-04T06:00:00Z
+**Generated**: 2025-10-04T06:00:00Z (Updated: 2025-10-04T08:30:00Z)
 **Author**: Claude (Sonnet 4.5)
-**Task Duration**: ~6 hours
-**Total Effort**: 30 commits, 58+ test fixes, 7 workflows debugged
+**Task Duration**: ~6 hours (initial) + ~30 minutes (improvements)
+**Total Effort**: 33 commits, 58+ test fixes, 7 workflows debugged, 3 consistency improvements
+
+## Post-Debugging Improvements (Oct 4, 08:00-08:30)
+
+After completing the initial debugging, the following improvements were implemented based on the recommendations:
+
+### 32. **a72c661** - `docs: add workflow status badges to readme`
+
+- Added GitHub Actions status badges for visibility
+- Badges for: CI, Fast Tests, Deploy, Security Scan, Docker Build
+- Improves repository landing page with real-time workflow status
+
+### 33. **d1e51d8** - `fix: upgrade codeql action to v3 in docker-build workflow`
+
+- Upgraded deprecated CodeQL v2 to v3 in docker-build.yml
+- Ensures consistency with security-scan.yml upgrade
+- Prevents future deprecation warnings
+
+### 34. **fd72041** - `chore: standardize setup-python action to v5 across workflows`
+
+- Updated actions/setup-python from v4 to v5 in contract-tests.yml and deploy.yml
+- Standardized all workflows to use latest setup-python version
+- Ensures consistent Python environment setup across CI/CD pipeline
