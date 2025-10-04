@@ -1,5 +1,11 @@
 # LangPlug - German Language Learning Platform
 
+![CI](https://github.com/Jonathangadeaharder/IdeaProjects/actions/workflows/tests.yml/badge.svg)
+![Fast Tests](https://github.com/Jonathangadeaharder/IdeaProjects/actions/workflows/fast-tests.yml/badge.svg)
+![Deploy](https://github.com/Jonathangadeaharder/IdeaProjects/actions/workflows/deploy.yml/badge.svg)
+![Security Scan](https://github.com/Jonathangadeaharder/IdeaProjects/actions/workflows/security-scan.yml/badge.svg)
+![Docker Build](https://github.com/Jonathangadeaharder/IdeaProjects/actions/workflows/docker-build.yml/badge.svg)
+
 A Netflix-style language learning platform that combines video streaming with interactive vocabulary learning. Learn German by watching TV shows with intelligent subtitle processing and gamified vocabulary training.
 
 ## 🌟 Features
