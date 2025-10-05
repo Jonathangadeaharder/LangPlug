@@ -726,17 +726,49 @@ def test_user_can_mark_word_as_known():
 
 ### 10. Generate Zod Schemas from OpenAPI (From Existing Roadmap)
 
-**Status**: LOW - Nice to have
+**Status**: ✅ COMPLETED - 2025-10-05
 
-See `REFACTORING_ROADMAP.md` for full details.
+#### Completed Subtasks:
 
-- [ ] Install openapi-zod-client
-- [ ] Generate schemas
-- [ ] Update frontend validation
+- [x] Install openapi-zod-client - Already installed in package.json
+- [x] Generate schemas - Regenerated from latest Backend OpenAPI spec
+- [x] Update frontend validation - Replaced manual schemas with generated ones
 
-**Impact**: Low - Frontend/backend validation sync
+#### Changes Made:
 
-**Estimated Effort**: 3-4 hours
+**1. Regenerated Zod Schemas**:
+
+- Ran `npm run generate:schemas` to regenerate from latest backend spec (Backend/openapi.json)
+- Generated schemas updated in `Frontend/src/schemas/api-schemas.ts` (70KB)
+- Schemas now include all backend models: UserResponse, BearerResponse, ErrorModel, VocabularyWord, etc.
+
+**2. Updated Frontend Validation**:
+
+- Modified `Frontend/src/utils/schema-validation.ts` to import generated schemas
+- Replaced manual schema definitions with imports from `@/schemas/api-schemas`
+- Added documentation warning not to modify generated schemas manually
+- Kept validation helper functions and frontend-specific request schemas
+
+**3. Infrastructure Already in Place**:
+
+- Script: `Frontend/scripts/generate-zod-schemas.js`
+- npm command: `npm run generate:schemas`
+- Update workflow: `npm run update-openapi` (backend export + frontend generation)
+
+#### Benefits:
+
+- **Single Source of Truth**: Frontend validation schemas auto-generated from backend OpenAPI spec
+- **Type Safety**: TypeScript types and runtime validation always in sync with backend
+- **No Manual Duplication**: Eliminated manual schema definitions in schema-validation.ts
+- **Easy Updates**: Run `npm run update-openapi` to sync frontend/backend validation
+
+#### Result:
+
+Frontend validation now uses auto-generated Zod schemas from the backend OpenAPI specification, ensuring frontend and backend validation rules stay perfectly synchronized.
+
+**Completed**: 2025-10-05
+**Actual Effort**: 30 minutes
+**Impact**: Medium - Improved frontend/backend validation sync, eliminated manual schema duplication
 
 ---
 
