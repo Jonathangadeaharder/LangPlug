@@ -11,20 +11,33 @@ Backend/
 ├── core/                # Core application components
 ├── data/                # Data files and databases
 ├── database/            # Database management and migrations
+├── docs/                # Project documentation
+│   └── archive/         # Historical documentation
 ├── logs/                # Application logs
 ├── scripts/             # Utility scripts
+│   ├── analysis/        # Code analysis scripts
+│   ├── database/        # Database scripts
+│   ├── debug/           # Debugging utilities
+│   ├── setup/           # Setup scripts
+│   ├── testing/         # Test utilities
+│   └── utils/           # General utilities
 ├── services/            # Business logic and service layers
 │   ├── authservice/     # Authentication service
-│   ├── dataservice/     # Data management services
 │   ├── filterservice/   # Subtitle filtering services
-│   ├── loggingservice/  # Logging services
+│   ├── logging/         # Logging services
+│   ├── processing/      # Video/subtitle processing
 │   ├── transcriptionservice/ # Audio transcription services
 │   ├── translationservice/   # Language translation services
-│   └── utils/           # Utility functions
-├── tests/               # Unit and integration tests
+│   └── vocabulary/      # Vocabulary management services
+├── tests/               # Unit, integration, and API tests
+│   ├── api/             # API contract tests
+│   ├── integration/     # Integration tests
+│   ├── security/        # Security tests
+│   └── unit/            # Unit tests
 ├── videos/              # Video storage (symlink)
 ├── main.py             # Application entry point
 ├── requirements.txt    # Python dependencies
+├── CHANGELOG.md        # Version history
 └── README.md          # This file
 ```
 
@@ -131,8 +144,9 @@ Our test suite follows modern async testing patterns with:
 
 ### Test Documentation
 
-- [TEST_REPORT.md](TEST_REPORT.md) - Comprehensive test suite status and improvements
-- [TESTING_BEST_PRACTICES.md](TESTING_BEST_PRACTICES.md) - Guidelines for writing new tests
+- [docs/TESTING_BEST_PRACTICES.md](docs/TESTING_BEST_PRACTICES.md) - Guidelines for writing new tests
+- [docs/TESTING_INDEX.md](docs/TESTING_INDEX.md) - Index of all testing documentation
+- [TEST_AUDIT_RESULTS.md](TEST_AUDIT_RESULTS.md) - Test architecture audit results (2025-10-05)
 
 ### Code Quality
 
@@ -164,6 +178,52 @@ ruff format .
 ## Logging
 
 Logs are written to the `logs/` directory with both file and console output. Log levels can be configured via the `LANGPLUG_LOG_LEVEL` environment variable.
+
+## Documentation
+
+### Essential Documentation
+
+- [CHANGELOG.md](CHANGELOG.md) - Version history and release notes
+- [docs/CONFIGURATION.md](docs/CONFIGURATION.md) - Detailed configuration guide
+- [docs/DEVELOPER_SETUP.md](docs/DEVELOPER_SETUP.md) - Complete developer setup guide
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) - Deployment instructions
+
+### Architecture & Design
+
+- [docs/ARCHITECTURE_OVERVIEW.md](docs/ARCHITECTURE_OVERVIEW.md) - System architecture overview
+- [docs/CODE_STYLE.md](docs/CODE_STYLE.md) - Code style guidelines and standards
+- [docs/REPOSITORY_PATTERN.md](docs/REPOSITORY_PATTERN.md) - Repository pattern implementation
+- [docs/DTO_STANDARDS.md](docs/DTO_STANDARDS.md) - Data Transfer Object standards
+
+### API & Integration
+
+- [docs/API_CONTRACT_TESTING_GUIDE.md](docs/API_CONTRACT_TESTING_GUIDE.md) - API contract testing guide
+- [docs/API_INTEGRATION_GUIDE.md](docs/API_INTEGRATION_GUIDE.md) - API integration guide
+- [docs/INTEGRATION_TEST_STRATEGY.md](docs/INTEGRATION_TEST_STRATEGY.md) - Integration testing strategy
+
+### Testing
+
+- [docs/TESTING_BEST_PRACTICES.md](docs/TESTING_BEST_PRACTICES.md) - Testing standards and best practices
+- [docs/TESTING_INDEX.md](docs/TESTING_INDEX.md) - Index of all testing documentation
+- [docs/TESTING_QUICK_REFERENCE.md](docs/TESTING_QUICK_REFERENCE.md) - Quick testing reference
+- [TEST_AUDIT_RESULTS.md](TEST_AUDIT_RESULTS.md) - Test architecture audit (2025-10-05)
+
+### Database & Operations
+
+- [docs/POSTGRESQL_SETUP_GUIDE.md](docs/POSTGRESQL_SETUP_GUIDE.md) - PostgreSQL setup guide
+- [docs/MIGRATIONS.md](docs/MIGRATIONS.md) - Database migration guide
+- [docs/MIGRATION_GUIDE.md](docs/MIGRATION_GUIDE.md) - Application migration guide
+- [docs/MONITORING.md](docs/MONITORING.md) - Monitoring and observability
+- [docs/SECURITY_AND_TRANSACTIONS.md](docs/SECURITY_AND_TRANSACTIONS.md) - Security and transaction patterns
+
+### Code Quality Tools
+
+- [docs/CODE_QUALITY_TOOLS.md](docs/CODE_QUALITY_TOOLS.md) - Quality tools and linting
+- [docs/CODE_METRICS_GUIDE.md](docs/CODE_METRICS_GUIDE.md) - Code metrics and analysis
+
+### Historical Documentation
+
+Outdated refactoring summaries, test reports, and analyses have been archived to [docs/archive/](docs/archive/) for reference.
 
 ## Contributing
 
