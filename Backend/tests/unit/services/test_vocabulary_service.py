@@ -284,7 +284,7 @@ class TestVocabularyServiceMarkConceptKnown:
         mock_db.execute.side_effect = [mock_word_result, mock_progress_result]
 
         # Act
-        with patch("services.vocabulary_service.AsyncSessionLocal"):
+        with patch("services.vocabulary.vocabulary_service.AsyncSessionLocal"):
             result = await service.mark_concept_known(user_id, concept_id, True)
 
         # Assert - just verify it doesn't raise an exception
@@ -306,7 +306,7 @@ class TestVocabularyServiceMarkConceptKnown:
         mock_db.execute.return_value = mock_result
 
         # Act & Assert
-        with patch("services.vocabulary_service.AsyncSessionLocal", return_value=mock_db):
+        with patch("services.vocabulary.vocabulary_service.AsyncSessionLocal", return_value=mock_db):
             with patch.object(mock_db, "__aenter__", return_value=mock_db):
                 with patch.object(mock_db, "__aexit__", return_value=AsyncMock()):
                     # Should not raise exception
@@ -371,7 +371,7 @@ class TestVocabularyServiceGetVocabularyLevel:
         mock_result.scalars.return_value.all.return_value = mock_vocab_words
 
         # Act
-        with patch("services.vocabulary_service.AsyncSessionLocal") as mock_session_local:
+        with patch("services.vocabulary.vocabulary_service.AsyncSessionLocal") as mock_session_local:
             mock_db = AsyncMock(spec=AsyncSession)
             mock_db.execute.return_value = mock_result
             mock_session_local.return_value.__aenter__.return_value = mock_db
@@ -397,7 +397,7 @@ class TestVocabularyServiceGetVocabularyLevel:
         mock_result.scalars.return_value.all.return_value = []
 
         # Act
-        with patch("services.vocabulary_service.AsyncSessionLocal") as mock_session_local:
+        with patch("services.vocabulary.vocabulary_service.AsyncSessionLocal") as mock_session_local:
             mock_db = AsyncMock(spec=AsyncSession)
             mock_db.execute.return_value = mock_result
             mock_session_local.return_value.__aenter__.return_value = mock_db

@@ -53,7 +53,7 @@ class TestLoadVocabularyFiles:
         """Clean up temporary files"""
         # Cleanup is handled by tempfile
 
-    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
+    @patch("services.vocabulary.vocabulary_preload_service.AsyncSessionLocal")
     async def test_load_vocabulary_files_success(self, mock_session_local, service):
         """Test successful vocabulary file loading"""
         # Create mock session
@@ -73,7 +73,7 @@ class TestLoadVocabularyFiles:
         # Verify results
         assert result == {"A1": 3, "A2": 3, "B1": 3, "B2": 3}
 
-    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
+    @patch("services.vocabulary.vocabulary_preload_service.AsyncSessionLocal")
     async def test_load_vocabulary_files_missing_files(self, mock_session_local, service):
         """Test vocabulary loading with missing files"""
         # Create mock session
@@ -86,7 +86,7 @@ class TestLoadVocabularyFiles:
         # Verify all levels return 0 for missing files
         assert result == {"A1": 0, "A2": 0, "B1": 0, "B2": 0}
 
-    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
+    @patch("services.vocabulary.vocabulary_preload_service.AsyncSessionLocal")
     async def test_load_vocabulary_files_mixed_scenario(self, mock_session_local, service):
         """Test vocabulary loading with some files present, some missing"""
         # Create mock session
@@ -131,7 +131,7 @@ class TestLoadLevelVocabulary:
         mock_session.commit = AsyncMock()
 
         # Mock the actual database model creation to avoid NameError
-        with patch("services.vocabulary_preload_service.VocabularyWord") as mock_vocab_concept:
+        with patch("services.vocabulary.vocabulary_preload_service.VocabularyWord") as mock_vocab_concept:
             # Mock the constructor call
             mock_vocab_instance = Mock()
             mock_vocab_concept.return_value = mock_vocab_instance
@@ -270,7 +270,7 @@ class TestGetLevelWords:
 
         mock_session.execute.side_effect = mock_execute
 
-        with patch("sqlalchemy.select"), patch("services.vocabulary_preload_service.VocabularyWord"):
+        with patch("sqlalchemy.select"), patch("services.vocabulary.vocabulary_preload_service.VocabularyWord"):
             result = await service._execute_get_level_words(mock_session, "A1")
 
         # Verify result structure
@@ -340,7 +340,7 @@ class TestGetUserKnownWords:
             mock_select.return_value.join.return_value.where.return_value = mock_stmt
 
             with (
-                patch("services.vocabulary_preload_service.VocabularyWord"),
+                patch("services.vocabulary.vocabulary_preload_service.VocabularyWord"),
                 patch("database.models.UserVocabularyProgress"),
             ):
                 result = await service._execute_get_user_known_words(mock_session, 123, "A1")
@@ -368,7 +368,7 @@ class TestGetUserKnownWords:
             mock_select.return_value.join.return_value.where.return_value = mock_stmt
 
             with (
-                patch("services.vocabulary_preload_service.VocabularyWord"),
+                patch("services.vocabulary.vocabulary_preload_service.VocabularyWord"),
                 patch("database.models.UserVocabularyProgress"),
             ):
                 result = await service._execute_get_user_known_words(mock_session, 123, None)
@@ -383,7 +383,7 @@ class TestMarkUserWordKnown:
     def service(self):
         return VocabularyPreloadService()
 
-    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
+    @patch("services.vocabulary.vocabulary_preload_service.AsyncSessionLocal")
     async def test_mark_user_word_known_success(self, mock_session_local, service):
         """Test successfully marking a word as known"""
         mock_session = AsyncMock()
@@ -412,7 +412,7 @@ class TestMarkUserWordKnown:
         assert result is True
         mock_session.commit.assert_called_once()
 
-    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
+    @patch("services.vocabulary.vocabulary_preload_service.AsyncSessionLocal")
     async def test_mark_user_word_known_word_not_found(self, mock_session_local, service):
         """Test marking word as known when word doesn't exist in vocabulary"""
         mock_session = AsyncMock()
@@ -428,7 +428,7 @@ class TestMarkUserWordKnown:
 
         assert result is False
 
-    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
+    @patch("services.vocabulary.vocabulary_preload_service.AsyncSessionLocal")
     async def test_mark_user_word_known_error_handling(self, mock_session_local, service):
         """Test error handling in mark_user_word_known"""
         mock_session = AsyncMock()
@@ -522,7 +522,7 @@ class TestGetVocabularyStats:
         assert result == expected
         # Removed execute.assert_called_once() - testing behavior (result), not query execution
 
-    @patch("services.vocabulary_preload_service.AsyncSessionLocal")
+    @patch("services.vocabulary.vocabulary_preload_service.AsyncSessionLocal")
     async def test_get_vocabulary_stats_without_session(self, mock_session_local, service):
         """Test getting vocabulary stats without provided session"""
         mock_session = AsyncMock()
