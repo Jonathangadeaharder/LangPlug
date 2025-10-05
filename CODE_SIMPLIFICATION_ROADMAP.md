@@ -151,7 +151,7 @@ Remove interfaces if:
 
 Multiple vocabulary services with overlapping responsibilities:
 
-- `services/vocabulary/vocabulary_service_new.py` (Main facade)
+- `services/vocabulary/vocabulary_service.py` (Main facade - renamed from vocabulary_service_new.py in Task 1)
 - `services/vocabulary/vocabulary_query_service.py` (Read operations)
 - `services/vocabulary/vocabulary_progress_service.py` (Write operations)
 - `services/vocabulary/vocabulary_stats_service.py` (Analytics)
@@ -173,7 +173,7 @@ Multiple vocabulary services with overlapping responsibilities:
 - [ ] Create responsibility matrix for all vocabulary services
 - [ ] Identify consolidation candidates
 - [ ] Merge `vocabulary_analytics_service.py` + `vocabulary_stats_service.py`
-- [ ] Evaluate if facade (`vocabulary_service_new.py`) is necessary
+- [ ] Evaluate if facade (`vocabulary_service.py`) is necessary
 - [ ] Consider consolidating to 2-3 services max:
   - VocabularyQueryService (read)
   - VocabularyMutationService (write)
