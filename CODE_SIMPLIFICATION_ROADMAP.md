@@ -1209,11 +1209,11 @@ Production code is clean of commented-out code blocks:
 - [x] Delete `test_output.txt`
 - [x] Delete `data/vocabulary_import.log`
 - [x] Verify .gitignore covers: `*.log`, `*_output.txt`, `repomix*` - All patterns already present
-- [ ] Add cleanup command to Makefile: `make clean-logs` - Deferred (low priority)
+- [x] Add cleanup command to Makefile: `make clean-logs` - COMPLETED (2025-10-05)
 
 **Completed**: 2025-10-05
-**Actual Effort**: 10 minutes
-**Impact**: Removed log/output artifacts, .gitignore prevents future commits
+**Actual Effort**: 15 minutes
+**Impact**: Removed log/output artifacts, .gitignore prevents future commits, `make clean-logs` command available for easy cleanup
 
 ---
 
