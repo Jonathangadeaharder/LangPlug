@@ -903,52 +903,91 @@ Production code is clean of commented-out code blocks:
 
 ### 13. Consolidate Test Utilities
 
-**Status**: REQUIRES ANALYSIS - Complex active usage
+**Status**: ✅ ANALYSIS COMPLETE - 2025-10-05 (Migration Recommended)
 
-#### Current State Analysis:
+#### Analysis Results:
 
-**Active Files**:
+**Two auth_helpers files with DUPLICATE functionality**:
 
-- `tests/auth_helpers.py` (470 lines) - Legacy HTTP auth helpers
-  - AuthTestHelper, AuthTestHelperAsync (uses AsyncHTTPAuthHelper)
-  - Imported by 30+ test files (api/, security/)
-- `tests/helpers/auth_helpers.py` (259 lines) - Modern structured helpers
-  - AsyncAuthHelper, AuthHelper, AuthTestHelperAsync (adapter pattern)
-  - Used by integration tests via tests.helpers imports
-- `tests/helpers/assertions.py` (10KB) - ACTIVE assertion helpers
-  - Used by integration/unit tests via tests.helpers
-- `tests/helpers/data_builders.py` (7KB) - ACTIVE test data builders
-  - UserBuilder, VocabularyWordBuilder
-  - Used by multiple test files
-- `tests/base.py` - ACTIVE test base classes
-  - DatabaseTestBase, ServiceTestBase
-  - Used by conftest.py and test_video_service.py
+- **tests/auth_helpers.py** (470 lines) - LEGACY (35 direct imports)
+  - HTTPAuthHelper, AsyncHTTPAuthHelper, HTTPAuthTestHelper (deprecated)
+  - Static method pattern (old style)
+  - No builder pattern integration
+  - Used by: 17 API tests, 13 integration tests, 5 other tests
+- **tests/helpers/auth_helpers.py** (259 lines) - MODERN (2 direct + 7 via helpers.\* imports)
+  - AuthHelper, AsyncAuthHelper with UserBuilder integration
+  - Assertion integration (assert_json_response, assert_auth_response_structure)
+  - Builder pattern throughout
+  - Used by: 2 integration tests directly + 7 via tests.helpers
 
-**Key Finding**: Both auth_helpers files are ACTIVELY used but serve different purposes:
+**Other Active Helpers** (✅ KEEP AS-IS):
 
-- Root level: Legacy direct HTTP testing (AuthTestHelper)
-- helpers/: Modern structured testing (AsyncAuthHelper with data builders)
-- Both have AuthTestHelperAsync but DIFFERENT implementations (legacy adapter vs direct)
+- **tests/helpers/assertions.py** (270 lines) - 9+ files use via tests.helpers
+  - JSON, validation, auth, structure assertions
+- **tests/helpers/data_builders.py** (228 lines) - 9+ files use via tests.helpers
+  - UserBuilder, VocabularyWordBuilder (fluent builder pattern)
+  - TestDataSets (factory for common test data)
+- **tests/base.py** (222 lines) - 4 files import
+  - DatabaseTestBase, ServiceTestBase, RouteTestBase
 
-#### Recommended Approach:
+#### Key Findings:
 
-**Phase 1** (Not started):
+**Duplication**:
 
-- [ ] Analyze all 30+ usages of tests.auth_helpers imports
-- [ ] Determine if legacy helpers can be migrated to modern helpers
-- [ ] Create migration plan for AuthTestHelperAsync duplication
-- [ ] Test plan for validating no regressions
+- ✅ TWO different AuthTestHelperAsync implementations
+- ✅ 35 tests use legacy (84% adoption) vs 2 tests use modern (5% adoption)
+- ✅ Legacy helpers marked DEPRECATED in comments
+- ✅ Modern helpers have better design (builder pattern, assertions)
 
-**Phase 2** (Pending Phase 1):
+**Quality Comparison**:
 
-- [ ] Migrate tests from legacy to modern helpers incrementally
-- [ ] Update imports file by file with test validation
-- [ ] Remove root level auth_helpers.py when all tests migrated
-- [ ] Document modern helper patterns
+- Legacy: Static methods, manual data generation, no builder integration
+- Modern: Instance-based, UserBuilder integration, assertion integration
 
-**Impact**: Low - Better test organization (but HIGH risk if rushed)
+#### Consolidation Plan:
 
-**Estimated Effort**: 4-6 hours (increased from 2-3 due to complexity)
+**RECOMMENDATION**: Migrate all 35 test files to `tests.helpers` and delete legacy `tests/auth_helpers.py`
+
+**Phase 1: Backward Compatibility Layer** (1 hour)
+
+- [x] Analysis complete
+- [ ] Add HTTPAuthHelper wrapper to modern auth_helpers.py
+- [ ] Add HTTPAuthTestHelper static methods as adapters
+- [ ] Add ContractAuthTestSuite to modern helpers
+- [ ] Verify API compatibility with legacy
+
+**Phase 2: Batch Migration** (3-4 hours)
+
+- [x] Analysis complete
+- [ ] Batch 1: Update 17 API test files to import from tests.helpers
+- [ ] Batch 2: Update 13 integration test files to import from tests.helpers
+- [ ] Batch 3: Update 5 other test files (security, unit, performance)
+
+**Phase 3: Cleanup** (30 min)
+
+- [x] Analysis complete
+- [ ] Delete `tests/auth_helpers.py` (470 lines)
+- [ ] Update documentation references
+- [ ] Verify all 35 tests pass
+
+**Phase 4: Optional Refactoring** (defer)
+
+- [x] Analysis complete
+- [ ] Remove backward compatibility wrappers
+- [ ] Refactor tests to use builder pattern directly
+
+#### Documentation:
+
+- ✅ Created comprehensive `Backend/TEST_UTILITIES_ANALYSIS.md`
+  - Detailed comparison of legacy vs modern
+  - Usage patterns for both approaches
+  - Migration checklist with 35 files to update
+  - Risk mitigation strategy
+
+**Completed**: 2025-10-05 (Analysis only)
+**Actual Effort**: 1.5 hours (analysis)
+**Estimated Migration**: 4-6 hours (backward compat + batch updates + cleanup)
+**Impact**: Medium - Remove 470 lines legacy code, standardize on modern builder pattern
 
 ---
 
