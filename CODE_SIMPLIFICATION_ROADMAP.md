@@ -1302,7 +1302,7 @@ Production code is clean of commented-out code blocks:
   - `!data/*.csv`, `!data/*.py`, `!data/*.txt`, `!data/*.md` - Keep data files
 - [x] Created `data/.gitkeep` to preserve directory structure
 - [ ] Update data processing logic to use `/tmp` or clean up after itself - Deferred (requires code changes)
-- [ ] Update `data/README.MD.txt` with cleanup instructions - Deferred (low priority)
+- [x] Update `data/README.MD.txt` with cleanup instructions - COMPLETED (2025-10-05)
 
 **Completed**: 2025-10-05
 **Actual Effort**: 30 minutes
