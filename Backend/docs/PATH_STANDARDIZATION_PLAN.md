@@ -102,14 +102,17 @@ Backend routes are defined with names in FastAPI:
 
 ### Implementation Plan
 
-#### Phase 1: Document Route Names (1-2 hours)
+#### Phase 1: Document Route Names ✅ COMPLETE (1 hour)
 
-- [ ] Create `docs/ROUTE_NAMES.md` mapping all route names to paths
-- [ ] Document naming conventions (e.g., `{feature}_{action}`)
-- [ ] List all FastAPI route names using:
+- [x] Create `docs/ROUTE_NAMES.md` mapping all route names to paths
+- [x] Document naming conventions (e.g., `{feature}_{action}`)
+- [x] List all FastAPI route names using:
   ```bash
   grep -r "@router.*name=" api/routes/ --include="*.py"
   ```
+- [x] Identified 40+ named routes across all modules
+- [x] Identified 10+ routes without names (SRT, WebSocket, Debug, Test routes)
+- [x] Created comprehensive reference documentation with examples
 
 #### Phase 2: Update Auth Tests (2-3 hours)
 
@@ -151,10 +154,13 @@ Backend routes are defined with names in FastAPI:
 
 ### Total Estimated Effort
 
-**Backend**: 13-20 hours across 50-70 test files
-**Already Completed (Frontend)**: 1 hour
+**Frontend**: 1 hour ✅ COMPLETE
+**Backend Phase 1 (Documentation)**: 1 hour ✅ COMPLETE
+**Backend Phases 2-8 (Test Migration)**: 12-19 hours ⏳ REMAINING
 
 **Total for Task 9**: 14-21 hours (vs. original estimate of 4-6 hours)
+**Completed So Far**: 2 hours
+**Remaining**: 12-19 hours
 
 ---
 
@@ -284,6 +290,12 @@ def test_all_route_names_valid(app, url_builder):
 ## Status
 
 **Frontend**: ✅ Complete (1 hour)
-**Backend**: 📋 Planned (13-20 hours remaining)
+**Backend Phase 1**: ✅ Complete (1 hour) - Route name documentation created
+**Backend Phases 2-8**: ⏳ Remaining (12-19 hours)
 
-**Next Steps**: Begin with Phase 1 (Document Route Names) to create foundation for migration
+**Total Progress**: 2/14-21 hours complete (14%)
+
+**Next Steps**:
+
+- Begin Phase 2 (Update Auth Tests) - 8 files, 2-3 hours estimated
+- See `docs/ROUTE_NAMES.md` for complete route name reference

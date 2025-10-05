@@ -670,7 +670,7 @@ def test_user_can_mark_word_as_known():
 
 ### 9. Standardize Path Definitions (From Existing Roadmap)
 
-**Status**: PARTIAL - Frontend Complete ✅, Backend Planned 📋
+**Status**: IN PROGRESS - Frontend Complete ✅, Backend Phase 1 Complete ✅, Phases 2-8 Pending 📋
 
 #### Frontend: COMPLETED ✅ (1 hour)
 
@@ -679,7 +679,16 @@ def test_user_can_mark_word_as_known():
 - [x] Organized all endpoints by feature (AUTH, SRT, VIDEO, PROCESSING, VOCABULARY, GAME, USER)
 - [x] Added TypeScript `as const` for type safety
 
-#### Backend Tests: PLANNED 📋 (13-20 hours remaining)
+#### Backend Phase 1: COMPLETED ✅ (1 hour) - 2025-10-05
+
+**Documentation Complete**:
+
+- [x] Created `docs/ROUTE_NAMES.md` with complete route name mapping
+- [x] Documented all 40+ named routes across all API modules
+- [x] Identified 10+ routes without names (SRT, WebSocket, Debug, Test routes)
+- [x] Added usage examples for tests with `url_builder` fixture
+- [x] Documented FastAPI-Users special route naming patterns
+- [x] Created route name verification test template
 
 **Analysis Complete**:
 
@@ -687,9 +696,11 @@ def test_user_can_mark_word_as_known():
 - **URLBuilder fixture** already exists in `tests/conftest.py`
 - Only ~10-15 files currently use `url_builder`, rest use hardcoded paths
 
+#### Backend Phases 2-8: PLANNED 📋 (12-19 hours remaining)
+
 **Implementation Plan** (detailed in `docs/PATH_STANDARDIZATION_PLAN.md`):
 
-- [ ] Phase 1: Document all route names (1-2 hours)
+- [x] Phase 1: Document all route names (1 hour) ✅ COMPLETE
 - [ ] Phase 2: Update Auth tests ~8 files (2-3 hours)
 - [ ] Phase 3: Update Vocabulary tests ~5 files (2-3 hours)
 - [ ] Phase 4: Update Video tests ~6 files (1-2 hours)
@@ -702,12 +713,13 @@ def test_user_can_mark_word_as_known():
 
 - ✅ `Frontend/src/config/api-endpoints.ts` - Centralized endpoint configuration
 - ✅ `docs/PATH_STANDARDIZATION_PLAN.md` - Complete migration plan
-- 📋 `docs/ROUTE_NAMES.md` - Route name mapping (pending)
+- ✅ `docs/ROUTE_NAMES.md` - Route name mapping with 40+ routes documented
 
-**Impact**: Low-Medium - Better maintainability, type-safe URL generation
+**Impact**: Low-Medium - Better maintainability, type-safe URL generation, easier refactoring
 
-**Actual Effort (Frontend)**: 1 hour ✅
-**Estimated Effort (Backend)**: 13-20 hours 📋
+**Progress**: 2/14-21 hours complete (14%)
+**Completed**: Frontend (1 hour) + Backend Phase 1 (1 hour)
+**Remaining**: Backend Phases 2-8 (12-19 hours)
 **Original Estimate**: 4-6 hours (significantly underestimated - 410 occurrences vs expected 50-70)
 
 ---
