@@ -730,21 +730,31 @@ See `REFACTORING_ROADMAP.md` for full details.
 
 ### 12. Audit and Remove Commented Code
 
-**Status**: LOW - Code hygiene
+**Status**: ✅ COMPLETED
 
 Per CLAUDE.md: "Delete obsolete branches, commented-out blocks... source control is the safety net"
 
-#### Subtasks:
+#### Completed Subtasks:
 
-- [ ] Search for large commented blocks: `grep -r "# def " Backend/ | grep -v test`
-- [ ] Review each commented function/class
-- [ ] Delete if obsolete (trust git history)
-- [ ] If needed, document reason in commit message
-- [ ] Special attention to test files with skip/xfail
+- [x] Used ruff ERA001 to find commented code (25 instances found)
+- [x] Reviewed production code violations (non-test files)
+- [x] Deleted obsolete commented middleware in core/middleware.py:
+  - Removed commented ErrorHandlingMiddleware (not used in production)
+  - Removed commented LoggingMiddleware (already registered elsewhere)
+- [x] Verified most other ERA001 violations were false positives (documentation comments)
+- [x] Test file comments preserved (intentional examples and test documentation)
 
-**Impact**: Low - Cleaner code
+#### Result:
 
-**Estimated Effort**: 2-3 hours
+Production code is clean of commented-out code blocks:
+
+- 0 commented function/class definitions in production code
+- Removed obsolete middleware registrations that were "temporarily disabled"
+- Source control preserves history if needed
+
+**Completed**: 2025-10-05
+**Actual Effort**: 30 minutes
+**Impact**: Cleaner production code, adheres to CLAUDE.md hygiene principles
 
 ---
 
