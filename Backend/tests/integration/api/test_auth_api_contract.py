@@ -14,12 +14,12 @@ from core.auth import UserCreate, UserRead
 class TestAuthApiContractCompliance:
     """Test authentication API contract compliance"""
 
-    def test_register_endpoint_contract(self, client: TestClient):
+    def test_register_endpoint_contract(self, client: TestClient, url_builder):
         """Test register endpoint follows OpenAPI contract"""
         # Valid registration request
         valid_request = {"username": "testuser123", "email": "testuser123@example.com", "password": "ValidPass123!"}
 
-        response = client.post("/api/auth/register", json=valid_request)
+        response = client.post(url_builder.url_for("register:register"), json=valid_request)
 
         # Should return 201 for successful registration
         if response.status_code == 201:
@@ -40,7 +40,7 @@ class TestAuthApiContractCompliance:
         else:
             pytest.fail(f"Unexpected status code: {response.status_code}")
 
-    def test_register_endpoint_validation_errors(self, client: TestClient):
+    def test_register_endpoint_validation_errors(self, client: TestClient, url_builder):
         """Test register endpoint validation follows contract"""
         invalid_requests = [
             # Invalid username
@@ -58,7 +58,7 @@ class TestAuthApiContractCompliance:
         ]
 
         for invalid_request in invalid_requests:
-            response = client.post("/api/auth/register", json=invalid_request)
+            response = client.post(url_builder.url_for("register:register"), json=invalid_request)
 
             # Should return 422 for validation errors
             assert response.status_code == 422, f"Expected 422 for {invalid_request}"
@@ -74,11 +74,11 @@ class TestAuthApiContractCompliance:
             else:
                 pytest.fail(f"Unexpected error response format: {error_response}")
 
-    def test_login_endpoint_contract(self, client: TestClient):
+    def test_login_endpoint_contract(self, client: TestClient, url_builder):
         """Test login endpoint follows OpenAPI contract"""
         # First register a user
         register_data = {"username": "logintest123", "email": "logintest123@example.com", "password": "LoginPass123!"}
-        register_response = client.post("/api/auth/register", json=register_data)
+        register_response = client.post(url_builder.url_for("register:register"), json=register_data)
 
         # Registration should succeed
         assert register_response.status_code == 201
@@ -86,7 +86,7 @@ class TestAuthApiContractCompliance:
         # Valid login request (FastAPI-Users uses form data for login)
         login_request = {"username": "logintest123", "password": "LoginPass123!"}
 
-        response = client.post("/api/auth/login", data=login_request)
+        response = client.post(url_builder.url_for("auth:jwt.login"), data=login_request)
 
         # FastAPI-Users may return 400 for unverified users or other issues
         # Accept both 200 (success) and 400 (bad credentials/unverified) as valid API behavior
@@ -109,11 +109,11 @@ class TestAuthApiContractCompliance:
         else:
             pytest.fail(f"Unexpected status code: {response.status_code}, response: {response.json()}")
 
-    def test_login_endpoint_invalid_credentials(self, client: TestClient):
+    def test_login_endpoint_invalid_credentials(self, client: TestClient, url_builder):
         """Test login endpoint handles invalid credentials per contract"""
         invalid_login = {"username": "nonexistent", "password": "wrongpassword"}
 
-        response = client.post("/api/auth/login", data=invalid_login)
+        response = client.post(url_builder.url_for("auth:jwt.login"), data=invalid_login)
 
         # FastAPI-Users returns 400 for invalid credentials, not 401
         assert response.status_code == 400
@@ -122,7 +122,7 @@ class TestAuthApiContractCompliance:
         error_response = response.json()
         assert "detail" in error_response
 
-    def test_login_endpoint_validation_errors(self, client: TestClient):
+    def test_login_endpoint_validation_errors(self, client: TestClient, url_builder):
         """Test login endpoint validation follows contract"""
         invalid_requests = [
             {"username": "", "password": "password"},  # Empty username
@@ -133,7 +133,7 @@ class TestAuthApiContractCompliance:
         ]
 
         for invalid_request in invalid_requests:
-            response = client.post("/api/auth/login", data=invalid_request)
+            response = client.post(url_builder.url_for("auth:jwt.login"), data=invalid_request)
 
             # FastAPI-Users may return 400 for form validation errors
             # Accept both 422 (Pydantic validation) and 400 (form validation)
@@ -149,14 +149,14 @@ class TestAuthApiContractCompliance:
             else:
                 pytest.fail(f"Unexpected error response format: {error_response}")
 
-    def test_me_endpoint_contract(self, client: TestClient):
+    def test_me_endpoint_contract(self, client: TestClient, url_builder):
         """Test /api/auth/me endpoint follows OpenAPI contract"""
         # Register and login to get token
         register_data = {"username": "metest123", "email": "metest123@example.com", "password": "MeTestPass123"}
-        client.post("/api/auth/register", json=register_data)
+        client.post(url_builder.url_for("register:register"), json=register_data)
 
         login_data = {"username": "metest123", "password": "MeTestPass123"}
-        login_response = client.post("/api/auth/login", data=login_data)
+        login_response = client.post(url_builder.url_for("auth:jwt.login"), data=login_data)
 
         # If login fails due to unverified user, skip the /me endpoint test
         if login_response.status_code != 200:
@@ -166,7 +166,7 @@ class TestAuthApiContractCompliance:
 
         # Test authenticated request
         headers = {"Authorization": f"Bearer {token}"}
-        response = client.get("/api/auth/me", headers=headers)
+        response = client.get(url_builder.url_for("auth_get_current_user"), headers=headers)
 
         # Should return 200 with user info
         if response.status_code == 200:
@@ -179,20 +179,20 @@ class TestAuthApiContractCompliance:
         else:
             pytest.fail(f"Unexpected status code: {response.status_code}")
 
-    def test_me_endpoint_unauthorized(self, client: TestClient):
+    def test_me_endpoint_unauthorized(self, client: TestClient, url_builder):
         """Test /api/auth/me endpoint handles unauthorized requests"""
         # Request without token
-        response = client.get("/api/auth/me")
+        response = client.get(url_builder.url_for("auth_get_current_user"))
         assert response.status_code == 401
 
         # Request with invalid token
         headers = {"Authorization": "Bearer invalid_token"}
-        response = client.get("/api/auth/me", headers=headers)
+        response = client.get(url_builder.url_for("auth_get_current_user"), headers=headers)
         assert response.status_code == 401
 
         # Request with malformed authorization header
         headers = {"Authorization": "InvalidFormat"}
-        response = client.get("/api/auth/me", headers=headers)
+        response = client.get(url_builder.url_for("auth_get_current_user"), headers=headers)
         assert response.status_code == 401
 
 
@@ -278,11 +278,11 @@ class TestAuthApiResponseValidation:
 class TestAuthApiErrorHandling:
     """Test API error handling follows consistent patterns"""
 
-    def test_error_response_structure(self, client: TestClient):
+    def test_error_response_structure(self, client: TestClient, url_builder):
         """Test that error responses have consistent structure"""
         # Test validation error
         invalid_request = {"username": "", "password": ""}
-        response = client.post("/api/auth/register", json=invalid_request)
+        response = client.post(url_builder.url_for("register:register"), json=invalid_request)
 
         assert response.status_code == 422
         error_data = response.json()
@@ -306,20 +306,20 @@ class TestAuthApiErrorHandling:
         else:
             pytest.fail(f"Unexpected error response format: {error_data}")
 
-    def test_authentication_error_structure(self, client: TestClient):
+    def test_authentication_error_structure(self, client: TestClient, url_builder):
         """Test authentication error responses have consistent structure"""
         invalid_login = {"username": "nonexistent", "password": "wrongpassword"}
 
-        response = client.post("/api/auth/login", json=invalid_login)
+        response = client.post(url_builder.url_for("auth:jwt.login"), json=invalid_login)
 
         if response.status_code == 401:
             error_data = response.json()
             assert "detail" in error_data
             assert isinstance(error_data["detail"], str)
 
-    def test_authorization_error_structure(self, client: TestClient):
+    def test_authorization_error_structure(self, client: TestClient, url_builder):
         """Test authorization error responses have consistent structure"""
-        response = client.get("/api/auth/me")
+        response = client.get(url_builder.url_for("auth_get_current_user"))
 
         assert response.status_code == 401
         error_data = response.json()
@@ -329,26 +329,26 @@ class TestAuthApiErrorHandling:
 class TestAuthApiHeaders:
     """Test API headers and content types"""
 
-    def test_content_type_headers(self, client: TestClient):
+    def test_content_type_headers(self, client: TestClient, url_builder):
         """Test API endpoints return proper content types"""
         valid_request = {"username": "headertest123", "password": "HeaderTest123"}
 
-        response = client.post("/api/auth/register", json=valid_request)
+        response = client.post(url_builder.url_for("register:register"), json=valid_request)
 
         # Should return JSON content type
         assert "application/json" in response.headers.get("content-type", "")
 
-    def test_cors_headers(self, client: TestClient):
+    def test_cors_headers(self, client: TestClient, url_builder):
         """Test CORS headers if configured"""
-        response = client.options("/api/auth/register")
+        response = client.options(url_builder.url_for("register:register"))
 
         # Check if CORS headers are present (if configured)
         if "access-control-allow-origin" in response.headers:
             assert response.headers["access-control-allow-origin"] is not None
 
-    def test_security_headers(self, client: TestClient):
+    def test_security_headers(self, client: TestClient, url_builder):
         """Test security-related headers"""
-        response = client.get("/api/auth/me")
+        response = client.get(url_builder.url_for("auth_get_current_user"))
 
         # Check for security headers if configured
         headers = response.headers
@@ -364,7 +364,7 @@ class TestAuthApiHeaders:
 class TestAuthApiDocumentation:
     """Test API documentation compliance"""
 
-    def test_openapi_schema_compliance(self, client: TestClient):
+    def test_openapi_schema_compliance(self, client: TestClient, url_builder):
         """Test that API follows OpenAPI schema"""
         # Get OpenAPI schema
         response = client.get("/openapi.json")
@@ -376,26 +376,26 @@ class TestAuthApiDocumentation:
 
         # Check auth endpoints are documented
         paths = schema["paths"]
-        assert "/api/auth/register" in paths
-        assert "/api/auth/login" in paths
+        assert url_builder.url_for("register:register") in paths
+        assert url_builder.url_for("auth:jwt.login") in paths
 
         # Verify POST methods are documented
-        assert "post" in paths["/api/auth/register"]
-        assert "post" in paths["/api/auth/login"]
+        assert "post" in paths[url_builder.url_for("register:register")]
+        assert "post" in paths[url_builder.url_for("auth:jwt.login")]
 
-    def test_api_endpoint_documentation(self, client: TestClient):
+    def test_api_endpoint_documentation(self, client: TestClient, url_builder):
         """Test that API endpoints have proper documentation"""
         response = client.get("/openapi.json")
         schema = response.json()
 
         # Check register endpoint documentation
-        register_endpoint = schema["paths"]["/api/auth/register"]["post"]
+        register_endpoint = schema["paths"][url_builder.url_for("register:register")]["post"]
         assert "summary" in register_endpoint or "description" in register_endpoint
         assert "requestBody" in register_endpoint
         assert "responses" in register_endpoint
 
         # Check login endpoint documentation
-        login_endpoint = schema["paths"]["/api/auth/login"]["post"]
+        login_endpoint = schema["paths"][url_builder.url_for("auth:jwt.login")]["post"]
         assert "summary" in login_endpoint or "description" in login_endpoint
         assert "requestBody" in login_endpoint
         assert "responses" in login_endpoint
