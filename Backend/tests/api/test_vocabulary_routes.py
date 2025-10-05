@@ -233,9 +233,6 @@ async def test_When_blocking_words_called_Then_returns_structure(async_client, m
         headers=headers,
     )
 
-    # This endpoint might not be updated yet for the new system
-    if response.status_code == 404:
-        pytest.skip("Endpoint not implemented yet")
     assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
     payload = response.json()
     assert "blocking_words" in payload

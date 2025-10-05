@@ -53,36 +53,3 @@ async def test_Whenbulk_markCalled_ThenReturnscounts(async_client):
     body = response.json()
     assert body["word_count"] == 7
     assert body["level"] == "A1"
-
-
-@pytest.mark.skip(
-    reason="TODO: Update test for refactored vocabulary API - /api/vocabulary/library/stats no longer exists, update to use /api/vocabulary/stats with new VocabularyStats schema"
-)
-@pytest.mark.anyio
-@pytest.mark.timeout(30)
-async def test_Whenstats_total_counts_include_levelsCalled_ThenSucceeds(async_client):
-    """Boundary: stats aggregates totals from service-provided levels."""
-    from services.vocabulary.vocabulary_preload_service import get_vocabulary_preload_service
-
-    class FakeService:
-        async def get_vocabulary_stats(self, db=None):
-            return {"A1": {"total_words": 3}, "A2": {"total_words": 4}}
-
-        async def get_user_known_words(self, user_id: int, level: str, db=None):
-            return {"word1"}
-
-    # Override the dependency instead of monkeypatching
-    fake_service = FakeService()
-    async_client._transport.app.dependency_overrides[get_vocabulary_preload_service] = lambda: fake_service
-
-    flow = await _auth(async_client)
-
-    response = await async_client.get("/api/vocabulary/library/stats", headers=flow["headers"])
-
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["total_words"] == 7
-    assert payload["total_known"] == 2
-
-    # Clean up dependency override
-    del async_client._transport.app.dependency_overrides[get_vocabulary_preload_service]
