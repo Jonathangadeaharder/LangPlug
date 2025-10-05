@@ -230,7 +230,7 @@ class TestPydanticWarningsDetection:
     def test_vocabulary_filter_service_output_validates(self):
         """Test that VocabularyFilterService._create_vocabulary_word_dict produces valid structure"""
 
-        from services.processing.chunk_services.vocabulary_filter_service import VocabularyFilterService
+        from services.processing.vocabulary_filter_service import VocabularyFilterService
 
         service = VocabularyFilterService()
 
@@ -333,7 +333,7 @@ class TestRegressionPrevention:
         """
         from unittest.mock import Mock
 
-        from services.processing.chunk_services.vocabulary_filter_service import VocabularyFilterService
+        from services.processing.vocabulary_filter_service import VocabularyFilterService
 
         service = VocabularyFilterService()
         mock_word = Mock(word="Test", lemma="test", difficulty_level="A1", translation=None, part_of_speech=None)

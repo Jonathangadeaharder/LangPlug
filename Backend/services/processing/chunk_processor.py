@@ -61,10 +61,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.interfaces.handler_interface import IChunkHandler
 
-from .chunk_services import subtitle_generation_service, translation_management_service, vocabulary_filter_service
 from .chunk_transcription_service import ChunkTranscriptionService
 from .chunk_translation_service import ChunkTranslationService
 from .chunk_utilities import ChunkUtilities
+from .subtitle_generation_service import subtitle_generation_service
+from .translation_management_service import translation_management_service
+from .vocabulary_filter_service import vocabulary_filter_service
 
 logger = logging.getLogger(__name__)
 

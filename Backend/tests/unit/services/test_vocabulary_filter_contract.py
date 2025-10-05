@@ -29,7 +29,7 @@ from sqlalchemy.orm import sessionmaker
 from database.models import Base, User, VocabularyWord
 from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 from services.filterservice.interface import FilteredSubtitle, FilteredWord
-from services.processing.chunk_services.vocabulary_filter_service import VocabularyFilterService
+from services.processing.vocabulary_filter_service import VocabularyFilterService
 
 
 @pytest.fixture

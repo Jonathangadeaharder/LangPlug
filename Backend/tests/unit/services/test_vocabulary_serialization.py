@@ -60,7 +60,7 @@ async def test_vocabulary_filter_service_creates_correct_structure():
 
     This test directly validates the fix in vocabulary_filter_service.py:110
     """
-    from services.processing.chunk_services.vocabulary_filter_service import VocabularyFilterService
+    from services.processing.vocabulary_filter_service import VocabularyFilterService
 
     service = VocabularyFilterService()
 

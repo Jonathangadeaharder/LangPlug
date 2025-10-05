@@ -19,9 +19,7 @@ from core.dependencies import (
 from database.models import User
 from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 from services.filterservice.interface import FilteredSubtitle
-from services.processing.chunk_services.translation_management_service import (
-    translation_management_service,
-)
+from services.processing.translation_management_service import translation_management_service
 
 from ..models.processing import FilterRequest, ProcessingStatus, SelectiveTranslationRequest
 

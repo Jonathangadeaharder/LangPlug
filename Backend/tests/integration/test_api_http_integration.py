@@ -179,7 +179,7 @@ class TestDataContractAtHTTPLevel:
         - Layer 5 tested complete workflows
         - Layer 6 validates the data format at HTTP protocol level
         """
-        from services.processing.chunk_services.vocabulary_filter_service import VocabularyFilterService
+        from services.processing.vocabulary_filter_service import VocabularyFilterService
 
         service = VocabularyFilterService()
 
@@ -281,7 +281,7 @@ class TestBug8AtHTTPLevel:
 
         Layer 6: Validates our UUID generation creates Pydantic-compatible UUIDs
         """
-        from services.processing.chunk_services.vocabulary_filter_service import VocabularyFilterService
+        from services.processing.vocabulary_filter_service import VocabularyFilterService
 
         service = VocabularyFilterService()
 
