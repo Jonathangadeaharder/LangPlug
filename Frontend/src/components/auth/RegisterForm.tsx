@@ -2,9 +2,12 @@ import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import styled from 'styled-components'
 import { toast } from 'react-hot-toast'
+import { z } from 'zod'
 import { useAuthStore } from '@/store/useAuthStore'
 import { NetflixButton, ErrorMessage, SuccessMessage } from '@/styles/GlobalStyles'
 import { handleApiError } from '@/services/api'
+import { schemas } from '@/schemas/api-schemas'
+import { zodErrorToFormErrors } from '@/schemas/helpers'
 
 const RegisterContainer = styled.div`
   min-height: 100vh;
@@ -98,6 +101,22 @@ const PasswordRequirements = styled.div`
   }
 `
 
+// Extended schema with frontend-specific validations
+const RegisterFormSchema = schemas.UserCreate
+  .extend({
+    username: z.string()
+      .min(3, 'Username must be at least 3 characters long')
+      .max(50, 'Username must be no more than 50 characters long')
+      .regex(/^[a-zA-Z0-9_-]+$/, 'Username must contain only alphanumeric characters, underscores, and hyphens'),
+    password: z.string()
+      .min(12, 'Password must be at least 12 characters long'),
+    confirmPassword: z.string(),
+  })
+  .refine((data: { password: string; confirmPassword: string }) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
+
 export const RegisterForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -109,39 +128,26 @@ export const RegisterForm: React.FC = () => {
   const { register, isLoading, error: authError } = useAuthStore()
   const navigate = useNavigate()
 
-  const validateForm = () => {
-    if (!email.trim()) {
-      return 'Email is required'
-    }
-    if (!email.includes('@')) {
-      return 'Please enter a valid email address'
-    }
-    if (!username.trim()) {
-      return 'Username is required'
-    }
-    if (username.length < 2) {
-      return 'Username must be at least 2 characters long'
-    }
-    if (!password) {
-      return 'Password is required'
-    }
-    if (password.length < 12) {
-      return 'Password must be at least 12 characters long'
-    }
-    if (password !== confirmPassword) {
-      return 'Passwords do not match'
-    }
-    return null
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setSuccess(false)
 
-    const validationError = validateForm()
-    if (validationError) {
-      setError(validationError)
+    // Validate form data with Zod schema
+    const formData = {
+      email,
+      username,
+      password,
+      confirmPassword,
+    }
+
+    const result = RegisterFormSchema.safeParse(formData)
+
+    if (!result.success) {
+      const formErrors = zodErrorToFormErrors(result.error)
+      // Display first error message
+      const firstError = Object.values(formErrors)[0]
+      setError(firstError)
       return
     }
 

@@ -7,15 +7,9 @@ import time
 from collections.abc import Callable
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-
-from services.authservice.auth_service import (
-    InvalidCredentialsError,
-    SessionExpiredError,
-    UserAlreadyExistsError,
-)
 
 from .exceptions import LangPlugException
 
@@ -90,61 +84,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 exc_info=True,
             )
             raise
-
-
-class ErrorHandlingMiddleware(BaseHTTPMiddleware):
-    """Middleware for global error handling"""
-
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        try:
-            return await call_next(request)
-        except HTTPException:
-            # Re-raise HTTP exceptions (handled by FastAPI)
-            raise
-        except LangPlugException as e:
-            # Handle custom application exceptions
-            logger.error(f"LangPlug error: {e.message}", exc_info=True)
-            return JSONResponse(
-                status_code=e.status_code,
-                content={"detail": e.message, "type": "LangPlugException", "timestamp": datetime.utcnow().isoformat()},
-            )
-        except InvalidCredentialsError as e:
-            logger.warning(f"Invalid credentials: {e!s}")
-            return JSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                content={
-                    "detail": str(e),
-                    "type": "InvalidCredentialsError",
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            )
-        except UserAlreadyExistsError as e:
-            logger.warning(f"User already exists: {e!s}")
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content={
-                    "detail": str(e),
-                    "type": "UserAlreadyExistsError",
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            )
-        except SessionExpiredError as e:
-            logger.warning(f"Session expired: {e!s}")
-            return JSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                content={"detail": str(e), "type": "SessionExpiredError", "timestamp": datetime.utcnow().isoformat()},
-            )
-        except Exception as e:
-            # Handle unexpected exceptions
-            logger.error(f"Unexpected error: {e!s}", exc_info=True)
-            return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content={
-                    "detail": "Internal server error",
-                    "type": "UnexpectedError",
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            )
 
 
 def setup_middleware(app: FastAPI) -> None:

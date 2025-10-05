@@ -100,7 +100,7 @@ class VocabularyFilterService:
         if "learning_subtitles" in filter_result:
             for subtitle in filter_result.get("learning_subtitles", []):
                 # Extract active words from the subtitle
-                active_words = subtitle.active_words if hasattr(subtitle, 'active_words') else []
+                active_words = subtitle.active_words if hasattr(subtitle, "active_words") else []
                 for word in active_words:
                     vocabulary.append(self._create_vocabulary_word_dict(word))
 

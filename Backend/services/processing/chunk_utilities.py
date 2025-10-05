@@ -231,11 +231,16 @@ class ChunkUtilities(IChunkUtilities):
             task_progress: Progress tracking dictionary
             error: Exception that occurred
         """
+        # Truncate error message to fit within validation limits (2000 chars)
+        error_msg = str(error)[:1900]  # Leave some buffer
+        if len(str(error)) > 1900:
+            error_msg += "... (truncated)"
+
         task_progress[task_id] = ProcessingStatus(
             status="error",
             progress=0.0,
             current_step="Processing failed",
-            message=f"Error: {error!s}",
+            message=f"Error: {error_msg}",
         )
 
         logger.error(f"[CHUNK DEBUG] Error in task {task_id}: {error}")

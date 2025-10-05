@@ -22,7 +22,7 @@ class ProcessingStatus(BaseModel):
     current_step: str = Field(
         ..., min_length=1, max_length=200, description="Description of the current processing step"
     )
-    message: str | None = Field(None, max_length=500, description="Additional status message or error details")
+    message: str | None = Field(None, max_length=2000, description="Additional status message or error details")
     started_at: int | None = Field(None, ge=0, description="Unix timestamp when processing started")
     vocabulary: list[VocabularyWord] | None = Field(
         None, description="Vocabulary words extracted from completed chunks"

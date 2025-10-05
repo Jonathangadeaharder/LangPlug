@@ -40,30 +40,25 @@ class TranslationManagementService:
         """
         logger.info(f"Applying selective translations for {len(known_words)} known words")
 
-        try:
-            # Re-filter the subtitles excluding known words
-            refilter_result = await self.refilter_for_translations(
-                srt_path, user_id, known_words, user_level, target_language
-            )
+        # Re-filter the subtitles excluding known words
+        refilter_result = await self.refilter_for_translations(
+            srt_path, user_id, known_words, user_level, target_language
+        )
 
-            # Build translation segments for remaining unknown words
-            translation_segments = await self.build_translation_segments(
-                srt_path, user_id, known_words, user_level, target_language, refilter_result
-            )
+        # Build translation segments for remaining unknown words
+        translation_segments = await self.build_translation_segments(
+            srt_path, user_id, known_words, user_level, target_language, refilter_result
+        )
 
-            logger.info(f"Generated {len(translation_segments)} translation segments for unknown words")
+        logger.info(f"Generated {len(translation_segments)} translation segments for unknown words")
 
-            return self.create_translation_response(refilter_result, translation_segments, known_words)
-
-        except Exception as e:
-            logger.error(f"Selective translation failed: {e}")
-            return self.create_fallback_response(known_words, e)
+        return self.create_translation_response(refilter_result, translation_segments, known_words)
 
     async def refilter_for_translations(
         self, srt_path: str, user_id: str, known_words: list[str], user_level: str, target_language: str
     ) -> dict[str, Any]:
         """
-        Re-filter subtitles excluding known words using translation analyzer
+        Re-filter subtitles excluding known words
 
         Args:
             srt_path: Path to SRT file
@@ -75,21 +70,30 @@ class TranslationManagementService:
         Returns:
             Re-filtering result dictionary
         """
-        try:
-            from services.filtering.translation_analyzer import TranslationAnalyzer
+        # Use DirectSubtitleProcessor directly - no need for wrapper layer
+        result = await self.subtitle_processor.process_srt_file(srt_path, user_id, user_level, target_language)
 
-            analyzer = TranslationAnalyzer()
+        # Filter out known words from blocking words
+        blocking_words = result.get("blocking_words", [])
+        known_words_lower = {w.lower() for w in known_words}
 
-            # Re-filter the subtitles excluding known words
-            refilter_result = await analyzer.refilter_for_translations(
-                srt_path, user_id, known_words, user_level, target_language
-            )
+        unknown_blockers = [word for word in blocking_words if word.get("word", "").lower() not in known_words_lower]
+        known_blockers = [word for word in blocking_words if word.get("word", "").lower() in known_words_lower]
 
-            return refilter_result
-
-        except Exception as e:
-            logger.error(f"Re-filtering failed: {e}")
-            return {"total_subtitles": 0, "original_blockers": 0, "unknown_blockers": 0, "filtering_stats": {}}
+        return {
+            "total_subtitles": len(result.get("learning_subtitles", [])),
+            "original_blockers": len(blocking_words),
+            "unknown_blockers": len(unknown_blockers),
+            "known_blockers": len(known_blockers),
+            "filtering_stats": {
+                "total_blockers": len(blocking_words),
+                "known_blockers": len(known_blockers),
+                "unknown_blockers": len(unknown_blockers),
+                "translation_reduction": round((len(known_blockers) / len(blocking_words)) * 100, 1)
+                if blocking_words
+                else 0,
+            },
+        }
 
     async def build_translation_segments(
         self,

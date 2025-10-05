@@ -1118,6 +1118,8 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
           </StickyNavContainer>
         )}
 
+        {renderSubtitles()}
+
         <ControlsOverlay $visible={showControls} $mobile={isMobile}>
           <TopControls>
             <TopLeftControls>
@@ -1144,8 +1146,6 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = ({
               </ControlButton>
             </PlayerControls>
           </TopControls>
-
-          {renderSubtitles()}
 
           <BottomControls>
             <ProgressContainer>

@@ -122,58 +122,44 @@ os.environ["LANGPLUG_TRANSCRIPTION_SERVICE"] = "whisper-tiny"
 os.environ["LANGPLUG_TRANSLATION_SERVICE"] = "opus-de-es"
 
 
-# --- Lightweight URL builder (no network) ---------------------------------
-class SimpleURLBuilder:
-    """Minimal URL builder for tests that referenced http_url_builder.
-    Avoids network calls and OpenAPI discovery by using a static mapping.
+# --- URL Builder using FastAPI's url_path_for (Type-Safe) ----------------
+class URLBuilder:
+    """
+    Type-safe URL builder using FastAPI's url_path_for.
+    Automatically syncs with route changes - no manual mapping needed.
     """
 
-    _routes = {
-        # Auth
-        "auth_register": "/api/auth/register",
-        "auth_login": "/api/auth/login",
-        "auth_logout": "/api/auth/logout",
-        "auth_me": "/api/auth/me",
-        # Processing
-        "transcribe_video": "/api/process/transcribe",
-        "filter_subtitles": "/api/process/filter-subtitles",
-        "get_task_progress": "/api/process/progress/{task_id}",
-        "process_chunk": "/api/process/chunk",
-        # Videos
-        "get_videos": "/api/videos",
-        # Profile
-        "profile_get": "/api/profile",
-        "profile_update_languages": "/api/profile/languages",
-        "profile_get_supported_languages": "/api/profile/languages",
-        # Vocabulary
-        "get_vocabulary_stats": "/api/vocabulary/stats",
-        "get_blocking_words": "/api/vocabulary/blocking-words",
-        "mark_word_known": "/api/vocabulary/mark-known",
-        "preload_vocabulary": "/api/vocabulary/preload",
-        "get_library_stats": "/api/vocabulary/library/stats",
-        "get_vocabulary_level": "/api/vocabulary/library/{level}",
-        "bulk_mark_level": "/api/vocabulary/library/bulk-mark",
-    }
+    def __init__(self, app):
+        self.app = app
 
     def url_for(self, route_name: str, **path_params) -> str:
-        if route_name not in self._routes:
-            raise ValueError(f"Unknown route name: {route_name}")
-        url = self._routes[route_name]
-        for k, v in path_params.items():
-            url = url.replace("{" + k + "}", str(v))
-        return url
+        """
+        Generate URL for a named route using FastAPI's url_path_for.
+
+        Args:
+            route_name: The route name (from @router decorator)
+            **path_params: Path parameters for the route
+
+        Returns:
+            Full URL path
+
+        Example:
+            url_for("get_vocabulary_stats")
+            url_for("get_task_progress", task_id="abc123")
+        """
+        return self.app.url_path_for(route_name, **path_params)
 
 
 @pytest.fixture
-def http_url_builder() -> SimpleURLBuilder:
-    """Provide a simple, in-memory URL builder for tests."""
-    return SimpleURLBuilder()
+def url_builder(app) -> URLBuilder:
+    """Provide a type-safe URL builder for tests using FastAPI's url_path_for."""
+    return URLBuilder(app)
 
 
 @pytest.fixture
-def url_builder(http_url_builder: SimpleURLBuilder) -> SimpleURLBuilder:
-    """Alias fixture for tests expecting 'url_builder'."""
-    return http_url_builder
+def http_url_builder(url_builder: URLBuilder) -> URLBuilder:
+    """Alias fixture for backward compatibility."""
+    return url_builder
 
 
 # --- Application + DB override ---------------------------------------------

@@ -20,7 +20,7 @@
     "react-router-dom": "^6.8.0",
     "react-window": "^2.2.0",
     "styled-components": "^5.3.8",
-    "zod": "^4.1.8",
+    "zod": "^3.25.76",
     "zustand": "^4.3.6"
   },
   "devDependencies": {
@@ -49,6 +49,7 @@
     "kill-port": "^2.0.1",
     "lizard": "^1.0.0",
     "msw": "^2.11.3",
+    "openapi-zod-client": "^1.18.2",
     "postcss-styled-syntax": "^0.7.1",
     "prettier": "^3.6.2",
     "puppeteer": "^24.22.0",
@@ -89,9 +90,10 @@
     "test:e2e:debug": "playwright test --debug",
     "test:all": "cd ../tests && npx ts-node scripts/run-all-tests.ts",
     "generate-client": "openapi-ts",
+    "generate:schemas": "node scripts/generate-zod-schemas.js",
     "validate-contract": "cd .. && npx ts-node scripts/validate-contract.ts",
-    "dev:full": "npm run generate-client && npm run validate-contract && npm run dev",
-    "update-openapi": "cd ../Backend && python export_openapi.py && cd ../Frontend && npm run generate-client"
+    "dev:full": "npm run generate-client && npm run generate:schemas && npm run validate-contract && npm run dev",
+    "update-openapi": "cd ../Backend && python export_openapi.py && cd ../Frontend && npm run generate-client && npm run generate:schemas"
   },
   "browserslist": {
     "production": [

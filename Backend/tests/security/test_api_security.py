@@ -17,9 +17,11 @@ pytestmark = pytest.mark.skipif(
 
 @pytest.mark.anyio("asyncio")
 @pytest.mark.timeout(30)
-async def test_Whenmultilingual_vocabulary_statsWithoutauthentication_ThenReturnsError(async_client) -> None:
+async def test_Whenmultilingual_vocabulary_statsWithoutauthentication_ThenReturnsError(
+    async_client, url_builder
+) -> None:
     """Unauthenticated users should receive a 401 when accessing multilingual vocabulary stats."""
-    response = await async_client.get("/api/vocabulary/stats")
+    response = await async_client.get(url_builder.url_for("get_vocabulary_stats"))
 
     assert response.status_code == 401
     assert "detail" in response.json()
@@ -27,10 +29,10 @@ async def test_Whenmultilingual_vocabulary_statsWithoutauthentication_ThenReturn
 
 @pytest.mark.anyio("asyncio")
 @pytest.mark.timeout(30)
-async def test_invalid_BearerToken_is_rejected(async_client) -> None:
+async def test_invalid_BearerToken_is_rejected(async_client, url_builder) -> None:
     """A malformed bearer token must not grant access to vocabulary endpoints."""
     response = await async_client.get(
-        "/api/vocabulary/stats",
+        url_builder.url_for("get_vocabulary_stats"),
         headers={"Authorization": "Bearer not-a-real-token"},
     )
 
@@ -91,7 +93,7 @@ async def test_Whenxss_payload_in_language_parameterCalled_ThenSucceeds(async_cl
 
 @pytest.mark.anyio("asyncio")
 @pytest.mark.timeout(30)
-async def test_WhenLogoutCalled_ThenRevokesaccess(async_client) -> None:
+async def test_WhenLogoutCalled_ThenRevokesaccess(async_client, url_builder) -> None:
     """
     Logout endpoint should return 204 success.
 
@@ -100,13 +102,13 @@ async def test_WhenLogoutCalled_ThenRevokesaccess(async_client) -> None:
 
     This test verifies logout succeeds but skips token invalidation check.
     """
-    flow = await AuthTestHelperAsync.register_and_login_async(async_client)
+    flow = await AuthTestHelperAsync.register_and_login_async(async_client, url_builder)
 
-    logout = await async_client.post("/api/auth/logout", headers=flow["headers"])
+    logout = await async_client.post(url_builder.url_for("auth_logout"), headers=flow["headers"])
     assert (
         logout.status_code == 204
     ), f"Expected 204 (no content - successful logout), got {logout.status_code}: {logout.text}"
 
     # SKIP: JWT tokens remain valid after logout (stateless JWT limitation)
-    # me_response = await async_client.get("/api/auth/me", headers=flow["headers"])
+    # me_response = await async_client.get(url_builder.url_for("auth_me"), headers=flow["headers"])
     # assert me_response.status_code == 401, "Token should be revoked after logout"

@@ -83,15 +83,18 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       await markWordKnownApiVocabularyMarkKnownPost({
         requestBody: {
-          concept_id: targetWord.concept_id,
+          lemma: targetWord.lemma,
+          word: targetWord.word,
+          language: 'de',
           known,
         },
       })
 
-      // Update local progress
+      // Update local progress using lemma as key
+      const wordKey = targetWord.lemma || targetWord.word
       const updatedProgress = {
         ...gameSession.user_progress,
-        [targetWord.concept_id]: known
+        [wordKey]: known
       }
 
       // Update current words

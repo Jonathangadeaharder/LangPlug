@@ -12,6 +12,8 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
+from .middleware import LoggingMiddleware
+
 logger = logging.getLogger(__name__)
 
 
@@ -160,37 +162,6 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
         response.headers["X-Request-ID"] = request_id
 
         return response
-
-
-class LoggingMiddleware(BaseHTTPMiddleware):
-    """Log all requests with timing information"""
-
-    async def dispatch(self, request: Request, call_next):
-        start_time = time.time()
-
-        logger.info(
-            f"Request started: {request.method} {request.url.path} "
-            f"from {request.client.host if request.client else 'unknown'}"
-        )
-
-        try:
-            response = await call_next(request)
-            process_time = time.time() - start_time
-
-            logger.info(
-                f"Request completed: {request.method} {request.url.path} "
-                f"status={response.status_code} duration={process_time:.3f}s"
-            )
-
-            response.headers["X-Process-Time"] = str(process_time)
-            return response
-
-        except Exception as e:
-            process_time = time.time() - start_time
-            logger.error(
-                f"Request failed: {request.method} {request.url.path} error={e!s} duration={process_time:.3f}s"
-            )
-            raise
 
 
 def setup_security_middleware(app: FastAPI, settings):

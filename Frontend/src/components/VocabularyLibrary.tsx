@@ -11,6 +11,7 @@ import {
   markWordKnownApiVocabularyMarkKnownPost,
 } from '@/client/services.gen'
 import { logger } from '@/services/logger'
+import { formatApiError, isRateLimitError, getRetryAfter } from '@/utils/error-formatter'
 import type { VocabularyLevel, VocabularyStats, VocabularyLibraryWord } from '@/types'
 
 const Container = styled.div`
@@ -467,11 +468,9 @@ export const VocabularyLibrary: React.FC = () => {
       const statsData = await getVocabularyStatsApiVocabularyStatsGet()
       setStats(statsData)
     } catch (error: any) {
-      const errorMessage = error?.body?.detail || error?.message || 'Failed to load vocabulary statistics'
+      const errorMessage = formatApiError(error, 'Failed to load vocabulary statistics')
       logger.error('VocabularyLibrary', 'Failed to load stats', { error: errorMessage })
-      toast.error(errorMessage, {
-        duration: 4000
-      })
+      toast.error(errorMessage, { duration: 4000 })
     }
   }
 
@@ -510,24 +509,22 @@ export const VocabularyLibrary: React.FC = () => {
         ...data,
         words: (data.words ?? []).map(word => ({
           ...word,
-          id: word.concept_id,
+          id: word.id || word.lemma,  // Use database id or lemma as fallback
           known: Boolean(word.known),
         })),
       }
 
       setLevelData(normalizedLevel)
     } catch (error: any) {
-      const errorMessage = error?.body?.detail || error?.message || `Failed to load ${level} vocabulary`
+      const errorMessage = formatApiError(error, `Failed to load ${level} vocabulary`)
       logger.error('VocabularyLibrary', 'Failed to load level data', { level, error: errorMessage })
 
       // Check for rate limiting
-      if (error?.status === 429) {
-        const retryAfter = error?.headers?.['retry-after'] || 60
+      if (isRateLimitError(error)) {
+        const retryAfter = getRetryAfter(error)
         toast.error(`Rate limit exceeded. Please wait ${retryAfter} seconds before trying again.`)
       } else {
-        toast.error(errorMessage, {
-          duration: 4000
-        })
+        toast.error(errorMessage, { duration: 4000 })
       }
     } finally {
       setLoading(false)
@@ -543,71 +540,104 @@ export const VocabularyLibrary: React.FC = () => {
       toKnown: newStatus
     })
 
+    // Optimistically update local state
+    setLevelData((prevLevelData) => {
+      if (!prevLevelData) return null
+
+      const updatedWords = prevLevelData.words.map(w =>
+        w.id === word.id ? { ...w, known: newStatus } : w
+      )
+      const knownCount = updatedWords.filter(w => w.known).length
+
+      return {
+        ...prevLevelData,
+        words: updatedWords,
+        known_count: knownCount
+      }
+    })
+
+    // Update stats optimistically
+    setStats((prevStats) => {
+      if (!prevStats) return null
+
+      const delta = newStatus ? 1 : -1
+      return {
+        ...prevStats,
+        total_known: prevStats.total_known + delta,
+        levels: {
+          ...prevStats.levels,
+          [activeLevel]: {
+            ...prevStats.levels[activeLevel],
+            user_known: prevStats.levels[activeLevel].user_known + delta
+          }
+        }
+      }
+    })
+
     try {
       await markWordKnownApiVocabularyMarkKnownPost({
         requestBody: {
-          concept_id: word.concept_id,
+          lemma: word.lemma,
+          word: word.word,
+          language: 'de',
           known: newStatus,
         },
       })
 
-      // Update local state
-      setLevelData((prevLevelData) => {
-        if (!prevLevelData) return null
-
-        const updatedWords = prevLevelData.words.map(w =>
-          w.id === word.id ? { ...w, known: newStatus } : w
-        )
-        const knownCount = updatedWords.filter(w => w.known).length
-
-        logger.info('VocabularyLibrary', 'Word status updated successfully', {
-          word: word.word,
-          newStatus,
-          newKnownCount: knownCount,
-          totalWords: updatedWords.length
-        })
-
-        return {
-          ...prevLevelData,
-          words: updatedWords,
-          known_count: knownCount
-        }
+      logger.info('VocabularyLibrary', 'Word status updated', {
+        word: word.word,
+        lemma: word.lemma,
+        newStatus
       })
 
-      // Reload stats
-      await loadStats()
-
-      toast.success(`${word.word} marked as ${newStatus ? 'known' : 'unknown'}`)
+      toast.success(`${word.word} ${newStatus ? 'known' : 'unknown'}`)
     } catch (error: any) {
+      const errorMessage = formatApiError(error, 'Unknown error')
       logger.error('VocabularyLibrary', 'Failed to update word status', {
         word: word.word,
-        error: error?.message || 'Unknown error'
+        error: errorMessage
       }, error as Error)
 
-      // Show error with context
-      const errorMessage = error?.body?.detail || 'Failed to update word status'
-      toast.error(`${errorMessage}. The change was not saved.`, {
-        duration: 4000
-      })
+      toast.error('Failed to save. Change reverted.', { duration: 4000 })
 
-      // Revert visual state
+      // Revert both levelData and stats on error
       setLevelData((prev) => {
         if (!prev) return null
         return {
           ...prev,
           words: prev.words.map((w) =>
-            w.concept_id === word.concept_id ? { ...w, known: word.known } : w
+            w.id === word.id ? { ...w, known: word.known } : w
           ),
+          known_count: prev.words.filter(w => w.known).length
+        }
+      })
+
+      setStats((prevStats) => {
+        if (!prevStats) return null
+
+        const delta = newStatus ? -1 : 1  // Reverse the optimistic update
+        return {
+          ...prevStats,
+          total_known: prevStats.total_known + delta,
+          levels: {
+            ...prevStats.levels,
+            [activeLevel]: {
+              ...prevStats.levels[activeLevel],
+              user_known: prevStats.levels[activeLevel].user_known + delta
+            }
+          }
         }
       })
     }
   }, [activeLevel])
 
   const handleBulkMark = async (known: boolean) => {
+    if (!levelData) return
+
     logger.userAction('bulk-mark', 'VocabularyLibrary', {
       level: activeLevel,
       operation: known ? 'mark-all-known' : 'unmark-all',
-      wordCount: levelData?.words.length || 0
+      totalWords: levelData.total_count
     })
 
     setBulkLoading(true)
@@ -618,28 +648,51 @@ export const VocabularyLibrary: React.FC = () => {
           known,
           target_language: 'de',
         },
-      }) as { success?: boolean; message?: string }
-      logger.info('VocabularyLibrary', 'Bulk mark operation completed', {
-        level: activeLevel,
-        known,
-        result
-      })
-      toast.success(result.message || `Successfully ${known ? 'marked all words as known' : 'unmarked all words'}`)
+      }) as { success?: boolean; word_count?: number }
 
-      // Reload data
-      await loadLevelData(activeLevel)
-      await loadStats()
+      const wordCount = result.word_count || levelData.total_count
+
+      // Update local state immediately for instant feedback
+      setLevelData({
+        ...levelData,
+        words: levelData.words.map(w => ({ ...w, known })),
+        known_count: known ? levelData.total_count : 0
+      })
+
+      // Update stats locally
+      if (stats && stats.levels[activeLevel]) {
+        const previousKnown = stats.levels[activeLevel].user_known
+        const newKnown = known ? stats.levels[activeLevel].total_words : 0
+        const delta = newKnown - previousKnown
+
+        setStats({
+          ...stats,
+          total_known: stats.total_known + delta,
+          levels: {
+            ...stats.levels,
+            [activeLevel]: {
+              ...stats.levels[activeLevel],
+              user_known: newKnown
+            }
+          }
+        })
+      }
+
+      toast.success(`${wordCount} words ${known ? 'marked as known' : 'unmarked'}`)
+
+      logger.info('VocabularyLibrary', 'Bulk mark completed', { level: activeLevel, known, wordCount })
     } catch (error: any) {
-      const errorMessage = error?.body?.detail || error?.message || 'Operation failed'
+      const errorMessage = formatApiError(error, 'Operation failed')
       logger.error('VocabularyLibrary', 'Bulk mark operation failed', {
         level: activeLevel,
         known,
         error: errorMessage
       }, error as Error)
 
-      toast.error(`Failed to ${known ? 'mark all as known' : 'unmark all words'}: ${errorMessage}`, {
-        duration: 4000
-      })
+      toast.error(`Failed: ${errorMessage}`, { duration: 4000 })
+
+      // Reload on error to get correct state from backend
+      await Promise.all([loadLevelData(activeLevel), loadStats()])
     } finally {
       setBulkLoading(false)
     }
@@ -688,11 +741,19 @@ export const VocabularyLibrary: React.FC = () => {
     onWordClick: (word: VocabularyLibraryWord) => void
   }
 
-  const cellData = useMemo<CellData>(() => ({
-    words: levelData?.words || [],
-    columnCount: gridConfig.columnCount,
-    onWordClick: handleWordClick
-  }), [levelData?.words, gridConfig.columnCount, handleWordClick])
+  const cellData = useMemo<CellData>(() => {
+    // Fail fast if words array is missing - this should never happen
+    // because we only render the grid when levelData exists (see line 864)
+    if (!levelData?.words) {
+      throw new Error(`Vocabulary grid rendered without words data for level ${activeLevel}`)
+    }
+
+    return {
+      words: levelData.words,
+      columnCount: gridConfig.columnCount,
+      onWordClick: handleWordClick
+    }
+  }, [levelData?.words, gridConfig.columnCount, handleWordClick, activeLevel])
 
   const GridCell = useCallback((props: CellComponentProps<CellData>) => {
     const { columnIndex, rowIndex, style, words, columnCount, onWordClick } = props

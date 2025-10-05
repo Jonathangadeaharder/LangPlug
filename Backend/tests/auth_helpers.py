@@ -168,7 +168,9 @@ class HTTPAuthTestHelper:
 
     @staticmethod
     def register_user_http(
-        client: httpx.Client, user_data: dict[str, str], register_endpoint: str = "/api/auth/register"
+        client: httpx.Client,
+        user_data: dict[str, str],
+        register_endpoint: str = "/api/auth/register",  # noqa: ARG004
     ) -> tuple[int, dict[str, Any]]:
         """DEPRECATED: Use HTTPAuthHelper.register_user() instead."""
         helper = HTTPAuthHelper(client)
@@ -176,7 +178,9 @@ class HTTPAuthTestHelper:
 
     @staticmethod
     async def register_user_http_async(
-        client: httpx.AsyncClient, user_data: dict[str, str], register_endpoint: str = "/api/auth/register"
+        client: httpx.AsyncClient,
+        user_data: dict[str, str],
+        register_endpoint: str = "/api/auth/register",  # noqa: ARG004
     ) -> tuple[int, dict[str, Any]]:
         """DEPRECATED: Use AsyncHTTPAuthHelper.register_user() instead."""
         helper = AsyncHTTPAuthHelper(client)
@@ -184,7 +188,10 @@ class HTTPAuthTestHelper:
 
     @staticmethod
     def login_user_http(
-        client: httpx.Client, email: str, password: str, login_endpoint: str = "/api/auth/login"
+        client: httpx.Client,
+        email: str,
+        password: str,
+        login_endpoint: str = "/api/auth/login",  # noqa: ARG004
     ) -> tuple[int, dict[str, Any]]:
         """DEPRECATED: Use HTTPAuthHelper.login_user() instead."""
         helper = HTTPAuthHelper(client)
@@ -192,7 +199,10 @@ class HTTPAuthTestHelper:
 
     @staticmethod
     async def login_user_http_async(
-        client: httpx.AsyncClient, email: str, password: str, login_endpoint: str = "/api/auth/login"
+        client: httpx.AsyncClient,
+        email: str,
+        password: str,
+        login_endpoint: str = "/api/auth/login",  # noqa: ARG004
     ) -> tuple[int, dict[str, Any]]:
         """DEPRECATED: Use AsyncHTTPAuthHelper.login_user() instead."""
         helper = AsyncHTTPAuthHelper(client)
@@ -202,8 +212,8 @@ class HTTPAuthTestHelper:
     def register_and_login_http(
         client: httpx.Client,
         user_data: dict[str, str] | None = None,
-        register_endpoint: str = "/api/auth/register",
-        login_endpoint: str = "/api/auth/login",
+        register_endpoint: str = "/api/auth/register",  # noqa: ARG004
+        login_endpoint: str = "/api/auth/login",  # noqa: ARG004
     ) -> dict[str, Any]:
         """DEPRECATED: Use HTTPAuthHelper.register_and_login() instead."""
         helper = HTTPAuthHelper(client)
@@ -213,8 +223,8 @@ class HTTPAuthTestHelper:
     async def register_and_login_http_async(
         client: httpx.AsyncClient,
         user_data: dict[str, str] | None = None,
-        register_endpoint: str = "/api/auth/register",
-        login_endpoint: str = "/api/auth/login",
+        register_endpoint: str = "/api/auth/register",  # noqa: ARG004
+        login_endpoint: str = "/api/auth/login",  # noqa: ARG004
     ) -> dict[str, Any]:
         """DEPRECATED: Use AsyncHTTPAuthHelper.register_and_login() instead."""
         helper = AsyncHTTPAuthHelper(client)
@@ -389,9 +399,9 @@ class AuthTestHelperAsync:
     """Async authentication test helper for integration tests."""
 
     @staticmethod
-    async def register_and_login_async(client: httpx.AsyncClient) -> dict[str, Any]:
+    async def register_and_login_async(client: httpx.AsyncClient, url_builder=None) -> dict[str, Any]:
         """Register and login a user asynchronously."""
-        helper = AsyncHTTPAuthHelper(client)
+        helper = AsyncHTTPAuthHelper(client, url_builder)
         return await helper.register_and_login()
 
     @staticmethod

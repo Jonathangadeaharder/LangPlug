@@ -55,11 +55,16 @@ async def run_chunk_processing(
 
     except Exception as e:
         logger.error(f"Chunk processing failed for task {task_id}: {e}", exc_info=True)
+        # Truncate error message to fit within validation limits (2000 chars)
+        error_msg = str(e)[:1900]  # Leave some buffer
+        if len(str(e)) > 1900:
+            error_msg += "... (truncated)"
+
         task_progress[task_id] = ProcessingStatus(
             status="error",
             progress=0.0,
             current_step="Chunk processing failed",
-            message=f"Error: {e!s}",
+            message=f"Error: {error_msg}",
         )
 
 

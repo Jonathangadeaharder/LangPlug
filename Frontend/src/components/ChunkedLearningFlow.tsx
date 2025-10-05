@@ -211,12 +211,20 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
             translationPath: progress.translation_path
           })
 
-          // Add fallback concept_id for backwards compatibility
-          const vocabularyWithIds = (progress.vocabulary || []).map((word: any) => ({
-            ...word,
-            concept_id: word.concept_id || `${word.lemma || word.word}-${word.difficulty_level || 'unknown'}`,
-            lemma: word.lemma || word.word
-          }))
+          // Validate vocabulary data - fail fast if missing
+          if (!progress.vocabulary) {
+            throw new Error('Processing completed but vocabulary data is missing from response')
+          }
+
+          const vocabularyWithIds = progress.vocabulary.map((word: any) => {
+            if (!word.lemma) {
+              throw new Error(`Word "${word.word}" is missing required lemma field`)
+            }
+            return {
+              ...word,
+              lemma: word.lemma
+            }
+          })
 
           const updatedChunks = [...chunks]
           updatedChunks[chunkIndex] = {
@@ -296,24 +304,19 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
     const loadingToast = toast.loading(`Saving progress for "${word}"...`)
 
     try {
-      // Use existing mark-known endpoint with concept_id
-      // If no concept_id, skip saving (will be fixed after server restart)
-      if (!wordData.concept_id) {
-        logger.warn('ChunkedLearningFlow', 'Skipping save - no concept_id (needs server restart)', { word })
-        toast.error(`Cannot save "${word}" - server restart needed`, { duration: 2000 })
-        return
-      }
-
+      // Use lemma-based API endpoint
       const res = await markWordKnownApiVocabularyMarkKnownPost({
         requestBody: {
-          concept_id: wordData.concept_id,
+          lemma: wordData.lemma,
+          word: wordData.word,
+          language: 'de',
           known: known
         }
       }) as any
 
       const respWord = res?.word ?? word
-      const respLemma = res?.lemma ?? undefined
-      const respLevel = res?.level ?? undefined
+      const respLemma = res?.lemma ?? wordData.lemma
+      const respLevel = res?.level ?? wordData.difficulty_level
       logger.info('ChunkedLearningFlow', 'Word progress saved to database', {
         word: respWord,
         lemma: respLemma,
@@ -326,29 +329,10 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
       toast.success('✓ Progress saved', { duration: 1500 })
     } catch (error) {
       logger.error('ChunkedLearningFlow', 'Failed to save word progress', { word, error })
-
-      // Dismiss loading toast and show error
       toast.dismiss(loadingToast)
-      toast.error(`Failed to save progress for "${word}". Will retry automatically.`, { duration: 3000 })
-
-      // Retry once after delay
-      setTimeout(async () => {
-        try {
-          if (!wordData.concept_id) {
-            return  // Skip retry if no concept_id
-          }
-          await markWordKnownApiVocabularyMarkKnownPost({
-            requestBody: {
-              concept_id: wordData.concept_id,
-              known: known
-            }
-          })
-          toast.success('Progress saved on retry')
-        } catch (retryError) {
-          // Silent fail on retry - don't block the game
-          logger.error('ChunkedLearningFlow', 'Retry also failed', { word, retryError })
-        }
-      }, 2000)
+      toast.error(`Failed to save progress for "${word}". Please try again.`, { duration: 3000 })
+      // Let error propagate - fail fast, no silent retries
+      throw error
     }
   }
 
@@ -363,8 +347,20 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
 
     setLearnedWords(prev => new Set([...prev, ...knownWords]))
 
-    // Selective translations feature temporarily disabled
-    // Will be re-enabled after proper API client integration
+    // Re-process chunk to get filtered subtitles with updated vocabulary
+    logger.info('ChunkedLearningFlow', 'Re-processing chunk with updated vocabulary knowledge')
+    toast.loading('Updating subtitles based on your progress...', { duration: 2000 })
+
+    try {
+      // Re-process the current chunk - this will fetch fresh user vocabulary progress
+      await processChunk(currentChunk)
+
+      logger.info('ChunkedLearningFlow', 'Chunk re-processed with updated vocabulary')
+    } catch (error) {
+      logger.error('ChunkedLearningFlow', 'Failed to reprocess chunk after game', { error })
+      // Continue anyway - user can still watch with old subtitles
+      toast.error('Failed to update subtitles, but you can continue watching')
+    }
 
     logger.userAction('Entering video playback phase', 'ChunkedLearningFlow', {
       chunkIndex: currentChunk + 1,
