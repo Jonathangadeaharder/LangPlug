@@ -35,7 +35,7 @@ async def test_Whenbulk_markCalled_ThenReturnscounts(async_client):
     """Happy path: bulk mark returns the number of affected words."""
     from unittest.mock import AsyncMock, patch
 
-    from services.vocabulary_service import vocabulary_service
+    from services.vocabulary.vocabulary_service import vocabulary_service
 
     # Mock the progress_service.bulk_mark_level method
     mock_bulk_mark = AsyncMock(return_value={"updated_count": 7})

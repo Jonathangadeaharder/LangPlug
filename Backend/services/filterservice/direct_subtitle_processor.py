@@ -93,7 +93,7 @@ class DirectSubtitleProcessor:
 
     def __init__(self):
         # Import the vocabulary service
-        from services.vocabulary_service import VocabularyService
+        from services.vocabulary.vocabulary_service import VocabularyService
 
         self.vocab_service = VocabularyService()
 

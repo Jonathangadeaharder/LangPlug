@@ -11,7 +11,7 @@ from database.models import Base, VocabularyWord
 from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 from services.filterservice.interface import FilteredSubtitle, FilteredWord
 from services.translationservice.factory import TranslationServiceFactory
-from services.vocabulary_service import VocabularyService
+from services.vocabulary.vocabulary_service import VocabularyService
 
 # Check if spaCy German models are available
 try:

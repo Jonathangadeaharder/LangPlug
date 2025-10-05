@@ -6,7 +6,7 @@ from .vocabulary_progress_service import (
     vocabulary_progress_service,
 )
 from .vocabulary_query_service import VocabularyQueryService, get_vocabulary_query_service, vocabulary_query_service
-from .vocabulary_service_new import VocabularyService, get_vocabulary_service, vocabulary_service
+from .vocabulary_service import VocabularyService, get_vocabulary_service, vocabulary_service
 from .vocabulary_stats_service import VocabularyStatsService, get_vocabulary_stats_service, vocabulary_stats_service
 
 __all__ = [

@@ -12,7 +12,7 @@ from core.database import get_async_session
 from core.dependencies import current_active_user
 from core.enums import CEFRLevel
 from database.models import User
-from services.vocabulary_service import vocabulary_service
+from services.vocabulary.vocabulary_service import vocabulary_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["vocabulary"])

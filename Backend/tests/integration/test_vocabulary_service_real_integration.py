@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from database.models import Base, VocabularyWord
-from services.vocabulary_service import VocabularyService
+from services.vocabulary.vocabulary_service import VocabularyService
 
 
 @pytest.fixture

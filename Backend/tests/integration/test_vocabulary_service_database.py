@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import select
 
 from database.models import User, UserVocabularyProgress, VocabularyWord
-from services.vocabulary_service import VocabularyService
+from services.vocabulary.vocabulary_service import VocabularyService
 
 
 class TestVocabularyServiceDatabaseIntegration:

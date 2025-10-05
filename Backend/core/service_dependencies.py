@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 # Core service dependencies using direct imports
 def get_vocabulary_service(db: Annotated[AsyncSession, Depends(get_db_session)]) -> IVocabularyService:
     """Get vocabulary service singleton instance"""
-    from services.vocabulary_service import vocabulary_service
+    from services.vocabulary.vocabulary_service import vocabulary_service
 
     return vocabulary_service
 

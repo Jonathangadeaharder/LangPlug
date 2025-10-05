@@ -10,7 +10,7 @@ from uuid import uuid4
 import pytest
 
 from api.models.vocabulary import VocabularyLevel, VocabularyLibraryWord, VocabularyStats, VocabularyWord
-from services.vocabulary_service import VocabularyService
+from services.vocabulary.vocabulary_service import VocabularyService
 
 
 @pytest.fixture

@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import pytest
 
-from services.vocabulary_service import VocabularyService
+from services.vocabulary.vocabulary_service import VocabularyService
 
 
 @pytest.fixture

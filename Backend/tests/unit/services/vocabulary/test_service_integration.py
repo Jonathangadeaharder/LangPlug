@@ -9,8 +9,8 @@ import pytest
 
 from services.vocabulary.vocabulary_progress_service import VocabularyProgressService
 from services.vocabulary.vocabulary_query_service import VocabularyQueryService
+from services.vocabulary.vocabulary_service import VocabularyService, vocabulary_service
 from services.vocabulary.vocabulary_stats_service import VocabularyStatsService
-from services.vocabulary_service import VocabularyService, vocabulary_service
 
 
 class TestVocabularyServiceArchitecture:
@@ -141,7 +141,7 @@ class TestBackwardCompatibility:
 
     def test_same_import_path_works(self):
         """Test that original import path still works"""
-        from services.vocabulary_service import get_vocabulary_service, vocabulary_service
+        from services.vocabulary.vocabulary_service import get_vocabulary_service, vocabulary_service
 
         assert vocabulary_service is not None
         service = get_vocabulary_service()

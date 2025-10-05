@@ -274,7 +274,7 @@ class TestChunkProcessingVocabularyIntegration:
         VocabularyService should be called correctly during filtering
         This would catch the missing 'db' parameter bug
         """
-        from services.vocabulary_service import VocabularyService
+        from services.vocabulary.vocabulary_service import VocabularyService
 
         vocab_service = VocabularyService()
 
@@ -370,7 +370,7 @@ class TestChunkProcessingBugsReproduction:
         Reproduce bug: VocabularyService.get_word_info() called without 'db' parameter
         Location: subtitle_processor.py line 134
         """
-        from services.vocabulary_service import VocabularyService
+        from services.vocabulary.vocabulary_service import VocabularyService
 
         vocab_service = VocabularyService()  # Fixed: instantiate it
 
@@ -424,7 +424,7 @@ class TestChunkProcessingIntegrationSummary:
         assert prefs is not None
 
         # Test vocabulary service
-        from services.vocabulary_service import VocabularyService
+        from services.vocabulary.vocabulary_service import VocabularyService
 
         vocab = VocabularyService()
         async with vocab.get_db_session() as db:
