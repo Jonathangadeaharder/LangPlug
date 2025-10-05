@@ -9,7 +9,7 @@ from uuid import uuid4
 
 import pytest
 
-from tests.auth_helpers import AuthTestHelperAsync
+from tests.helpers import AuthTestHelperAsync
 from tests.helpers.data_builders import UserBuilder
 
 

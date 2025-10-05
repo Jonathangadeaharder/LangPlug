@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests.auth_helpers import AuthTestHelperAsync
+from tests.helpers import AuthTestHelperAsync
 
 
 @pytest.mark.anyio

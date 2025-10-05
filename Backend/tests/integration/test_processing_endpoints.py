@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from core.config import settings
-from tests.auth_helpers import AuthTestHelperAsync
+from tests.helpers import AuthTestHelperAsync
 
 
 @pytest.mark.anyio

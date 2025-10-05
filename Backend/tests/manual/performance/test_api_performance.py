@@ -10,7 +10,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from core.app import create_app
-from tests.auth_helpers import AuthTestHelperAsync
+from tests.helpers import AuthTestHelperAsync
 
 HEALTH_BUDGET_SECONDS = 0.25
 AUTH_BUDGET_SECONDS = 1.25

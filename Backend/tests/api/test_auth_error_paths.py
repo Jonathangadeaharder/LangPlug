@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from tests.assertion_helpers import assert_validation_error_response
-from tests.auth_helpers import AuthResponseStructures, AuthTestHelper
+from tests.helpers import AuthResponseStructures, AuthTestHelper
 
 
 @pytest.mark.anyio

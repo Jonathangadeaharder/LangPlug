@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from core.config import settings
-from tests.auth_helpers import AuthTestHelperAsync
+from tests.helpers import AuthTestHelperAsync
 
 
 async def _auth(async_client):

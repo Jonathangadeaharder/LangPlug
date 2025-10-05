@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from tests.assertion_helpers import assert_json_error_response, assert_json_response
-from tests.auth_helpers import AuthTestHelper
+from tests.helpers import AuthTestHelper
 
 
 @pytest.mark.anyio

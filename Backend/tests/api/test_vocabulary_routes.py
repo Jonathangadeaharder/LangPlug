@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 
-from tests.auth_helpers import AuthTestHelperAsync
+from tests.helpers import AuthTestHelperAsync
 
 
 async def _auth(async_client):

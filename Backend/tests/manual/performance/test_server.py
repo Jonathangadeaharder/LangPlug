@@ -8,7 +8,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from core.app import create_app
-from tests.auth_helpers import AuthTestHelper
+from tests.helpers import AuthTestHelper
 
 
 @pytest.fixture

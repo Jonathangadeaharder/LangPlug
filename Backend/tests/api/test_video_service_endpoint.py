@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from httpx import AsyncClient
 
-from tests.auth_helpers import AuthTestHelperAsync
+from tests.helpers import AuthTestHelperAsync
 
 
 class TestVideoServiceEndpoint:

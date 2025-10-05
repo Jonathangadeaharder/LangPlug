@@ -6,7 +6,7 @@ import io
 
 import pytest
 
-from tests.auth_helpers import AuthTestHelperAsync
+from tests.helpers import AuthTestHelperAsync
 
 
 @pytest.mark.anyio

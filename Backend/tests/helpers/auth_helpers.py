@@ -167,6 +167,75 @@ class AsyncAuthHelper:
 
 
 # Backwards compatibility with existing test code
+class AuthTestHelper:
+    """Legacy adapter for sync tests - use AuthHelper for new tests."""
+
+    @staticmethod
+    def generate_unique_user_data() -> dict[str, str]:
+        """Generate unique user data for testing (legacy format)."""
+        user = UserBuilder().build()
+        return user.to_dict()
+
+    @staticmethod
+    async def register_user_async(client: httpx.AsyncClient, user_data: dict[str, str]) -> tuple[int, dict[str, Any]]:
+        """Legacy async register method - returns (status_code, response_data)."""
+        response = await client.post("/api/auth/register", json=user_data)
+        data = response.json() if response.content else {}
+        return response.status_code, data
+
+    @staticmethod
+    async def login_user_async(client: httpx.AsyncClient, email: str, password: str) -> tuple[int, dict[str, Any]]:
+        """Legacy async login method - returns (status_code, response_data)."""
+        login_data = {"username": email, "password": password}
+        response = await client.post("/api/auth/login", data=login_data)
+        data = response.json() if response.content else {}
+        return response.status_code, data
+
+    @staticmethod
+    async def register_and_login_async(client: httpx.AsyncClient, user_data: dict[str, str] = None) -> dict[str, Any]:
+        """Legacy method - register and login, return complete flow data."""
+        if user_data is None:
+            user_data = AuthTestHelper.generate_unique_user_data()
+
+        helper = AsyncAuthHelper(client)
+        user = TestUser(**user_data)
+        user, token, headers = await helper.create_authenticated_user(user)
+
+        return {
+            "user_data": user_data,
+            "token": token,
+            "headers": headers,
+            "registration_response": {"id": user.id, "username": user.username},
+            "login_response": {"access_token": token, "token_type": "bearer"},
+        }
+
+    @staticmethod
+    async def get_current_user_async(client: httpx.AsyncClient, token: str) -> tuple[int, dict[str, Any]]:
+        """Legacy method for backward compatibility."""
+        helper = AsyncAuthHelper(client)
+        try:
+            data = await helper.verify_token(token)
+            return 200, data
+        except AssertionError:
+            # Return error status if verification fails
+            headers = {"Authorization": f"Bearer {token}"}
+            response = await client.get("/api/auth/me", headers=headers)
+            return response.status_code, response.json() if response.content else {}
+
+    @staticmethod
+    async def logout_user_async(client: httpx.AsyncClient, token: str) -> tuple[int, dict[str, Any]]:
+        """Legacy method for backward compatibility."""
+        helper = AsyncAuthHelper(client)
+        try:
+            data = await helper.logout_user(token)
+            return 204, data  # Logout returns 204 No Content
+        except AssertionError:
+            # Return error status if logout fails
+            headers = {"Authorization": f"Bearer {token}"}
+            response = await client.post("/api/auth/logout", headers=headers)
+            return response.status_code, response.json() if response.content else {}
+
+
 class AuthTestHelperAsync:
     """Legacy adapter for existing tests - use AsyncAuthHelper for new tests."""
 

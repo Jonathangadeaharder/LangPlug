@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.auth_helpers import AuthTestHelperAsync
+from tests.helpers import AuthTestHelperAsync
 
 
 def _set_videos_path(monkeypatch, module, tmp_path: Path):

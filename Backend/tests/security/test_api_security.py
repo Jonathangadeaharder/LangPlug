@@ -6,7 +6,7 @@ import os
 
 import pytest
 
-from tests.auth_helpers import AuthTestHelperAsync
+from tests.helpers import AuthTestHelperAsync
 
 # Skip this module in constrained environments where the async DB fixture hangs
 pytestmark = pytest.mark.skipif(

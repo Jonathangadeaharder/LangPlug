@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests.auth_helpers import AuthResponseStructures, AuthTestHelper, validate_auth_response
+from tests.helpers import AuthResponseStructures, AuthTestHelper, validate_auth_response
 
 
 def _route(url_builder, name: str, fallback: str) -> str:

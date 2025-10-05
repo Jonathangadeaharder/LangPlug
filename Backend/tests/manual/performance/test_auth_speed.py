@@ -7,7 +7,7 @@ import time
 
 import pytest
 
-from tests.auth_helpers import AuthTestHelper
+from tests.helpers import AuthTestHelper
 
 AUTH_ROUND_TRIP_BUDGET = 1.5
 
