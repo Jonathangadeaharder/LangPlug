@@ -49,7 +49,7 @@ async def test_WhenRegisterRouteEnforcesUuidIds_ThenValidates(async_http_client,
 @pytest.mark.timeout(30)
 async def test_Whenlogin_routeWithoutform_encoding_ThenReturnsError(async_http_client, url_builder):
     """Invalid input: JSON payload fails because contract requires form-urlencoded data."""
-    login_url = _route(url_builder, "auth:jwt-bearer.login", "/api/auth/login")
+    login_url = _route(url_builder, "auth:jwt.login", "/api/auth/login")
     user_data = AuthTestHelper.generate_unique_user_data()
     await AuthTestHelper.register_user_async(async_http_client, user_data)
 
@@ -70,7 +70,7 @@ async def test_Whenlogin_routeWithoutform_encoding_ThenReturnsError(async_http_c
 @pytest.mark.timeout(30)
 async def test_WhenLoginroute_ThenReturnsbearer_contract(async_http_client, url_builder):
     """Happy path login using named route returns the documented bearer fields."""
-    _route(url_builder, "auth:jwt-bearer.login", "/api/auth/login")
+    _route(url_builder, "auth:jwt.login", "/api/auth/login")
     user_data = AuthTestHelper.generate_unique_user_data()
     await AuthTestHelper.register_user_async(async_http_client, user_data)
 
@@ -87,7 +87,7 @@ async def test_WhenLoginroute_ThenReturnsbearer_contract(async_http_client, url_
 @pytest.mark.timeout(30)
 async def test_Whenlogout_routeWithouttoken_ThenReturnsError(async_http_client, url_builder):
     """Invalid input: logout via named route without a token is unauthorized."""
-    logout_url = _route(url_builder, "auth:jwt-bearer.logout", "/api/auth/logout")
+    logout_url = _route(url_builder, "auth:jwt.logout", "/api/auth/logout")
 
     response = await async_http_client.post(logout_url)
 

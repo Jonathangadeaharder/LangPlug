@@ -10,27 +10,29 @@ from tests.auth_helpers import AuthResponseStructures, AuthTestHelper
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenRegisterMissingEmail_ThenReturnsvalidation_detail(async_http_client):
+async def test_WhenRegisterMissingEmail_ThenReturnsvalidation_detail(async_http_client, url_builder):
     """Invalid input: missing email should return FastAPI validation errors."""
     payload = {
         "username": "missing_email",
         "password": "SecureTestPass123!",
     }
+    register_url = url_builder.url_for("register:register")
 
-    response = await async_http_client.post("/api/auth/register", json=payload)
+    response = await async_http_client.post(register_url, json=payload)
 
     assert_validation_error_response(response, "email")
 
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenLoginbad_credentials_ThenReturnscontract_error(async_http_client):
+async def test_WhenLoginbad_credentials_ThenReturnscontract_error(async_http_client, url_builder):
     """Invalid input: wrong password returns the documented bad credentials error."""
     user_data = AuthTestHelper.generate_unique_user_data()
     await AuthTestHelper.register_user_async(async_http_client, user_data)
+    login_url = url_builder.url_for("auth:jwt.login")
 
     response = await async_http_client.post(
-        "/api/auth/login",
+        login_url,
         data={"username": user_data["email"], "password": "WrongPass999!"},
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
@@ -51,9 +53,10 @@ async def test_WhenLoginbad_credentials_ThenReturnscontract_error(async_http_cli
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenLogoutwithout_token_ThenReturnsunauthorized(async_http_client):
+async def test_WhenLogoutwithout_token_ThenReturnsunauthorized(async_http_client, url_builder):
     """Boundary: logout without Authorization header returns uniform 401 response."""
-    response = await async_http_client.post("/api/auth/logout")
+    logout_url = url_builder.url_for("auth:jwt.logout")
+    response = await async_http_client.post(logout_url)
 
     assert response.status_code == AuthResponseStructures.UNAUTHORIZED["status_code"]
     www_authenticate = response.headers.get("www-authenticate")

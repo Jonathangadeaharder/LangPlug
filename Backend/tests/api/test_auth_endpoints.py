@@ -32,26 +32,28 @@ async def test_WhenRegisterCalled_ThenCreatesActiveUser(async_http_client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenRegisterWithMissingEmail_ThenRejects(async_http_client):
+async def test_WhenRegisterWithMissingEmail_ThenRejects(async_http_client, url_builder):
     """Invalid input: missing email triggers FastAPI validation 422 response."""
     user_data = AuthTestHelper.generate_unique_user_data()
     payload = {"username": user_data["username"], "password": user_data["password"]}
+    register_url = url_builder.url_for("register:register")
 
-    response = await async_http_client.post("/api/auth/register", json=payload)
+    response = await async_http_client.post(register_url, json=payload)
 
     assert_validation_error_response(response, "email")
 
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenRegisterWithDuplicateUsername_ThenPrevents(async_http_client):
+async def test_WhenRegisterWithDuplicateUsername_ThenPrevents(async_http_client, url_builder):
     """Boundary: duplicate username surfaces a 400 contract error."""
     user_data = AuthTestHelper.generate_unique_user_data()
 
     first_status, _ = await AuthTestHelper.register_user_async(async_http_client, user_data)
     assert first_status == 201
 
-    second_response = await async_http_client.post("/api/auth/register", json=user_data)
+    register_url = url_builder.url_for("register:register")
+    second_response = await async_http_client.post(register_url, json=user_data)
     assert second_response.status_code == 400
 
 
@@ -87,13 +89,14 @@ async def test_WhenLoginWithWrongPassword_ThenRejects(async_http_client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenloginWithoutform_encoded_payload_ThenReturnsError(async_http_client):
+async def test_WhenloginWithoutform_encoded_payload_ThenReturnsError(async_http_client, url_builder):
     """Boundary: JSON payload is rejected to guard contract expectations."""
     user_data = AuthTestHelper.generate_unique_user_data()
     await AuthTestHelper.register_user_async(async_http_client, user_data)
+    login_url = url_builder.url_for("auth:jwt.login")
 
     response = await async_http_client.post(
-        "/api/auth/login",
+        login_url,
         json={
             "username": user_data["email"],
             "password": user_data["password"],
@@ -119,9 +122,10 @@ async def test_WhenLogoutCalled_ThenRevokestoken(async_http_client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenlogoutWithoutvalid_token_ThenReturnsError(async_http_client):
+async def test_WhenlogoutWithoutvalid_token_ThenReturnsError(async_http_client, url_builder):
     """Invalid input: logout without a real token yields 401 unauthorized."""
-    response = await async_http_client.post("/api/auth/logout", headers={"Authorization": "Bearer invalid-token"})
+    logout_url = url_builder.url_for("auth:jwt.logout")
+    response = await async_http_client.post(logout_url, headers={"Authorization": "Bearer invalid-token"})
 
     assert response.status_code == 401
 
@@ -142,8 +146,9 @@ async def test_WhenmeCalled_ThenReturnscurrent_user_profile(async_http_client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenmeWithoutauthentication_ThenReturnsError(async_http_client):
+async def test_WhenmeWithoutauthentication_ThenReturnsError(async_http_client, url_builder):
     """Invalid input: /me without credentials returns contract 401."""
-    response = await async_http_client.get("/api/auth/me")
+    me_url = url_builder.url_for("auth_get_current_user")
+    response = await async_http_client.get(me_url)
 
     assert response.status_code == 401

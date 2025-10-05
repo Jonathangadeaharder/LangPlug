@@ -10,13 +10,14 @@ from tests.auth_helpers import AuthTestHelper
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenLoginWithjson_payload_ThenRejects(async_http_client):
+async def test_WhenLoginWithjson_payload_ThenRejects(async_http_client, url_builder):
     """Boundary: sending JSON instead of form data yields a 422 validation error."""
     user_data = AuthTestHelper.generate_unique_user_data()
     await AuthTestHelper.register_user_async(async_http_client, user_data)
+    login_url = url_builder.url_for("auth:jwt.login")
 
     response = await async_http_client.post(
-        "/api/auth/login",
+        login_url,
         json={"username": user_data["email"], "password": user_data["password"]},
     )
 
@@ -25,13 +26,14 @@ async def test_WhenLoginWithjson_payload_ThenRejects(async_http_client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenloginWithoutpassword_ThenReturnsError(async_http_client):
+async def test_WhenloginWithoutpassword_ThenReturnsError(async_http_client, url_builder):
     """Invalid input: missing password triggers field-level validation failures."""
     user_data = AuthTestHelper.generate_unique_user_data()
     await AuthTestHelper.register_user_async(async_http_client, user_data)
+    login_url = url_builder.url_for("auth:jwt.login")
 
     response = await async_http_client.post(
-        "/api/auth/login",
+        login_url,
         data={"username": user_data["email"]},
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
@@ -41,10 +43,12 @@ async def test_WhenloginWithoutpassword_ThenReturnsError(async_http_client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenloginWithoutusername_ThenReturnsError(async_http_client):
+async def test_WhenloginWithoutusername_ThenReturnsError(async_http_client, url_builder):
     """Invalid input: missing username is rejected with validation detail."""
+    login_url = url_builder.url_for("auth:jwt.login")
+
     response = await async_http_client.post(
-        "/api/auth/login",
+        login_url,
         data={"password": "SecurePass123!"},
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
