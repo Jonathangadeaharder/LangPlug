@@ -225,14 +225,20 @@ Entire `services/user_vocabulary/` directory was **dead code** - not used by any
 
 **Actual Test Count**: 117 files (not 123)
 
-**Current Distribution** (Updated 2025-10-05 after Phase 2 progress):
+**Current Distribution** (Updated 2025-10-05 after Phase 2 complete):
 
-- Unit tests directory: 32 files (was 34, -6 in Priority 1, +4 in Phase 2)
-- Integration tests directory: 37 files (was 38, +5 in Priority 1, -2 deleted in Priority 4, -4 in Phase 2)
+- Unit tests directory: 35 files (was 34, -6 in Priority 1, +7 in Phase 2)
+- Integration tests directory: 34 files (was 38, +5 in Priority 1, -2 deleted in Priority 4, -7 in Phase 2)
 - API tests directory: 24 files (was 23, +1 in Priority 1)
 - Security tests: 1 file
 - Performance tests: 4 files
 - Other: 17 files
+
+**Test Pyramid Percentages** (Unit/Integration/API only):
+
+- Unit: 35 files (37.6%) - Target: 70-75%
+- Integration: 34 files (36.6%) - Target: 15-20%
+- API: 24 files (25.8%) - Target: 10-12%
 
 **Key Audit Findings**:
 
@@ -272,9 +278,11 @@ Entire `services/user_vocabulary/` directory was **dead code** - not used by any
 - [x] Verified 43/67 moved tests passing
 - [x] Committed changes with history preservation (git mv)
 
-**Phase 2: Convert Integration to Unit Tests (8-10 hours)** 🚧 IN PROGRESS - 2025-10-05
+**Phase 2: Convert Integration to Unit Tests (8-10 hours)** ✅ COMPLETED - 2025-10-05
 
-Progress (2 hours completed):
+**Total time**: 3 hours (actual) vs 8-10 hours (estimated)
+
+Completed work:
 
 - [x] Analyzed all 11 vocabulary integration tests (identified 4 pure unit tests)
 - [x] Moved 4 vocabulary unit tests to `tests/unit/services/`:
@@ -283,10 +291,23 @@ Progress (2 hours completed):
   - test_vocabulary_serialization.py (pure Pydantic validation, renamed from \_integration)
   - test_vocabulary_service.py (facade delegation tests with mocks)
 - [x] Analyzed all 5 auth integration tests (all correctly placed, use HTTP clients)
-- [ ] Analyze remaining integration tests for unit test candidates
-- [ ] Move additional properly isolated tests from `integration/` → `unit/`
+- [x] Analyzed remaining 25 integration tests (identified 3 pure unit tests)
+- [x] Moved 3 additional unit tests:
+  - test_transaction.py → tests/unit/core/ (transaction decorator with mocks)
+  - test_api_contract_validation.py → tests/unit/services/test_vocabulary_filter_contract.py
+  - test_translation_factory_integration.py → tests/unit/services/test_translation_factory.py
 
-**Impact so far**: 4 files moved (10.8% reduction in integration tests: 41 → 37)
+**Final Impact**:
+
+- **7 files moved** from integration → unit (17.9% reduction: 41 → 34)
+- **Unit tests**: 28 → 35 (+25% increase)
+- **Test pyramid improved**: Unit 37.6%, Integration 36.6%, API 25.8%
+
+**Remaining work for test pyramid target (70/20/10)**:
+
+- Need +30-35 more unit tests (via conversion or new tests)
+- Need -15-20 fewer integration tests (convert to unit or delete duplicates)
+- Need -13-14 fewer API tests (convert to E2E or consolidate)
 
 **Phase 3: Remove Mock-Heavy Tests (10-12 hours)**
 
@@ -298,7 +319,8 @@ Progress (2 hours completed):
 
 **Total Estimated Effort**: 20-25 hours
 **Phase 1 Completed**: 3 hours (Audit) ✅
-**Remaining Effort**: 17-22 hours (Phases 2-3)
+**Phase 2 Completed**: 3 hours (Convert Integration to Unit) ✅
+**Remaining Effort**: 14-19 hours (Phase 3)
 
 ---
 
