@@ -1331,38 +1331,92 @@ Backend/.gitignore now comprehensively covers all cleanup patterns:
 
 ### 25. Evaluate Chunk Processing Services
 
-**Status**: ANALYSIS REQUIRED
+**Status**: ✅ ANALYSIS COMPLETE - 2025-10-05 (Implementation Pending)
 
-#### Current State:
+#### Analysis Results:
 
-Multiple chunk-related services:
+**8 chunk processing services analyzed** (2,133 LOC total):
 
-- `services/processing/chunk_handler.py`
-- `services/processing/chunk_processor.py`
-- `services/processing/chunk_transcription_service.py`
-- `services/processing/chunk_translation_service.py`
-- `services/processing/chunk_utilities.py`
-- `services/processing/chunk_services/` (directory)
-  - `subtitle_generation_service.py`
-  - `translation_management_service.py`
-  - `vocabulary_filter_service.py`
+1. **chunk_handler.py** (205 LOC) - SRT batch processing orchestrator
+2. **chunk_processor.py** (352 LOC) - Video chunk processing orchestrator (ChunkProcessingService)
+3. **chunk_transcription_service.py** (404 LOC) - Audio extraction + transcription
+4. **chunk_translation_service.py** (315 LOC) - Batch translation
+5. **chunk_utilities.py** (266 LOC) - File + user utilities
+6. **chunk_services/vocabulary_filter_service.py** (176 LOC) - Vocabulary filtering
+7. **chunk_services/subtitle_generation_service.py** (145 LOC) - SRT highlighting
+8. **chunk_services/translation_management_service.py** (270 LOC) - Selective translation
 
-#### Questions:
+#### Key Findings:
 
-- Is there overlap between chunk_handler and chunk_processor?
-- Can utilities be merged into main services?
-- Is chunk_services/ directory necessary?
+**MAJOR DUPLICATION IDENTIFIED**:
 
-#### Subtasks:
+- ✅ **chunk_handler.py is redundant** - Thin wrapper that delegates to chunk_processor.py
+- ✅ Both services orchestrate chunk processing, just different entry points (SRT batch vs video chunk)
+- ✅ ChunkHandler adds minimal value (batching + result formatting)
+- ✅ Creates confusing hierarchy: ChunkHandler → ChunkProcessor → VocabularyFilterService
 
-- [ ] Map responsibilities of each chunk service
-- [ ] Identify consolidation opportunities
-- [ ] Evaluate handler vs processor distinction
-- [ ] Consider merging small services
+**UNNECESSARY NESTING**:
 
-**Impact**: Medium - Simplify processing pipeline
+- ✅ **chunk_services/ subdirectory** adds complexity - only 3 files (591 LOC)
+- ✅ Creates extra import indirection
+- ✅ Inconsistent: Why are these 3 services nested but the other 4 are not?
 
-**Estimated Effort**: 4-6 hours analysis, 8-10 hours implementation
+**GOOD SEPARATION** (Keep As-Is):
+
+- ✅ ChunkTranscriptionService - Audio extraction + transcription (focused responsibility)
+- ✅ ChunkTranslationService - Batch translation (focused responsibility)
+- ✅ ChunkUtilities - Cross-cutting utilities (properly separated)
+- ✅ VocabularyFilterService - Vocabulary filtering (focused responsibility)
+- ✅ SubtitleGenerationService - SRT highlighting (focused responsibility)
+- ✅ TranslationManagementService - Selective translation (focused responsibility)
+
+#### Consolidation Plan:
+
+**Phase 1: Merge ChunkHandler → ChunkProcessingService** (HIGH PRIORITY)
+
+- [x] Analysis complete
+- [ ] DELETE: `chunk_handler.py` (205 LOC removed)
+- [ ] UPDATE: `chunk_processor.py` - Add `process_chunks()` method for SRT batch processing
+- [ ] UPDATE: `api/routes/processing.py` - Use unified ChunkProcessingService
+
+**Phase 2: Flatten chunk_services/ subdirectory** (MEDIUM PRIORITY)
+
+- [x] Analysis complete
+- [ ] MOVE: `chunk_services/*.py` → `services/processing/`
+- [ ] DELETE: `chunk_services/__init__.py`
+- [ ] UPDATE: All imports in ChunkProcessingService
+
+**Phase 3: Rename chunk_processor.py → chunk_processing_service.py** (LOW PRIORITY - Optional)
+
+- [x] Analysis complete
+- [ ] RENAME: `chunk_processor.py` → `chunk_processing_service.py` (filename matches class name)
+- [ ] UPDATE: All imports
+
+#### Recommended Final Structure:
+
+```
+services/processing/
+├── chunk_processing_service.py         (557 LOC - merged handler + processor)
+├── chunk_transcription_service.py      (404 LOC - audio + transcription)
+├── chunk_translation_service.py        (315 LOC - batch translation)
+├── chunk_utilities.py                  (266 LOC - file + user utils)
+├── vocabulary_filter_service.py        (176 LOC - filter vocabulary)
+├── subtitle_generation_service.py      (145 LOC - highlight SRT)
+└── translation_management_service.py   (270 LOC - selective translation)
+```
+
+**Benefits**:
+
+- ✅ Single orchestrator for all chunk processing (video + SRT)
+- ✅ Flat structure - easy navigation, no nested subdirectories
+- ✅ Reduced complexity: 7 files instead of 9
+- ✅ Consistent naming pattern
+- ✅ Clear responsibilities - each service has one focused job
+
+**Completed**: 2025-10-05 (Analysis only)
+**Actual Effort**: 1 hour (analysis)
+**Estimated Implementation**: 4-6 hours
+**Impact**: Medium - Simplifies processing pipeline, removes 205 LOC of redundant code
 
 ---
 
