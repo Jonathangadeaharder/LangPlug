@@ -145,46 +145,56 @@ Remove interfaces if:
 
 ### 5. Consolidate Vocabulary Services
 
-**Status**: HIGH - Service fragmentation
+**Status**: IN PROGRESS - Service fragmentation
 
-#### Current State:
+#### Current State Analysis (2793 total lines across 15 files):
 
-Multiple vocabulary services with overlapping responsibilities:
+**services/vocabulary/** (main directory - 1565 lines):
 
-- `services/vocabulary/vocabulary_service.py` (Main facade - renamed from vocabulary_service_new.py in Task 1)
-- `services/vocabulary/vocabulary_query_service.py` (Read operations)
-- `services/vocabulary/vocabulary_progress_service.py` (Write operations)
-- `services/vocabulary/vocabulary_stats_service.py` (Analytics)
-- `services/vocabulary/vocabulary_lookup_service.py` (Word lookup)
-- `services/vocabulary/vocabulary_analytics_service.py` (More analytics?)
-- `services/vocabulary_preload_service.py` (Different directory!)
-- `services/dataservice/user_vocabulary_service.py` (Another directory!)
-- `services/user_vocabulary/` (Entire directory with 5+ services!)
+- `vocabulary_service.py` (207 lines) - Facade delegating to query/progress/stats services
+- `vocabulary_query_service.py` (297 lines) - Read operations
+- `vocabulary_progress_service.py` (313 lines) - Write operations
+- `vocabulary_stats_service.py` (234 lines) - Analytics (CANONICAL)
+- `vocabulary_lookup_service.py` (281 lines) - Word lookup
+- ~~`vocabulary_analytics_service.py` (214 lines)~~ - DELETED (duplicate of stats_service)
 
-#### Analysis Required:
+**services/user_vocabulary/** (separate directory - 870 lines):
 
-- [ ] Map all vocabulary-related services and their responsibilities
-- [ ] Identify overlapping functionality
-- [ ] Determine if facade pattern is adding value or just indirection
-- [ ] Check if analytics/stats services can be merged
+- `learning_level_service.py` (74 lines)
+- `learning_progress_service.py` (190 lines)
+- `learning_stats_service.py` (172 lines)
+- `word_status_service.py` (114 lines)
+- `vocabulary_repository.py` (162 lines) - Should move to database/repositories/
+- `__init__.py` (23 lines)
 
-#### Subtasks:
+**Other locations**:
 
-- [ ] Create responsibility matrix for all vocabulary services
-- [ ] Identify consolidation candidates
-- [ ] Merge `vocabulary_analytics_service.py` + `vocabulary_stats_service.py`
-- [ ] Evaluate if facade (`vocabulary_service.py`) is necessary
-- [ ] Consider consolidating to 2-3 services max:
-  - VocabularyQueryService (read)
-  - VocabularyMutationService (write)
-  - Optional: VocabularyAnalyticsService (if complex enough)
-- [ ] Move all vocabulary services to `services/vocabulary/`
-- [ ] Delete orphaned services in other directories
+- `services/vocabulary_preload_service.py` (352 lines) - Top-level services/
+- `services/dataservice/user_vocabulary_service.py` (135 lines) - Another directory
+- `services/processing/chunk_services/vocabulary_filter_service.py` - Chunk processing (keep)
+
+#### Completed Analysis:
+
+- [x] Map all vocabulary-related services and their responsibilities
+- [x] Identify overlapping functionality
+- [x] Check if analytics/stats services can be merged
+- [x] Deleted duplicate `vocabulary_analytics_service.py` (214 lines eliminated)
+
+#### Remaining Subtasks:
+
+- [ ] Evaluate if `vocabulary_lookup_service` duplicates `vocabulary_query_service`
+- [ ] Determine if facade pattern adds value or just indirection
+- [ ] Evaluate if `services/user_vocabulary/` should be merged into `services/vocabulary/`
+  - learning_level_service, learning_progress_service, learning_stats_service, word_status_service
+- [ ] Move `vocabulary_repository.py` from `services/user_vocabulary/` → `database/repositories/`
+- [ ] Move `vocabulary_preload_service.py` into `services/vocabulary/` directory
+- [ ] Move/merge `dataservice/user_vocabulary_service.py` appropriately
+- [ ] Consider final consolidation to 2-3 services max
 - [ ] Update all imports and route handlers
 
-**Impact**: High - Simplifies vocabulary domain
+**Progress**: Eliminated 214 lines (vocabulary_analytics_service duplicate)
 
-**Estimated Effort**: 6-8 hours
+**Remaining Effort**: 5-7 hours (significant consolidation work remains)
 
 ---
 
