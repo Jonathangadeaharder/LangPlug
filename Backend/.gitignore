@@ -54,8 +54,8 @@ data/*/
 .env.local
 .env.*.local
 
-# Archive
-archive/
+# Archive (root-level only, not docs/archive)
+/archive/
 
 # Temporary
 temp/
