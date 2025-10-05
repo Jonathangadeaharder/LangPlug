@@ -1014,7 +1014,7 @@ Frontend validation now uses auto-generated Zod schemas from the backend OpenAPI
 #### Check these directories:
 
 - [x] `services/nlp/` - Moved lemma_resolver.py to services/, deleted directory
-- [ ] `services/dataservice/` - Contains user_vocabulary_service.py (only used in 1 test, should be addressed in Task 5-6 vocabulary consolidation)
+- [x] `services/dataservice/` - Deleted as part of Task 5-6 vocabulary consolidation (directory no longer exists)
 - [x] `services/utils/` - Moved srt_parser.py to services/, deleted directory
 
 #### Completed Subtasks:
@@ -1028,9 +1028,9 @@ Frontend validation now uses auto-generated Zod schemas from the backend OpenAPI
 
 **Completed**: 2025-10-05
 **Actual Effort**: 30 minutes
-**Impact**: Flattened 2 unnecessary directories, eliminated 6 lines of boilerplate (**init**.py files)
+**Impact**: Flattened 3 unnecessary directories, eliminated 6+ lines of boilerplate (**init**.py files)
 
-**Note**: services/dataservice/ remains (contains user_vocabulary_service.py used in 1 test). This should be addressed in Task 5-6 vocabulary consolidation.
+**Note**: All service directories cleaned up. services/dataservice/ was deleted as part of Task 5-6 vocabulary consolidation.
 
 ---
 
