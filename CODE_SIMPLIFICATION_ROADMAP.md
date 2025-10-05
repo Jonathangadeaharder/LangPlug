@@ -422,7 +422,7 @@ def test_user_can_mark_word_as_known():
 
 **Deliverable**: `Backend/docs/SKIPPED_TESTS_AUDIT.md` (comprehensive 335-line audit)
 
-**Phase 2: Fix or Delete Each Test (7-9 hours)** IN PROGRESS - Priority 1 ✅ COMPLETE, Priority 3 NEXT
+**Phase 2: Fix or Delete Each Test (7-9 hours)** IN PROGRESS - Priority 1 ✅ COMPLETE, Priority 3 ✅ COMPLETE
 
 Priority levels from audit:
 
@@ -437,8 +437,13 @@ Priority levels from audit:
   - Issue: Database session isolation prevents fixture data from being visible to API endpoints
   - Needs: Refactor test database session sharing or use different data seeding approach
   - Deferred: 4 vocabulary workflow tests still skip (same root cause)
-- [ ] **Priority 3: Documentation (1 hour)** 📋 NEXT - Document AI/ML dependencies, CORS strategy
-- [ ] Priority 4: Implementation Decisions (2-4 hours) - Fix or delete 8 tests requiring user decisions
+- [x] **Priority 3: Documentation (1 hour)** ✅ COMPLETED - 2025-10-05
+  - Documented AI/ML dependencies in 7 test files with module-level docstrings
+  - Updated skip reasons with installation instructions (16 AI/ML tests + 1 CORS test)
+  - Created comprehensive AI_ML_DEPENDENCIES.md guide
+  - Documented CORS strategy (FastAPI CORSMiddleware) in test_authentication_workflow.py
+  - **Result**: All 17 optional dependency tests now have clear documentation
+- [ ] Priority 4: Implementation Decisions (2-4 hours) 📋 NEXT - Fix or delete 8 tests requiring user decisions
 
 **Phase 3: Prevent Future Skips (1 hour)** 📋 PENDING
 
