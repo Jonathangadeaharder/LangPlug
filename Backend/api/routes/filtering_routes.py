@@ -84,17 +84,12 @@ async def run_subtitle_filtering(
         # Save filtered results
         output_path = str(srt_file).replace(".srt", "_filtered.srt")
 
-        try:
-            # Save filtered subtitles to file
-            if filter_result and hasattr(filter_result, "filtered_subtitles"):
-                await _save_filtered_subtitles_to_file(filter_result.filtered_subtitles, output_path)
-                logger.info(f"Saved filtered subtitles to: {output_path}")
-            else:
-                logger.warning("No filtered subtitles to save")
-                output_path = str(srt_file)  # Use original file as fallback
-        except Exception as e:
-            logger.error(f"Failed to save filtered subtitles: {e}")
-            output_path = str(srt_file)  # Use original file as fallback
+        # Save filtered subtitles to file
+        if not filter_result or not hasattr(filter_result, "filtered_subtitles"):
+            raise ValueError("No filtered subtitles generated")
+
+        await _save_filtered_subtitles_to_file(filter_result.filtered_subtitles, output_path)
+        logger.info(f"Saved filtered subtitles to: {output_path}")
 
         # Complete (100% progress)
         task_progress[task_id].status = "completed"

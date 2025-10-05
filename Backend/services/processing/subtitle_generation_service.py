@@ -41,26 +41,20 @@ class SubtitleGenerationService:
         # Create filtered subtitle file path
         filtered_srt = video_file.parent / f"{video_file.stem}_filtered.srt"
 
-        try:
-            # Extract vocabulary words for highlighting
-            vocab_words = {word["word"].lower() for word in vocabulary if "word" in word}
+        # Extract vocabulary words for highlighting
+        vocab_words = {word["word"].lower() for word in vocabulary if "word" in word}
 
-            # Read source SRT content
-            srt_content = self.read_srt_file(source_srt)
+        # Read source SRT content
+        srt_content = self.read_srt_file(source_srt)
 
-            # Process content to highlight vocabulary
-            filtered_content = self.process_srt_content(srt_content, vocab_words)
+        # Process content to highlight vocabulary
+        filtered_content = self.process_srt_content(srt_content, vocab_words)
 
-            # Write filtered SRT file
-            self.write_srt_file(filtered_srt, filtered_content)
+        # Write filtered SRT file
+        self.write_srt_file(filtered_srt, filtered_content)
 
-            logger.info(f"Generated filtered subtitles -> {filtered_srt}")
-            return str(filtered_srt)
-
-        except Exception as e:
-            logger.error(f"Failed to generate filtered subtitles: {e}")
-            # Return original SRT as fallback
-            return source_srt
+        logger.info(f"Generated filtered subtitles -> {filtered_srt}")
+        return str(filtered_srt)
 
     def read_srt_file(self, file_path: str) -> str:
         """
