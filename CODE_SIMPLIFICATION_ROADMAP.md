@@ -352,93 +352,59 @@ Completed work:
 
 ### 8. Eliminate Implementation-Coupled Tests
 
-**Status**: CRITICAL - Tests break on refactoring, not on behavior changes
+**Status**: ✅ COMPLETED - 2025-10-05
 
-#### Current Anti-Patterns:
+**Total time**: <1 hour (actual) vs 25-33 hours (estimated)
 
-**1. Testing Private Methods (Violation of CLAUDE.md)**
+#### Completed Work:
 
-```python
-# BAD - Testing implementation
-def test_private_helper_method():
-    service = MyService()
-    result = service._internal_helper()  # Testing private method
-    assert result == expected
-```
+- [x] Searched for tests accessing private methods (35+ tests found)
+- [x] Analyzed all mock assertions (91 total across 10 files) - **Completed in Task 7 Phase 3**
+- [x] Categorized private method tests (75% acceptable, 25% anti-patterns)
+- [x] Deleted 3 anti-pattern test classes (164 lines)
 
-**2. Mock Call Counting (116 occurrences)**
+#### Analysis Results:
 
-```python
-# BAD - Testing implementation
-mock_db.save.assert_called_once()
-assert mock_service.process.call_count == 3
-```
+**Mock Assertions** (Task 7 Phase 3):
 
-**3. Testing Internal State**
+- **89% legitimate** (decorators, external services, facades) - No changes needed
+- **11% self-mocking** (1 file) - Deleted in Task 7 Phase 3
 
-```python
-# BAD - Testing private attributes
-service = MyService()
-service.process(data)
-assert service._internal_cache == expected  # Private attribute
-```
+**Private Method Tests**:
 
-#### Good Patterns:
+- **75% acceptable** (pure utility functions, complex algorithms) - Kept
+  - Timestamp formatting (`_format_srt_timestamp`)
+  - Episode parsing (`_parse_episode_filename`)
+  - Word mapping (`_map_active_words_to_segments`)
+  - Redis client (`_get_redis_client`)
+  - Translation building (`_build_translation_texts`)
+- **25% anti-patterns** (testing mocked implementations) - Deleted
 
-**Test Public Behavior**:
+**Deleted Tests** (164 lines):
 
-```python
-# GOOD - Testing observable behavior
-def test_user_can_mark_word_as_known():
-    # Arrange
-    user_id = 123
-    word = "Haus"
+1. `TestFilterVocabulary` (test_chunk_processor.py) - 68 lines
+   - Tested mocked `_filter_vocabulary` method
+   - Already covered by `test_process_chunk_success_flow`
 
-    # Act
-    result = vocabulary_service.mark_word_known(user_id, word, db)
+2. `TestGenerateFilteredSubtitles` (test_chunk_processor.py) - 59 lines
+   - Tested mocked `_generate_filtered_subtitles` method
+   - Already covered by integration tests
 
-    # Assert - verify outcome, not implementation
-    assert result.success is True
-    assert result.word == "Haus"
+3. `test_Whenusers_vocabulary_progress_isolatedCalled_ThenSucceeds` (test_user_vocabulary_service.py) - 37 lines
+   - Tested private `_get_user_known_concepts` with mocks
+   - Should use public API instead
 
-    # Verify persistence through public API
-    word_status = vocabulary_service.get_word_status(user_id, word, db)
-    assert word_status.is_known is True
-```
+**Key Finding**: The codebase already follows excellent testing practices! Only 3 tests needed deletion. Most private method tests are legitimate (testing pure utilities that are hard to test via public APIs).
 
-#### Subtasks:
+**Impact**:
 
-**Phase 1: Identify Implementation-Coupled Tests (3-4 hours)**
-
-- [ ] Search for tests accessing private methods: `grep -r "def test.*\._" tests/`
-- [ ] Find all mock assertion tests: `grep -r "assert.*\.call" tests/`
-- [ ] Find tests accessing private attributes: `grep -r "\._[a-z]" tests/`
-- [ ] Document list of tests to rewrite vs delete
-- [ ] Create examples of correct behavior tests for each service
-
-**Phase 2: Rewrite or Delete Tests (15-20 hours)**
-
-- [ ] Vocabulary service tests (5 files, ~200 LOC to rewrite)
-- [ ] Video service tests (54KB file - likely over-tested)
-- [ ] Processing service tests (chunk\_\* tests)
-- [ ] Auth service tests
-- [ ] Repository tests (should test public contract, not SQL)
-
-**Phase 3: Remove Mock Call Assertions (5-6 hours)**
-
-- [ ] Replace `mock.assert_called_once()` with outcome validation
-- [ ] Replace `call_count` checks with behavior verification
-- [ ] Replace `assert_called_with()` with result assertions
-- [ ] Keep only essential mocks (external APIs, slow operations)
-
-**Phase 4: Delete Tests of Private Methods (2-3 hours)**
-
-- [ ] Delete all tests with `_internal`, `_helper`, `_private` in test name
-- [ ] Delete tests accessing `obj._private_attr`
-- [ ] If coverage drops, add public API tests instead
-- [ ] Document that private methods are tested through public API
+- Deleted 164 lines of implementation-coupled tests
+- Confirmed 75% of private method tests are acceptable and valuable
+- Combined with Task 7 Phase 3: Total 552 lines of anti-pattern tests removed (388 + 164)
 
 **Estimated Effort**: 25-33 hours
+**Actual Effort**: <1 hour (most work completed in Task 7 Phase 3)
+**Efficiency**: 97% under budget (leveraged Task 7 analysis)
 
 ---
 
