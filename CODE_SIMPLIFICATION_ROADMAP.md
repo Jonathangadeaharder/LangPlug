@@ -225,11 +225,11 @@ Entire `services/user_vocabulary/` directory was **dead code** - not used by any
 
 **Actual Test Count**: 117 files (not 123)
 
-**Current Distribution**:
+**Current Distribution** (Updated 2025-10-05 after Phase 2 progress):
 
-- Unit tests directory: 34 files
-- Integration tests directory: 38 files
-- API tests directory: 23 files
+- Unit tests directory: 32 files (was 34, -6 in Priority 1, +4 in Phase 2)
+- Integration tests directory: 37 files (was 38, +5 in Priority 1, -2 deleted in Priority 4, -4 in Phase 2)
+- API tests directory: 24 files (was 23, +1 in Priority 1)
 - Security tests: 1 file
 - Performance tests: 4 files
 - Other: 17 files
@@ -272,13 +272,21 @@ Entire `services/user_vocabulary/` directory was **dead code** - not used by any
 - [x] Verified 43/67 moved tests passing
 - [x] Committed changes with history preservation (git mv)
 
-**Phase 2: Convert Integration to Unit Tests (8-10 hours)**
+**Phase 2: Convert Integration to Unit Tests (8-10 hours)** 🚧 IN PROGRESS - 2025-10-05
 
-- [ ] Identify integration tests that don't need database (`tests/integration/`)
-- [ ] Convert vocabulary integration tests to pure unit tests
-- [ ] Convert auth integration tests to unit tests where possible
-- [ ] Move properly isolated tests from `integration/` → `unit/`
-- [ ] Keep only true integration tests (multiple systems, real DB, external services)
+Progress (2 hours completed):
+
+- [x] Analyzed all 11 vocabulary integration tests (identified 4 pure unit tests)
+- [x] Moved 4 vocabulary unit tests to `tests/unit/services/`:
+  - test_vocabulary_preload_service.py (uses only mocks)
+  - test_vocabulary_progress_service.py (uses only mocks)
+  - test_vocabulary_serialization.py (pure Pydantic validation, renamed from \_integration)
+  - test_vocabulary_service.py (facade delegation tests with mocks)
+- [x] Analyzed all 5 auth integration tests (all correctly placed, use HTTP clients)
+- [ ] Analyze remaining integration tests for unit test candidates
+- [ ] Move additional properly isolated tests from `integration/` → `unit/`
+
+**Impact so far**: 4 files moved (10.8% reduction in integration tests: 41 → 37)
 
 **Phase 3: Remove Mock-Heavy Tests (10-12 hours)**
 
