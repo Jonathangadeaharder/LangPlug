@@ -111,8 +111,8 @@ class VocabularyPreloadService:
                 from core.database import engine
 
                 async_session_maker = async_sessionmaker(bind=engine, expire_on_commit=False)
-                async with async_session_maker() as session:
-                    return await self._execute_get_level_words(session, level)
+                async with async_session_maker() as db_session:
+                    return await self._execute_get_level_words(db_session, level)
             else:
                 return await self._execute_get_level_words(session, level)
         except Exception as e:
@@ -160,8 +160,8 @@ class VocabularyPreloadService:
                 from core.database import engine
 
                 async_session_maker = async_sessionmaker(bind=engine, expire_on_commit=False)
-                async with async_session_maker() as session:
-                    return await self._execute_get_user_known_words(session, user_id, level)
+                async with async_session_maker() as db_session:
+                    return await self._execute_get_user_known_words(db_session, user_id, level)
             else:
                 return await self._execute_get_user_known_words(session, user_id, level)
         except Exception as e:
@@ -315,7 +315,7 @@ class VocabularyPreloadService:
                 return stats
             else:
                 # Fallback to original behavior for backward compatibility
-                async with AsyncSessionLocal() as session:
+                async with AsyncSessionLocal() as db_session:
                     query = text("""
                         SELECT
                             v.difficulty_level,
@@ -329,7 +329,7 @@ class VocabularyPreloadService:
                         ORDER BY v.difficulty_level
                     """)
 
-                    result = await session.execute(query)
+                    result = await db_session.execute(query)
                     rows = result.fetchall()
 
                     stats = {}

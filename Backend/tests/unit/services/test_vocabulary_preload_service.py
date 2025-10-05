@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, Mock, mock_open, patch
 
 import pytest
 
-from services.vocabulary_preload_service import VocabularyPreloadService, get_vocabulary_preload_service
+from services.vocabulary.vocabulary_preload_service import VocabularyPreloadService, get_vocabulary_preload_service
 
 
 class TestVocabularyPreloadService:

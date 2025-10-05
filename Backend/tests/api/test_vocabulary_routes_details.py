@@ -62,7 +62,7 @@ async def test_Whenbulk_markCalled_ThenReturnscounts(async_client):
 @pytest.mark.timeout(30)
 async def test_Whenstats_total_counts_include_levelsCalled_ThenSucceeds(async_client):
     """Boundary: stats aggregates totals from service-provided levels."""
-    from services.vocabulary_preload_service import get_vocabulary_preload_service
+    from services.vocabulary.vocabulary_preload_service import get_vocabulary_preload_service
 
     class FakeService:
         async def get_vocabulary_stats(self, db=None):
