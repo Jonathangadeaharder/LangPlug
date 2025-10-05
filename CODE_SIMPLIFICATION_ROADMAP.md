@@ -1013,25 +1013,27 @@ Backend root now contains only 3 essential files:
 
 ### 21. Consolidate Duplicate OpenAPI Specs
 
-**Status**: LOW - Two identical OpenAPI JSON files
+**Status**: ✅ COMPLETED
 
-#### Current Files:
+#### Completed Subtasks:
 
-- `/openapi_spec.json` (root) - 139KB
-- `/Backend/openapi.json` - 139KB
+- [x] Compared files - found they were different (root was newer)
+- [x] Deleted root `openapi_spec.json`
+- [x] Updated Frontend `openapi-ts.config.ts` to reference `Backend/openapi.json`
+- [x] Fixed `export_openapi.py` to correctly export to Backend directory
+- [x] Added `openapi*.json` to Backend/.gitignore (generated files)
+- [ ] Document OpenAPI generation in README - Deferred (low priority)
 
-#### Subtasks:
+#### Result:
 
-- [ ] Compare files to verify they're identical
-- [ ] Keep only `Backend/openapi.json` (closer to source)
-- [ ] Delete root `openapi_spec.json`
-- [ ] Update any scripts/tools referencing root version
-- [ ] Update .gitignore to include `openapi*.json` (should be generated)
-- [ ] Document OpenAPI generation in README
+- Backend/openapi.json is now the canonical OpenAPI spec location
+- Frontend TypeScript client generator updated to use Backend/openapi.json
+- OpenAPI files excluded from git tracking (generated files)
+- Prevents sync issues between duplicate specs
 
-**Impact**: Low - Prevents sync issues
-
-**Estimated Effort**: 10 minutes
+**Completed**: 2025-10-05
+**Actual Effort**: 15 minutes
+**Impact**: Eliminated duplicate OpenAPI specs, single source of truth
 
 ---
 
