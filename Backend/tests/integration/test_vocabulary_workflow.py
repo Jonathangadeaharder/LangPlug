@@ -82,7 +82,7 @@ class TestCompleteVocabularyLearningWorkflow:
         for word in a1_words["words"][:3]:  # Mark first 3 words as known
             mark_response = await async_client.post(
                 url_builder.url_for("mark_word_known"),
-                json={"concept_id": word["concept_id"], "known": True},
+                json={"lemma": word["lemma"], "language": "de", "known": True},
                 headers=headers,
             )
             assert mark_response.status_code == 200
@@ -116,10 +116,10 @@ class TestCompleteVocabularyLearningWorkflow:
         assert updated_a1_words["known_count"] >= a1_words["known_count"] + words_marked
 
         # Verify marked words show as known
-        marked_word_ids = {w["concept_id"] for w in a1_words["words"][:3]}
+        marked_word_lemmas = {w["lemma"] for w in a1_words["words"][:3]}
         for word in updated_a1_words["words"]:
-            if word["concept_id"] in marked_word_ids:
-                assert word["known"] is True
+            if word["lemma"] in marked_word_lemmas:
+                assert word.get("is_known", False) is True
 
     @pytest.mark.asyncio
     async def test_WhenMultiLevelVocabularyProgression_ThenProgressTracksAcrossLevels(
@@ -151,7 +151,7 @@ class TestCompleteVocabularyLearningWorkflow:
             for word in level_data["words"][:2]:  # Mark first 2 words per level
                 mark_response = await async_client.post(
                     url_builder.url_for("mark_word_known"),
-                    json={"concept_id": word["concept_id"], "known": True},
+                    json={"lemma": word["lemma"], "language": "de", "known": True},
                     headers=headers,
                 )
                 if mark_response.status_code == 200:
@@ -211,7 +211,7 @@ class TestCompleteVocabularyLearningWorkflow:
 
         # All words should now be marked as known
         for word in updated_a1_data["words"]:
-            assert word["known"] is True
+            assert word.get("is_known", False) is True
 
         # Known count should equal total count
         assert updated_a1_data["known_count"] == updated_a1_data["total_count"]
@@ -290,7 +290,7 @@ class TestCompleteVocabularyLearningWorkflow:
         for word in test_words:
             mark_response = await async_client.post(
                 url_builder.url_for("mark_word_known"),
-                json={"concept_id": word["concept_id"], "known": True},
+                json={"lemma": word["lemma"], "language": "de", "known": True},
                 headers=headers,
             )
             assert mark_response.status_code == 200
@@ -305,7 +305,7 @@ class TestCompleteVocabularyLearningWorkflow:
         for word in words_to_unmark:
             unmark_response = await async_client.post(
                 url_builder.url_for("mark_word_known"),
-                json={"concept_id": word["concept_id"], "known": False},
+                json={"lemma": word["lemma"], "language": "de", "known": False},
                 headers=headers,
             )
             assert unmark_response.status_code == 200
@@ -327,14 +327,14 @@ class TestCompleteVocabularyLearningWorkflow:
         )
         final_words_data = final_words_response.json()
 
-        unmarked_ids = {w["concept_id"] for w in words_to_unmark}
-        still_known_ids = {w["concept_id"] for w in test_words[2:]}  # Last word should still be known
+        unmarked_lemmas = {w["lemma"] for w in words_to_unmark}
+        still_known_lemmas = {w["lemma"] for w in test_words[2:]}  # Last word should still be known
 
         for word in final_words_data["words"]:
-            if word["concept_id"] in unmarked_ids:
-                assert word["known"] is False
-            elif word["concept_id"] in still_known_ids:
-                assert word["known"] is True
+            if word["lemma"] in unmarked_lemmas:
+                assert word.get("is_known", False) is False
+            elif word["lemma"] in still_known_lemmas:
+                assert word.get("is_known", False) is True
 
 
 class TestMultiUserVocabularyIsolation:
@@ -369,7 +369,7 @@ class TestMultiUserVocabularyIsolation:
         for word in test_words:
             mark_response = await async_client.post(
                 url_builder.url_for("mark_word_known"),
-                json={"concept_id": word["concept_id"], "known": True},
+                json={"lemma": word["lemma"], "language": "de", "known": True},
                 headers=user_tokens["user1"]["headers"],
             )
             assert mark_response.status_code == 200
@@ -405,14 +405,14 @@ class TestMultiUserVocabularyIsolation:
             headers=user_tokens["user2"]["headers"],
         )
 
-        marked_word_ids = {w["concept_id"] for w in test_words}
+        marked_word_lemmas = {w["lemma"] for w in test_words}
 
         # Check User 1 sees marked words as known
         for word in user1_words.json()["words"]:
-            if word["concept_id"] in marked_word_ids:
-                assert word["known"] is True
+            if word["lemma"] in marked_word_lemmas:
+                assert word.get("is_known", False) is True
 
         # Check User 2 sees same words as unknown
         for word in user2_words.json()["words"]:
-            if word["concept_id"] in marked_word_ids:
-                assert word["known"] is False
+            if word["lemma"] in marked_word_lemmas:
+                assert word.get("is_known", False) is False
