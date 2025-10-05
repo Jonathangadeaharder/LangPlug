@@ -6,7 +6,7 @@ Handles filtering logic for words based on user knowledge and difficulty
 import logging
 from typing import Any
 
-from services.nlp.lemma_resolver import is_proper_name, lemmatize_word
+from services.lemma_resolver import is_proper_name, lemmatize_word
 
 from ..interface import FilteredWord, WordStatus
 
