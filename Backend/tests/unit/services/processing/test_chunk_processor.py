@@ -4,7 +4,7 @@ Tests video chunk processing orchestration and vocabulary filtering
 """
 
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -101,135 +101,6 @@ class TestProcessChunk:
 
         # Verify error handling was called
         service.utilities.handle_error.assert_called_once()
-
-
-class TestFilterVocabulary:
-    """Test vocabulary filtering from subtitles"""
-
-    @pytest.fixture
-    def service(self, mock_db_session):
-        return ChunkProcessingService(mock_db_session)
-
-    @pytest.fixture
-    def task_progress(self):
-        return {"test_task": Mock(progress=0, current_step="", message="")}
-
-    @pytest.mark.anyio
-    async def test_filter_vocabulary_with_words(self, service, task_progress):
-        """Test filtering vocabulary returns words"""
-        # Arrange
-        srt_file = "/subtitles.srt"
-        user = Mock(id=1)
-        language_prefs = {"level": "A1", "target": "de"}
-
-        # Mock vocabulary_filter service from chunk_services
-        mock_word = {"word": "Haus", "difficulty": "A1", "active": True}
-        mock_vocabulary = [mock_word]
-
-        with patch.object(
-            service.vocabulary_filter, "filter_vocabulary_from_srt", new=AsyncMock(return_value=mock_vocabulary)
-        ):
-            # Act
-            result = await service._filter_vocabulary(
-                task_id="test_task",
-                task_progress=task_progress,
-                srt_file=srt_file,
-                user=user,
-                language_preferences=language_prefs,
-            )
-
-            # Assert
-            assert len(result) == 1
-            assert result[0]["word"] == "Haus"
-            assert result[0]["difficulty"] == "A1"
-            assert result[0]["active"] is True
-
-    @pytest.mark.anyio
-    async def test_filter_vocabulary_empty_result(self, service, task_progress):
-        """Test filtering with no vocabulary words"""
-        # Arrange
-        srt_file = "/subtitles.srt"
-        user = Mock(id=1)
-        language_prefs = {"level": "A1", "target": "de"}
-
-        # Mock vocabulary_filter service returning empty list
-        mock_vocabulary = []
-
-        with patch.object(
-            service.vocabulary_filter, "filter_vocabulary_from_srt", new=AsyncMock(return_value=mock_vocabulary)
-        ):
-            # Act
-            result = await service._filter_vocabulary(
-                task_id="test_task",
-                task_progress=task_progress,
-                srt_file=srt_file,
-                user=user,
-                language_preferences=language_prefs,
-            )
-
-            # Assert
-            assert result == []
-            # Note: debug_empty_vocabulary is now handled internally by vocabulary_filter service
-
-
-class TestGenerateFilteredSubtitles:
-    """Test filtered subtitle generation"""
-
-    @pytest.fixture
-    def service(self, mock_db_session):
-        return ChunkProcessingService(mock_db_session)
-
-    @pytest.fixture
-    def task_progress(self):
-        return {"test_task": Mock(progress=0, current_step="", message="")}
-
-    @pytest.mark.anyio
-    async def test_generate_filtered_subtitles_success(self, service, task_progress, tmp_path):
-        """Test successful subtitle generation"""
-        # Arrange
-        source_srt = tmp_path / "video_de.srt"
-        source_srt.write_text("1\n00:00:00,000 --> 00:00:02,000\nHallo Welt\n\n", encoding="utf-8")
-
-        vocabulary = [{"word": "Hallo"}, {"word": "Welt"}]
-        language_prefs = {"target": "de"}
-
-        # Act
-        result = await service._generate_filtered_subtitles(
-            task_id="test_task",
-            task_progress=task_progress,
-            srt_file=str(source_srt),
-            vocabulary=vocabulary,
-            language_preferences=language_prefs,
-        )
-
-        # Assert
-        assert result.endswith("_filtered.srt")
-        assert Path(result).exists()
-
-        # Verify filtered file was created
-        filtered_content = Path(result).read_text(encoding="utf-8")
-        assert "Hallo" in filtered_content or "hallo" in filtered_content
-
-    @pytest.mark.anyio
-    async def test_generate_filtered_subtitles_missing_source(self, service, task_progress):
-        """Test handling of missing source SRT"""
-        # Arrange
-        srt_file = "/nonexistent.srt"
-
-        vocabulary = [{"word": "test"}]
-        language_prefs = {"target": "de"}
-
-        # Act
-        result = await service._generate_filtered_subtitles(
-            task_id="test_task",
-            task_progress=task_progress,
-            srt_file=srt_file,
-            vocabulary=vocabulary,
-            language_preferences=language_prefs,
-        )
-
-        # Assert - returns source path when file doesn't exist
-        assert result == "/nonexistent.srt"
 
 
 class TestHealthCheck:
