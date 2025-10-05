@@ -720,3 +720,218 @@ class TestSessionFactory:
 def session_factory():
     """Provide the TestSessionFactory for easy access in tests."""
     return TestSessionFactory
+
+
+@pytest.fixture
+async def seeded_vocabulary(app):
+    """
+    Seed test database with vocabulary words for integration tests.
+
+    Creates vocabulary words across multiple difficulty levels (A1, A2, B1)
+    so that vocabulary workflow tests have data to work with.
+    """
+    from database.models import VocabularyWord
+
+    # Get the test session factory from the app
+    SessionLocal = app.state._test_session_factory
+
+    async with SessionLocal() as session:
+        # Create vocabulary words across different levels
+        words = [
+            # A1 level words (10 words)
+            VocabularyWord(
+                word="Hallo",
+                lemma="hallo",
+                language="de",
+                difficulty_level="A1",
+                part_of_speech="noun",
+                translation_en="Hello",
+                translation_native="Hola",
+            ),
+            VocabularyWord(
+                word="ich",
+                lemma="ich",
+                language="de",
+                difficulty_level="A1",
+                part_of_speech="pronoun",
+                translation_en="I",
+                translation_native="yo",
+            ),
+            VocabularyWord(
+                word="du",
+                lemma="du",
+                language="de",
+                difficulty_level="A1",
+                part_of_speech="pronoun",
+                translation_en="you",
+                translation_native="tú",
+            ),
+            VocabularyWord(
+                word="ja",
+                lemma="ja",
+                language="de",
+                difficulty_level="A1",
+                part_of_speech="adverb",
+                translation_en="yes",
+                translation_native="sí",
+            ),
+            VocabularyWord(
+                word="nein",
+                lemma="nein",
+                language="de",
+                difficulty_level="A1",
+                part_of_speech="adverb",
+                translation_en="no",
+                translation_native="no",
+            ),
+            VocabularyWord(
+                word="danke",
+                lemma="danke",
+                language="de",
+                difficulty_level="A1",
+                part_of_speech="noun",
+                translation_en="thanks",
+                translation_native="gracias",
+            ),
+            VocabularyWord(
+                word="bitte",
+                lemma="bitte",
+                language="de",
+                difficulty_level="A1",
+                part_of_speech="adverb",
+                translation_en="please",
+                translation_native="por favor",
+            ),
+            VocabularyWord(
+                word="gut",
+                lemma="gut",
+                language="de",
+                difficulty_level="A1",
+                part_of_speech="adjective",
+                translation_en="good",
+                translation_native="bueno",
+            ),
+            VocabularyWord(
+                word="Mann",
+                lemma="mann",
+                language="de",
+                difficulty_level="A1",
+                part_of_speech="noun",
+                gender="der",
+                translation_en="man",
+                translation_native="hombre",
+            ),
+            VocabularyWord(
+                word="Frau",
+                lemma="frau",
+                language="de",
+                difficulty_level="A1",
+                part_of_speech="noun",
+                gender="die",
+                translation_en="woman",
+                translation_native="mujer",
+            ),
+            # A2 level words (5 words)
+            VocabularyWord(
+                word="sprechen",
+                lemma="sprechen",
+                language="de",
+                difficulty_level="A2",
+                part_of_speech="verb",
+                translation_en="speak",
+                translation_native="hablar",
+            ),
+            VocabularyWord(
+                word="verstehen",
+                lemma="verstehen",
+                language="de",
+                difficulty_level="A2",
+                part_of_speech="verb",
+                translation_en="understand",
+                translation_native="entender",
+            ),
+            VocabularyWord(
+                word="lernen",
+                lemma="lernen",
+                language="de",
+                difficulty_level="A2",
+                part_of_speech="verb",
+                translation_en="learn",
+                translation_native="aprender",
+            ),
+            VocabularyWord(
+                word="arbeiten",
+                lemma="arbeiten",
+                language="de",
+                difficulty_level="A2",
+                part_of_speech="verb",
+                translation_en="work",
+                translation_native="trabajar",
+            ),
+            VocabularyWord(
+                word="wohnen",
+                lemma="wohnen",
+                language="de",
+                difficulty_level="A2",
+                part_of_speech="verb",
+                translation_en="live",
+                translation_native="vivir",
+            ),
+            # B1 level words (5 words)
+            VocabularyWord(
+                word="Mädchen",
+                lemma="mädchen",
+                language="de",
+                difficulty_level="B1",
+                part_of_speech="noun",
+                gender="das",
+                translation_en="girl",
+                translation_native="niña",
+            ),
+            VocabularyWord(
+                word="Junge",
+                lemma="junge",
+                language="de",
+                difficulty_level="B1",
+                part_of_speech="noun",
+                gender="der",
+                translation_en="boy",
+                translation_native="niño",
+            ),
+            VocabularyWord(
+                word="Familie",
+                lemma="familie",
+                language="de",
+                difficulty_level="B1",
+                part_of_speech="noun",
+                gender="die",
+                translation_en="family",
+                translation_native="familia",
+            ),
+            VocabularyWord(
+                word="Schule",
+                lemma="schule",
+                language="de",
+                difficulty_level="B1",
+                part_of_speech="noun",
+                gender="die",
+                translation_en="school",
+                translation_native="escuela",
+            ),
+            VocabularyWord(
+                word="Arbeit",
+                lemma="arbeit",
+                language="de",
+                difficulty_level="B1",
+                part_of_speech="noun",
+                gender="die",
+                translation_en="work",
+                translation_native="trabajo",
+            ),
+        ]
+
+        session.add_all(words)
+        await session.commit()
+
+        # Return the words for tests that need them
+        return words

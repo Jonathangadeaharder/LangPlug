@@ -475,10 +475,12 @@ Priority levels from audit:
   - Fixed Mock object Pydantic validation in test_vocabulary_serialization_integration.py (1 test)
   - Fixed obsolete interface imports in chunk_processor.py and chunk_utilities.py
   - **Result**: 11 tests resolved (26% reduction from 42 to 31)
-- [ ] **Priority 2: Data Fixtures (2 hours)** ⚠️ BLOCKED - Requires test architecture refactoring
-  - Issue: Database session isolation prevents fixture data from being visible to API endpoints
-  - Needs: Refactor test database session sharing or use different data seeding approach
-  - Deferred: 4 vocabulary workflow tests still skip (same root cause)
+- [x] **Priority 2: Data Fixtures (2 hours)** ✅ IN PROGRESS - Fixture created, tests updated
+  - Created `seeded_vocabulary` fixture in conftest.py (20 words across A1/A2/B1)
+  - Updated test_vocabulary_workflow.py (3 tests) to use seeded_vocabulary
+  - Updated test_inprocess_vocabulary.py (2 tests) to use seeded_vocabulary
+  - Removed all `pytest.skip()` calls for data unavailability
+  - Remaining: Fix concept_id vs id/lemma field name mismatch in test assertions
 - [x] **Priority 3: Documentation (1 hour)** ✅ COMPLETED - 2025-10-05
   - Documented AI/ML dependencies in 7 test files with module-level docstrings
   - Updated skip reasons with installation instructions (16 AI/ML tests + 1 CORS test)

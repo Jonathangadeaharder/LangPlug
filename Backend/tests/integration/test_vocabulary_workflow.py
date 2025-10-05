@@ -34,7 +34,7 @@ class TestCompleteVocabularyLearningWorkflow:
 
     @pytest.mark.asyncio
     async def test_WhenCompleteVocabularyProgressionWorkflow_ThenAllStepsSucceed(
-        self, async_client, url_builder, authenticated_user
+        self, async_client, url_builder, authenticated_user, seeded_vocabulary
     ):
         """Test complete vocabulary learning progression workflow"""
         headers = authenticated_user["headers"]
@@ -74,8 +74,8 @@ class TestCompleteVocabularyLearningWorkflow:
         assert "level" in a1_words
         assert a1_words["level"] == "A1"
 
-        if not a1_words["words"]:
-            pytest.skip("No A1 vocabulary words available for workflow test")
+        # Verify we have vocabulary words from seeded_vocabulary fixture
+        assert len(a1_words["words"]) > 0, "seeded_vocabulary fixture should provide A1 words"
 
         # Step 4: Mark some words as known
         words_marked = 0
@@ -265,7 +265,7 @@ class TestCompleteVocabularyLearningWorkflow:
 
     @pytest.mark.asyncio
     async def test_WhenVocabularyProgressionWithUnmarkingWords_ThenStatisticsAdjustCorrectly(
-        self, async_client, url_builder, authenticated_user
+        self, async_client, url_builder, authenticated_user, seeded_vocabulary
     ):
         """Test complete workflow including unmarking words"""
         headers = authenticated_user["headers"]
@@ -281,8 +281,8 @@ class TestCompleteVocabularyLearningWorkflow:
         assert words_response.status_code == 200
         words_data = words_response.json()
 
-        if not words_data["words"]:
-            pytest.skip("No vocabulary words available for unmarking test")
+        # Verify we have vocabulary words from seeded_vocabulary fixture
+        assert len(words_data["words"]) > 0, "seeded_vocabulary fixture should provide words"
 
         test_words = words_data["words"][:3]
 
@@ -341,7 +341,9 @@ class TestMultiUserVocabularyIsolation:
     """Test vocabulary progress isolation between different users"""
 
     @pytest.mark.asyncio
-    async def test_WhenMultipleUsersMarkSameWords_ThenProgressIsolatedPerUser(self, async_client, url_builder):
+    async def test_WhenMultipleUsersMarkSameWords_ThenProgressIsolatedPerUser(
+        self, async_client, url_builder, seeded_vocabulary
+    ):
         """Test vocabulary progress is properly isolated between users"""
         # Create and authenticate two different users using consistent patterns
         user1_flow = await AuthTestHelperAsync.register_and_login_async(async_client)
@@ -358,8 +360,8 @@ class TestMultiUserVocabularyIsolation:
         assert words_response.status_code == 200
         words_data = words_response.json()
 
-        if not words_data["words"]:
-            pytest.skip("No vocabulary words available for multi-user test")
+        # Verify we have vocabulary words from seeded_vocabulary fixture
+        assert len(words_data["words"]) > 0, "seeded_vocabulary fixture should provide words"
 
         test_words = words_data["words"]
 
