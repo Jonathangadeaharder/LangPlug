@@ -4,8 +4,6 @@ Provides clean contracts for all service implementations.
 """
 
 # Base interfaces
-# Authentication interfaces
-from .auth import IAuthService, IPermissionService, ITokenService
 from .base import (
     IAsyncService,
     IRepositoryService,
@@ -15,9 +13,6 @@ from .base import (
     ServiceError,
     ValidationError,
 )
-
-# Chunk processing interfaces
-from .chunk_interface import IChunkProcessingService, IChunkUtilities
 
 # Handler interfaces
 from .handler_interface import (
@@ -29,61 +24,31 @@ from .handler_interface import (
     ITranslationHandler,
 )
 
-# Processing interfaces
-from .processing import (
-    IProcessingPipelineService,
-    ISubtitleProcessor,
-    ITaskProgressService,
-    ITranscriptionService,
-    ITranslationService,
-    IVideoProcessingService,
-)
-
 # Transcription interfaces
 from .transcription_interface import IChunkTranscriptionService
 
 # Translation interfaces
 from .translation_interface import IChunkTranslationService, ISelectiveTranslationService
 
-# Vocabulary interfaces
-from .vocabulary import IUserVocabularyService, IVocabularyImportService, IVocabularyPreloadService, IVocabularyService
-
 __all__ = [
+    # Base interfaces
     "IAsyncService",
-    # Auth
-    "IAuthService",
-    "IChunkHandler",
-    # Chunk Processing
-    "IChunkProcessingService",
-    "IChunkTranscriptionService",
-    "IChunkTranslationService",
-    "IChunkUtilities",
-    "IFilteringHandler",
-    "IPermissionService",
-    "IPipelineHandler",
-    # Handlers
-    "IProcessingHandler",
-    "IProcessingPipelineService",
     "IRepositoryService",
-    "ISelectiveTranslationService",
-    # Base
     "IService",
-    "ISubtitleProcessor",
-    "ITaskProgressService",
-    "ITokenService",
-    "ITranscriptionHandler",
-    # Processing
-    "ITranscriptionService",
-    "ITranslationHandler",
-    "ITranslationService",
-    "IUserVocabularyService",
-    "IVideoProcessingService",
-    "IVocabularyImportService",
-    "IVocabularyPreloadService",
-    # Vocabulary
-    "IVocabularyService",
     "NotFoundError",
     "PermissionError",
     "ServiceError",
     "ValidationError",
+    # Handler interfaces
+    "IChunkHandler",
+    "IFilteringHandler",
+    "IPipelineHandler",
+    "IProcessingHandler",
+    "ITranscriptionHandler",
+    "ITranslationHandler",
+    # Transcription interfaces
+    "IChunkTranscriptionService",
+    # Translation interfaces
+    "IChunkTranslationService",
+    "ISelectiveTranslationService",
 ]
