@@ -1249,25 +1249,63 @@ Mixed architecture - some DDD, mostly service-based:
 
 ### 27. Simplify Middleware Stack
 
-**Status**: ANALYSIS REQUIRED
+**Status**: ✅ ANALYSIS COMPLETE - Ready for Implementation
 
-#### Current Middleware Files:
+#### Analysis Results:
 
-- `core/middleware.py`
-- `core/contract_middleware.py`
-- `core/security_middleware.py`
-- `core/auth_dependencies.py`
+**Middleware Files Audited (5 files)**:
 
-#### Subtasks:
+1. `core/middleware.py` - Defines LoggingMiddleware (registered elsewhere), ErrorHandlingMiddleware (UNUSED)
+2. `core/security_middleware.py` - ✅ ACTIVE - Registers 5 middleware (CORS, SecurityHeaders, TrustedHost, RequestValidation, Logging)
+3. `core/contract_middleware.py` - ✅ ACTIVE - Registers ContractValidationMiddleware
+4. `core/api_gateway.py` - ❌ UNUSED - Entire file never imported (defines 3 middleware classes)
+5. `core/monitoring.py` - ❌ UNUSED - Entire file never imported (defines MonitoringMiddleware)
 
-- [ ] Audit which middleware is actually registered
-- [ ] Check for unused middleware
-- [ ] Consider consolidating related middleware
-- [ ] Document middleware chain
+**Currently Registered Middleware Chain** (in order):
 
-**Impact**: Low-Medium - Cleaner request pipeline
+1. CORS (from security_middleware.py)
+2. SecurityHeadersMiddleware (from security_middleware.py)
+3. TrustedHostMiddleware (from security_middleware.py)
+4. RequestValidationMiddleware (from security_middleware.py)
+5. LoggingMiddleware (from security_middleware.py, defined in middleware.py)
+6. ContractValidationMiddleware (from contract_middleware.py) - conditional
+7. Exception handlers (from middleware.py - not middleware, just handlers)
 
-**Estimated Effort**: 2-3 hours
+**Dead Code Identified**:
+
+1. `core/api_gateway.py` (166 lines) - ENTIRE FILE UNUSED
+   - RateLimitingMiddleware
+   - CachingMiddleware
+   - RequestValidationMiddleware (duplicate name!)
+2. `core/monitoring.py` (101+ lines) - ENTIRE FILE UNUSED
+   - MonitoringMiddleware
+3. `ErrorHandlingMiddleware` in middleware.py - Only tested, never registered
+
+**Duplication Found**:
+
+- RequestValidationMiddleware exists in BOTH security_middleware.py (USED) and api_gateway.py (UNUSED)
+
+#### Recommended Actions:
+
+**Phase 1 - Delete Dead Code**:
+
+- [ ] Delete `core/api_gateway.py` (entire file unused)
+- [ ] Delete `core/monitoring.py` (entire file unused)
+- [ ] Delete `ErrorHandlingMiddleware` class from middleware.py
+- [ ] Delete test file `tests/core/test_error_handling_middleware.py`
+- [ ] Remove api_gateway/monitoring references from BACKEND_ARCHITECTURE_ANALYSIS.md
+
+**Phase 2 - Consolidate** (Optional):
+
+- [ ] Move LoggingMiddleware from middleware.py to security_middleware.py (where it's registered)
+- [ ] Rename middleware.py to exception_handlers.py (more accurate)
+- [ ] Consider: auth_dependencies.py might be better named (it's FastAPI dependencies, not middleware)
+
+**Impact**: Medium - Removes ~300 lines of unused code, clarifies middleware structure
+
+**Estimated Cleanup Effort**: 30-45 minutes
+
+**Estimated Analysis Time**: 1 hour (COMPLETED)
 
 ---
 
