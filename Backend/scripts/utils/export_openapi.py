@@ -18,11 +18,13 @@ def export_openapi():
     app = create_app()
     openapi_spec = app.openapi()
 
-    # Write to project root
-    output_path = project_root.parent / "openapi_spec.json"
+    # Write to Backend directory
+    output_path = project_root / "openapi.json"
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(openapi_spec, f, indent=2, ensure_ascii=False)
+
+    print(f"OpenAPI spec exported to: {output_path}")
 
 
 if __name__ == "__main__":

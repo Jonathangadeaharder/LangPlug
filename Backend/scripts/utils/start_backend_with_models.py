@@ -16,8 +16,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Kill any process on the target port first
 import uvicorn
-
 from cleanup_port import kill_process_on_port
+
 from core.config import settings
 
 if __name__ == "__main__":

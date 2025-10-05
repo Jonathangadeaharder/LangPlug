@@ -158,10 +158,8 @@ section-order = ["future", "standard-library", "third-party", "first-party", "lo
 "alembic/versions/*.py" = ["E501", "PLR0915"]
 # Init files - allow unused imports
 "__init__.py" = ["F401"]
-# Debug/utility scripts - allow print statements for console output
-"check_users.py" = ["T20"]
-"verify_admin_login.py" = ["T20"]
-"verify_password_hash.py" = ["T20"]
+# Scripts directory - allow print statements, os.path for console utilities
+"scripts/**/*.py" = ["T20", "PTH100", "PTH120"]
 
 # ============================================================================
 # BLACK - Code formatter (Optional - Ruff's formatter is recommended)
