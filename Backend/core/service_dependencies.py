@@ -8,15 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
 from services.interfaces import (
-    IAuthService,
     IChunkTranscriptionService,
     IChunkTranslationService,
-    IChunkUtilities,
-    IProcessingPipelineService,
-    ISubtitleProcessor,
-    ITranscriptionService,
-    ITranslationService,
-    IVocabularyService,
 )
 
 from .auth_dependencies import current_active_user
@@ -26,14 +19,14 @@ logger = logging.getLogger(__name__)
 
 
 # Core service dependencies using direct imports
-def get_vocabulary_service(db: Annotated[AsyncSession, Depends(get_db_session)]) -> IVocabularyService:
+def get_vocabulary_service(db: Annotated[AsyncSession, Depends(get_db_session)]):
     """Get vocabulary service singleton instance"""
     from services.vocabulary.vocabulary_service import vocabulary_service
 
     return vocabulary_service
 
 
-def get_subtitle_processor(db: Annotated[AsyncSession, Depends(get_db_session)]) -> ISubtitleProcessor:
+def get_subtitle_processor(db: Annotated[AsyncSession, Depends(get_db_session)]):
     """Get subtitle processor instance"""
     from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 
@@ -42,28 +35,28 @@ def get_subtitle_processor(db: Annotated[AsyncSession, Depends(get_db_session)])
 
 def get_user_subtitle_processor(
     current_user: Annotated[User, Depends(current_active_user)], db: Annotated[AsyncSession, Depends(get_db_session)]
-) -> ISubtitleProcessor:
+):
     """Get subtitle processor for authenticated user"""
     from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 
     return DirectSubtitleProcessor()
 
 
-def get_auth_service(db: Annotated[AsyncSession, Depends(get_db_session)]) -> IAuthService:
+def get_auth_service(db: Annotated[AsyncSession, Depends(get_db_session)]):
     """Get authentication service instance"""
     from services.authservice.auth_service import AuthService
 
     return AuthService(db)
 
 
-def get_processing_service() -> IProcessingPipelineService:
+def get_processing_service():
     """Get processing pipeline service instance"""
     from services.processing.chunk_processor import ChunkProcessingService
 
     return ChunkProcessingService()
 
 
-def get_transcription_service() -> ITranscriptionService | None:
+def get_transcription_service():
     """Get transcription service instance (singleton)"""
     try:
         from services.transcriptionservice.factory import get_transcription_service as _get_transcription_service
@@ -86,7 +79,7 @@ def get_transcription_service() -> ITranscriptionService | None:
         return None
 
 
-def get_translation_service() -> ITranslationService | None:
+def get_translation_service():
     """Get translation service instance"""
     try:
         from services.translationservice.factory import get_translation_service as _get_translation_service
@@ -123,7 +116,7 @@ def get_chunk_translation_service() -> IChunkTranslationService:
     return ChunkTranslationService()
 
 
-def get_chunk_utilities(db: Annotated[AsyncSession, Depends(get_db_session)]) -> IChunkUtilities:
+def get_chunk_utilities(db: Annotated[AsyncSession, Depends(get_db_session)]):
     """Get chunk utilities service instance"""
     from services.processing.chunk_utilities import ChunkUtilities
 
