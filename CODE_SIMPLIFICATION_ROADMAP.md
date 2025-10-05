@@ -622,28 +622,47 @@ def test_user_can_mark_word_as_known():
 
 ### 8. Document Email vs Username Clarification
 
-**Status**: MEDIUM - From existing roadmap
+**Status**: ✅ COMPLETED - 2025-10-05
 
-#### Current State:
+#### Investigation Results:
 
-```python
-class UserRegister(BaseModel):
-    email: EmailStr
-    username: str | None  # Is this used?
-```
+**Current System** (email-based authentication):
 
-#### Subtasks:
+- **Registration**: Requires both `username` (display) and `email` (authentication)
+- **Login**: Form field called "username" actually expects **email** (FastAPI-Users convention)
+- **Database**: Both fields stored (email for auth, username for display)
 
-- [ ] Check authentication logic - login by email or username?
-- [ ] Search codebase for username usage: `grep -r "username" Backend/api/routes/auth.py`
-- [ ] If username is unused, remove from model
-- [ ] If username is used, make required and document
-- [ ] Update frontend forms accordingly
-- [ ] Document decision in API documentation
+#### Key Findings:
 
-**Impact**: Medium - Clarity on user model
+1. **FastAPI-Users Standard**: Login uses OAuth2PasswordRequestForm with "username" field containing email
+2. **Authentication Lookup**: SQLAlchemyUserDatabase queries by `email` field
+3. **Username Purpose**: Display name only, not used for authentication
+4. **Naming Confusion**: "username" field in login form is misleading (actually email)
 
-**Estimated Effort**: 1-2 hours
+#### Completed Subtasks:
+
+- [x] Checked authentication logic - **email-based with FastAPI-Users**
+- [x] Searched codebase for username usage - **display only, email for auth**
+- [x] Analyzed both fields are required and used differently
+- [x] Created comprehensive documentation: `docs/EMAIL_VS_USERNAME_CLARIFICATION.md`
+- [x] Documented FastAPI-Users OAuth2PasswordRequestForm convention
+- [x] Added testing patterns and API documentation updates
+
+#### Decision:
+
+✅ **Keep current system** (email for auth, username for display)
+
+**Rationale**:
+
+- FastAPI-Users designed for email authentication
+- Both fields serve different purposes
+- Changing would require significant refactoring
+- Current pattern is standard for FastAPI-Users
+
+**Deliverable**: `docs/EMAIL_VS_USERNAME_CLARIFICATION.md` (comprehensive documentation)
+
+**Actual Effort**: 1.5 hours
+**Impact**: High - Eliminated confusion, documented authentication pattern clearly
 
 ---
 
