@@ -266,7 +266,7 @@ class UserSettings(BaseModel):
 async def get_user_settings(current_user: User = Depends(current_active_user)):
     """Get user settings"""
     try:
-        user_settings_path = settings.get_data_path() / str(current_user.id) / "settings.json"
+        user_settings_path = settings.get_user_temp_path(current_user.id) / "settings.json"
 
         default_settings = UserSettings()
 
@@ -294,9 +294,7 @@ async def get_user_settings(current_user: User = Depends(current_active_user)):
 async def update_user_settings(settings_update: UserSettings, current_user: User = Depends(current_active_user)):
     """Update user settings"""
     try:
-        user_data_path = settings.get_data_path() / str(current_user.id)
-        user_data_path.mkdir(parents=True, exist_ok=True)
-
+        user_data_path = settings.get_user_temp_path(current_user.id)
         user_settings_path = user_data_path / "settings.json"
 
         import json

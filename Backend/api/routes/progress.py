@@ -107,7 +107,7 @@ async def get_user_progress(current_user: User = Depends(current_active_user)):
         ```
     """
     try:
-        user_progress_path = settings.get_data_path() / str(current_user.id) / "progress.json"
+        user_progress_path = settings.get_user_temp_path(current_user.id) / "progress.json"
 
         default_progress = UserProgress(user_id=str(current_user.id), last_activity=datetime.now())
 
@@ -151,9 +151,7 @@ async def update_user_progress(progress_update: dict[str, Any], current_user: Us
 
         current_progress.last_activity = datetime.now()
 
-        user_data_path = settings.get_data_path() / str(current_user.id)
-        user_data_path.mkdir(parents=True, exist_ok=True)
-
+        user_data_path = settings.get_user_temp_path(current_user.id)
         user_progress_path = user_data_path / "progress.json"
 
         progress_dict = current_progress.dict()
@@ -175,7 +173,7 @@ async def update_user_progress(progress_update: dict[str, Any], current_user: Us
 async def get_daily_progress(days: int = 7, current_user: User = Depends(current_active_user)):
     """Get daily progress for the last N days"""
     try:
-        user_daily_path = settings.get_data_path() / str(current_user.id) / "daily_progress.json"
+        user_daily_path = settings.get_user_temp_path(current_user.id) / "daily_progress.json"
 
         daily_progress = []
 

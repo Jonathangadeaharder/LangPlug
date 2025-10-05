@@ -195,6 +195,25 @@ class Settings(BaseSettings):
         path.mkdir(exist_ok=True)
         return path
 
+    def get_user_temp_path(self, user_id: int | str) -> Path:
+        """
+        Get a temporary directory path for user-specific data.
+
+        User data (settings, progress, etc.) should be stored in temp directories
+        to avoid committing user data to the repository.
+
+        Args:
+            user_id: The user ID
+
+        Returns:
+            Path to user's temp directory
+        """
+        import tempfile
+
+        temp_base = Path(tempfile.gettempdir()) / "langplug" / "users" / str(user_id)
+        temp_base.mkdir(parents=True, exist_ok=True)
+        return temp_base
+
     def get_logs_path(self) -> Path:
         """Get the logs directory path"""
         if self.logs_path:
