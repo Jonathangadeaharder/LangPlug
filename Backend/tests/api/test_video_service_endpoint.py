@@ -15,7 +15,7 @@ class TestVideoServiceEndpoint:
     """Test video service API endpoint functionality"""
 
     @pytest.mark.asyncio
-    async def test_process_chunk_endpoint_success(self, async_client: AsyncClient):
+    async def test_process_chunk_endpoint_success(self, async_client: AsyncClient, url_builder):
         """Test processChunk endpoint returns task ID on successful request"""
 
         # Arrange: Authenticate user
@@ -40,7 +40,7 @@ class TestVideoServiceEndpoint:
             mock_videos_base_path.__truediv__.return_value = mock_full_path
 
             # Act: Call the endpoint
-            response = await async_client.post("/api/process/chunk", json=test_request, headers=headers)
+            response = await async_client.post(url_builder.url_for("process_chunk"), json=test_request, headers=headers)
 
             # Assert: Verify successful response
             assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
@@ -55,20 +55,20 @@ class TestVideoServiceEndpoint:
             mock_run_processing.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_process_chunk_endpoint_unauthorized(self, async_client: AsyncClient):
+    async def test_process_chunk_endpoint_unauthorized(self, async_client: AsyncClient, url_builder):
         """Test processChunk endpoint rejects unauthorized requests"""
 
         # Arrange: Prepare test request without authentication
         test_request = {"video_path": "test_video.mp4", "start_time": 0, "end_time": 300}
 
         # Act: Call endpoint without auth headers
-        response = await async_client.post("/api/process/chunk", json=test_request)
+        response = await async_client.post(url_builder.url_for("process_chunk"), json=test_request)
 
         # Assert: Verify unauthorized response
         assert response.status_code == 401, f"Expected 401, got {response.status_code}: {response.text}"
 
     @pytest.mark.asyncio
-    async def test_process_chunk_endpoint_invalid_data(self, async_client: AsyncClient):
+    async def test_process_chunk_endpoint_invalid_data(self, async_client: AsyncClient, url_builder):
         """Test processChunk endpoint validates required fields"""
 
         # Arrange: Authenticate user
@@ -82,7 +82,7 @@ class TestVideoServiceEndpoint:
         }
 
         # Act: Call endpoint with invalid data
-        response = await async_client.post("/api/process/chunk", json=invalid_request, headers=headers)
+        response = await async_client.post(url_builder.url_for("process_chunk"), json=invalid_request, headers=headers)
 
         # Assert: Verify validation error response
         assert response.status_code == 422, f"Expected 422, got {response.status_code}: {response.text}"
@@ -93,7 +93,7 @@ class TestVideoServiceEndpoint:
         assert "details" in error_data["error"]
 
     @pytest.mark.asyncio
-    async def test_process_chunk_endpoint_service_error(self, async_client: AsyncClient):
+    async def test_process_chunk_endpoint_service_error(self, async_client: AsyncClient, url_builder):
         """Test processChunk endpoint handles service errors gracefully"""
 
         # Arrange: Authenticate user
@@ -115,7 +115,7 @@ class TestVideoServiceEndpoint:
             mock_videos_base_path.__truediv__.return_value = mock_full_path
 
             # Act: Call the endpoint
-            response = await async_client.post("/api/process/chunk", json=test_request, headers=headers)
+            response = await async_client.post(url_builder.url_for("process_chunk"), json=test_request, headers=headers)
 
             # Assert: Verify file not found error
             assert response.status_code == 404, f"Expected 404, got {response.status_code}: {response.text}"

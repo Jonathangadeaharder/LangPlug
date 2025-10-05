@@ -12,13 +12,13 @@ from tests.helpers import AuthTestHelperAsync
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenFilterSubtitlesWithoutexisting_file_ThenRejected(async_client, monkeypatch, tmp_path):
+async def test_WhenFilterSubtitlesWithoutexisting_file_ThenRejected(async_client, url_builder, monkeypatch, tmp_path):
     """Invalid input: filter-subtitles fails when subtitle file absent."""
     flow = await AuthTestHelperAsync.register_and_login_async(async_client)
 
     with patch.object(type(settings), "get_videos_path", return_value=tmp_path):
         response = await async_client.post(
-            "/api/process/filter-subtitles",
+            url_builder.url_for("filter_subtitles"),
             json={"video_path": "missing.mp4"},
             headers=flow["headers"],
         )

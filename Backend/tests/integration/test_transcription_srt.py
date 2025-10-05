@@ -11,13 +11,13 @@ from tests.helpers import AuthTestHelperAsync
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whentranscribe_fails_without_serviceCalled_ThenSucceeds(async_http_client):
+async def test_Whentranscribe_fails_without_serviceCalled_ThenSucceeds(async_http_client, url_builder):
     flow = await AuthTestHelperAsync.register_and_login_async(async_http_client)
 
     # Mock transcription service to return None (unavailable)
     with patch("api.routes.transcription_routes.get_transcription_service", return_value=None):
         response = await async_http_client.post(
-            "/api/process/transcribe",
+            url_builder.url_for("transcribe_video"),
             json={"video_path": "missing.mp4"},
             headers=flow["headers"],
         )

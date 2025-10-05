@@ -17,7 +17,7 @@ async def _auth(async_client):
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_WhenChunkEndpointProcessesExistingVideo_ThenSucceeds(async_client, tmp_path, monkeypatch):
+async def test_WhenChunkEndpointProcessesExistingVideo_ThenSucceeds(async_client, url_builder, tmp_path, monkeypatch):
     """Happy path: chunk processing returns a task id when the file exists."""
     headers = await _auth(async_client)
     video_path = tmp_path / "clip.mp4"
@@ -25,7 +25,7 @@ async def test_WhenChunkEndpointProcessesExistingVideo_ThenSucceeds(async_client
 
     with patch.object(type(settings), "get_videos_path", return_value=tmp_path):
         response = await async_client.post(
-            "/api/process/chunk",
+            url_builder.url_for("process_chunk"),
             json={"video_path": video_path.name, "start_time": 0, "end_time": 5},
             headers=headers,
         )
@@ -39,7 +39,7 @@ async def test_WhenChunkEndpointProcessesExistingVideo_ThenSucceeds(async_client
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenchunk_endpointWithoutvalid_window_ThenReturnsError(async_client, tmp_path, monkeypatch):
+async def test_Whenchunk_endpointWithoutvalid_window_ThenReturnsError(async_client, url_builder, tmp_path, monkeypatch):
     """Invalid input: end_time <= start_time triggers bad request error."""
     headers = await _auth(async_client)
     video_path = tmp_path / "clip.mp4"
@@ -47,7 +47,7 @@ async def test_Whenchunk_endpointWithoutvalid_window_ThenReturnsError(async_clie
 
     with patch.object(type(settings), "get_videos_path", return_value=tmp_path):
         response = await async_client.post(
-            "/api/process/chunk",
+            url_builder.url_for("process_chunk"),
             json={"video_path": video_path.name, "start_time": 10, "end_time": 5},
             headers=headers,
         )
@@ -57,13 +57,15 @@ async def test_Whenchunk_endpointWithoutvalid_window_ThenReturnsError(async_clie
 
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
-async def test_Whenchunk_endpointWithoutexisting_file_ThenReturnsError(async_client, tmp_path, monkeypatch):
+async def test_Whenchunk_endpointWithoutexisting_file_ThenReturnsError(
+    async_client, url_builder, tmp_path, monkeypatch
+):
     """Boundary: non-existent file returns 404 contract response."""
     headers = await _auth(async_client)
 
     with patch.object(type(settings), "get_videos_path", return_value=tmp_path):
         response = await async_client.post(
-            "/api/process/chunk",
+            url_builder.url_for("process_chunk"),
             json={"video_path": "missing.mp4", "start_time": 0, "end_time": 5},
             headers=headers,
         )

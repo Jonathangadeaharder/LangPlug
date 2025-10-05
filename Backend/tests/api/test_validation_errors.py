@@ -14,7 +14,7 @@ from tests.helpers import AuthTestHelperAsync
     [
         "mark_word_known",
         "bulk_mark_level",
-        "/api/process/filter-subtitles",
+        "filter_subtitles",
     ],
 )
 async def test_WhenEndpointsRequireMandatoryFields_ThenValidates(async_http_client, url_builder, route_or_path: str):

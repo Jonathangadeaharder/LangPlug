@@ -755,7 +755,7 @@ Priority levels from audit:
 
 ### 9. Standardize Path Definitions (From Existing Roadmap)
 
-**Status**: IN PROGRESS - Frontend Complete ✅, Backend Phases 1-4 Complete ✅, Phases 5-8 Pending 📋
+**Status**: IN PROGRESS - Frontend Complete ✅, Backend Phases 1-5 Complete ✅, Phases 6-8 Pending 📋
 
 #### Frontend: COMPLETED ✅ (1 hour)
 
@@ -845,7 +845,29 @@ Priority levels from audit:
 - Replaced `"/api/videos/upload/{series}"` with `url_builder.url_for("upload_video_to_series", series="...")`
 - Handled query parameters in streaming auth tests (e.g., `f"{video_url}?token={token}"`)
 
-#### Backend Phases 5-8: PLANNED 📋 (6-12 hours remaining)
+#### Backend Phase 5: COMPLETED ✅ (2 hours) - 2025-10-05
+
+**Processing Tests Standardized**:
+
+- [x] Updated `tests/api/test_processing_routes.py` (3 hardcoded paths → route names)
+- [x] Updated `tests/api/test_processing_negative.py` (3 hardcoded paths → route names)
+- [x] Updated `tests/api/test_validation_errors.py` (1 hardcoded path → route name)
+- [x] Updated `tests/api/test_video_service_endpoint.py` (4 hardcoded paths → route names)
+- [x] Updated `tests/integration/test_inprocess_files_and_processing.py` (1 hardcoded path → route name)
+- [x] Updated `tests/integration/test_processing_endpoints.py` (1 hardcoded path → route name)
+- [x] Updated `tests/integration/test_transcription_srt.py` (1 hardcoded path → route name)
+- [x] Total: 14 hardcoded processing paths standardized across 7 files
+- [x] Note: 1 deprecated endpoint path ("/api/process/prepare-episode") left as hardcoded
+
+**Key Changes**:
+
+- Replaced `"/api/process/chunk"` with `url_builder.url_for("process_chunk")`
+- Replaced `"/api/process/transcribe"` with `url_builder.url_for("transcribe_video")`
+- Replaced `"/api/process/filter-subtitles"` with `url_builder.url_for("filter_subtitles")`
+- Replaced `"/api/process/full-pipeline"` with `url_builder.url_for("full_pipeline")`
+- Updated test class methods in test_video_service_endpoint.py with url_builder parameter
+
+#### Backend Phases 6-8: PLANNED 📋 (4-10 hours remaining)
 
 **Implementation Plan** (detailed in `docs/PATH_STANDARDIZATION_PLAN.md`):
 
@@ -853,7 +875,7 @@ Priority levels from audit:
 - [x] Phase 2: Update Auth tests ~3 files (2 hours) ✅ COMPLETE
 - [x] Phase 3: Update Vocabulary tests ~8 files (2-3 hours) ✅ COMPLETE - 2025-10-05
 - [x] Phase 4: Update Video tests ~7 files (1-2 hours) ✅ COMPLETE - 2025-10-05
-- [ ] Phase 5: Update Processing tests ~4 files (2-3 hours)
+- [x] Phase 5: Update Processing tests ~7 files (2 hours) ✅ COMPLETE - 2025-10-05
 - [ ] Phase 6: Update Integration tests ~20 files (3-4 hours)
 - [ ] Phase 7: Update Game/User tests (1-2 hours)
 - [ ] Phase 8: Create migration helper & pre-commit hook (1 hour)
