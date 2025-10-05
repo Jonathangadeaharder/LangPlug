@@ -153,11 +153,6 @@ def setup_middleware(app: FastAPI) -> None:
     # CORS middleware is now configured in security_middleware.py to avoid duplication
     # This function is kept for backward compatibility and exception handlers
 
-    # Custom middleware (order matters - first added runs last)
-    # Temporarily disable custom middleware - causing OPTIONS request issues
-    # app.add_middleware(ErrorHandlingMiddleware)
-    # app.add_middleware(LoggingMiddleware)
-
     # Exception handlers
     @app.exception_handler(LangPlugException)
     async def langplug_exception_handler(request: Request, exc: LangPlugException):
