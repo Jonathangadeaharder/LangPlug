@@ -97,10 +97,33 @@ src/
 
 ## Available Scripts
 
+### Development
+
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
+
+### API Integration
+
+- `npm run update-openapi` - **Update frontend after backend API changes** (exports spec + generates types + schemas)
+- `npm run generate:client` - Generate TypeScript client from OpenAPI spec
+- `npm run generate:schemas` - Generate Zod validation schemas from OpenAPI spec
+
+**Workflow after backend API changes**:
+
+```bash
+# 1. Make changes to backend API routes
+# 2. Update frontend to match:
+npm run update-openapi
+
+# This automatically:
+# - Exports latest Backend/openapi.json
+# - Generates TypeScript types in src/client/
+# - Generates Zod schemas in src/schemas/api-schemas.ts
+```
+
+The frontend uses auto-generated code to stay in sync with the backend, ensuring type safety and validation consistency.
 
 ## Environment Variables
 

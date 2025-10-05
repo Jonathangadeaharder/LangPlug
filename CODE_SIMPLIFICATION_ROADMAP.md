@@ -1403,7 +1403,7 @@ Backend root now contains only 3 essential files:
 - [x] Updated Frontend `openapi-ts.config.ts` to reference `Backend/openapi.json`
 - [x] Fixed `export_openapi.py` to correctly export to Backend directory
 - [x] Added `openapi*.json` to Backend/.gitignore (generated files)
-- [ ] Document OpenAPI generation in README - Deferred (low priority)
+- [x] Document OpenAPI generation in README - COMPLETED (2025-10-05)
 
 #### Result:
 

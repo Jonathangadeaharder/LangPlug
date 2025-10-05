@@ -101,6 +101,53 @@ LANGPLUG_LOG_LEVEL=INFO
 
 Once the server is running, visit `http://localhost:8000/docs` for interactive API documentation.
 
+### OpenAPI Specification
+
+The backend automatically generates an OpenAPI specification that serves as the single source of truth for API contracts.
+
+**Location**: `Backend/openapi.json` (auto-generated, excluded from git)
+
+**Regenerate the spec**:
+
+```bash
+cd Backend
+python export_openapi.py
+```
+
+**Frontend Integration**:
+
+The Frontend uses the OpenAPI spec to:
+
+- Generate TypeScript client types
+- Generate Zod validation schemas
+- Keep frontend/backend validation in sync
+
+**Update frontend after API changes**:
+
+```bash
+cd Frontend
+npm run update-openapi
+```
+
+This command:
+
+1. Exports the latest OpenAPI spec from the backend
+2. Generates TypeScript types from the spec
+3. Generates Zod schemas for runtime validation
+
+**Manual steps** (if needed):
+
+```bash
+# Export OpenAPI spec only
+cd Backend && python export_openapi.py
+
+# Generate TypeScript client only
+cd Frontend && npm run generate:client
+
+# Generate Zod schemas only
+cd Frontend && npm run generate:schemas
+```
+
 ## Testing
 
 ### Running Tests
