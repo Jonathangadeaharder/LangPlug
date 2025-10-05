@@ -18,6 +18,14 @@ build/
 htmlcov/
 test_reports/
 *.log
+.benchmarks/
+
+# Linting & Type Checking
+.mypy_cache/
+.ruff_cache/
+
+# Logs
+logs/
 
 # IDE
 .vscode/
