@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
-
 import pytest
 
 from tests.auth_helpers import AuthResponseStructures, AuthTestHelper, validate_auth_response
@@ -28,21 +26,6 @@ async def test_WhenRegisterRouteViaContractName_ThenSucceeds(async_http_client, 
 
     assert response.status_code == 201
     validate_auth_response(response.json(), AuthResponseStructures.REGISTRATION_SUCCESS)
-
-
-@pytest.mark.anyio
-@pytest.mark.timeout(30)
-@pytest.mark.skip(reason="FastAPI-Users uses integer IDs, not UUIDs. Test requirement conflicts with implementation.")
-async def test_WhenRegisterRouteEnforcesUuidIds_ThenValidates(async_http_client, url_builder):
-    """Boundary: returned identifier must be a UUID per contract spec."""
-    register_url = _route(url_builder, "register:register", "/api/auth/register")
-    user_data = AuthTestHelper.generate_unique_user_data()
-
-    response = await async_http_client.post(register_url, json=user_data)
-    assert response.status_code == 201
-
-    payload = response.json()
-    uuid.UUID(payload["id"])  # raises ValueError if not UUID formatted
 
 
 @pytest.mark.anyio

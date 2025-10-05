@@ -244,7 +244,6 @@ async def test_vocabulary_word_schema_validation():
     assert "active" in error_str.lower() or "extra" in error_str.lower()
 
 
-@pytest.mark.skip(reason="TODO: Update mock data to use string values instead of Mock objects for Pydantic validation")
 @pytest.mark.anyio
 async def test_vocabulary_filter_service_creates_correct_structure():
     """
@@ -256,10 +255,14 @@ async def test_vocabulary_filter_service_creates_correct_structure():
 
     service = VocabularyFilterService()
 
-    # Create mock filtered word
-    mock_word = Mock(
-        word="lernen", lemma="lernen", difficulty_level="A2", translation="to learn", part_of_speech="verb"
-    )
+    # Create dict with string values (service accepts dict input)
+    mock_word = {
+        "word": "lernen",
+        "lemma": "lernen",
+        "difficulty_level": "A2",
+        "translation": "to learn",
+        "part_of_speech": "verb",
+    }
 
     # Call the method that was fixed
     vocab_dict = service._create_vocabulary_word_dict(mock_word)

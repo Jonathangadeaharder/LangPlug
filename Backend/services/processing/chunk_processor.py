@@ -59,7 +59,6 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from services.interfaces.chunk_interface import IChunkProcessingService
 from services.interfaces.handler_interface import IChunkHandler
 
 from .chunk_services import subtitle_generation_service, translation_management_service, vocabulary_filter_service
@@ -76,12 +75,12 @@ class ChunkProcessingError(Exception):
     pass
 
 
-class ChunkProcessingService(IChunkProcessingService, IChunkHandler):
+class ChunkProcessingService(IChunkHandler):
     """
     Orchestration facade for video chunk processing pipeline.
 
     Coordinates multiple services to extract audio, transcribe speech, filter vocabulary,
-    and generate learning-optimized subtitles. Implements both processing and handler interfaces.
+    and generate learning-optimized subtitles. Implements the handler interface.
 
     Attributes:
         db_session (AsyncSession): Database session for user and vocabulary queries

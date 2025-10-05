@@ -18,7 +18,6 @@ from core.language_preferences import (
     resolve_language_runtime_settings,
 )
 from database.models import User
-from services.interfaces.chunk_interface import IChunkUtilities
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +28,7 @@ class ChunkUtilitiesError(Exception):
     pass
 
 
-class ChunkUtilities(IChunkUtilities):
+class ChunkUtilities:
     """
     Utility functions for chunk processing including file management and user operations
     """
