@@ -867,7 +867,37 @@ Priority levels from audit:
 - Replaced `"/api/process/full-pipeline"` with `url_builder.url_for("full_pipeline")`
 - Updated test class methods in test_video_service_endpoint.py with url_builder parameter
 
-#### Backend Phases 6-8: PLANNED 📋 (4-10 hours remaining)
+#### Backend Phase 6: COMPLETED ✅ (3 hours) - 2025-10-05
+
+**Integration Tests Standardized**:
+
+- [x] Updated `tests/integration/test_game_workflow.py` (30 hardcoded paths → route names)
+- [x] Updated `tests/integration/test_vocabulary_workflow.py` (31 hardcoded paths → route names)
+- [x] Updated `tests/integration/api/test_auth_api_contract.py` (21 hardcoded auth paths → route names)
+- [x] Updated `tests/integration/test_api_endpoints_in_process.py` (10 hardcoded paths → route names)
+- [x] Updated `tests/integration/test_api_http_integration.py` (5 hardcoded paths → route names)
+- [x] Updated `tests/integration/test_vocabulary_endpoints.py` (5 hardcoded paths → route names)
+- [x] Updated `tests/integration/test_video_streaming_auth.py` (4 hardcoded paths → route names)
+- [x] Updated `tests/integration/test_authentication_workflow.py` (2 hardcoded paths → route names)
+- [x] Updated `tests/integration/test_api_simple.py` (2 hardcoded paths → route names)
+- [x] Updated `tests/integration/test_websocket.py` (1 hardcoded path → route name)
+- [x] Updated `tests/integration/test_processing_endpoints.py` (1 hardcoded path → route name)
+- [x] Updated `tests/integration/test_backend_integration.py` (1 hardcoded path → route name)
+- [x] Updated `tests/integration/test_auth_workflow.py` (1 hardcoded path → route name)
+- [x] Total: 117 hardcoded integration test paths standardized across 13 files
+
+**Key Route Name Mappings**:
+
+- Auth: `"/api/auth/register"` → `url_builder.url_for("register:register")`
+- Auth: `"/api/auth/login"` → `url_builder.url_for("auth:jwt.login")`
+- Auth: `"/api/auth/me"` → `url_builder.url_for("auth_get_current_user")`
+- Game: `"/api/game/start"` → `url_builder.url_for("game_start_session")`
+- Game: `"/api/game/session/{id}"` → `url_builder.url_for("game_get_session", session_id=id)`
+- Vocabulary: `"/api/vocabulary/stats"` → `url_builder.url_for("get_vocabulary_stats")`
+- Vocabulary: `"/api/vocabulary/library/{level}"` → `url_builder.url_for("get_vocabulary_level", level=level)`
+- Vocabulary: `"/api/vocabulary/mark-known"` → `url_builder.url_for("mark_word_known")`
+
+#### Backend Phases 7-8: PLANNED 📋 (2-3 hours remaining)
 
 **Implementation Plan** (detailed in `docs/PATH_STANDARDIZATION_PLAN.md`):
 
@@ -876,7 +906,7 @@ Priority levels from audit:
 - [x] Phase 3: Update Vocabulary tests ~8 files (2-3 hours) ✅ COMPLETE - 2025-10-05
 - [x] Phase 4: Update Video tests ~7 files (1-2 hours) ✅ COMPLETE - 2025-10-05
 - [x] Phase 5: Update Processing tests ~7 files (2 hours) ✅ COMPLETE - 2025-10-05
-- [ ] Phase 6: Update Integration tests ~20 files (3-4 hours)
+- [x] Phase 6: Update Integration tests ~13 files (3 hours) ✅ COMPLETE - 2025-10-05
 - [ ] Phase 7: Update Game/User tests (1-2 hours)
 - [ ] Phase 8: Create migration helper & pre-commit hook (1 hour)
 
