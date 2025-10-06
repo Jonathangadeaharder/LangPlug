@@ -66,7 +66,13 @@ def register_test_user_if_needed():
             json={"username": "e2etest", "email": TEST_EMAIL, "password": TEST_PASSWORD},
             timeout=10,
         )
-        if response.status_code == 201 or response.status_code == 400 and "already exists" in response.text.lower():
+        if response.status_code == 201:
+            print(f"[E2E] Created test user: {TEST_EMAIL}")
+            return True
+        elif response.status_code == 400 and (
+            "already exists" in response.text.lower() or "REGISTER_USER_ALREADY_EXISTS" in response.text
+        ):
+            print(f"[E2E] Test user already exists: {TEST_EMAIL}")
             return True
         else:
             raise AssertionError(f"User registration failed: {response.status_code} - {response.text[:200]}")

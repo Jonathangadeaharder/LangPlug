@@ -60,7 +60,9 @@ def register_test_user_if_needed():
         )
         if response.status_code == 201:
             print(f"[E2E] Created test user: {TEST_EMAIL}")
-        elif response.status_code == 400 and "already exists" in response.text.lower():
+        elif response.status_code == 400 and (
+            "already exists" in response.text.lower() or "REGISTER_USER_ALREADY_EXISTS" in response.text
+        ):
             print(f"[E2E] Test user already exists: {TEST_EMAIL}")
         else:
             raise AssertionError(f"User registration failed: {response.status_code} - {response.text[:200]}")
@@ -98,6 +100,16 @@ async def test_e2e_subtitle_display_workflow():
         context = await browser.new_context(viewport={"width": 1280, "height": 720})
         page = await context.new_page()
 
+        # Capture console logs and errors
+        console_logs = []
+        page.on("console", lambda msg: console_logs.append(f"[CONSOLE {msg.type}] {msg.text}"))
+        page.on("pageerror", lambda exc: console_logs.append(f"[PAGE ERROR] {exc}"))
+
+        # Capture network failures
+        page.on(
+            "requestfailed", lambda req: console_logs.append(f"[NETWORK FAIL] {req.method} {req.url} - {req.failure}")
+        )
+
         try:
             # Step 1: Navigate to frontend
             await page.goto(FRONTEND_URL, timeout=15000)
@@ -114,9 +126,24 @@ async def test_e2e_subtitle_display_workflow():
             await page.screenshot(path=str(SCREENSHOT_DIR / "01_login_filled.png"))
             await submit_button.click()
 
-            # Wait for navigation after login
-            await page.wait_for_url("**", timeout=10000)
-            await page.wait_for_load_state("networkidle")
+            # Wait for navigation away from login page
+            try:
+                # Wait for URL to change from /login
+                await page.wait_for_url(lambda url: "/login" not in url, timeout=10000)
+                await page.wait_for_load_state("networkidle", timeout=5000)
+            except Exception as nav_error:
+                # Login failed, capture state and logs
+                await page.screenshot(path=str(SCREENSHOT_DIR / "02_login_timeout.png"))
+                page_html = await page.content()
+                (SCREENSHOT_DIR / "02_login_timeout.html").write_text(page_html, encoding="utf-8")
+
+                print("\n[E2E] Login failed - still on login page after 10s")
+                print(f"[E2E] Current URL: {page.url}")
+                print("[E2E] Browser console logs:")
+                for log in console_logs:
+                    print(f"  {log}")
+
+                raise AssertionError(f"Login failed - URL did not change from /login: {nav_error}") from nav_error
 
             # Save debug screenshot
             await page.screenshot(path=str(SCREENSHOT_DIR / "02_after_login.png"))
@@ -221,7 +248,17 @@ async def test_e2e_subtitle_display_workflow():
             video_duration = await page.evaluate("document.querySelector('video')?.duration || 0")
             assert video_duration > 0, "Video must have valid duration"
 
+        except Exception as e:
+            # Print all captured logs on failure
+            print("\n[E2E] Browser console logs:")
+            for log in console_logs:
+                print(f"  {log}")
+            raise
         finally:
+            # Always print logs for debugging
+            print("\n[E2E] Browser console logs:")
+            for log in console_logs:
+                print(f"  {log}")
             await browser.close()
 
 
