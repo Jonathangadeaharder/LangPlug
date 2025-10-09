@@ -10,12 +10,7 @@ test.describe('Vocabulary Learning Workflow @smoke', () => {
     testUser = await testDataManager.createTestUser();
 
     // Log in user
-    await page.goto('/');
-    const loginLink = page.locator('a[href*="login"]').or(
-      page.getByRole('link', { name: /login/i })
-    );
-
-    await loginLink.click();
+    await page.goto('/login');
     await page.locator('input[name="email"]').fill(testUser.email);
     await page.locator('input[name="password"]').fill(testUser.password);
     await page.locator('button[type="submit"]').click();
@@ -123,14 +118,16 @@ test.describe('Vocabulary Learning Workflow @smoke', () => {
         if (await knowButton.isVisible()) {
           await knowButton.click();
 
-          // Wait for question transition or game completion (deterministic wait)
+          // Wait for question transition or game completion (deterministic wait on state change)
           await Promise.race([
             page.locator('[data-testid="current-word"]').waitFor({ state: 'visible', timeout: 3000 }),
             page.locator('[data-testid="game-complete"]').waitFor({ state: 'visible', timeout: 3000 }),
             page.locator('[data-testid="game-progress"]').waitFor({ state: 'visible', timeout: 3000 })
-          ]).catch(() => {
-            // Only use timeout as absolute fallback when no observable state changes occur
-            return page.waitForTimeout(1000);
+          ]).catch((error) => {
+            throw new Error(
+              'Game state did not change after answer. Expected current-word, game-complete, or game-progress to update. ' +
+              'Add proper state management and data-testid attributes. Original error: ' + error.message
+            );
           });
         } else {
           gameCompleted = true;
@@ -266,9 +263,11 @@ test.describe('Vocabulary Learning Workflow @smoke', () => {
             await Promise.race([
               page.locator('[data-testid="current-word"]').waitFor({ state: 'visible', timeout: 3000 }),
               page.locator('[data-testid="game-complete"]').waitFor({ state: 'visible', timeout: 3000 })
-            ]).catch(() => {
-              // Minimal fallback only when state doesn't change as expected
-              return page.waitForTimeout(1000);
+            ]).catch((error) => {
+              throw new Error(
+                'Game did not transition to next word or completion state after skip. ' +
+                'Add proper state management. Original error: ' + error.message
+              );
             });
           } else {
             break;

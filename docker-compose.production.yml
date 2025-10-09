@@ -97,8 +97,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.production.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./config/nginx/nginx.production.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/ssl:/etc/nginx/ssl:ro
       - ./logs/nginx:/var/log/nginx
     depends_on:
       - frontend

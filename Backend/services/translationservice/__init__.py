@@ -1,3 +1,0 @@
-"""
-Translation service package
-"""

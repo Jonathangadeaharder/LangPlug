@@ -10,12 +10,7 @@ test.describe('Complete Learning Workflow @smoke', () => {
     testUser = await testDataManager.createTestUser();
 
     // Log in user
-    await page.goto('/');
-    const loginLink = page.locator('a[href*="login"]').or(
-      page.getByRole('link', { name: /login/i })
-    );
-
-    await loginLink.click();
+    await page.goto('/login');
     await page.locator('input[name="email"]').fill(testUser.email);
     await page.locator('input[name="password"]').fill(testUser.password);
     await page.locator('button[type="submit"]').click();

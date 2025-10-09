@@ -13,12 +13,12 @@ test.describe('Authentication Workflow @smoke', () => {
   });
 
   test('WhenUserRegistersAndLogs_ThenCanAccessProtectedFeatures @smoke', async ({ page }) => {
-    await test.step('Navigate to application', async () => {
-      await page.goto('/');
+    await test.step('Navigate to login page', async () => {
+      await page.goto('/login');
       await expect(page.locator('#root')).toBeVisible();
     });
 
-    await test.step('Register new user', async () => {
+    await test.step('Navigate to registration', async () => {
       // Primary selector with explicit validation
       const registerLink = page.locator('[data-testid="register-link"]');
 
@@ -83,12 +83,21 @@ test.describe('Authentication Workflow @smoke', () => {
       // Confirm Password input with explicit validation
       const confirmPasswordInput = page.locator('[data-testid="confirm-password-input"]');
       if (!(await confirmPasswordInput.isVisible())) {
-        const typePasswordInputs = page.locator('input[type="password"]');
-        const count = await typePasswordInputs.count();
-        if (count < 2) {
-          throw new Error('Confirm password input not found - missing data-testid="confirm-password-input" instrumentation');
+        // Use label-based selection instead of array index for better semantic matching
+        const labeledConfirmInput = page.locator('input[type="password"]').filter({
+          has: page.locator('label:has-text("Confirm")')
+        }).or(
+          page.locator('input[placeholder*="confirm" i]')
+        );
+
+        if (!(await labeledConfirmInput.isVisible())) {
+          throw new Error(
+            'Confirm password input not found. ' +
+            'Add data-testid="confirm-password-input" for reliable testing. ' +
+            'Semantic fallbacks (label or placeholder) also failed.'
+          );
         }
-        await typePasswordInputs.nth(1).fill(testUser.password);
+        await labeledConfirmInput.fill(testUser.password);
       } else {
         await confirmPasswordInput.fill(testUser.password);
       }

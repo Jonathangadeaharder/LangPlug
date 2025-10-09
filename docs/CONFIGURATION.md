@@ -11,7 +11,7 @@ LangPlug uses environment variables for configuration across different deploymen
 ### 1. `.env.example`
 
 **Purpose**: Template for local development
-**Location**: Project root
+**Location**: `config/.env.example`
 **Usage**: Copy to `.env` and customize
 
 **Contains**:
@@ -24,7 +24,7 @@ LangPlug uses environment variables for configuration across different deploymen
 
 ```bash
 # Setup
-cp .env.example .env
+cp config/.env.example .env
 # Edit .env with your local values
 ```
 
@@ -50,7 +50,7 @@ cp .env.example .env
 ### 3. `.env.production`
 
 **Purpose**: Production deployment settings
-**Location**: Project root
+**Location**: `config/.env.production`
 **Usage**: Deployed to production environment
 
 **Contains**:
@@ -64,7 +64,7 @@ cp .env.example .env
 
 ```bash
 # Render.com, Heroku, etc. load this automatically
-# Or manually: cp .env.production .env
+# Or manually: cp config/.env.production .env
 ```
 
 ---
@@ -224,7 +224,7 @@ CORS_ORIGINS=https://langplug.app
 
 ### ✅ Do
 
-- Use `.env.example` as template
+- Use `config/.env.example` as template
 - Keep sensitive data in `.env` (gitignored)
 - Document all new environment variables
 - Use type-safe defaults in `config.py`
@@ -244,7 +244,7 @@ CORS_ORIGINS=https://langplug.app
 
 ### "Setting X not found"
 
-1. Check if variable is in `.env.example`
+1. Check if variable is in `config/.env.example`
 2. Copy to your `.env`
 3. Restart backend server
 
@@ -273,7 +273,7 @@ class Settings(BaseSettings):
     my_new_setting: str = Field(default="default_value", env="MY_NEW_SETTING")
 ```
 
-2. **Add to `.env.example`**:
+2. **Add to `config/.env.example`**:
 
 ```bash
 # My new feature setting
@@ -286,7 +286,7 @@ MY_NEW_SETTING=example_value
    - Default value
    - Required or optional
 
-4. **Update `.env.production`** if different from development
+4. **Update `config/.env.production`** if different from development
 
 ---
 
