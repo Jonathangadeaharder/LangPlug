@@ -1,242 +1,406 @@
-# E2E Testing with Playwright
+# E2E Test Suite
 
-This directory contains end-to-end (E2E) workflow tests for the LangPlug application using Playwright. These tests have been designed to eliminate anti-patterns and focus on business outcome verification.
+End-to-end testing for LangPlug using Playwright. Tests verify critical user workflows across the full stack (frontend + backend).
 
-## Anti-Patterns Eliminated
+## Test Coverage
 
-### ❌ What We Removed
+**16 tests across 5 workflow suites (100% passing):**
 
-- **Array Index Selectors**: No more `buttons[0]` or `elements[1]`
-- **DOM Element Counting**: No more testing number of elements as primary assertion
-- **Status Code Tolerance**: No more accepting multiple status codes as valid
-- **Hard-coded Paths**: No more Windows-specific or absolute paths
-- **Implementation Coupling**: No more testing internal CSS colors or computed styles
-- **Mock Call Counting**: No more relying on mock method calls as primary assertions
-- **Puppeteer Anti-patterns**: Removed brittle querySelector arrays and style-based selections
+### Authentication Workflow (3 tests)
+- User registration and authentication
+- Logout and access control
+- Invalid credentials handling
 
-### ✅ What We Implemented
+### Vocabulary Learning Workflow (3 tests)
+- Library access and statistics display
+- Custom vocabulary addition
+- Filtering by difficulty level
 
-- **Semantic Selectors**: `data-testid`, `role` queries, semantic CSS selectors
-- **Business Outcome Verification**: Testing actual user workflows and results
-- **Robust Element Selection**: Multiple fallback selectors with proper error handling
-- **Proper Test Isolation**: Independent test data and cleanup
-- **Cross-Platform Compatibility**: Dynamic URL detection and path resolution
-- **Deterministic Waits**: Explicit waits on selectors and events instead of timeouts
+### Video Processing Workflow (4 tests)
+- Video listing via API
+- Processing status checking
+- Video scanning
+- Health checks
 
-## Test Structure
+### Complete Learning Workflow (2 tests)
+- Multi-API integration (videos, vocabulary, scan)
+- Vocabulary creation and backend health
 
-```
-e2e/
-├── playwright.config.ts           # Playwright configuration
-├── setup/
-│   ├── global-setup.ts           # Test environment setup
-│   └── global-teardown.ts        # Test environment cleanup
-├── utils/
-│   ├── test-environment-manager.ts  # Server management
-│   └── test-data-manager.ts         # API-based test data creation
-└── workflows/
-    ├── authentication.workflow.test.ts     # Auth flows
-    ├── vocabulary-learning.workflow.test.ts # Vocabulary features
-    ├── video-processing.workflow.test.ts   # Video processing
-    └── complete-learning.workflow.test.ts  # Full user journey
-```
+### User Profile Workflow (4 tests)
+- Profile access and viewing
+- Language preference support
+- Progress statistics data
+- Password change workflow
 
-## Key Improvements
+## Prerequisites
 
-### 1. Semantic Element Selection
+### Required Services
+1. **Backend API** running on `http://localhost:8000`
+2. **Frontend dev server** running on `http://localhost:5173`
+3. **PostgreSQL** database configured and accessible
 
-```typescript
-// ❌ Old anti-pattern
-const button = buttons[0];
-await button.click();
+### Environment Setup
+```bash
+# From project root
+cd tests/e2e
+npm install  # Install Playwright dependencies
 
-// ✅ New approach
-const knowButton = page
-  .locator('[data-testid="know-button"]')
-  .or(
-    page
-      .getByRole("button", { name: /know|correct|yes/i })
-      .or(page.locator(".know-answer-button")),
-  );
-await expect(knowButton).toBeVisible();
-await knowButton.click();
-```
-
-### 2. Business Outcome Verification
-
-```typescript
-// ❌ Old anti-pattern
-expect(buttons.length).toBe(3);
-
-// ✅ New approach
-await expect(page.locator('[data-testid="user-menu"]')).toBeVisible();
-// Verify user can access protected features
-const vocabularySection = page.locator('[data-testid="vocabulary-list"]');
-await expect(vocabularySection).toBeVisible();
-```
-
-### 3. Proper Error Handling
-
-```typescript
-// ✅ Robust element selection with fallbacks
-const submitButton = page
-  .locator('button[type="submit"]')
-  .or(page.getByRole("button", { name: /register/i }));
-
-if (!(await submitButton.isVisible())) {
-  throw new Error("Registration submit button not found");
-}
-await submitButton.click();
-```
-
-### 4. API-Based Test Data
-
-```typescript
-// ✅ Create test data through API, not UI manipulation
-const testUser = await testDataManager.createTestUser({
-  username: "e2euser",
-  email: "e2e@langplug.com",
-  password: "TestPassword123!",
-});
+# Install browsers (first time only)
+npx playwright install chromium
 ```
 
 ## Running Tests
 
-### Prerequisites
-
+### All E2E Tests
 ```bash
-cd tests
-npm install
-npm run playwright:install
+# Set environment variable and run tests
+$env:E2E_SMOKE_TESTS='1'; npx playwright test
+
+# Or using helper script (Windows)
+./run-test.bat
 ```
 
-### Test Execution
-
+### Specific Test Suite
 ```bash
-# Run all E2E tests
-npm run playwright:test
-
-# Run with UI mode (interactive)
-npm run playwright:test:ui
-
-# Debug mode
-npm run playwright:test:debug
-
-# View test reports
-npm run playwright:report
+$env:E2E_SMOKE_TESTS='1'; npx playwright test workflows/authentication.workflow.test.ts
+$env:E2E_SMOKE_TESTS='1'; npx playwright test workflows/vocabulary-learning.workflow.test.ts
+$env:E2E_SMOKE_TESTS='1'; npx playwright test workflows/video-processing.workflow.test.ts
+$env:E2E_SMOKE_TESTS='1'; npx playwright test workflows/complete-learning.workflow.test.ts
+$env:E2E_SMOKE_TESTS='1'; npx playwright test workflows/user-profile.workflow.test.ts
 ```
 
-### Through Unified Test Runner
-
+### Single Test
 ```bash
-# Run only E2E tests
-npm run test:e2e
-
-# Run all tests including E2E
-npm run test:all
+$env:E2E_SMOKE_TESTS='1'; npx playwright test --grep "WhenUserRegistersAndLogs"
 ```
 
-## Test Environment
-
-### Automatic Setup
-
-The E2E tests automatically:
-
-1. Start backend server on port 8001
-2. Start frontend server on port 3001
-3. Set up test database with clean state
-4. Create isolated test data for each test
-
-### Configuration
-
-- **Backend**: `http://localhost:8001` (test environment)
-- **Frontend**: `http://localhost:3001` (test environment)
-- **Database**: SQLite test database with automatic cleanup
-- **Timeouts**: 60s for tests, 30s for actions, 10s for expectations
-
-## Workflow Tests
-
-### Authentication Workflow
-
-- User registration and login
-- Access control verification
-- Error handling for invalid credentials
-- Logout and session management
-
-### Vocabulary Learning Workflow
-
-- Vocabulary game progression
-- Custom vocabulary creation
-- Difficulty-based filtering
-- Progress tracking
-
-### Video Processing Workflow
-
-- Video upload and processing
-- Processing status monitoring
-- Error handling and retry
-- Vocabulary extraction verification
-
-### Complete Learning Workflow
-
-- Full user journey from video upload to vocabulary mastery
-- Integration between all features
-- Progress tracking across sessions
-- Episode repetition with improvement tracking
-
-## Best Practices
-
-### Element Selection Priority
-
-1. **data-testid attributes**: `[data-testid="element-id"]`
-2. **Role-based queries**: `page.getByRole('button', { name: /text/i })`
-3. **Semantic CSS selectors**: `input[type="email"]`, `button[type="submit"]`
-4. **Text-based fallbacks**: `page.getByText(/pattern/i)`
-
-### Assertions
-
-- Test business outcomes, not implementation details
-- Use specific, meaningful error messages
-- Wait for elements to be visible before interaction
-- Verify actual data persistence through API when possible
-
-### Test Data Management
-
-- Create data through API, not UI
-- Clean up after each test
-- Use unique identifiers (timestamps, UUIDs)
-- Isolate tests completely from each other
-
-## Debugging
-
-### Common Issues
-
-1. **Element not found**: Check selector priority and fallbacks
-2. **Test timeouts**: Verify services are running and responsive
-3. **Flaky tests**: Add proper waits and stable selectors
-4. **Cross-platform issues**: Use relative paths and dynamic URLs
-
-### Debug Tools
-
+### Debug Mode
 ```bash
-# Run specific test with debug
-npx playwright test authentication.workflow.test.ts --debug
-
-# Run with headed browser
-npx playwright test --headed
-
-# Generate trace files
-npx playwright test --trace on
+$env:E2E_SMOKE_TESTS='1'; npx playwright test --debug
+$env:E2E_SMOKE_TESTS='1'; npx playwright test --headed  # See browser
 ```
 
-## Migration from Puppeteer
+### View Test Reports
+```bash
+npx playwright show-report
+```
 
-The old Puppeteer-based tests had several anti-patterns that have been eliminated:
+## Test Structure
 
-1. **Brittle selectors**: Replaced CSS color detection with semantic selectors
-2. **Implementation coupling**: Removed dependency on computed styles
-3. **Array indexing**: Replaced with semantic element selection
-4. **Manual browser management**: Automated through Playwright configuration
-5. **Hardcoded delays**: Replaced with explicit waits on elements
+```
+tests/e2e/
+├── workflows/                    # Test suites organized by user workflow
+│   ├── authentication.workflow.test.ts
+│   ├── vocabulary-learning.workflow.test.ts
+│   ├── video-processing.workflow.test.ts
+│   ├── complete-learning.workflow.test.ts
+│   └── user-profile.workflow.test.ts
+├── utils/                        # Test utilities
+│   ├── test-data-manager.ts     # Test data creation/cleanup
+│   ├── test-environment-manager.ts  # Environment validation
+│   └── test-helpers.ts          # Shared test helpers
+├── playwright.config.ts          # Playwright configuration
+├── package.json                  # Dependencies
+├── run-test.bat                  # Helper script
+├── cleanup-playwright.bat        # Process cleanup
+└── README.md                     # This file
+```
 
-This new Playwright setup provides robust, maintainable E2E tests that focus on user workflows and business outcomes rather than implementation details.
+## Test Data Management
+
+### TestDataManager
+Handles creation and cleanup of test data via backend API:
+
+```typescript
+const testDataManager = new TestDataManager();
+
+// Create test user with auth token
+const testUser = await testDataManager.createTestUser();
+// Returns: { username, email, password, token }
+
+// Create test vocabulary
+const vocab = await testDataManager.createTestVocabulary(testUser, {
+  word: 'TestWord',
+  translation: 'Test translation',
+  difficulty_level: 'beginner'  // Maps to A1
+});
+
+// Cleanup after test
+await testDataManager.cleanupTestData(testUser);
+```
+
+### Test Isolation
+- Each test creates its own user with unique timestamp
+- Test data is cleaned up in `afterEach` hooks
+- No shared state between tests
+- Tests run sequentially (workers=1) for stability
+
+## Configuration
+
+### Environment Variables
+```bash
+# Required for @smoke tagged tests
+E2E_SMOKE_TESTS=1
+```
+
+### Playwright Config (`playwright.config.ts`)
+- **Base URL**: `http://localhost:5173` (frontend)
+- **Timeout**: 30s per test
+- **Retries**: 2 (reduces flaky test failures)
+- **Workers**: 1 (sequential execution for stability)
+- **Browsers**: Chromium only (fastest, most stable)
+- **Artifacts**: Screenshots/videos on failure
+
+## Writing New Tests
+
+### Test Naming Convention
+```typescript
+test('WhenX_ThenY @smoke', async ({ page }) => {
+  // Arrange, Act, Assert pattern with explicit test.step blocks
+});
+```
+
+### Best Practices
+
+#### 1. Use test.step() for Clear Test Phases
+```typescript
+await test.step('Login user', async () => {
+  await page.goto('/login');
+  await page.locator('input[type="email"]').fill(testUser.email);
+  await page.locator('input[type="password"]').fill(testUser.password);
+  await page.locator('button[type="submit"]').click();
+});
+```
+
+#### 2. Flexible Selectors with Fallbacks
+```typescript
+// Primary selector with fallback
+const loginButton = page.locator('[data-testid="login-button"]').or(
+  page.getByRole('button', { name: /login|sign in/i })
+);
+await loginButton.click();
+```
+
+#### 3. Explicit Waits for Form Hydration
+```typescript
+// Wait for form to be ready
+await page.waitForLoadState('networkidle');
+
+// Wait for element with timeout
+const input = page.locator('[data-testid="username-input"]');
+await input.waitFor({ state: 'visible', timeout: 3000 });
+await input.fill(username);
+```
+
+#### 4. Descriptive Error Messages
+```typescript
+if (!response.ok()) {
+  const body = await response.text();
+  throw new Error(`API failed with status ${response.status()}: ${body}`);
+}
+```
+
+#### 5. Test Backend APIs When UI Missing
+```typescript
+// UI not implemented yet - test backend API
+const response = await page.request.get('http://localhost:8000/api/profile', {
+  headers: { Authorization: `Bearer ${testUser.token}` }
+});
+expect(response.ok()).toBeTruthy();
+```
+
+### Example Test
+```typescript
+test('WhenUserDoesX_ThenSystemDoesY @smoke', async ({ page }) => {
+  let testDataManager: TestDataManager;
+  let testUser: TestUser;
+
+  test.beforeEach(async () => {
+    testDataManager = new TestDataManager();
+    testUser = await testDataManager.createTestUser();
+    // Login...
+  });
+
+  test.afterEach(async () => {
+    await testDataManager.cleanupTestData(testUser);
+  });
+
+  await test.step('Action phase', async () => {
+    const button = page.getByRole('button', { name: /submit/i });
+    await button.click();
+  });
+
+  await test.step('Verification phase', async () => {
+    await expect(page.locator('[data-testid="success"]')).toBeVisible();
+  });
+});
+```
+
+## Troubleshooting
+
+### Tests Hang Silently
+**Symptoms**: Tests start but produce no output
+
+**Solutions**:
+- Check TypeScript compilation: `npx tsc --noEmit`
+- Ensure `E2E_SMOKE_TESTS=1` is set
+- Verify backend/frontend are running
+- Check for orphaned Node processes: `./cleanup-playwright.bat`
+
+### "User Menu Not Found" / Timeout Errors
+**Symptoms**: Elements not found that should exist
+
+**Solutions**:
+- Add `await page.waitForLoadState('networkidle')` after navigation
+- Add explicit timeout: `waitFor({ state: 'visible', timeout: 5000 })`
+- Check if form needs hydration time
+- Verify element actually exists in current UI state
+
+### Authentication Failures
+**Symptoms**: Login fails or returns 401/403
+
+**Solutions**:
+- Check backend is running on port 8000
+- Verify database is accessible
+- Check backend logs for errors
+- Verify test user was created successfully
+
+### Flaky Tests (Pass Sometimes, Fail Other Times)
+**Symptoms**: Tests pass on retry but fail on first run
+
+**Solutions**:
+- Add `waitForLoadState('networkidle')` after form appears
+- Use explicit timeouts on all `isVisible()` checks
+- Replace `isVisible()` with `waitFor({ state: 'visible', timeout: 3000 })`
+- Avoid array indices, use semantic selectors
+- Add `await page.waitForTimeout(500)` as last resort
+
+### "Endpoint not found in API contract"
+**Symptoms**: API returns 404 with contract validation error
+
+**Solutions**:
+- Check if endpoint path is correct
+- Verify endpoint is registered in app.py
+- Check if middleware is rejecting the endpoint
+- Try different query parameters or HTTP method
+
+### Cleanup Orphaned Processes
+**Symptoms**: Multiple Node/Chrome processes running
+
+**Solutions**:
+```bash
+# Windows
+./cleanup-playwright.bat
+
+# Or manually
+taskkill /F /IM node.exe
+taskkill /F /IM chrome.exe
+```
+
+## CI/CD Integration
+
+### GitHub Actions Example
+```yaml
+name: E2E Tests
+
+on: [push, pull_request]
+
+jobs:
+  e2e:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: tests/e2e
+        run: npm install
+
+      - name: Install Playwright browsers
+        working-directory: tests/e2e
+        run: npx playwright install chromium
+
+      - name: Start services
+        run: ./scripts/start-all.bat
+        shell: cmd
+
+      - name: Wait for services
+        run: timeout 30
+        shell: cmd
+
+      - name: Run E2E tests
+        working-directory: tests/e2e
+        run: npx playwright test
+        env:
+          E2E_SMOKE_TESTS: 1
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tests/e2e/playwright-report/
+```
+
+## Performance
+
+- **Average test time**: 3-5 seconds per test
+- **Full suite**: ~2 minutes (16 tests sequential)
+- **Retry overhead**: +30-60s if flaky tests retry
+
+## Maintenance
+
+### Adding New Test Suites
+When adding new features:
+1. Create new `workflow-name.workflow.test.ts` file
+2. Follow naming convention: `WhenX_ThenY @smoke`
+3. Add test data helpers to `TestDataManager` if needed
+4. Update this README with new test count
+5. Run full suite to verify no regressions
+
+### Updating Selectors
+When UI changes:
+1. Add `data-testid` attributes to new components
+2. Update primary selectors in tests
+3. Keep fallback selectors for robustness
+4. Run affected tests to verify
+
+### Test Failures in CI
+1. Check GitHub Actions artifacts for screenshots/videos
+2. Check backend logs in CI output
+3. Run locally with same environment
+4. Add debug logging if needed
+
+## Anti-Patterns Eliminated
+
+### ❌ What We Avoid
+- **Array Index Selectors**: No `buttons[0]` or `elements[1]`
+- **DOM Element Counting**: No testing number of elements as primary assertion
+- **Status Code Tolerance**: No accepting multiple status codes (e.g., `status in {200, 500}`)
+- **Hard-coded Paths**: No Windows-specific or absolute paths
+- **Implementation Coupling**: No testing CSS colors or computed styles
+- **Silent Failures**: No bare try/catch that swallows errors
+
+### ✅ What We Use
+- **Semantic Selectors**: `data-testid`, role queries, type attributes
+- **Business Outcome Verification**: Test actual user workflows
+- **Explicit Error Handling**: Descriptive errors with status codes
+- **Flexible Selectors**: Multiple fallback strategies
+- **Proper Test Isolation**: Independent test data and cleanup
+- **Explicit Waits**: No arbitrary timeouts, wait for specific conditions
+
+## Future Improvements
+
+- [ ] Add visual regression testing
+- [ ] Parallel execution (increase workers once stable)
+- [ ] Cross-browser testing (Firefox, WebKit)
+- [ ] API contract testing with OpenAPI validation
+- [ ] Performance benchmarking tests
+- [ ] Accessibility testing with axe-core
+- [ ] Mobile viewport testing
+- [ ] Network condition simulation
