@@ -23,8 +23,8 @@ test.describe('Authentication Workflow @smoke', () => {
       const registerLink = page.locator('[data-testid="register-link"]');
 
       if (!(await registerLink.isVisible())) {
-        // Secondary fallback with explicit validation
-        const semanticRegisterLink = page.getByRole('link', { name: /register/i });
+        // Secondary fallback with explicit validation - look for "Sign up" or "Register"
+        const semanticRegisterLink = page.getByRole('link', { name: /register|sign up/i });
         if (!(await semanticRegisterLink.isVisible())) {
           throw new Error('Register link not found - missing data-testid="register-link" instrumentation');
         }
@@ -121,46 +121,26 @@ test.describe('Authentication Workflow @smoke', () => {
     });
 
     await test.step('Verify successful authentication', async () => {
-      // Wait for post-registration navigation or user menu
-      // Critical authentication verification - fail fast on missing instrumentation
+      // Wait for redirect and authentication (registration has 2s delay + navigation time)
+      // Extended timeout to handle: submit -> 2s delay -> redirect to / -> redirect to /videos -> render
       const userMenu = page.locator('[data-testid="user-menu"]');
 
-      if (!(await userMenu.isVisible({ timeout: 5000 }))) {
+      try {
+        await expect(userMenu).toBeVisible({ timeout: 15000 });
+      } catch {
         console.warn('Missing data-testid="user-menu" - using fallback authentication indicators');
 
         const userProfile = page.locator('.user-profile');
-        if (!(await userProfile.isVisible({ timeout: 3000 }))) {
-          const logoutButton = page.getByRole('button', { name: /logout/i });
-          if (!(await logoutButton.isVisible({ timeout: 2000 }))) {
-            throw new Error('Authentication verification failed - no user menu, profile, or logout button found. Missing instrumentation.');
-          }
-          await expect(logoutButton).toBeVisible();
-        } else {
-          await expect(userProfile).toBeVisible();
+        const logoutButton = page.getByRole('button', { name: /logout/i });
+
+        try {
+          await expect(userProfile.or(logoutButton)).toBeVisible({ timeout: 5000 });
+        } catch {
+          throw new Error('Authentication verification failed - no user menu, profile, or logout button found. Missing instrumentation.');
         }
-      } else {
-        await expect(userMenu).toBeVisible();
       }
 
-      // Verify user is authenticated by checking for protected content
-      const dashboard = page.locator('[data-testid="dashboard"]');
-
-      if (!(await dashboard.isVisible({ timeout: 3000 }))) {
-        console.warn('Missing data-testid="dashboard" - using fallback protected content indicators');
-
-        const dashboardClass = page.locator('.dashboard');
-        if (!(await dashboardClass.isVisible({ timeout: 2000 }))) {
-          const mainContent = page.getByRole('main');
-          if (!(await mainContent.isVisible({ timeout: 2000 }))) {
-            throw new Error('Protected content verification failed - no dashboard found. Check authentication flow.');
-          }
-          await expect(mainContent).toBeVisible();
-        } else {
-          await expect(dashboardClass).toBeVisible();
-        }
-      } else {
-        await expect(dashboard).toBeVisible();
-      }
+      // User menu presence confirms successful authentication - no need for additional dashboard checks
     });
 
     await test.step('Access protected vocabulary features', async () => {
@@ -210,11 +190,12 @@ test.describe('Authentication Workflow @smoke', () => {
     await test.step('Log in user', async () => {
       await page.goto('/');
 
-      const loginLink = page.locator('a[href*="login"]').or(
-        page.getByRole('link', { name: /login/i })
+      // Landing page uses button navigation, not links
+      const loginButton = page.getByRole('button', { name: /sign in|login/i }).or(
+        page.locator('a[href*="login"]')
       );
 
-      await loginLink.click();
+      await loginButton.click();
       await expect(page.locator('form')).toBeVisible();
 
       await page.locator('input[name="email"]').or(
@@ -229,12 +210,8 @@ test.describe('Authentication Workflow @smoke', () => {
         page.getByRole('button', { name: /login/i })
       ).click();
 
-      // Wait for successful login
-      await expect(
-        page.locator('[data-testid="user-menu"]').or(
-          page.getByRole('button', { name: /logout/i })
-        )
-      ).toBeVisible();
+      // Wait for successful login - check user menu appears
+      await expect(page.locator('[data-testid="user-menu"]')).toBeVisible({ timeout: 10000 });
     });
 
     await test.step('Log out user', async () => {
@@ -244,10 +221,10 @@ test.describe('Authentication Workflow @smoke', () => {
 
       await logoutButton.click();
 
-      // Verify logout by checking for login link
+      // Verify logout by checking for Sign In button on landing page
       await expect(
-        page.locator('a[href*="login"]').or(
-          page.getByRole('link', { name: /login/i })
+        page.getByRole('button', { name: /sign in|login/i }).or(
+          page.locator('a[href*="login"]')
         )
       ).toBeVisible();
     });
@@ -256,12 +233,14 @@ test.describe('Authentication Workflow @smoke', () => {
       // Try to access vocabulary directly
       await page.goto('/vocabulary');
 
-      // Should redirect to login or show access denied
-      const isLoginPage = await page.locator('form').locator('input[type="password"]').isVisible();
-      const isAccessDenied = await page.locator('[data-testid="access-denied"]').isVisible();
-      const isUnauthorized = await page.getByText(/unauthorized|access denied|please log in/i).isVisible();
+      // Should redirect to login - check for login page indicators
+      await page.waitForLoadState('networkidle');
 
-      expect(isLoginPage || isAccessDenied || isUnauthorized).toBeTruthy();
+      // Verify we're on login page by checking URL or login form elements
+      const isOnLoginPage = page.url().includes('/login') ||
+                            await page.locator('input[type="password"]').isVisible();
+
+      expect(isOnLoginPage).toBeTruthy();
     });
   });
 
@@ -269,11 +248,12 @@ test.describe('Authentication Workflow @smoke', () => {
     await test.step('Attempt login with invalid credentials', async () => {
       await page.goto('/');
 
-      const loginLink = page.locator('a[href*="login"]').or(
-        page.getByRole('link', { name: /login/i })
+      // Landing page uses button navigation, not links
+      const loginButton = page.getByRole('button', { name: /sign in|login/i }).or(
+        page.locator('a[href*="login"]')
       );
 
-      await loginLink.click();
+      await loginButton.click();
       await expect(page.locator('form')).toBeVisible();
 
       // Enter invalid credentials

@@ -65,7 +65,8 @@ export class TestEnvironmentManager {
         const response = await axios.get(service.url, { timeout: 10000 });
         console.log(`${service.name} health check: OK (${response.status})`);
       } catch (error) {
-        console.error(`${service.name} health check failed:`, error.message);
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`${service.name} health check failed:`, message);
         throw new Error(`${service.name} is not healthy`);
       }
     }
@@ -90,7 +91,8 @@ export class TestEnvironmentManager {
 
       console.log('Test database initialized');
     } catch (error) {
-      console.error('Failed to setup test database:', error.message);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Failed to setup test database:', message);
       // Don't throw - the tests may still work with a clean database
     }
   }
@@ -100,7 +102,8 @@ export class TestEnvironmentManager {
       await axios.post('http://localhost:8001/api/test/cleanup');
       console.log('Test data cleaned up');
     } catch (error) {
-      console.error('Failed to cleanup test data:', error.message);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Failed to cleanup test data:', message);
     }
   }
 

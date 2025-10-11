@@ -45,7 +45,8 @@ echo [BACKEND] Starting Backend on port %BACKEND_PORT%...
 
 REM Start Backend in new window with AI models (using small models for quick startup)
 REM Using /k to keep terminal open for long-running server
-start "Backend Server" cmd /k "cd /d "%REPO_ROOT%\src\backend" && api_venv\Scripts\activate && set LANGPLUG_PORT=%BACKEND_PORT% && echo [INFO] Starting Backend with AI models on port %BACKEND_PORT%... && python run_backend.py"
+REM LANGPLUG_RELOAD=0 to avoid Windows reload mode issues (0=False, 1=True)
+start "Backend Server" cmd /k "cd /d "%REPO_ROOT%\src\backend" && api_venv\Scripts\activate && set LANGPLUG_PORT=%BACKEND_PORT%&& set LANGPLUG_RELOAD=0&& echo [INFO] Starting Backend with AI models on port %BACKEND_PORT%... && python run_backend.py"
 echo Started Backend with AI models (using small models)
 echo Waiting for Backend to initialize...
 timeout /t 10 /nobreak >nul

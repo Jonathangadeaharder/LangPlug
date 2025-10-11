@@ -47,14 +47,25 @@ export class TestDataManager {
     };
 
     try {
-      const response = await this.api.post('/api/auth/register', {
+      // Register the user
+      const registerResponse = await this.api.post('/api/auth/register', {
         username: user.username,
         email: user.email,
         password: user.password,
       });
 
-      user.id = response.data.user?.id;
-      user.token = response.data.access_token;
+      user.id = registerResponse.data.id || registerResponse.data.user?.id;
+
+      // Login to get the access token (login expects form data, not JSON)
+      const formData = new URLSearchParams();
+      formData.append('username', user.email);
+      formData.append('password', user.password);
+
+      const loginResponse = await this.api.post('/api/auth/login', formData, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+
+      user.token = loginResponse.data.access_token;
 
       return user;
     } catch (error) {
@@ -66,9 +77,13 @@ export class TestDataManager {
 
   async loginUser(email: string, password: string): Promise<TestUser> {
     try {
-      const response = await this.api.post('/api/auth/login', {
-        email,
-        password,
+      // Login expects form data, not JSON
+      const formData = new URLSearchParams();
+      formData.append('username', email);
+      formData.append('password', password);
+
+      const response = await this.api.post('/api/auth/login', formData, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
 
       return {
