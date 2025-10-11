@@ -33,8 +33,11 @@ test.describe('Authentication Workflow @smoke', () => {
         await registerLink.click();
       }
 
-      // Verify registration form appears
+      // Verify registration form appears and wait for it to be fully rendered
       await expect(page.locator('form')).toBeVisible();
+
+      // Wait for form inputs to be ready (fixes flaky test - form needs time to hydrate)
+      await page.waitForLoadState('networkidle');
 
       // Fill registration form with semantic selectors
       const timestamp = Date.now();
@@ -44,45 +47,45 @@ test.describe('Authentication Workflow @smoke', () => {
         password: `TestPass${timestamp}!`
       };
 
-      // Username input with explicit validation
+      // Username input with explicit validation and timeout
       const usernameInput = page.locator('[data-testid="username-input"]');
-      if (!(await usernameInput.isVisible())) {
-        const nameInput = page.locator('input[name="username"]');
-        if (!(await nameInput.isVisible())) {
-          throw new Error('Username input not found - missing data-testid="username-input" instrumentation');
-        }
-        await nameInput.fill(testUser.username);
-      } else {
+      try {
+        await usernameInput.waitFor({ state: 'visible', timeout: 3000 });
         await usernameInput.fill(testUser.username);
+      } catch {
+        const nameInput = page.locator('input[name="username"]');
+        await expect(nameInput).toBeVisible({ timeout: 3000 });
+        await nameInput.fill(testUser.username);
       }
 
-      // Email input with explicit validation
+      // Email input with explicit validation and timeout
       const emailInput = page.locator('[data-testid="email-input"]');
-      if (!(await emailInput.isVisible())) {
-        const typeEmailInput = page.locator('input[type="email"]');
-        if (!(await typeEmailInput.isVisible())) {
-          throw new Error('Email input not found - missing data-testid="email-input" instrumentation');
-        }
-        await typeEmailInput.fill(testUser.email);
-      } else {
+      try {
+        await emailInput.waitFor({ state: 'visible', timeout: 3000 });
         await emailInput.fill(testUser.email);
+      } catch {
+        const typeEmailInput = page.locator('input[type="email"]');
+        await expect(typeEmailInput).toBeVisible({ timeout: 3000 });
+        await typeEmailInput.fill(testUser.email);
       }
 
-      // Password input with explicit validation
+      // Password input with explicit validation and timeout
       const passwordInput = page.locator('[data-testid="password-input"]');
-      if (!(await passwordInput.isVisible())) {
-        const typePasswordInput = page.locator('input[type="password"]').first();
-        if (!(await typePasswordInput.isVisible())) {
-          throw new Error('Password input not found - missing data-testid="password-input" instrumentation');
-        }
-        await typePasswordInput.fill(testUser.password);
-      } else {
+      try {
+        await passwordInput.waitFor({ state: 'visible', timeout: 3000 });
         await passwordInput.fill(testUser.password);
+      } catch {
+        const typePasswordInput = page.locator('input[type="password"]').first();
+        await expect(typePasswordInput).toBeVisible({ timeout: 3000 });
+        await typePasswordInput.fill(testUser.password);
       }
 
-      // Confirm Password input with explicit validation
+      // Confirm Password input with explicit validation and timeout
       const confirmPasswordInput = page.locator('[data-testid="confirm-password-input"]');
-      if (!(await confirmPasswordInput.isVisible())) {
+      try {
+        await confirmPasswordInput.waitFor({ state: 'visible', timeout: 3000 });
+        await confirmPasswordInput.fill(testUser.password);
+      } catch {
         // Use label-based selection instead of array index for better semantic matching
         const labeledConfirmInput = page.locator('input[type="password"]').filter({
           has: page.locator('label:has-text("Confirm")')
@@ -90,16 +93,8 @@ test.describe('Authentication Workflow @smoke', () => {
           page.locator('input[placeholder*="confirm" i]')
         );
 
-        if (!(await labeledConfirmInput.isVisible())) {
-          throw new Error(
-            'Confirm password input not found. ' +
-            'Add data-testid="confirm-password-input" for reliable testing. ' +
-            'Semantic fallbacks (label or placeholder) also failed.'
-          );
-        }
+        await expect(labeledConfirmInput).toBeVisible({ timeout: 3000 });
         await labeledConfirmInput.fill(testUser.password);
-      } else {
-        await confirmPasswordInput.fill(testUser.password);
       }
 
       // Submit button with explicit validation
