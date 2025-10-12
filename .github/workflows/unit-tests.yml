@@ -3,8 +3,24 @@ name: Unit Tests
 on:
   push:
     branches: [main, master]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**.md'
+      - 'plans/**'
+      - 'scripts/**'
+      - '.vscode/**'
+      - '.idea/**'
   pull_request:
     branches: [main, master]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**.md'
+      - 'plans/**'
+      - 'scripts/**'
+      - '.vscode/**'
+      - '.idea/**'
   workflow_dispatch:
 
 concurrency:

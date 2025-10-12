@@ -1,11 +1,7 @@
 name: End-to-End Tests
 
 on:
-  push:
-    branches: [main, master, develop]
-  pull_request:
-    branches: [main, master, develop]
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only to conserve Actions minutes
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
