@@ -4,21 +4,21 @@ on:
   push:
     branches: [main, master, develop]
     paths:
-      - "Backend/**/*.py"
-      - "Frontend/**/*.ts"
-      - "Frontend/**/*.tsx"
-      - "Frontend/**/*.js"
-      - "Frontend/**/*.jsx"
+      - "src/backend/**/*.py"
+      - "src/frontend/**/*.ts"
+      - "src/frontend/**/*.tsx"
+      - "src/frontend/**/*.js"
+      - "src/frontend/**/*.jsx"
       - "**/package.json"
       - "**/requirements*.txt"
   pull_request:
     branches: [main, master, develop]
     paths:
-      - "Backend/**/*.py"
-      - "Frontend/**/*.ts"
-      - "Frontend/**/*.tsx"
-      - "Frontend/**/*.js"
-      - "Frontend/**/*.jsx"
+      - "src/backend/**/*.py"
+      - "src/frontend/**/*.ts"
+      - "src/frontend/**/*.tsx"
+      - "src/frontend/**/*.js"
+      - "src/frontend/**/*.jsx"
       - "**/package.json"
       - "**/requirements*.txt"
 
@@ -42,15 +42,15 @@ jobs:
         with:
           filters: |
             backend:
-              - 'Backend/**/*.py'
-              - 'Backend/**/requirements*.txt'
+              - 'src/backend/**/*.py'
+              - 'src/backend/**/requirements*.txt'
             frontend:
-              - 'Frontend/**/*.ts'
-              - 'Frontend/**/*.tsx'
-              - 'Frontend/**/*.js'
-              - 'Frontend/**/*.jsx'
-              - 'Frontend/package.json'
-              - 'Frontend/yarn.lock'
+              - 'src/frontend/**/*.ts'
+              - 'src/frontend/**/*.tsx'
+              - 'src/frontend/**/*.js'
+              - 'src/frontend/**/*.jsx'
+              - 'src/frontend/package.json'
+              - 'src/frontend/yarn.lock'
 
   backend-fast:
     name: Backend Fast Unit Tests
@@ -60,7 +60,7 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: Backend
+        working-directory: src/backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -69,7 +69,7 @@ jobs:
         uses: ./.github/actions/setup-python
         with:
           python-version: "3.11"
-          working-directory: Backend
+          working-directory: src/backend
           requirements-file: requirements.txt
           cache-key: fast-tests
 
@@ -100,7 +100,7 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: Frontend
+        working-directory: src/frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -109,7 +109,7 @@ jobs:
         uses: ./.github/actions/setup-node
         with:
           node-version: "20"
-          working-directory: Frontend
+          working-directory: src/frontend
           cache-key: fast-tests
 
       - name: Type check

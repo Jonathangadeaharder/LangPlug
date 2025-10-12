@@ -25,14 +25,14 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: Frontend/package-lock.json
+          cache-dependency-path: src/frontend/package-lock.json
 
       - name: Install frontend dependencies
-        working-directory: ./Frontend
+        working-directory: ./src/frontend
         run: npm ci
 
       - name: Run frontend contract tests
-        working-directory: ./Frontend
+        working-directory: ./src/frontend
         run: npm test -- src/test/contract --run
 
       - name: Upload frontend test results
@@ -40,7 +40,7 @@ jobs:
         if: always()
         with:
           name: frontend-contract-test-results
-          path: Frontend/coverage/
+          path: src/frontend/coverage/
           retention-days: 14
 
   backend-contract-tests:
@@ -66,17 +66,17 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
-          cache-dependency-path: Backend/requirements.txt
+          cache-dependency-path: src/backend/requirements.txt
 
       - name: Install backend dependencies
-        working-directory: ./Backend
+        working-directory: ./src/backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-asyncio httpx
 
       - name: Setup test database
-        working-directory: ./Backend
+        working-directory: ./src/backend
         env:
           DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
         run: |
@@ -84,7 +84,7 @@ jobs:
           echo "Database setup complete"
 
       - name: Run backend contract tests
-        working-directory: ./Backend
+        working-directory: ./src/backend
         env:
           DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
           LANGPLUG_SECRET_KEY: test-secret-key-for-ci-only-not-for-production-use
@@ -98,7 +98,7 @@ jobs:
         if: always()
         with:
           name: backend-contract-test-results
-          path: Backend/htmlcov/
+          path: src/backend/htmlcov/
           retention-days: 14
 
   integration-contract-tests:
@@ -126,14 +126,14 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: Frontend/package-lock.json
+          cache-dependency-path: src/frontend/package-lock.json
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
-          cache-dependency-path: Backend/requirements.txt
+          cache-dependency-path: src/backend/requirements.txt
 
       - name: Install dependencies
         run: |
@@ -141,7 +141,7 @@ jobs:
           cd ../Backend && pip install -r requirements.txt
 
       - name: Start backend server
-        working-directory: ./Backend
+        working-directory: ./src/backend
         env:
           DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
         run: |
@@ -153,7 +153,7 @@ jobs:
           timeout 30 bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
 
       - name: Run integration contract tests
-        working-directory: ./Frontend
+        working-directory: ./src/frontend
         run: |
           # Run tests that verify frontend-backend contract compatibility
           npm test -- src/test/integration --run

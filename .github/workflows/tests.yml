@@ -29,7 +29,7 @@ jobs:
         test-group: [api, core, services, management, integration]
     defaults:
       run:
-        working-directory: Backend
+        working-directory: src/backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,7 +40,7 @@ jobs:
         uses: ./.github/actions/setup-python
         with:
           python-version: "3.11"
-          working-directory: Backend
+          working-directory: src/backend
           requirements-file: requirements-dev.txt
           install-extras: "diff-cover"
           cache-key: ${{ matrix.test-group }}
@@ -71,7 +71,7 @@ jobs:
         uses: ./.github/actions/coverage-report
         with:
           coverage-file: coverage.xml
-          working-directory: Backend
+          working-directory: src/backend
           diff-coverage-threshold: "90"
           branch-coverage-threshold: "80"
           artifact-name: backend-coverage-${{ matrix.test-group }}
@@ -83,7 +83,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage-html-${{ matrix.test-group }}
-          path: Backend/htmlcov
+          path: src/backend/htmlcov
           retention-days: 7
 
   frontend:
@@ -96,7 +96,7 @@ jobs:
         shard: [1, 2]
     defaults:
       run:
-        working-directory: Frontend
+        working-directory: src/frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -105,7 +105,7 @@ jobs:
         uses: ./.github/actions/setup-node
         with:
           node-version: "20"
-          working-directory: Frontend
+          working-directory: src/frontend
           cache-key: ${{ matrix.shard }}
 
       - name: Run Vitest (shard ${{ matrix.shard }})
@@ -116,5 +116,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage-shard-${{ matrix.shard }}
-          path: Frontend/coverage
+          path: src/frontend/coverage
           retention-days: 7

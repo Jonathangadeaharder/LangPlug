@@ -52,18 +52,18 @@ jobs:
           python-version: "3.11"
           cache: "pip"
           cache-dependency-path: |
-            Backend/requirements.txt
-            Backend/requirements-dev.txt
+            src/backend/requirements.txt
+            src/backend/requirements-dev.txt
 
       - name: Install Backend dependencies
-        working-directory: ./Backend
+        working-directory: ./src/backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
       - name: Run Backend tests
-        working-directory: ./Backend
+        working-directory: ./src/backend
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_langplug
           REDIS_URL: redis://localhost:6379
@@ -75,7 +75,7 @@ jobs:
       - name: Upload Backend coverage
         uses: codecov/codecov-action@v3
         with:
-          files: ./Backend/coverage.xml
+          files: ./src/backend/coverage.xml
           flags: backend
 
   test-frontend:
@@ -90,24 +90,24 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: Frontend/package-lock.json
+          cache-dependency-path: src/frontend/package-lock.json
 
       - name: Install Frontend dependencies
-        working-directory: ./Frontend
+        working-directory: ./src/frontend
         run: npm ci
 
       - name: Run Frontend tests
-        working-directory: ./Frontend
+        working-directory: ./src/frontend
         run: npm test -- --coverage
 
       - name: Build Frontend
-        working-directory: ./Frontend
+        working-directory: ./src/frontend
         run: npm run build
 
       - name: Upload Frontend coverage
         uses: codecov/codecov-action@v3
         with:
-          files: ./Frontend/coverage/lcov.info
+          files: ./src/frontend/coverage/lcov.info
           flags: frontend
 
   build-and-push:
