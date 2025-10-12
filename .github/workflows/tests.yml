@@ -41,7 +41,7 @@ jobs:
         with:
           python-version: "3.11"
           working-directory: src/backend
-          requirements-file: requirements-dev.txt
+          requirements-file: requirements.txt
           install-extras: "diff-cover"
           cache-key: ${{ matrix.test-group }}
 

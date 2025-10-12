@@ -8,7 +8,7 @@ inputs:
   working-directory:
     description: "Working directory for Node.js operations"
     required: false
-    default: "./Frontend"
+    default: "./src/frontend"
   package-manager:
     description: "Package manager to use (auto, npm, yarn, pnpm)"
     required: false

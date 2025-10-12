@@ -53,14 +53,14 @@ jobs:
           cache: "pip"
           cache-dependency-path: |
             src/backend/requirements.txt
-            src/backend/requirements-dev.txt
+            src/backend/requirements.txt
 
       - name: Install Backend dependencies
         working-directory: ./src/backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+          pip install -r requirements.txt
 
       - name: Run Backend tests
         working-directory: ./src/backend

@@ -8,11 +8,11 @@ inputs:
   working-directory:
     description: "Working directory for Python operations"
     required: false
-    default: "./Backend"
+    default: "./src/backend"
   requirements-file:
     description: "Requirements file to install"
     required: false
-    default: "requirements-dev.txt"
+    default: "requirements.txt"
   cache-key:
     description: "Additional cache key suffix"
     required: false
