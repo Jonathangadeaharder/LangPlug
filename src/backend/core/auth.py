@@ -1,5 +1,7 @@
 """FastAPI-Users authentication setup with Argon2 password hashing"""
 
+from datetime import datetime
+
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, FastAPIUsers
 from fastapi_users.authentication import (
@@ -10,7 +12,7 @@ from fastapi_users.authentication import (
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
 from fastapi_users.schemas import BaseUser, BaseUserCreate, BaseUserUpdate
-from pydantic import ConfigDict, EmailStr, field_validator
+from pydantic import ConfigDict, EmailStr, field_serializer, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -44,7 +46,6 @@ class UserCreate(BaseUserCreate):
         Validate password using PasswordValidator for strong security
         Requires 12 characters minimum with complexity requirements
         """
-        from services.authservice.password_validator import PasswordValidator
 
         is_valid, error_msg = PasswordValidator.validate(v)
         if not is_valid:
@@ -59,8 +60,22 @@ class UserRead(BaseUser):
     is_active: bool = True
     is_superuser: bool = False
     is_verified: bool = False
+    created_at: datetime
+    last_login: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("created_at")
+    def serialize_created_at(self, value: datetime) -> str:
+        """Convert datetime to ISO format string"""
+        return value.isoformat()
+
+    @field_serializer("last_login")
+    def serialize_last_login(self, value: datetime | None) -> str | None:
+        """Convert datetime to ISO format string"""
+        if value is None:
+            return None
+        return value.isoformat()
 
 
 class UserUpdate(BaseUserUpdate):
@@ -135,6 +150,32 @@ fastapi_users = FastAPIUsers[User, int](  # Changed UUID to int
 current_active_user = fastapi_users.current_user(active=True)
 
 
-def jwt_authentication():
-    """JWT authentication for services"""
-    return get_jwt_strategy
+class JWTAuthentication:
+    """JWT authentication helper for manual token validation"""
+
+    @staticmethod
+    async def authenticate(token: str, db: AsyncSession) -> User | None:
+        """
+        Authenticate a JWT token and return the user
+
+        Args:
+            token: JWT token string
+            db: Database session
+
+        Returns:
+            User object if valid, None otherwise
+        """
+        try:
+            strategy = get_jwt_strategy()
+            user_db = SQLAlchemyUserDatabase(db, User)
+            user_manager = UserManager(user_db)
+
+            # Use strategy to decode and validate token
+            user = await strategy.read_token(token, user_manager=user_manager)
+            return user
+        except Exception:
+            return None
+
+
+# Create singleton instance for backwards compatibility
+jwt_authentication = JWTAuthentication()

@@ -6,53 +6,53 @@ import { useAuthStore } from '@/store/useAuthStore'
 
 // Mock all the child components to focus on routing logic
 vi.mock('@/components/auth/LoginForm', () => ({
-  LoginForm: () => <div data-testid="login-form">Login Form</div>
+  LoginForm: () => <div data-testid="login-form">Login Form</div>,
 }))
 
 vi.mock('@/components/auth/RegisterForm', () => ({
-  RegisterForm: () => <div data-testid="register-form">Register Form</div>
+  RegisterForm: () => <div data-testid="register-form">Register Form</div>,
 }))
 
 vi.mock('@/components/VideoSelection', () => ({
-  VideoSelection: () => <div data-testid="video-selection">Video Selection</div>
+  VideoSelection: () => <div data-testid="video-selection">Video Selection</div>,
 }))
 
 vi.mock('@/components/EpisodeSelection', () => ({
-  EpisodeSelection: () => <div data-testid="episode-selection">Episode Selection</div>
+  EpisodeSelection: () => <div data-testid="episode-selection">Episode Selection</div>,
 }))
 
 vi.mock('@/components/LearningPlayer', () => ({
-  LearningPlayer: () => <div data-testid="learning-player">Learning Player</div>
+  LearningPlayer: () => <div data-testid="learning-player">Learning Player</div>,
 }))
 
 // PipelineProgress route removed - component no longer used
 
 vi.mock('@/components/ChunkedLearningPage', () => ({
-  ChunkedLearningPage: () => <div data-testid="chunked-learning">Chunked Learning</div>
+  ChunkedLearningPage: () => <div data-testid="chunked-learning">Chunked Learning</div>,
 }))
 
 vi.mock('@/components/VocabularyLibrary', () => ({
-  VocabularyLibrary: () => <div data-testid="vocabulary-library">Vocabulary Library</div>
+  VocabularyLibrary: () => <div data-testid="vocabulary-library">Vocabulary Library</div>,
 }))
 
 vi.mock('@/components/auth/ProtectedRoute', () => ({
   ProtectedRoute: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="protected-route">{children}</div>
-  )
+  ),
 }))
 
 vi.mock('@/components/ErrorBoundary', () => ({
   ErrorBoundary: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="error-boundary">{children}</div>
-  )
+  ),
 }))
 
 vi.mock('@/styles/GlobalStyles', () => ({
-  GlobalStyle: () => <div data-testid="global-style" />
+  GlobalStyle: () => <div data-testid="global-style" />,
 }))
 
 vi.mock('@/components/ui/Loading', () => ({
-  Loading: () => <div data-testid="loading">Loading...</div>
+  Loading: () => <div data-testid="loading">Loading...</div>,
 }))
 
 // Mock the auth store
@@ -72,7 +72,7 @@ describe('App Component', () => {
       checkAuth: vi.fn(),
       clearError: vi.fn(),
       isLoading: false,
-      error: null
+      error: null,
     })
   })
 
@@ -87,7 +87,7 @@ describe('App Component', () => {
         checkAuth: vi.fn(),
         clearError: vi.fn(),
         isLoading: false,
-        error: null
+        error: null,
       })
 
       render(
@@ -110,7 +110,7 @@ describe('App Component', () => {
         checkAuth: vi.fn(),
         clearError: vi.fn(),
         isLoading: false,
-        error: null
+        error: null,
       })
 
       render(
@@ -133,7 +133,7 @@ describe('App Component', () => {
         checkAuth: vi.fn(),
         clearError: vi.fn(),
         isLoading: false,
-        error: null
+        error: null,
       })
 
       render(
@@ -158,7 +158,7 @@ describe('App Component', () => {
         checkAuth: vi.fn(),
         clearError: vi.fn(),
         isLoading: false,
-        error: null
+        error: null,
       })
 
       render(
@@ -185,7 +185,7 @@ describe('App Component', () => {
         checkAuth: vi.fn(),
         clearError: vi.fn(),
         isLoading: false,
-        error: null
+        error: null,
       })
     })
 
@@ -258,7 +258,7 @@ describe('App Component', () => {
         checkAuth: vi.fn(),
         clearError: vi.fn(),
         isLoading: false,
-        error: null
+        error: null,
       })
 
       render(<App />)
@@ -278,7 +278,7 @@ describe('App Component', () => {
         checkAuth: vi.fn(),
         clearError: vi.fn(),
         isLoading: false,
-        error: null
+        error: null,
       })
 
       render(<App />)
@@ -296,7 +296,7 @@ describe('App Component', () => {
         checkAuth: vi.fn(),
         clearError: vi.fn(),
         isLoading: false,
-        error: null
+        error: null,
       })
 
       // This test verifies the router renders without errors
@@ -323,7 +323,7 @@ describe('App Component', () => {
         checkAuth: vi.fn(),
         clearError: vi.fn(),
         isLoading: false,
-        error: null
+        error: null,
       })
 
       const { rerender } = render(
@@ -344,7 +344,7 @@ describe('App Component', () => {
         checkAuth: vi.fn(),
         clearError: vi.fn(),
         isLoading: false,
-        error: null
+        error: null,
       })
 
       rerender(
@@ -368,7 +368,7 @@ describe('App Component', () => {
         checkAuth: vi.fn(),
         clearError: vi.fn(),
         isLoading: false,
-        error: null
+        error: null,
       })
 
       render(
@@ -383,45 +383,7 @@ describe('App Component', () => {
     })
   })
 
-  describe('Authentication State Changes', () => {
-    it('responds to authentication state changes', () => {
-      let authState = {
-        isAuthenticated: false,
-        user: null,
-        login: vi.fn(),
-        logout: vi.fn(),
-        register: vi.fn(),
-        checkAuth: vi.fn(),
-        clearError: vi.fn(),
-        isLoading: false,
-        error: null
-      }
-
-      mockUseAuthStore.mockImplementation(() => authState)
-
-      const { rerender } = render(
-        <MemoryRouter initialEntries={['/']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
-
-      // Should show protected route behavior for unauthenticated user
-      expect(screen.getByTestId('protected-route')).toBeInTheDocument()
-
-      // Simulate login
-      authState = {
-        ...authState,
-        isAuthenticated: true,
-        user: { id: '1', email: 'test@example.com', username: 'testuser' } as any
-      }
-
-      rerender(
-        <MemoryRouter initialEntries={['/']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
-
-      expect(screen.getByTestId('video-selection')).toBeInTheDocument()
-    })
-  })
+  // Test for authentication state changes removed - it was testing mock implementation
+  // rather than actual application behavior. The "Route Navigation Integration" test
+  // already covers authentication state changes with actual rerenders.
 })

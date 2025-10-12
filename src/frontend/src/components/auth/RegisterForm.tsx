@@ -13,16 +13,13 @@ const RegisterContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    rgba(0, 0, 0, 0.7),
-    rgba(0, 0, 0, 0.7)
-  );
+  background: linear-gradient(rgb(0 0 0 / 70%), rgb(0 0 0 / 70%));
   background-size: cover;
   background-position: center;
 `
 
 const RegisterCard = styled.div`
-  background: rgba(0, 0, 0, 0.85);
+  background: rgb(0 0 0 / 85%);
   padding: 48px 68px;
   border-radius: 4px;
   width: 100%;
@@ -101,20 +98,39 @@ const PasswordRequirements = styled.div`
 `
 
 // Extended schema with frontend-specific validations
-const RegisterFormSchema = schemas.UserCreate
-  .extend({
-    username: z.string()
-      .min(3, 'Username must be at least 3 characters long')
-      .max(50, 'Username must be no more than 50 characters long')
-      .regex(/^[a-zA-Z0-9_-]+$/, 'Username must contain only alphanumeric characters, underscores, and hyphens'),
-    password: z.string()
-      .min(12, 'Password must be at least 12 characters long'),
-    confirmPassword: z.string(),
-  })
-  .refine((data: { password: string; confirmPassword: string }) => data.password === data.confirmPassword, {
+const RegisterFormSchema = schemas.UserCreate.extend({
+  email: z.string().superRefine((val, ctx) => {
+    if (val.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Email is required',
+      })
+      return
+    }
+    if (!z.string().email().safeParse(val).success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid email format',
+      })
+    }
+  }),
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters long')
+    .max(50, 'Username must be no more than 50 characters long')
+    .regex(
+      /^[a-zA-Z0-9_-]+$/,
+      'Username must contain only alphanumeric characters, underscores, and hyphens'
+    ),
+  password: z.string().min(12, 'Password must be at least 12 characters long'),
+  confirmPassword: z.string(),
+}).refine(
+  (data: { password: string; confirmPassword: string }) => data.password === data.confirmPassword,
+  {
     message: 'Passwords do not match',
     path: ['confirmPassword'],
-  })
+  }
+)
 
 export const RegisterForm: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -197,7 +213,7 @@ export const RegisterForm: React.FC = () => {
             name="email"
             placeholder="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
             disabled={isLoading}
             data-testid="email-input"
           />
@@ -207,7 +223,7 @@ export const RegisterForm: React.FC = () => {
             name="username"
             placeholder="Username"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={e => setUsername(e.target.value)}
             disabled={isLoading}
             data-testid="username-input"
           />
@@ -217,7 +233,7 @@ export const RegisterForm: React.FC = () => {
             name="password"
             placeholder="Password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
             disabled={isLoading}
             data-testid="password-input"
           />
@@ -227,7 +243,7 @@ export const RegisterForm: React.FC = () => {
             name="confirm_password"
             placeholder="Confirm Password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={e => setConfirmPassword(e.target.value)}
             disabled={isLoading}
             data-testid="confirm-password-input"
           />
@@ -245,7 +261,9 @@ export const RegisterForm: React.FC = () => {
           </PasswordRequirements>
 
           {error && <ErrorMessage>{error}</ErrorMessage>}
-          {success && <SuccessMessage>Account created successfully! Redirecting to login...</SuccessMessage>}
+          {success && (
+            <SuccessMessage>Account created successfully! Redirecting to login...</SuccessMessage>
+          )}
 
           <RegisterButton
             type="submit"
@@ -257,7 +275,11 @@ export const RegisterForm: React.FC = () => {
         </form>
 
         <SignInText>
-          Already have an account? <Link to="/login" data-testid="login-link">Sign in now</Link>.
+          Already have an account?{' '}
+          <Link to="/login" data-testid="login-link">
+            Sign in now
+          </Link>
+          .
         </SignInText>
       </RegisterCard>
     </RegisterContainer>

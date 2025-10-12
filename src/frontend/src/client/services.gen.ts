@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { HealthCheckHealthGetResponse, TestEndpointTestGetResponse, AuthJwtLoginApiAuthLoginPostData, AuthJwtLoginApiAuthLoginPostResponse, AuthJwtLogoutApiAuthLogoutPostResponse, RegisterRegisterApiAuthRegisterPostData, RegisterRegisterApiAuthRegisterPostResponse, AuthGetCurrentUserApiAuthMeGetResponse, AuthRefreshTokenApiAuthTokenRefreshPostData, AuthRefreshTokenApiAuthTokenRefreshPostResponse, GetVideosApiVideosGetResponse, GetSubtitlesApiVideosSubtitlesSubtitlePathGetData, GetSubtitlesApiVideosSubtitlesSubtitlePathGetResponse, StreamVideoApiVideosSeriesEpisodeGetData, StreamVideoApiVideosSeriesEpisodeGetResponse, UploadSubtitleApiVideosSubtitleUploadPostData, UploadSubtitleApiVideosSubtitleUploadPostResponse, ScanVideosApiVideosScanPostResponse, GetUserVideosApiVideosUserGetResponse, GetVideoVocabularyApiVideosVideoIdVocabularyGetData, GetVideoVocabularyApiVideosVideoIdVocabularyGetResponse, GetVideoStatusApiVideosVideoIdStatusGetData, GetVideoStatusApiVideosVideoIdStatusGetResponse, UploadVideoGenericApiVideosUploadPostData, UploadVideoGenericApiVideosUploadPostResponse, UploadVideoToSeriesApiVideosUploadSeriesPostData, UploadVideoToSeriesApiVideosUploadSeriesPostResponse, TranscribeVideoApiProcessTranscribePostData, TranscribeVideoApiProcessTranscribePostResponse, FilterSubtitlesApiProcessFilterSubtitlesPostData, FilterSubtitlesApiProcessFilterSubtitlesPostResponse, ApplySelectiveTranslationsApiProcessApplySelectiveTranslationsPostData, ApplySelectiveTranslationsApiProcessApplySelectiveTranslationsPostResponse, ProcessChunkApiProcessChunkPostData, ProcessChunkApiProcessChunkPostResponse, FullPipelineApiProcessFullPipelinePostData, FullPipelineApiProcessFullPipelinePostResponse, GetTaskProgressApiProcessProgressTaskIdGetData, GetTaskProgressApiProcessProgressTaskIdGetResponse, GetWordInfoApiVocabularyWordInfoWordGetData, GetWordInfoApiVocabularyWordInfoWordGetResponse, MarkWordKnownApiVocabularyMarkKnownPostData, MarkWordKnownApiVocabularyMarkKnownPostResponse, MarkWordKnownByLemmaApiVocabularyMarkKnownLemmaPostData, MarkWordKnownByLemmaApiVocabularyMarkKnownLemmaPostResponse, GetVocabularyStatsApiVocabularyStatsGetData, GetVocabularyStatsApiVocabularyStatsGetResponse, GetVocabularyLibraryApiVocabularyLibraryGetData, GetVocabularyLibraryApiVocabularyLibraryGetResponse, GetVocabularyLevelApiVocabularyLibraryLevelGetData, GetVocabularyLevelApiVocabularyLibraryLevelGetResponse, SearchVocabularyApiVocabularySearchPostData, SearchVocabularyApiVocabularySearchPostResponse, BulkMarkLevelApiVocabularyLibraryBulkMarkPostData, BulkMarkLevelApiVocabularyLibraryBulkMarkPostResponse, GetSupportedLanguagesApiVocabularyLanguagesGetResponse, GetTestDataApiVocabularyTestDataGetResponse, GetBlockingWordsApiVocabularyBlockingWordsGetData, GetBlockingWordsApiVocabularyBlockingWordsGetResponse, ProfileGetApiProfileGetResponse, ProfileGetSupportedLanguagesApiProfileLanguagesGetResponse, ProfileUpdateLanguagesApiProfileLanguagesPutData, ProfileUpdateLanguagesApiProfileLanguagesPutResponse, ProfileGetSettingsApiProfileSettingsGetResponse, ProfileUpdateSettingsApiProfileSettingsPutData, ProfileUpdateSettingsApiProfileSettingsPutResponse, ProgressGetUserApiProgressUserGetResponse, ProgressUpdateUserApiProgressUpdatePostData, ProgressUpdateUserApiProgressUpdatePostResponse, ProgressGetDailyApiProgressDailyGetData, ProgressGetDailyApiProgressDailyGetResponse, GameStartSessionApiGameStartPostData, GameStartSessionApiGameStartPostResponse, GameGetSessionApiGameSessionSessionIdGetData, GameGetSessionApiGameSessionSessionIdGetResponse, GameSubmitAnswerApiGameAnswerPostData, GameSubmitAnswerApiGameAnswerPostResponse, GameGetUserSessionsApiGameSessionsGetData, GameGetUserSessionsApiGameSessionsGetResponse, ParseSrtContentApiSrtParsePostData, ParseSrtContentApiSrtParsePostResponse, ParseSrtFileApiSrtParseFilePostData, ParseSrtFileApiSrtParseFilePostResponse, ConvertToSrtApiSrtConvertToSrtPostData, ConvertToSrtApiSrtConvertToSrtPostResponse, ValidateSrtContentApiSrtValidateGetData, ValidateSrtContentApiSrtValidateGetResponse, LogFrontendEntryApiDebugFrontendLogsPostData, LogFrontendEntryApiDebugFrontendLogsPostResponse, DebugHealthApiDebugHealthGetResponse, CleanupTestDataApiTestCleanupDeleteResponse } from './types.gen';
+import type { HealthCheckHealthGetResponse, ReadinessCheckReadinessGetResponse, TestEndpointTestGetResponse, AuthJwtLoginApiAuthLoginPostData, AuthJwtLoginApiAuthLoginPostResponse, AuthJwtLogoutApiAuthLogoutPostResponse, RegisterRegisterApiAuthRegisterPostData, RegisterRegisterApiAuthRegisterPostResponse, AuthGetCurrentUserApiAuthMeGetResponse, AuthRefreshTokenApiAuthTokenRefreshPostData, AuthRefreshTokenApiAuthTokenRefreshPostResponse, GetVideosApiVideosGetResponse, GetSubtitlesApiVideosSubtitlesSubtitlePathGetData, GetSubtitlesApiVideosSubtitlesSubtitlePathGetResponse, StreamVideoApiVideosSeriesEpisodeGetData, StreamVideoApiVideosSeriesEpisodeGetResponse, UploadSubtitleApiVideosSubtitleUploadPostData, UploadSubtitleApiVideosSubtitleUploadPostResponse, ScanVideosApiVideosScanPostResponse, GetUserVideosApiVideosUserGetResponse, GetVideoVocabularyApiVideosVideoIdVocabularyGetData, GetVideoVocabularyApiVideosVideoIdVocabularyGetResponse, GetVideoStatusApiVideosVideoIdStatusGetData, GetVideoStatusApiVideosVideoIdStatusGetResponse, UploadVideoGenericApiVideosUploadPostData, UploadVideoGenericApiVideosUploadPostResponse, UploadVideoToSeriesApiVideosUploadSeriesPostData, UploadVideoToSeriesApiVideosUploadSeriesPostResponse, TranscribeVideoApiProcessTranscribePostData, TranscribeVideoApiProcessTranscribePostResponse, FilterSubtitlesApiProcessFilterSubtitlesPostData, FilterSubtitlesApiProcessFilterSubtitlesPostResponse, ApplySelectiveTranslationsApiProcessApplySelectiveTranslationsPostData, ApplySelectiveTranslationsApiProcessApplySelectiveTranslationsPostResponse, ProcessChunkApiProcessChunkPostData, ProcessChunkApiProcessChunkPostResponse, FullPipelineApiProcessFullPipelinePostData, FullPipelineApiProcessFullPipelinePostResponse, GetTaskProgressApiProcessProgressTaskIdGetData, GetTaskProgressApiProcessProgressTaskIdGetResponse, GetWordInfoApiVocabularyWordInfoWordGetData, GetWordInfoApiVocabularyWordInfoWordGetResponse, MarkWordKnownApiVocabularyMarkKnownPostData, MarkWordKnownApiVocabularyMarkKnownPostResponse, MarkWordKnownByLemmaApiVocabularyMarkKnownLemmaPostData, MarkWordKnownByLemmaApiVocabularyMarkKnownLemmaPostResponse, GetVocabularyStatsApiVocabularyStatsGetData, GetVocabularyStatsApiVocabularyStatsGetResponse, GetVocabularyLibraryApiVocabularyLibraryGetData, GetVocabularyLibraryApiVocabularyLibraryGetResponse, GetVocabularyLevelApiVocabularyLibraryLevelGetData, GetVocabularyLevelApiVocabularyLibraryLevelGetResponse, SearchVocabularyApiVocabularySearchPostData, SearchVocabularyApiVocabularySearchPostResponse, BulkMarkLevelApiVocabularyLibraryBulkMarkPostData, BulkMarkLevelApiVocabularyLibraryBulkMarkPostResponse, GetSupportedLanguagesApiVocabularyLanguagesGetResponse, GetTestDataApiVocabularyTestDataGetResponse, GetBlockingWordsApiVocabularyBlockingWordsGetData, GetBlockingWordsApiVocabularyBlockingWordsGetResponse, CreateVocabularyApiVocabularyPostData, CreateVocabularyApiVocabularyPostResponse, AddCustomWordApiVocabularyCustomAddPostData, AddCustomWordApiVocabularyCustomAddPostResponse, DeleteCustomWordApiVocabularyCustomWordIdDeleteData, DeleteCustomWordApiVocabularyCustomWordIdDeleteResponse, ProfileGetApiProfileGetResponse, ProfileGetSupportedLanguagesApiProfileLanguagesGetResponse, ProfileUpdateLanguagesApiProfileLanguagesPutData, ProfileUpdateLanguagesApiProfileLanguagesPutResponse, ProfileGetSettingsApiProfileSettingsGetResponse, ProfileUpdateSettingsApiProfileSettingsPutData, ProfileUpdateSettingsApiProfileSettingsPutResponse, ProgressGetUserApiProgressUserGetResponse, ProgressUpdateUserApiProgressUpdatePostData, ProgressUpdateUserApiProgressUpdatePostResponse, ProgressGetDailyApiProgressDailyGetData, ProgressGetDailyApiProgressDailyGetResponse, GameStartSessionApiGameStartPostData, GameStartSessionApiGameStartPostResponse, GameGetSessionApiGameSessionSessionIdGetData, GameGetSessionApiGameSessionSessionIdGetResponse, GameSubmitAnswerApiGameAnswerPostData, GameSubmitAnswerApiGameAnswerPostResponse, GameGetUserSessionsApiGameSessionsGetData, GameGetUserSessionsApiGameSessionsGetResponse, ParseSrtContentApiSrtParsePostData, ParseSrtContentApiSrtParsePostResponse, ParseSrtFileApiSrtParseFilePostData, ParseSrtFileApiSrtParseFilePostResponse, ConvertToSrtApiSrtConvertToSrtPostData, ConvertToSrtApiSrtConvertToSrtPostResponse, ValidateSrtContentApiSrtValidateGetData, ValidateSrtContentApiSrtValidateGetResponse, LogFrontendEntryApiDebugFrontendLogsPostData, LogFrontendEntryApiDebugFrontendLogsPostResponse, DebugHealthApiDebugHealthGetResponse, CleanupTestDataApiTestCleanupDeleteResponse } from './types.gen';
 
 /**
  * Health Check
@@ -14,6 +14,19 @@ import type { HealthCheckHealthGetResponse, TestEndpointTestGetResponse, AuthJwt
 export const healthCheckHealthGet = (): CancelablePromise<HealthCheckHealthGetResponse> => { return __request(OpenAPI, {
     method: 'GET',
     url: '/health'
+}); };
+
+/**
+ * Readiness Check
+ * Readiness check endpoint - verifies that all services are initialized
+ *
+ * Returns 200 when ready, 503 when still initializing
+ * @returns unknown Successful Response
+ * @throws ApiError
+ */
+export const readinessCheckReadinessGet = (): CancelablePromise<ReadinessCheckReadinessGetResponse> => { return __request(OpenAPI, {
+    method: 'GET',
+    url: '/readiness'
 }); };
 
 /**
@@ -125,16 +138,28 @@ export const authGetCurrentUserApiAuthMeGet = (): CancelablePromise<AuthGetCurre
 
 /**
  * Auth Refresh Token
- * Refresh access token using refresh token from cookie
+ * Refresh access token with automatic token rotation
  *
- * This endpoint exchanges a valid refresh token for a new access token.
+ * This endpoint exchanges a valid refresh token for:
+ * 1. A new access token (for API calls)
+ * 2. A new refresh token (rotated from old one)
+ *
+ * Token Rotation Security:
+ * - Each refresh token can only be used once
+ * - If an old token is reused, it indicates theft and all tokens are revoked
+ * - Rotation creates a "family" of tokens that are tracked together
+ *
  * The refresh token should be stored in an HTTP-only cookie for security.
  *
  * Returns:
- * TokenRefreshResponse: New access token with expiration info
+ * TokenRefreshResponse: New access token and rotated refresh token
  *
  * Raises:
- * HTTPException: 401 if refresh token is invalid or expired
+ * HTTPException: 401 if refresh token is invalid, expired, or reused (theft detected)
+ *
+ * Security Note:
+ * If you receive a 401 error mentioning "token reuse", all tokens have been
+ * revoked for security. The user must login again.
  * @param data The data for the request.
  * @param data.refreshToken
  * @returns TokenRefreshResponse Successful Response
@@ -1090,6 +1115,104 @@ export const getBlockingWordsApiVocabularyBlockingWordsGet = (data: GetBlockingW
     url: '/api/vocabulary/blocking-words',
     query: {
         video_path: data.videoPath
+    },
+    errors: {
+        422: 'Validation Error'
+    }
+}); };
+
+/**
+ * Create Vocabulary
+ * Create test vocabulary word (primarily for E2E testing).
+ *
+ * Maps difficulty levels to CEFR levels and creates a global vocabulary word.
+ *
+ * Args:
+ * request: Vocabulary word details
+ * current_user: Authenticated user
+ * db: Database session
+ *
+ * Returns:
+ * dict: Created vocabulary with id, word, translation, difficulty_level
+ *
+ * Raises:
+ * HTTPException: 400 if creation fails
+ * @param data The data for the request.
+ * @param data.requestBody
+ * @returns unknown Successful Response
+ * @throws ApiError
+ */
+export const createVocabularyApiVocabularyPost = (data: CreateVocabularyApiVocabularyPostData): CancelablePromise<CreateVocabularyApiVocabularyPostResponse> => { return __request(OpenAPI, {
+    method: 'POST',
+    url: '/api/vocabulary',
+    body: data.requestBody,
+    mediaType: 'application/json',
+    errors: {
+        422: 'Validation Error'
+    }
+}); };
+
+/**
+ * Add Custom Word
+ * Add a custom user-defined vocabulary word to C2 level.
+ *
+ * Allows users to add their own vocabulary words that aren't in the system vocabulary.
+ * Custom words are always classified as C2 level and are only visible to the user who created them.
+ *
+ * Args:
+ * request: Custom word details
+ * current_user: Authenticated user
+ * vocabulary_service: Vocabulary service dependency
+ *
+ * Returns:
+ * dict: Created word information including database ID
+ *
+ * Raises:
+ * HTTPException: 400 if word already exists for this user
+ * HTTPException: 500 if creation fails
+ * @param data The data for the request.
+ * @param data.requestBody
+ * @returns unknown Successful Response
+ * @throws ApiError
+ */
+export const addCustomWordApiVocabularyCustomAddPost = (data: AddCustomWordApiVocabularyCustomAddPostData): CancelablePromise<AddCustomWordApiVocabularyCustomAddPostResponse> => { return __request(OpenAPI, {
+    method: 'POST',
+    url: '/api/vocabulary/custom/add',
+    body: data.requestBody,
+    mediaType: 'application/json',
+    errors: {
+        422: 'Validation Error'
+    }
+}); };
+
+/**
+ * Delete Custom Word
+ * Delete a user-defined custom vocabulary word.
+ *
+ * Users can only delete their own custom words. System vocabulary cannot be deleted.
+ *
+ * Args:
+ * word_id: Database ID of the custom word
+ * current_user: Authenticated user
+ * vocabulary_service: Vocabulary service dependency
+ *
+ * Returns:
+ * dict: Success message
+ *
+ * Raises:
+ * HTTPException: 403 if word doesn't belong to user or is system vocabulary
+ * HTTPException: 404 if word not found
+ * HTTPException: 500 if deletion fails
+ * @param data The data for the request.
+ * @param data.wordId
+ * @returns unknown Successful Response
+ * @throws ApiError
+ */
+export const deleteCustomWordApiVocabularyCustomWordIdDelete = (data: DeleteCustomWordApiVocabularyCustomWordIdDeleteData): CancelablePromise<DeleteCustomWordApiVocabularyCustomWordIdDeleteResponse> => { return __request(OpenAPI, {
+    method: 'DELETE',
+    url: '/api/vocabulary/custom/{word_id}',
+    path: {
+        word_id: data.wordId
     },
     errors: {
         422: 'Validation Error'

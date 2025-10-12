@@ -38,6 +38,8 @@ const UserRead = z
     is_superuser: z.boolean().optional().default(false),
     is_verified: z.boolean().optional().default(false),
     username: z.string(),
+    created_at: z.string(),
+    last_login: z.union([z.string(), z.null()]).optional(),
   })
   .passthrough()
 const UserResponse = z
@@ -54,6 +56,7 @@ const UserResponse = z
 const TokenRefreshResponse = z
   .object({
     access_token: z.string(),
+    refresh_token: z.string(),
     token_type: z.string().optional().default('bearer'),
     expires_in: z.number().int(),
   })
@@ -154,6 +157,25 @@ const BulkMarkLevelRequest = z
     level: z.string().regex(/^(A1|A2|B1|B2|C1|C2)$/),
     target_language: z.string().optional().default('de'),
     known: z.boolean(),
+  })
+  .passthrough()
+const CreateVocabularyRequest = z
+  .object({
+    word: z.string().min(1).max(100),
+    translation: z.string().min(1).max(200),
+    difficulty_level: z.string().optional().default('beginner'),
+    language: z.string().optional().default('de'),
+  })
+  .passthrough()
+const AddCustomWordRequest = z
+  .object({
+    word: z.string().min(1).max(100),
+    lemma: z.union([z.string(), z.null()]).optional(),
+    language: z.string().optional().default('de'),
+    translation: z.union([z.string(), z.null()]).optional(),
+    part_of_speech: z.union([z.string(), z.null()]).optional(),
+    gender: z.union([z.string(), z.null()]).optional(),
+    notes: z.union([z.string(), z.null()]).optional(),
   })
   .passthrough()
 const UserProfile = z
@@ -280,11 +302,11 @@ const FrontendLogEntry = z
     category: z.string(),
     message: z.string(),
     data: z.unknown().optional(),
-    error: z.string().optional(),
-    stack: z.string().optional(),
-    url: z.string().optional(),
-    userAgent: z.string().optional(),
-    userId: z.string().optional(),
+    error: z.union([z.string(), z.null()]).optional(),
+    stack: z.union([z.string(), z.null()]).optional(),
+    url: z.union([z.string(), z.null()]).optional(),
+    userAgent: z.union([z.string(), z.null()]).optional(),
+    userId: z.union([z.string(), z.null()]).optional(),
   })
   .passthrough()
 const FrontendLogBatch = z.object({ logs: z.array(FrontendLogEntry) }).passthrough()
@@ -318,6 +340,8 @@ export const schemas = {
   MarkKnownRequest,
   SearchVocabularyRequest,
   BulkMarkLevelRequest,
+  CreateVocabularyRequest,
+  AddCustomWordRequest,
   UserProfile,
   LanguagePreferences,
   UserSettings,
@@ -454,16 +478,28 @@ Example:
     method: 'post',
     path: '/api/auth/token/refresh',
     alias: 'auth_refresh_token_api_auth_token_refresh_post',
-    description: `Refresh access token using refresh token from cookie
+    description: `Refresh access token with automatic token rotation
 
-This endpoint exchanges a valid refresh token for a new access token.
+This endpoint exchanges a valid refresh token for:
+1. A new access token (for API calls)
+2. A new refresh token (rotated from old one)
+
+Token Rotation Security:
+- Each refresh token can only be used once
+- If an old token is reused, it indicates theft and all tokens are revoked
+- Rotation creates a &quot;family&quot; of tokens that are tracked together
+
 The refresh token should be stored in an HTTP-only cookie for security.
 
 Returns:
-    TokenRefreshResponse: New access token with expiration info
+    TokenRefreshResponse: New access token and rotated refresh token
 
 Raises:
-    HTTPException: 401 if refresh token is invalid or expired`,
+    HTTPException: 401 if refresh token is invalid, expired, or reused (theft detected)
+
+Security Note:
+    If you receive a 401 error mentioning &quot;token reuse&quot;, all tokens have been
+    revoked for security. The user must login again.`,
     requestFormat: 'json',
     response: TokenRefreshResponse,
     errors: [
@@ -1868,6 +1904,41 @@ Uses FileSecurityValidator for secure file handling with path traversal preventi
     response: z.array(z.object({}).partial().passthrough()),
   },
   {
+    method: 'post',
+    path: '/api/vocabulary',
+    alias: 'create_vocabulary_api_vocabulary_post',
+    description: `Create test vocabulary word (primarily for E2E testing).
+
+Maps difficulty levels to CEFR levels and creates a global vocabulary word.
+
+Args:
+    request: Vocabulary word details
+    current_user: Authenticated user
+    db: Database session
+
+Returns:
+    dict: Created vocabulary with id, word, translation, difficulty_level
+
+Raises:
+    HTTPException: 400 if creation fails`,
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'body',
+        type: 'Body',
+        schema: CreateVocabularyRequest,
+      },
+    ],
+    response: z.unknown(),
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
     method: 'get',
     path: '/api/vocabulary/blocking-words',
     alias: 'get_blocking_words_api_vocabulary_blocking_words_get',
@@ -1878,6 +1949,80 @@ Uses FileSecurityValidator for secure file handling with path traversal preventi
         name: 'video_path',
         type: 'Query',
         schema: z.string(),
+      },
+    ],
+    response: z.unknown(),
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: 'delete',
+    path: '/api/vocabulary/custom/:word_id',
+    alias: 'delete_custom_word_api_vocabulary_custom__word_id__delete',
+    description: `Delete a user-defined custom vocabulary word.
+
+Users can only delete their own custom words. System vocabulary cannot be deleted.
+
+Args:
+    word_id: Database ID of the custom word
+    current_user: Authenticated user
+    vocabulary_service: Vocabulary service dependency
+
+Returns:
+    dict: Success message
+
+Raises:
+    HTTPException: 403 if word doesn&#x27;t belong to user or is system vocabulary
+    HTTPException: 404 if word not found
+    HTTPException: 500 if deletion fails`,
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'word_id',
+        type: 'Path',
+        schema: z.number().int(),
+      },
+    ],
+    response: z.unknown(),
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: 'post',
+    path: '/api/vocabulary/custom/add',
+    alias: 'add_custom_word_api_vocabulary_custom_add_post',
+    description: `Add a custom user-defined vocabulary word to C2 level.
+
+Allows users to add their own vocabulary words that aren&#x27;t in the system vocabulary.
+Custom words are always classified as C2 level and are only visible to the user who created them.
+
+Args:
+    request: Custom word details
+    current_user: Authenticated user
+    vocabulary_service: Vocabulary service dependency
+
+Returns:
+    dict: Created word information including database ID
+
+Raises:
+    HTTPException: 400 if word already exists for this user
+    HTTPException: 500 if creation fails`,
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'body',
+        type: 'Body',
+        schema: AddCustomWordRequest,
       },
     ],
     response: z.unknown(),
@@ -2311,6 +2456,16 @@ Example:
     path: '/health',
     alias: 'health_check_health_get',
     description: `Health check endpoint`,
+    requestFormat: 'json',
+    response: z.unknown(),
+  },
+  {
+    method: 'get',
+    path: '/readiness',
+    alias: 'readiness_check_readiness_get',
+    description: `Readiness check endpoint - verifies that all services are initialized
+
+Returns 200 when ready, 503 when still initializing`,
     requestFormat: 'json',
     response: z.unknown(),
   },
