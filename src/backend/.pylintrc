@@ -1,0 +1,61 @@
+# Pylint configuration for LangPlug Backend
+#
+# This configuration is FOCUSED on code duplication and similarity checks only.
+# Ruff handles all other linting (pycodestyle, pyflakes, isort, etc.)
+#
+# Run with: pylint --rcfile=.pylintrc services/ api/ core/
+# Pre-commit: Automatically runs on changed files
+
+[MAIN]
+# Python code to execute, usually for sys.path manipulation
+init-hook='import sys; sys.path.insert(0, ".")'
+
+# Files or directories to be skipped
+ignore=api_venv,venv,.venv,alembic/versions,tests,scripts
+
+# Use multiple processes to speed up Pylint
+jobs=4
+
+# Pickle collected data for later comparisons
+persistent=yes
+
+
+[MESSAGES CONTROL]
+# ONLY enable duplication and similarity checks
+# Disable all other checks (handled by Ruff)
+disable=all
+enable=R0801   # duplicate-code: Similar lines in multiple files
+
+
+[SIMILARITIES]
+# Minimum lines number of a similarity.
+# Lowering this increases false positives but catches smaller duplications
+min-similarity-lines=6
+
+# Ignore comments when computing similarities
+ignore-comments=yes
+
+# Ignore docstrings when computing similarities
+ignore-docstrings=yes
+
+# Ignore imports when computing similarities
+ignore-imports=yes
+
+# Signatures are removed from the similarity computation
+ignore-signatures=yes
+
+
+[REPORTS]
+# Set the output format
+output-format=text
+
+# Tells whether to display a full report or only the messages
+reports=no
+
+# Activate the evaluation score
+score=no
+
+
+[FORMAT]
+# Maximum number of characters on a single line (should match Ruff/Black)
+max-line-length=120

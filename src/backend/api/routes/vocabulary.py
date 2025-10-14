@@ -548,18 +548,6 @@ class CreateVocabularyRequest(BaseModel):
     language: str = Field("de", description="Language code")
 
 
-class AddCustomWordRequest(BaseModel):
-    """Request to add a custom user-defined vocabulary word"""
-
-    word: str = Field(..., min_length=1, max_length=100, description="The word to add")
-    lemma: str | None = Field(None, max_length=100, description="Base form of the word")
-    language: str = Field("de", description="Language code")
-    translation: str | None = Field(None, description="Translation in user's native language")
-    part_of_speech: str | None = Field(None, description="Part of speech")
-    gender: str | None = Field(None, description="Gender (for nouns)")
-    notes: str | None = Field(None, description="User notes")
-
-
 @router.post("", name="create_vocabulary")
 async def create_vocabulary(
     request: CreateVocabularyRequest,
@@ -636,89 +624,3 @@ async def create_vocabulary(
         logger.error(f"Error creating vocabulary: {e}")
         await db.rollback()
         raise HTTPException(status_code=400, detail=f"Failed to create vocabulary: {e!s}") from e
-
-
-@router.post("/custom/add", name="add_custom_word")
-async def add_custom_word(
-    request: AddCustomWordRequest,
-    current_user: User = Depends(current_active_user),
-    vocabulary_service=Depends(get_vocabulary_service),
-):
-    """
-    Add a custom user-defined vocabulary word to C2 level.
-
-    Allows users to add their own vocabulary words that aren't in the system vocabulary.
-    Custom words are always classified as C2 level and are only visible to the user who created them.
-
-    Args:
-        request: Custom word details
-        current_user: Authenticated user
-        vocabulary_service: Vocabulary service dependency
-
-    Returns:
-        dict: Created word information including database ID
-
-    Raises:
-        HTTPException: 400 if word already exists for this user
-        HTTPException: 500 if creation fails
-    """
-    try:
-        result = await vocabulary_service.add_custom_word(
-            user_id=current_user.id,
-            word=request.word,
-            lemma=request.lemma or request.word.lower(),
-            language=request.language,
-            translation=request.translation,
-            part_of_speech=request.part_of_speech,
-            gender=request.gender,
-            notes=request.notes,
-        )
-
-        logger.info(f"User {current_user.id} added custom word: {request.word}")
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
-    except Exception as e:
-        logger.error(f"Error adding custom word: {e}")
-        raise HTTPException(status_code=500, detail="Failed to add custom word") from e
-
-
-@router.delete("/custom/{word_id}", name="delete_custom_word")
-async def delete_custom_word(
-    word_id: int,
-    current_user: User = Depends(current_active_user),
-    vocabulary_service=Depends(get_vocabulary_service),
-):
-    """
-    Delete a user-defined custom vocabulary word.
-
-    Users can only delete their own custom words. System vocabulary cannot be deleted.
-
-    Args:
-        word_id: Database ID of the custom word
-        current_user: Authenticated user
-        vocabulary_service: Vocabulary service dependency
-
-    Returns:
-        dict: Success message
-
-    Raises:
-        HTTPException: 403 if word doesn't belong to user or is system vocabulary
-        HTTPException: 404 if word not found
-        HTTPException: 500 if deletion fails
-    """
-    try:
-        await vocabulary_service.delete_custom_word(
-            user_id=current_user.id,
-            word_id=word_id,
-        )
-
-        logger.info(f"User {current_user.id} deleted custom word ID: {word_id}")
-        return {"success": True, "message": "Custom word deleted successfully"}
-    except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e)) from e
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
-    except Exception as e:
-        logger.error(f"Error deleting custom word: {e}")
-        raise HTTPException(status_code=500, detail="Failed to delete custom word") from e

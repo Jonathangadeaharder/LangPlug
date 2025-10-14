@@ -27,6 +27,14 @@ repos:
         files: ^tests/
         pass_filenames: true
 
+      - id: no-shit-tests
+        name: Prevent shit test patterns
+        entry: bash -c 'grep -n "assert hasattr\|assert True[,)]" "$@" && exit 1 || exit 0' --
+        language: system
+        types: [python]
+        files: ^tests/
+        exclude: ^tests/conftest\.py$
+
   # Ruff - Fast Python linter and formatter (replaces flake8, isort, black)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.7.4 # Use latest stable version
@@ -40,6 +48,21 @@ repos:
       - id: ruff-format
         types_or: [python, pyi]
         exclude: ^(management/|Frontend/|scripts/|Backend/\.pre-commit-hooks/)
+
+  # Pylint - Code duplication and similarity checks
+  # Note: Ruff handles most linting, pylint only checks code duplication
+  - repo: https://github.com/pycqa/pylint
+    rev: v3.3.4
+    hooks:
+      - id: pylint
+        name: Pylint (duplication/similarity only)
+        args: [--rcfile=Backend/.pylintrc]
+        types: [python]
+        exclude: ^(tests/|management/|Frontend/|scripts/|Backend/\.pre-commit-hooks/|alembic/versions/)
+        additional_dependencies:
+          - sqlalchemy>=2.0
+          - fastapi>=0.104
+          - pydantic>=2.0
 
   # MyPy - Static type checker (temporarily disabled for gradual typing migration)
   # - repo: https://github.com/pre-commit/mirrors-mypy

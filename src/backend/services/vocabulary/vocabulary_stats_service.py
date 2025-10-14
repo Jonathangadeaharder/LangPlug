@@ -20,75 +20,8 @@ class VocabularyStatsService:
     async def get_vocabulary_stats(
         self, db_session: AsyncSession, user_id: int, target_language: str, translation_language: str = "en"
     ):
-        """Get vocabulary statistics by level with injected database session
-
-        This is the primary method used by API routes.
-        For backward compatibility with old tests, use get_vocabulary_stats_legacy().
-        """
+        """Get vocabulary statistics by level with injected database session"""
         return await self._get_vocabulary_stats_with_session(db_session, user_id, target_language, translation_language)
-
-    async def get_vocabulary_stats_legacy(self, target_language="de", user_id=None):
-        """Legacy get_vocabulary_stats for backward compatibility with old tests
-
-        This method manages its own database session and returns a plain dict.
-        New code should use get_vocabulary_stats() with dependency injection instead.
-        """
-        levels_list = CEFRLevel.all_levels()
-        stats = {"target_language": target_language, "levels": {}, "total_words": 0, "total_known": 0}
-
-        async with AsyncSessionLocal() as session:
-            for level in levels_list:
-                # Count total words at this level
-                total_stmt = select(func.count(VocabularyWord.id)).where(
-                    and_(VocabularyWord.language == target_language, VocabularyWord.difficulty_level == level)
-                )
-                total_result = await session.execute(total_stmt)
-                total_words = total_result.scalar() or 0
-
-                # Count known words at this level for user
-                if user_id:
-                    known_stmt = (
-                        select(func.count(UserVocabularyProgress.id))
-                        .where(
-                            and_(
-                                UserVocabularyProgress.user_id == user_id,
-                                UserVocabularyProgress.language == target_language,
-                                UserVocabularyProgress.is_known,
-                            )
-                        )
-                        .join(VocabularyWord, VocabularyWord.id == UserVocabularyProgress.vocabulary_id)
-                        .where(VocabularyWord.difficulty_level == level)
-                    )
-
-                    known_result = await session.execute(known_stmt)
-                    known_words = known_result.scalar() or 0
-                else:
-                    known_words = 0
-
-                stats["levels"][level] = {
-                    "total_words": total_words,
-                    "user_known": known_words,
-                    "percentage": round((known_words / total_words) * 100, 1) if total_words > 0 else 0.0,
-                }
-                stats["total_words"] += total_words
-                stats["total_known"] += known_words
-
-            # Count unknown words marked as known (vocabulary_id IS NULL)
-            # These don't belong to any CEFR level but should be included in total_known
-            if user_id:
-                unknown_words_stmt = select(func.count(UserVocabularyProgress.id)).where(
-                    and_(
-                        UserVocabularyProgress.user_id == user_id,
-                        UserVocabularyProgress.language == target_language,
-                        UserVocabularyProgress.is_known,
-                        UserVocabularyProgress.vocabulary_id.is_(None),  # Words not in vocabulary database
-                    )
-                )
-                unknown_words_result = await session.execute(unknown_words_stmt)
-                unknown_words_count = unknown_words_result.scalar() or 0
-                stats["total_known"] += unknown_words_count
-
-        return stats
 
     async def _get_vocabulary_stats_with_session(
         self, db_session, user_id: str, target_language: str, native_language: str = "en"
