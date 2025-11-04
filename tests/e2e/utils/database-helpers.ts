@@ -107,11 +107,12 @@ export class DatabaseHelpers {
    */
   private static async createSampleContent(token: string): Promise<void> {
     try {
-      // Create sample vocabulary
-      await axios.post(`${this.API_BASE_URL}/vocabulary`, {
-        word: 'Hallo',
-        translation: 'Hello',
-        language: 'de'
+      // Create sample vocabulary entries
+      await axios.post(`${this.API_BASE_URL}/api/vocabulary/`, {
+        word: 'test',
+        definition: 'A test word',
+        example_sentence: 'This is a test sentence.',
+        difficulty: 'beginner'
       }, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -120,7 +121,8 @@ export class DatabaseHelpers {
 
       console.log('Sample content created');
     } catch (error) {
-      console.error('Failed to create sample content:', error);
+      console.warn('Sample content creation skipped (endpoint may not exist):', error instanceof Error ? error.message : error);
+      // Do not throw; allow tests to continue without sample data
     }
   }
 
