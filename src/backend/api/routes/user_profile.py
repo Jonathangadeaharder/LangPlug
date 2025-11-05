@@ -7,8 +7,10 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, field_validator
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
+from core.database import get_async_session
 from core.dependencies import current_active_user
 from core.language_preferences import (
     SUPPORTED_LANGUAGES,
@@ -116,18 +118,10 @@ async def get_profile(current_user: User = Depends(current_active_user)):
         ```
     """
     try:
-        from sqlalchemy import select
-
-        from core.database import get_async_session
-
         user_id = str(current_user.id)
 
-        # Reload user from database to get fresh chunk_duration_minutes
-        async for db in get_async_session():
-            result = await db.execute(select(User).where(User.id == current_user.id))
-            fresh_user = result.scalar_one()
-            chunk_duration = fresh_user.chunk_duration_minutes
-            break
+        # Get chunk_duration_minutes from current_user object
+        chunk_duration = getattr(current_user, "chunk_duration_minutes", 20)
 
         native_code, target_code = load_language_preferences(user_id)
         runtime = resolve_language_runtime_settings(native_code, target_code)
@@ -314,26 +308,25 @@ async def get_user_settings(current_user: User = Depends(current_active_user)):
 
 
 @router.put("/settings", response_model=UserSettings, name="profile_update_settings")
-async def update_user_settings(settings_update: UserSettings, current_user: User = Depends(current_active_user)):
+async def update_user_settings(
+    settings_update: UserSettings,
+    current_user: User = Depends(current_active_user),
+    db: AsyncSession = Depends(get_async_session),
+):
     """Update user settings"""
     try:
         from sqlalchemy import select
 
-        from core.database import get_async_session
-
         # Update chunk_duration_minutes in database if provided
         if settings_update.chunk_duration_minutes is not None:
-            async for db in get_async_session():
-                # Fetch user in this session to avoid "already attached to session" error
-                result = await db.execute(select(User).where(User.id == current_user.id))
-                user_in_db = result.scalar_one()
-                user_in_db.chunk_duration_minutes = settings_update.chunk_duration_minutes
-                await db.commit()
-                await db.refresh(user_in_db)
-                logger.info(
-                    f"Updated chunk_duration_minutes to {settings_update.chunk_duration_minutes} for user {current_user.id}"
-                )
-                break
+            result = await db.execute(select(User).where(User.id == current_user.id))
+            user_in_db = result.scalar_one()
+            user_in_db.chunk_duration_minutes = settings_update.chunk_duration_minutes
+            await db.commit()
+            await db.refresh(user_in_db)
+            logger.info(
+                f"Updated chunk_duration_minutes to {settings_update.chunk_duration_minutes} for user {current_user.id}"
+            )
 
         # Update other settings in JSON file
         user_data_path = settings.get_user_temp_path(current_user.id)
