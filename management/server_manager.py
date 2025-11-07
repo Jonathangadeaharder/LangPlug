@@ -333,7 +333,8 @@ def is_process_running(pid: int) -> bool:
         import psutil
 
         return psutil.pid_exists(pid)
-    except:
+    except (ImportError, psutil.NoSuchProcess, psutil.AccessDenied) as e:
+        # psutil not available or process not accessible
         return False
 
 
