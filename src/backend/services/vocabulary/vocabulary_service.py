@@ -168,31 +168,6 @@ class VocabularyService:
         """Get list of supported languages"""
         return await self.stats_service.get_supported_languages()
 
-    # ========== Legacy/Compatibility Methods ==========
-    # These remain for backward compatibility with tests
-
-    async def get_vocabulary_level(
-        self, level, target_language="de", translation_language="es", user_id=None, limit=50, offset=0
-    ):
-        """Get vocabulary for a specific level - legacy method for test compatibility"""
-        async with AsyncSessionLocal() as session:
-            level = level.upper()
-
-            # Use get_vocabulary_library from query service
-            library = await self.get_vocabulary_library(
-                db=session, language=target_language, level=level, user_id=user_id, limit=limit, offset=offset
-            )
-
-            # Format for legacy test expectations
-            return {
-                "level": level,
-                "target_language": target_language,
-                "translation_language": translation_language,
-                "words": library["words"],
-                "total_count": library["total_count"],
-                "known_count": sum(1 for w in library["words"] if w.get("is_known", False)),
-            }
-
     async def extract_blocking_words_from_srt(
         self, db: AsyncSession, srt_content: str, user_id: int, video_path: str
     ) -> list[dict[str, Any]]:
