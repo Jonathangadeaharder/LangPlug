@@ -28,12 +28,12 @@ alembic>=1.16.5
 # ============================================================================
 # AI/ML - Core Models
 # ============================================================================
-openai-whisper>=20250625
-transformers>=4.57.0
-torch>=2.8.0
-spacy>=3.8.7
-sentencepiece>=0.2.1
-protobuf>=6.32.1
+openai-whisper>=20231117
+transformers>=4.35.0
+torch>=2.0.0,<3.0.0
+spacy>=3.8.0
+sentencepiece>=0.1.99
+protobuf>=3.19.0,<5.0.0
 
 # Spacy language models (pip-installable)
 https://github.com/explosion/spacy-models/releases/download/de_core_news_lg-3.8.0/de_core_news_lg-3.8.0-py3-none-any.whl
@@ -56,52 +56,52 @@ webvtt-py>=0.5.1
 # ============================================================================
 # Monitoring & Logging
 # ============================================================================
-structlog>=25.4.0
-sentry-sdk[fastapi]>=2.41.0
+structlog>=24.1.0
+sentry-sdk[fastapi]>=2.0.0
 
 # ============================================================================
 # Utilities
 # ============================================================================
-psutil>=7.1.0
-websockets>=15.0.1
-pyyaml>=6.0.3
-rich>=14.2.0
-tqdm>=4.67.1
-pandas>=2.3.3
-numpy>=2.3.3
+psutil>=5.9.0
+websockets>=12.0
+pyyaml>=6.0
+rich>=13.0.0
+tqdm>=4.65.0
+pandas>=2.0.0,<3.0.0
+numpy>=1.19.0,<2.0.0
 
 # ============================================================================
 # Testing
 # ============================================================================
-pytest>=8.4.2
-pytest-asyncio>=1.2.0
-pytest-cov>=7.0.0
-pytest-xdist>=3.8.0
-pytest-timeout>=2.4.0
-hypothesis>=6.140.3
-pytest-env>=1.2.0
-httpx>=0.28.1
-respx>=0.22.0
-anyio>=4.11.0
-trio>=0.31.0
-freezegun>=1.5.5
-responses>=0.25.8
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-cov>=4.1.0
+pytest-xdist>=3.5.0
+pytest-timeout>=2.2.0
+hypothesis>=6.92.0
+pytest-env>=1.1.0
+httpx>=0.26.0
+respx>=0.20.0
+anyio>=4.0.0
+trio>=0.23.0
+freezegun>=1.4.0
+responses>=0.24.0
 
 # ============================================================================
 # Code Quality & Security
 # ============================================================================
-pre-commit>=4.3.0
-ruff>=0.14.0
-mypy>=1.18.2
-bandit[toml]>=1.8.6
-detect-secrets>=1.5.0
-radon>=6.0.1
+pre-commit>=3.5.0
+ruff>=0.1.0
+mypy>=1.7.0
+bandit[toml]>=1.7.0
+detect-secrets>=1.4.0
+radon>=6.0.0
 wily>=1.25.0
-lizard>=1.18.0
+lizard>=1.17.0
 
 # ============================================================================
 # Type Stubs
 # ============================================================================
-types-requests>=2.32.4
+types-requests>=2.31.0
 types-PyYAML>=6.0.12
-sqlalchemy[mypy]>=2.0.44
+sqlalchemy[mypy]>=2.0.0
