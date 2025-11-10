@@ -42,6 +42,14 @@ jobs:
           install-extras: "diff-cover"
           cache-key: ${{ matrix.test-group }}
 
+      - name: Upload pip install log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-install-log-${{ matrix.test-group }}
+          path: src/backend/pip-install.log
+          retention-days: 7
+
       - name: Run pytest (${{ matrix.test-group }})
         working-directory: src/backend
         run: |

@@ -70,6 +70,14 @@ jobs:
           requirements-file: requirements.txt
           cache-key: fast-tests
 
+      - name: Upload pip install log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-install-log-fast-tests
+          path: src/backend/pip-install.log
+          retention-days: 7
+
       - name: Run fast unit tests
         working-directory: src/backend
         run: |

@@ -64,7 +64,9 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       run: |
         if [ -f "${{ inputs.requirements-file }}" ]; then
-          pip install -r ${{ inputs.requirements-file }}
+          echo "Installing dependencies from ${{ inputs.requirements-file }}..."
+          pip install -r ${{ inputs.requirements-file }} 2>&1 | tee pip-install.log
+          echo "Installation complete. Log saved to pip-install.log"
         else
           echo "Requirements file ${{ inputs.requirements-file }} not found, skipping..."
         fi
