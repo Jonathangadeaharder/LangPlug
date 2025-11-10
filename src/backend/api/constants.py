@@ -8,26 +8,31 @@ These constants provide semantic meaning to numeric values used throughout the A
 # Pagination & Limits
 # ============================================================================
 
+# Shared pagination defaults
+DEFAULT_LIMIT = 20
+MAX_LIMIT = 100
+MIN_LIMIT = 1
+
 # Default number of items to return in paginated lists
-DEFAULT_PAGE_LIMIT = 20
+DEFAULT_PAGE_LIMIT = DEFAULT_LIMIT
 
 # Maximum number of items that can be requested in a single query
-MAX_PAGE_LIMIT = 100
+MAX_PAGE_LIMIT = MAX_LIMIT
 
 # Minimum number of items that can be requested
-MIN_PAGE_LIMIT = 1
+MIN_PAGE_LIMIT = MIN_LIMIT
 
 # Default vocabulary query limit
-DEFAULT_VOCABULARY_LIMIT = 20
+DEFAULT_VOCABULARY_LIMIT = DEFAULT_LIMIT
 
 # Maximum vocabulary items per request
-MAX_VOCABULARY_LIMIT = 100
+MAX_VOCABULARY_LIMIT = MAX_LIMIT
 
 # Default search results limit
-DEFAULT_SEARCH_LIMIT = 20
+DEFAULT_SEARCH_LIMIT = DEFAULT_LIMIT
 
 # Maximum search results per request
-MAX_SEARCH_LIMIT = 100
+MAX_SEARCH_LIMIT = MAX_LIMIT
 
 # ============================================================================
 # Timeout Values (seconds)
@@ -136,20 +141,4 @@ WEBSOCKET_HEARTBEAT_INTERVAL = 30
 # WebSocket ping timeout (seconds)
 WEBSOCKET_PING_TIMEOUT = 60
 
-# ============================================================================
-# HTTP Status Codes (semantic aliases)
-# ============================================================================
 
-# While FastAPI's status module provides these, these aliases add semantic meaning
-# in domain-specific contexts
-
-HTTP_SUCCESS = 200
-HTTP_CREATED = 201
-HTTP_NO_CONTENT = 204
-HTTP_BAD_REQUEST = 400
-HTTP_UNAUTHORIZED = 401
-HTTP_FORBIDDEN = 403
-HTTP_NOT_FOUND = 404
-HTTP_CONFLICT = 409
-HTTP_UNPROCESSABLE_ENTITY = 422
-HTTP_SERVER_ERROR = 500
