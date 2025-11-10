@@ -11,13 +11,11 @@ from api.constants import (
     MAX_VOCABULARY_LIMIT,
     MIN_SEARCH_LENGTH,
     MAX_SEARCH_LENGTH,
-    MAX_BLOCKING_WORDS_LIMIT,
 )
 from api.error_handlers import (
     handle_api_errors,
     raise_not_found,
     raise_validation_error,
-    raise_bad_request,
 )
 from core.config import settings
 from core.database import get_async_session
@@ -34,7 +32,7 @@ class MarkKnownRequest(BaseModel):
     """Request to mark a word as known by lemma"""
 
     lemma: str = Field(..., min_length=1, max_length=200, description="The word lemma (base form)")
-    language: str = Field("de", description="Language code")
+    language: str = Field(..., pattern=r"^[a-z]{2,3}$", description="Language code (required, e.g. 'de', 'en')")
     known: bool = Field(..., description="Whether to mark as known")
 
 
@@ -175,14 +173,16 @@ async def mark_word_known(
         db=db,
     )
 
-    return {
+    response = {
         "success": result.get("success", True),
         "known": request.known,
         "word": result.get("word"),
         "lemma": result.get("lemma"),
         "level": result.get("level"),
-        "message": result.get("message"),
     }
+    if result.get("message") is not None:
+        response["message"] = result["message"]
+    return response
 
 
 @router.get("/stats", name="get_vocabulary_stats")

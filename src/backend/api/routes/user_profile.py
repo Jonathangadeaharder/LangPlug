@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.constants import DEFAULT_CHUNK_DURATION_MINUTES
 from core.config import settings
 from core.database import get_async_session
 from core.dependencies import current_active_user
@@ -121,7 +122,7 @@ async def get_profile(current_user: User = Depends(current_active_user)):
         user_id = str(current_user.id)
 
         # Get chunk_duration_minutes from current_user object
-        chunk_duration = getattr(current_user, "chunk_duration_minutes", 20)
+        chunk_duration = getattr(current_user, "chunk_duration_minutes", DEFAULT_CHUNK_DURATION_MINUTES)
 
         native_code, target_code = load_language_preferences(user_id)
         runtime = resolve_language_runtime_settings(native_code, target_code)

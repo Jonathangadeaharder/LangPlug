@@ -41,7 +41,7 @@ class Server:
                 s.settimeout(1)
                 result = s.connect_ex(('localhost', self.port))
                 return result == 0
-        except (OSError, socket.error) as e:
+        except (OSError, socket.error):
             # Socket operations failed - assume port not in use
             return False
 
@@ -63,7 +63,7 @@ class Server:
             else:
                 response = requests.get(self.health_url, timeout=5)
                 return response.status_code == 200
-        except (requests.RequestException, ConnectionError, TimeoutError) as e:
+        except (requests.RequestException, ConnectionError, TimeoutError):
             # Network/HTTP errors - server not healthy
             return False
 
@@ -73,7 +73,7 @@ class Server:
             return False
         try:
             return psutil.pid_exists(self.pid)
-        except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
             # Process doesn't exist or we can't access it
             return False
 
@@ -93,6 +93,6 @@ class Server:
                 "create_time": datetime.fromtimestamp(proc.create_time()).isoformat(),
                 "num_threads": proc.num_threads()
             }
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) as e:
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             # Process not accessible or in invalid state
             return {}
