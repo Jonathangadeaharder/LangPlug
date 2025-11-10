@@ -180,7 +180,7 @@ async def mark_word_known(
         "lemma": result.get("lemma"),
         "level": result.get("level"),
     }
-    if result.get("message") is not None:
+    if result.get("message"):
         response["message"] = result["message"]
     return response
 

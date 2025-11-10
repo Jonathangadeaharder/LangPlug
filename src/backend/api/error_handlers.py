@@ -4,6 +4,7 @@ Standardized error handling utilities for API routes.
 This module provides decorators and helpers to eliminate repetitive error handling code.
 """
 
+import inspect
 import logging
 from functools import wraps
 from typing import Any, Callable, Optional
@@ -82,7 +83,6 @@ def handle_api_errors(
                 ) from e
 
         # Return appropriate wrapper based on whether function is async
-        import inspect
         return async_wrapper if inspect.iscoroutinefunction(func) else sync_wrapper
 
     return decorator
