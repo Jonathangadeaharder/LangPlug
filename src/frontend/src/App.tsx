@@ -1,5 +1,7 @@
 import React, { useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Toaster } from 'react-hot-toast'
 import { ThemeProvider } from 'styled-components'
 import { GlobalStyle } from '@/styles/GlobalStyles'
@@ -10,6 +12,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Loading } from '@/components/ui/Loading'
 import { BackendReadinessCheck } from '@/components/BackendReadinessCheck'
 import { setupAuthInterceptors } from '@/services/auth-interceptor'
+import { queryClient } from '@/lib/queryClient'
 
 // Lazy load route components for code splitting
 const LandingPage = lazy(() =>
@@ -117,43 +120,47 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <ThemeProvider theme={lightTheme}>
-        <GlobalStyle />
-        <BackendReadinessCheck>
-          <Router
-            future={{
-              v7_startTransition: true,
-              v7_relativeSplatPath: true,
-            }}
-          >
-            <AppRoutes />
-          </Router>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={lightTheme}>
+          <GlobalStyle />
+          <BackendReadinessCheck>
+            <Router
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
+              <AppRoutes />
+            </Router>
 
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-                fontFamily: 'Helvetica Neue, Arial, sans-serif',
-              },
-              success: {
-                iconTheme: {
-                  primary: '#46d369',
-                  secondary: '#fff',
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
+                  fontFamily: 'Helvetica Neue, Arial, sans-serif',
                 },
-              },
-              error: {
-                iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#fff',
+                success: {
+                  iconTheme: {
+                    primary: '#46d369',
+                    secondary: '#fff',
+                  },
                 },
-              },
-            }}
-          />
-        </BackendReadinessCheck>
-      </ThemeProvider>
+                error: {
+                  iconTheme: {
+                    primary: '#ef4444',
+                    secondary: '#fff',
+                  },
+                },
+              }}
+            />
+          </BackendReadinessCheck>
+        </ThemeProvider>
+        {/* React Query Devtools - only in development */}
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      </QueryClientProvider>
     </ErrorBoundary>
   )
 }
