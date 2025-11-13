@@ -1,0 +1,48 @@
+
+> langplug-frontend@1.0.0 lint
+> eslint src --max-warnings 0
+
+
+/home/runner/work/IdeaProjects/IdeaProjects/src/frontend/src/client/core/ApiRequestOptions.ts
+  2:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  5:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/IdeaProjects/IdeaProjects/src/frontend/src/client/core/ApiResult.ts
+  1:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/IdeaProjects/IdeaProjects/src/frontend/src/client/core/request.ts
+   19:31  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+   35:3   error    Do not use "@ts-ignore" because it alters compilation errors               @typescript-eslint/ban-ts-comment
+   74:22  error    Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+  122:3   error    Do not use "@ts-ignore" because it alters compilation errors               @typescript-eslint/ban-ts-comment
+  124:3   error    Do not use "@ts-ignore" because it alters compilation errors               @typescript-eslint/ban-ts-comment
+  126:3   error    Do not use "@ts-ignore" because it alters compilation errors               @typescript-eslint/ban-ts-comment
+  128:3   error    Do not use "@ts-ignore" because it alters compilation errors               @typescript-eslint/ban-ts-comment
+
+/home/runner/work/IdeaProjects/IdeaProjects/src/frontend/src/components/VocabularyLibrary.tsx
+   826:33  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  1445:17  error    The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/home/runner/work/IdeaProjects/IdeaProjects/src/frontend/src/components/examples/VocabularyStatsCard.example.tsx
+  18:15  error  'VocabularyStats' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/IdeaProjects/IdeaProjects/src/frontend/src/components/ui/Card.tsx
+  3:23  error  'HTMLMotionProps' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/IdeaProjects/IdeaProjects/src/frontend/src/hooks/queries/useAuth.ts
+  22:3  error  Type boolean trivially inferred from a boolean literal, remove type annotation  @typescript-eslint/no-inferrable-types
+
+/home/runner/work/IdeaProjects/IdeaProjects/src/frontend/src/hooks/queries/useVocabulary.ts
+   19:3   error  Type string trivially inferred from a string literal, remove type annotation  @typescript-eslint/no-inferrable-types
+   41:3   error  Type string trivially inferred from a string literal, remove type annotation  @typescript-eslint/no-inferrable-types
+   42:3   error  Type number trivially inferred from a number literal, remove type annotation  @typescript-eslint/no-inferrable-types
+   67:3   error  Type string trivially inferred from a string literal, remove type annotation  @typescript-eslint/no-inferrable-types
+   69:3   error  Type number trivially inferred from a number literal, remove type annotation  @typescript-eslint/no-inferrable-types
+   88:3   error  Type string trivially inferred from a string literal, remove type annotation  @typescript-eslint/no-inferrable-types
+  107:3   error  Type string trivially inferred from a string literal, remove type annotation  @typescript-eslint/no-inferrable-types
+  130:55  error  Type string trivially inferred from a string literal, remove type annotation  @typescript-eslint/no-inferrable-types
+  149:54  error  Type string trivially inferred from a string literal, remove type annotation  @typescript-eslint/no-inferrable-types
+
+✖ 24 problems (19 errors, 5 warnings)
+  10 errors and 0 warnings potentially fixable with the `--fix` option.
+

@@ -1,0 +1,117 @@
+warning: The following rules have been removed and ignoring them has no effect:
+    - UP038
+
+UP035 [*] Import from `collections.abc` instead: `Callable`
+  --> api/error_handlers.py:10:1
+   |
+ 8 | import logging
+ 9 | from functools import wraps
+10 | from typing import Any, Callable, Optional
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+11 |
+12 | from fastapi import HTTPException, status
+   |
+help: Import from `collections.abc`
+
+UP045 [*] Use `X | None` for type annotations
+  --> api/error_handlers.py:91:48
+   |
+91 | def raise_not_found(resource: str, identifier: Optional[str] = None) -> None:
+   |                                                ^^^^^^^^^^^^^
+92 |     """
+93 |     Raise a standardized 404 HTTPException.
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> api/error_handlers.py:111:49
+    |
+111 | def raise_validation_error(message: str, field: Optional[str] = None) -> None:
+    |                                                 ^^^^^^^^^^^^^
+112 |     """
+113 |     Raise a standardized 422 validation error.
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> api/error_handlers.py:168:61
+    |
+168 | def raise_conflict(resource: str, identifier: str, message: Optional[str] = None) -> None:
+    |                                                             ^^^^^^^^^^^^^
+169 |     """
+170 |     Raise a standardized 409 conflict error.
+    |
+help: Convert to `X | None`
+
+F401 [*] `fastapi.HTTPException` imported but unused
+  --> api/routes/videos.py:9:47
+   |
+ 7 | from typing import Any
+ 8 |
+ 9 | from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+   |                                               ^^^^^^^^^^^^^
+10 | from fastapi.responses import FileResponse
+11 | from pydantic import BaseModel
+   |
+help: Remove unused import: `fastapi.HTTPException`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> api/routes/vocabulary.py:3:1
+   |
+ 1 |   """Vocabulary management API routes - Clean lemma-based implementation"""
+ 2 |
+ 3 | / import logging
+ 4 | |
+ 5 | | from fastapi import APIRouter, Depends, HTTPException, Query
+ 6 | | from pydantic import BaseModel, Field
+ 7 | | from sqlalchemy.ext.asyncio import AsyncSession
+ 8 | |
+ 9 | | from api.constants import (
+10 | |     DEFAULT_VOCABULARY_LIMIT,
+11 | |     MAX_VOCABULARY_LIMIT,
+12 | |     MIN_SEARCH_LENGTH,
+13 | |     MAX_SEARCH_LENGTH,
+14 | | )
+15 | | from api.error_handlers import (
+16 | |     handle_api_errors,
+17 | |     raise_not_found,
+18 | |     raise_validation_error,
+19 | | )
+20 | | from core.config import settings
+21 | | from core.database import get_async_session
+22 | | from core.dependencies import current_active_user
+23 | | from core.enums import CEFRLevel
+24 | | from core.service_dependencies import get_vocabulary_service
+25 | | from database.models import User
+   | |________________________________^
+26 |
+27 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+F401 [*] `fastapi.HTTPException` imported but unused
+ --> api/routes/vocabulary.py:5:41
+  |
+3 | import logging
+4 |
+5 | from fastapi import APIRouter, Depends, HTTPException, Query
+  |                                         ^^^^^^^^^^^^^
+6 | from pydantic import BaseModel, Field
+7 | from sqlalchemy.ext.asyncio import AsyncSession
+  |
+help: Remove unused import: `fastapi.HTTPException`
+
+F401 [*] `uuid.uuid4` imported but unused
+ --> tests/api/test_vocabulary_routes.py:5:18
+  |
+3 | from __future__ import annotations
+4 |
+5 | from uuid import uuid4
+  |                  ^^^^^
+6 |
+7 | import pytest
+  |
+help: Remove unused import: `uuid.uuid4`
+
+Found 8 errors.
+[*] 8 fixable with the `--fix` option.
