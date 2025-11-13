@@ -1,5 +1,17 @@
 /**
  * Vocabulary store with improved caching and state management
+ *
+ * @deprecated This store is being phased out in favor of React Query hooks.
+ * For new components, please use:
+ * - useWordsByLevel() - Fetch words by level
+ * - useSearchWords() - Search words
+ * - useUserProgress() - Get user progress
+ * - useVocabularyStats() - Get statistics
+ * - useMarkWord() - Mark words as known/unknown
+ * - useVocabularyUIStore - For UI state (currentLevel, searchQuery, etc.)
+ *
+ * See: docs/guides/REACT_QUERY_MIGRATION.md
+ * See: docs/guides/PHASE3_COMPONENT_MIGRATION_EXAMPLES.md
  */
 import { create } from 'zustand'
 import { subscribeWithSelector, devtools } from 'zustand/middleware'

@@ -1,3 +1,13 @@
+/**
+ * @deprecated This store is being phased out in favor of React Query hooks.
+ * For new components, please use:
+ * - useBlockingWords() - Fetch blocking words for video
+ * - useMarkWord() - Mark words as known/unknown
+ * - useGameUIStore - For UI state (currentWordIndex, showSubtitles, etc.)
+ *
+ * See: docs/guides/REACT_QUERY_MIGRATION.md
+ * See: docs/guides/PHASE3_COMPONENT_MIGRATION_EXAMPLES.md
+ */
 import { create } from 'zustand'
 import type { GameSession, VocabularyWord } from '@/types'
 import {

@@ -3,6 +3,9 @@
  * Makes imports cleaner: import { useWordsByLevel, useMarkWord } from '@/hooks'
  */
 
+// Types
+export * from './types'
+
 // Vocabulary queries
 export {
   useWordsByLevel,
