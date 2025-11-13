@@ -1,0 +1,136 @@
+name: CI with Log Amendment
+
+on:
+  push:
+    branches:
+      - 'claude/**'
+
+jobs:
+  ci-and-log:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'src/frontend/package-lock.json'
+
+      - name: Install Backend Dependencies
+        id: backend-install
+        working-directory: src/backend
+        continue-on-error: true
+        run: |
+          python -m venv api_venv
+          source api_venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt 2>&1 | tee ../../ci-logs/backend-install.log
+        shell: bash
+
+      - name: Install Frontend Dependencies
+        id: frontend-install
+        working-directory: src/frontend
+        continue-on-error: true
+        run: |
+          npm ci 2>&1 | tee ../../ci-logs/frontend-install.log
+
+      - name: Backend Lint
+        id: backend-lint
+        working-directory: src/backend
+        continue-on-error: true
+        run: |
+          source api_venv/bin/activate
+          python -m ruff check . 2>&1 | tee ../../ci-logs/backend-lint.log
+
+      - name: Frontend Build
+        id: frontend-build
+        working-directory: src/frontend
+        continue-on-error: true
+        run: |
+          npm run build 2>&1 | tee ../../ci-logs/frontend-build.log
+
+      - name: Frontend Lint
+        id: frontend-lint
+        working-directory: src/frontend
+        continue-on-error: true
+        run: |
+          npm run lint 2>&1 | tee ../../ci-logs/frontend-lint.log
+
+      - name: Create CI Summary
+        run: |
+          mkdir -p ci-logs
+          cat > ci-logs/CI_SUMMARY.md << 'EOF'
+          # CI Execution Summary
+
+          **Commit**: ${{ github.sha }}
+          **Branch**: ${{ github.ref_name }}
+          **Timestamp**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+          ## Results
+
+          | Step | Status |
+          |------|--------|
+          | Backend Install | ${{ steps.backend-install.outcome }} |
+          | Frontend Install | ${{ steps.frontend-install.outcome }} |
+          | Backend Lint | ${{ steps.backend-lint.outcome }} |
+          | Frontend Build | ${{ steps.frontend-build.outcome }} |
+          | Frontend Lint | ${{ steps.frontend-lint.outcome }} |
+
+          ## Detailed Logs
+
+          See individual log files in `ci-logs/` directory for full output.
+
+          ---
+
+          **Overall Status**: ${{ job.status }}
+          EOF
+
+      - name: Check if logs were created
+        id: check-logs
+        run: |
+          if [ -d "ci-logs" ] && [ "$(ls -A ci-logs)" ]; then
+            echo "has_logs=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_logs=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Amend commit with CI logs
+        if: steps.check-logs.outputs.has_logs == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add CI logs to staging
+          git add ci-logs/
+
+          # Amend the last commit to include logs
+          git commit --amend --no-edit
+
+          # Force push (safe because it's a feature branch)
+          git push --force-with-lease origin ${{ github.ref_name }}
+
+      - name: Fail if any step failed
+        if: |
+          steps.backend-install.outcome == 'failure' ||
+          steps.frontend-install.outcome == 'failure' ||
+          steps.backend-lint.outcome == 'failure' ||
+          steps.frontend-build.outcome == 'failure' ||
+          steps.frontend-lint.outcome == 'failure'
+        run: |
+          echo "::error::One or more CI steps failed. Check ci-logs/ directory in the amended commit."
+          exit 1
