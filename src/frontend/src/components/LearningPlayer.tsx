@@ -16,7 +16,7 @@ import { NetflixButton } from '@/styles/GlobalStyles'
 import { VocabularyGame } from './VocabularyGame'
 import { buildVideoStreamUrl, handleApiError } from '@/services/api'
 import { getBlockingWordsApiVocabularyBlockingWordsGet } from '@/client/services.gen'
-import { useGameStore } from '@/store/useGameStore'
+import { useMarkWord } from '@/hooks'
 import { logger } from '@/services/logger'
 import type { VideoInfo, VocabularyWord } from '@/types'
 
@@ -310,11 +310,9 @@ export const LearningPlayer: React.FC = () => {
   >([])
   const [currentTranslatedSubtitle, setCurrentTranslatedSubtitle] = useState('')
 
-  const {
-    showSubtitles: _showSubtitles,
-    toggleSubtitles: _toggleSubtitles,
-    markWordKnown,
-  } = useGameStore()
+  // React Query mutation for marking words
+  const markWordMutation = useMarkWord()
+
   const playerRef = useRef<ReactPlayer>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout>()
 
@@ -423,7 +421,30 @@ export const LearningPlayer: React.FC = () => {
   }
 
   const handleWordAnswered = async (word: string, known: boolean) => {
-    await markWordKnown(word, known)
+    // Find the word in segmentWords to get its concept_id
+    const targetWord = segmentWords.find(w => w.word === word)
+    if (!targetWord || !targetWord.concept_id) {
+      toast.error('Cannot mark word: missing word ID')
+      return
+    }
+
+    // Ensure concept_id is a number
+    const vocabularyId =
+      typeof targetWord.concept_id === 'number'
+        ? targetWord.concept_id
+        : parseInt(String(targetWord.concept_id), 10)
+
+    if (isNaN(vocabularyId)) {
+      toast.error('Invalid word ID')
+      return
+    }
+
+    // Use React Query mutation to mark the word
+    await markWordMutation.mutateAsync({
+      vocabularyId,
+      isKnown: known,
+      language: 'de',
+    })
   }
 
   const handleSkipVocabulary = () => {

@@ -5,7 +5,7 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 import { getBlockingWordsApiVocabularyBlockingWordsGet } from '@/client/services.gen'
 import { queryKeys } from '@/config/queryClient'
-import type { VocabularyWord } from '@/store/useVocabularyStore'
+import type { VocabularyWord } from '../types'
 
 /**
  * Fetch blocking words for a video

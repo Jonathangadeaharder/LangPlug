@@ -11,9 +11,7 @@ import { Toaster } from 'react-hot-toast'
 import userEvent from '@testing-library/user-event'
 
 import { useAppStore } from '@/store/useAppStore'
-import { useVocabularyStore } from '@/store/useVocabularyStore'
 import { useAuthStore } from '@/store/useAuthStore'
-import { useGameStore } from '@/store/useGameStore'
 import ErrorBoundary from '@/components/common/ErrorBoundary'
 
 // Mock API client for testing
@@ -119,18 +117,10 @@ interface TestWrapperProps {
     user?: any
     token?: string
   }
-  initialVocabulary?: any
   initialApp?: any
-  initialGame?: any
 }
 
-const TestWrapper: React.FC<TestWrapperProps> = ({
-  children,
-  initialAuth,
-  initialVocabulary,
-  initialApp,
-  initialGame,
-}) => {
+const TestWrapper: React.FC<TestWrapperProps> = ({ children, initialAuth, initialApp }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -151,15 +141,6 @@ const TestWrapper: React.FC<TestWrapperProps> = ({
       }
     }
 
-    if (initialVocabulary) {
-      const vocabStore = useVocabularyStore.getState() as any
-      Object.keys(initialVocabulary).forEach(key => {
-        if (typeof vocabStore[key] === 'function') {
-          vocabStore[key](initialVocabulary[key])
-        }
-      })
-    }
-
     if (initialApp) {
       const appStore = useAppStore.getState() as any
       Object.keys(initialApp).forEach(key => {
@@ -168,16 +149,7 @@ const TestWrapper: React.FC<TestWrapperProps> = ({
         }
       })
     }
-
-    if (initialGame) {
-      const gameStore = useGameStore.getState() as any
-      Object.keys(initialGame).forEach(key => {
-        if (typeof gameStore[key] === 'function') {
-          gameStore[key](initialGame[key])
-        }
-      })
-    }
-  }, [initialAuth, initialVocabulary, initialApp, initialGame])
+  }, [initialAuth, initialApp])
 
   return (
     <ErrorBoundary>
@@ -315,9 +287,7 @@ export const mockApiError = (apiClient: any, status = 500, message = 'Server err
 // Store reset utilities
 export const resetAllStores = () => {
   useAppStore.getState().reset()
-  useVocabularyStore.getState().reset()
   useAuthStore.getState().reset()
-  useGameStore.getState().reset()
 }
 
 // Custom matchers for testing

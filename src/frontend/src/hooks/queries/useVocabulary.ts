@@ -5,7 +5,7 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 import { api } from '@/services/api-client'
 import { queryKeys } from '@/config/queryClient'
-import type { VocabularyWord, UserVocabularyProgress, VocabularyStats } from '@/store/useVocabularyStore'
+import type { VocabularyWord, UserVocabularyProgress, VocabularyStats } from '../types'
 
 // ========== Queries ==========
 

@@ -1,14 +1,47 @@
 /**
  * Type exports for vocabulary hooks
- * Re-export types to make migration easier
+ * Centralized type definitions for React Query hooks
  */
 
-// Re-export types from store for convenience
-export type {
-  VocabularyWord,
-  UserVocabularyProgress,
-  VocabularyStats,
-} from '@/store/useVocabularyStore'
+// Core vocabulary types (moved from deprecated useVocabularyStore)
+export interface VocabularyWord {
+  id: number
+  word: string
+  lemma: string
+  language: string
+  difficulty_level: string
+  part_of_speech?: string
+  gender?: string
+  translation_en?: string
+  translation_native?: string
+  pronunciation?: string
+  notes?: string
+  frequency_rank?: number
+  created_at: string
+  updated_at: string
+}
+
+export interface UserVocabularyProgress {
+  id: number
+  user_id: number
+  vocabulary_id: number
+  lemma: string
+  language: string
+  is_known: boolean
+  confidence_level: number
+  review_count: number
+  first_seen_at: string
+  last_reviewed_at?: string
+  vocabulary?: VocabularyWord
+}
+
+export interface VocabularyStats {
+  total_reviewed: number
+  known_words: number
+  unknown_words: number
+  percentage_known: number
+  level_breakdown?: Record<string, number>
+}
 
 // Hook option types
 export interface UseWordsByLevelOptions {
