@@ -78,6 +78,22 @@ Available targets:
 - `quality` - Run all quality checks
 - `format` - Ruff formatting
 
+**Important - Virtual Environment:**
+Backend commands assume the Python virtual environment is already activated. Before running any backend Nx tasks, activate the venv:
+
+```bash
+# Windows (PowerShell)
+. src/backend/api_venv/Scripts/activate
+
+# macOS/Linux
+source src/backend/api_venv/bin/activate
+
+# Then run Nx commands
+npx nx test backend
+```
+
+This approach ensures cross-platform compatibility - the same commands work on Windows, macOS, and Linux without modification.
+
 ## Caching
 
 Nx caches task outputs to avoid redundant work:

@@ -7,7 +7,7 @@
     "test": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "powershell.exe -Command \". api_venv/Scripts/activate; python -m pytest tests/ -v\"",
+        "command": "python -m pytest tests/ -v",
         "cwd": "src/backend"
       },
       "cache": true
@@ -15,7 +15,7 @@
     "test:unit": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "powershell.exe -Command \". api_venv/Scripts/activate; python -m pytest tests/unit/ -v\"",
+        "command": "python -m pytest tests/unit/ -v",
         "cwd": "src/backend"
       },
       "cache": true
@@ -23,7 +23,7 @@
     "test:integration": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "powershell.exe -Command \". api_venv/Scripts/activate; python -m pytest tests/integration/ -v\"",
+        "command": "python -m pytest tests/integration/ -v",
         "cwd": "src/backend"
       },
       "cache": true
@@ -31,7 +31,7 @@
     "coverage": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "powershell.exe -Command \". api_venv/Scripts/activate; python -m pytest --cov=. --cov-report=html --cov-report=term\"",
+        "command": "python -m pytest --cov=. --cov-report=html --cov-report=term",
         "cwd": "src/backend"
       },
       "cache": true
@@ -39,7 +39,7 @@
     "lint": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "powershell.exe -Command \". api_venv/Scripts/activate; python -m ruff check .\"",
+        "command": "python -m ruff check .",
         "cwd": "src/backend"
       },
       "cache": true
@@ -47,14 +47,14 @@
     "lint:fix": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "powershell.exe -Command \". api_venv/Scripts/activate; python -m ruff check . --fix\"",
+        "command": "python -m ruff check . --fix",
         "cwd": "src/backend"
       }
     },
     "typecheck": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "powershell.exe -Command \". api_venv/Scripts/activate; python -m mypy .\"",
+        "command": "python -m mypy .",
         "cwd": "src/backend"
       },
       "cache": true
@@ -62,14 +62,14 @@
     "format": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "powershell.exe -Command \". api_venv/Scripts/activate; python -m ruff format .\"",
+        "command": "python -m ruff format .",
         "cwd": "src/backend"
       }
     },
     "format:check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "powershell.exe -Command \". api_venv/Scripts/activate; python -m ruff format . --check\"",
+        "command": "python -m ruff format . --check",
         "cwd": "src/backend"
       },
       "cache": true
@@ -77,7 +77,7 @@
     "quality": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "powershell.exe -Command \". api_venv/Scripts/activate; python -m ruff check . && python -m mypy .\"",
+        "command": "python -m ruff check . && python -m mypy .",
         "cwd": "src/backend"
       },
       "dependsOn": ["lint", "typecheck"],

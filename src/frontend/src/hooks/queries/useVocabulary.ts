@@ -123,21 +123,41 @@ export const useVocabularyStats = (
 
 /**
  * Get progress for a specific word
+ * Uses memoized selector to prevent unnecessary re-renders
  * @param vocabularyId - Word ID
  * @param language - Language code (default: 'de')
  */
 export const useWordProgress = (vocabularyId: number, language: string = 'de') => {
-  const { data: allProgress } = useUserProgress(language)
-
-  return allProgress?.find(p => p.vocabulary_id === vocabularyId) || null
+  return useQuery({
+    queryKey: queryKeys.progress.list(language),
+    queryFn: async () => {
+      const response = await api.vocabulary.getProgress(language)
+      return response.data as UserVocabularyProgress[]
+    },
+    // Use select to memoize - only re-render when this specific word's progress changes
+    select: (allProgress) => allProgress.find(p => p.vocabulary_id === vocabularyId) || null,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
 }
 
 /**
  * Check if a word is known by the user
+ * Uses memoized selector to prevent unnecessary re-renders
  * @param vocabularyId - Word ID
  * @param language - Language code (default: 'de')
  */
-export const useIsWordKnown = (vocabularyId: number, language: string = 'de'): boolean => {
-  const progress = useWordProgress(vocabularyId, language)
-  return progress?.is_known || false
+export const useIsWordKnown = (vocabularyId: number, language: string = 'de') => {
+  return useQuery({
+    queryKey: queryKeys.progress.list(language),
+    queryFn: async () => {
+      const response = await api.vocabulary.getProgress(language)
+      return response.data as UserVocabularyProgress[]
+    },
+    // Use select to memoize - only re-render when this specific word's known status changes
+    select: (allProgress) => {
+      const progress = allProgress.find(p => p.vocabulary_id === vocabularyId)
+      return progress?.is_known || false
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
 }

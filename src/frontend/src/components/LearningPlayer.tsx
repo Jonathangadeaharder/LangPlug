@@ -421,27 +421,16 @@ export const LearningPlayer: React.FC = () => {
   }
 
   const handleWordAnswered = async (word: string, known: boolean) => {
-    // Find the word in segmentWords to get its concept_id
+    // Find the word in segmentWords to get its id
     const targetWord = segmentWords.find(w => w.word === word)
-    if (!targetWord || !targetWord.concept_id) {
+    if (!targetWord || !targetWord.id) {
       toast.error('Cannot mark word: missing word ID')
-      return
-    }
-
-    // Ensure concept_id is a number
-    const vocabularyId =
-      typeof targetWord.concept_id === 'number'
-        ? targetWord.concept_id
-        : parseInt(String(targetWord.concept_id), 10)
-
-    if (isNaN(vocabularyId)) {
-      toast.error('Invalid word ID')
       return
     }
 
     // Use React Query mutation to mark the word
     await markWordMutation.mutateAsync({
-      vocabularyId,
+      vocabularyId: targetWord.id,
       isKnown: known,
       language: 'de',
     })
