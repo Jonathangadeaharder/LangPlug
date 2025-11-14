@@ -9,111 +9,412 @@ timeout: 30.0s
 timeout method: thread
 timeout func_only: False
 asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
-collecting ... collected 1136 items / 3 errors
+collecting ... collected 1127 items
 
-==================================== ERRORS ====================================
-_______ ERROR collecting tests/manual/performance/test_server_startup.py _______
-api_venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:762: in _patched_collect
-    return collector.__original_collect()
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/_pytest/python.py:557: in collect
-    return super().collect()
-           ^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/_pytest/python.py:423: in collect
-    res = ihook.pytest_pycollect_makeitem(
-api_venv/lib/python3.11/site-packages/pluggy/_hooks.py:512: in __call__
-    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/pluggy/_manager.py:120: in _hookexec
-    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/pluggy/_callers.py:53: in run_old_style_hookwrapper
-    return result.get_result()
-           ^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:647: in pytest_pycollect_makeitem_convert_async_functions_to_subclass
-    ) = hook_result.get_result()
-        ^^^^^^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/pluggy/_callers.py:38: in run_old_style_hookwrapper
-    res = yield
-          ^^^^^
-api_venv/lib/python3.11/site-packages/_pytest/python.py:240: in pytest_pycollect_makeitem
-    return list(collector._genfunctions(name, obj))
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/_pytest/python.py:466: in _genfunctions
-    self.ihook.pytest_generate_tests.call_extra(methods, dict(metafunc=metafunc))
-api_venv/lib/python3.11/site-packages/pluggy/_hooks.py:573: in call_extra
-    return self._hookexec(self.name, hookimpls, kwargs, firstresult)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/pluggy/_manager.py:120: in _hookexec
-    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:827: in pytest_generate_tests
-    scope = _get_marked_loop_scope(marker, default_loop_scope)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:1136: in _get_marked_loop_scope
-    raise ValueError("mark.asyncio accepts only a keyword argument 'loop_scope'.")
-E   ValueError: mark.asyncio accepts only a keyword argument 'loop_scope'.
-____________ ERROR collecting tests/manual/smoke/test_e2e_simple.py ____________
-ImportError while importing test module '/home/runner/work/IdeaProjects/IdeaProjects/src/backend/tests/manual/smoke/test_e2e_simple.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-tests/manual/smoke/test_e2e_simple.py:22: in <module>
-    from playwright.async_api import TimeoutError as PlaywrightTimeout
-E   ModuleNotFoundError: No module named 'playwright'
+tests/api/test_auth_contract_improved.py::test_WhenRegisterRouteViaContractName_ThenSucceeds PASSED [  0%]
+tests/api/test_auth_contract_improved.py::test_Whenlogin_routeWithoutform_encoding_ThenReturnsError PASSED [  0%]
+tests/api/test_auth_contract_improved.py::test_WhenLoginroute_ThenReturnsbearer_contract PASSED [  0%]
+tests/api/test_auth_contract_improved.py::test_Whenlogout_routeWithouttoken_ThenReturnsError PASSED [  0%]
+tests/api/test_auth_endpoints.py::test_WhenRegisterCalled_ThenCreatesActiveUser PASSED [  0%]
+tests/api/test_auth_endpoints.py::test_WhenRegisterWithMissingEmail_ThenRejects PASSED [  0%]
+tests/api/test_auth_endpoints.py::test_WhenRegisterWithDuplicateUsername_ThenPrevents PASSED [  0%]
+tests/api/test_auth_endpoints.py::test_WhenLoginCalled_ThenReturnsBearerToken PASSED [  0%]
+tests/api/test_auth_endpoints.py::test_WhenLoginWithWrongPassword_ThenRejects PASSED [  0%]
+tests/api/test_auth_endpoints.py::test_WhenloginWithoutform_encoded_payload_ThenReturnsError PASSED [  0%]
+tests/api/test_auth_endpoints.py::test_WhenLogoutCalled_ThenRevokestoken PASSED [  0%]
+tests/api/test_auth_endpoints.py::test_WhenlogoutWithoutvalid_token_ThenReturnsError PASSED [  1%]
+tests/api/test_auth_endpoints.py::test_WhenmeCalled_ThenReturnscurrent_user_profile PASSED [  1%]
+tests/api/test_auth_endpoints.py::test_WhenmeWithoutauthentication_ThenReturnsError PASSED [  1%]
+tests/api/test_auth_error_paths.py::test_WhenRegisterMissingEmail_ThenReturnsvalidation_detail PASSED [  1%]
+tests/api/test_auth_error_paths.py::test_WhenLoginbad_credentials_ThenReturnscontract_error PASSED [  1%]
+tests/api/test_auth_error_paths.py::test_WhenLogoutwithout_token_ThenReturnsunauthorized PASSED [  1%]
+tests/api/test_auth_errors.py::test_WhenLoginWithjson_payload_ThenRejects PASSED [  1%]
+tests/api/test_auth_errors.py::test_WhenloginWithoutpassword_ThenReturnsError PASSED [  1%]
+tests/api/test_auth_errors.py::test_WhenloginWithoutusername_ThenReturnsError PASSED [  1%]
+tests/api/test_auth_simple.py::test_WhenRegisterCalled_ThenReturnsJsonResponse PASSED [  1%]
+tests/api/test_auth_simple.py::test_WhenLoginWithWrongPassword_ThenReturnsJsonError PASSED [  1%]
+tests/api/test_auth_simple.py::test_WhenMeEndpointCalled_ThenReturnsJsonForBothAuthStates PASSED [  2%]
+tests/api/test_debug_endpoint.py::test_WhenDebugFrontendLogsCalled_ThenSucceeds PASSED [  2%]
+tests/api/test_debug_endpoint.py::test_WhenDebugFrontendLogs_MissingLevelCalled_ThenSucceeds PASSED [  2%]
+tests/api/test_debug_endpoint.py::test_WhenDebughealthCalled_ThenSucceeds PASSED [  2%]
+tests/api/test_endpoints.py::test_WhenHealthEndpointCalled_ThenReportsstatus PASSED [  2%]
+tests/api/test_endpoints.py::test_Whenunknown_routeCalled_ThenReturnscontract_404 PASSED [  2%]
+tests/api/test_endpoints.py::test_WhenHealthEndpoint_Thenread_only PASSED [  2%]
+tests/api/test_game_routes.py::TestGameSessionManagement::test_WhenStartVocabularyGame_ThenReturnsActiveSession PASSED [  2%]
+tests/api/test_game_routes.py::TestGameSessionManagement::test_WhenStartGameWithVideo_ThenIncludesVideoId PASSED [  2%]
+tests/api/test_game_routes.py::TestGameSessionManagement::test_WhenStartGameWithInvalidType_ThenReturns422 PASSED [  2%]
+tests/api/test_game_routes.py::TestGameSessionManagement::test_WhenStartGameWithoutAuth_ThenReturns401 PASSED [  2%]
+tests/api/test_game_routes.py::TestGameSessionRetrieval::test_WhenGetValidSession_ThenReturnsSessionData PASSED [  3%]
+tests/api/test_game_routes.py::TestGameSessionRetrieval::test_WhenGetNonexistentSession_ThenReturns404 PASSED [  3%]
+tests/api/test_game_routes.py::TestGameSessionRetrieval::test_WhenGetSessionWithoutAuth_ThenReturns401 PASSED [  3%]
+tests/api/test_game_routes.py::TestGameAnswerSubmission::test_WhenSubmitCorrectAnswer_ThenUpdatesScoredAndProgress PASSED [  3%]
+tests/api/test_game_routes.py::TestGameAnswerSubmission::test_WhenSubmitIncorrectAnswer_ThenUpdatesProgressButNotScore PASSED [  3%]
+tests/api/test_game_routes.py::TestGameAnswerSubmission::test_WhenSubmitAnswerForInvalidSession_ThenReturns404 PASSED [  3%]
+tests/api/test_game_routes.py::TestGameAnswerSubmission::test_WhenCompleteAllQuestions_ThenSessionBecomesCompleted PASSED [  3%]
+tests/api/test_game_routes.py::TestUserGameSessions::test_WhenGetUserSessions_ThenReturnsAllUserSessions PASSED [  3%]
+tests/api/test_game_routes.py::TestUserGameSessions::test_WhenGetSessionsWithoutAuth_ThenReturns401 PASSED [  3%]
+tests/api/test_game_routes.py::TestUserGameSessions::test_WhenUserHasNoSessions_ThenReturnsEmptyList PASSED [  3%]
+tests/api/test_processing_negative.py::test_WhenFullPipelineMissingFields_ThenReturns422 PASSED [  3%]
+tests/api/test_processing_negative.py::test_WhentranscribeWithnon_video_extension_ThenRejects PASSED [  3%]
+tests/api/test_processing_negative.py::test_WhenFilterSubtitlesMissingFile_ThenReturns422 PASSED [  4%]
+tests/api/test_processing_routes.py::test_WhenChunkEndpointProcessesExistingVideo_ThenSucceeds PASSED [  4%]
+tests/api/test_processing_routes.py::test_Whenchunk_endpointWithoutvalid_window_ThenReturnsError PASSED [  4%]
+tests/api/test_processing_routes.py::test_Whenchunk_endpointWithoutexisting_file_ThenReturnsError PASSED [  4%]
+tests/api/test_processing_routes.py::test_WhenProcessChunkWithReprocessingFlag_ThenAcceptsRequest PASSED [  4%]
+tests/api/test_processing_routes.py::test_WhenProcessChunkWithoutReprocessingFlag_ThenDefaultsToFalse PASSED [  4%]
+tests/api/test_progress_tracker.py::test_WhenProgressUpdated_ThenSendsWebSocketMessage PASSED [  4%]
+tests/api/test_progress_tracker.py::test_WhenMultipleFieldsUpdated_ThenEachSendsWebSocketMessage PASSED [  4%]
+tests/api/test_progress_tracker.py::test_WhenNoEventLoop_ThenGracefullySkipsWebSocketUpdate PASSED [  4%]
+tests/api/test_progress_tracker.py::test_WhenAttributeAccessed_ThenForwardsToProcessingStatus PASSED [  4%]
+tests/api/test_progress_tracker.py::test_WhenNonProgressFieldUpdated_ThenNoWebSocketMessage PASSED [  4%]
+tests/api/test_progress_tracker.py::test_WhenModelDumpCalled_ThenReturnsPydanticDict PASSED [  5%]
+tests/api/test_progress_tracker.py::test_WhenModelDumpJsonCalled_ThenReturnsJsonString PASSED [  5%]
+tests/api/test_progress_tracker.py::test_WhenReprCalled_ThenShowsWrappedStatus PASSED [  5%]
+tests/api/test_progress_tracker.py::test_WhenWebSocketSendFails_ThenDoesNotCrashUpdate PASSED [  5%]
+tests/api/test_user_profile_routes.py::test_Whenget_profileCalled_ThenReturnsauthenticated_user PASSED [  5%]
+tests/api/test_user_profile_routes.py::test_Whenget_profileWithoutauthentication_ThenReturnsError PASSED [  5%]
+tests/api/test_user_profile_routes.py::test_WhenUpdateLanguagesAcceptsValidPayload_ThenSucceeds PASSED [  5%]
+tests/api/test_user_profile_routes.py::test_Whenupdate_languagesWithduplicate_codes_ThenRejects PASSED [  5%]
+tests/api/test_user_profile_routes.py::test_WhenSupportedLanguagesListsKnownCodes_ThenSucceeds PASSED [  5%]
+tests/api/test_user_profile_routes.py::test_WhenGetProfile_ThenIncludesChunkDuration PASSED [  5%]
+tests/api/test_user_profile_routes.py::test_WhenUpdateSettingsWithValidChunkDuration_ThenSucceeds PASSED [  5%]
+tests/api/test_user_profile_routes.py::test_WhenUpdateSettingsWithInvalidChunkDuration_ThenRejects PASSED [  6%]
+tests/api/test_user_profile_routes.py::test_WhenNewUserCreated_ThenDefaultChunkDurationIs20 PASSED [  6%]
+tests/api/test_validation_errors.py::test_WhenEndpointsRequireMandatoryFields_ThenValidates[mark_word_known] PASSED [  6%]
+tests/api/test_validation_errors.py::test_WhenEndpointsRequireMandatoryFields_ThenValidates[bulk_mark_level] PASSED [  6%]
+tests/api/test_validation_errors.py::test_WhenEndpointsRequireMandatoryFields_ThenValidates[filter_subtitles] PASSED [  6%]
+tests/api/test_video_contract_improved.py::test_WhenGetVideosIncludesExpectedFields_ThenSucceeds PASSED [  6%]
+tests/api/test_video_contract_improved.py::test_Whenstream_videoCalled_ThenReturnscontent_when_exists PASSED [  6%]
+tests/api/test_video_contract_improved.py::test_Whensubtitle_download_MissingFileCalled_ThenSucceeds PASSED [  6%]
+tests/api/test_video_contract_improved.py::test_Whenvideo_uploadWithnon_video_ThenRejects PASSED [  6%]
+tests/api/test_video_service_endpoint.py::TestVideoServiceEndpoint::test_process_chunk_endpoint_success PASSED [  6%]
+tests/api/test_video_service_endpoint.py::TestVideoServiceEndpoint::test_process_chunk_endpoint_unauthorized PASSED [  6%]
+tests/api/test_video_service_endpoint.py::TestVideoServiceEndpoint::test_process_chunk_endpoint_invalid_data PASSED [  7%]
+tests/api/test_video_service_endpoint.py::TestVideoServiceEndpoint::test_process_chunk_endpoint_service_error PASSED [  7%]
+tests/api/test_videos_errors.py::test_Whensubtitle_uploadWithoutsrt_extension_ThenReturnsError PASSED [  7%]
+tests/api/test_videos_errors.py::test_WhenVideoUploadConflict_ThenReturns409 PASSED [  7%]
+tests/api/test_videos_errors.py::test_Whenstream_unknown_videoCalled_ThenReturnsnot_found PASSED [  7%]
+tests/api/test_videos_parse_filename.py::test_Whenparse_episode_filename_basicCalled_ThenSucceeds PASSED [  7%]
+tests/api/test_videos_parse_filename.py::test_Whenparse_episode_filename_missing_tokensCalled_ThenSucceeds PASSED [  7%]
+tests/api/test_videos_routes.py::test_Whenlist_videosCalled_ThenReturnsempty_when_path_missing PASSED [  7%]
+tests/api/test_videos_routes.py::test_WhenGetSubtitlesServesExistingFile_ThenSucceeds PASSED [  7%]
+tests/api/test_videos_routes.py::test_WhenStreamVideoSetsAcceptRanges_ThenSucceeds PASSED [  7%]
+tests/api/test_videos_routes_windows_path.py::test_WhenWindowsAbsoluteSubtitlePath_ThenSucceeds PASSED [  7%]
+tests/api/test_vocabulary_auth_required_inprocess.py::test_WhenvocabularyWithoutauth_stats_ThenReturnsError PASSED [  7%]
+tests/api/test_vocabulary_auth_required_inprocess.py::test_WhenvocabularyWithoutauth_level_ThenReturnsError PASSED [  8%]
+tests/api/test_vocabulary_auth_required_inprocess.py::test_WhenvocabularyWithoutauth_mark_known_ThenReturnsError PASSED [  8%]
+tests/api/test_vocabulary_contract.py::test_Whenmark_known_AcceptsValid_payloadCalled_ThenSucceeds PASSED [  8%]
+tests/api/test_vocabulary_contract.py::test_Whenmark_knownWithout_lemma_ThenReturnsValidationError PASSED [  8%]
+tests/api/test_vocabulary_contract.py::test_Whenvocabulary_statsCalled_ThenReturnsexpected_fields PASSED [  8%]
+tests/api/test_vocabulary_contract.py::test_Whenlibrary_levelWithoutvalid_code_ThenReturnsError PASSED [  8%]
+tests/api/test_vocabulary_contract.py::test_Whenlanguages_endpointCalled_ThenReturnsSupported_languages PASSED [  8%]
+tests/api/test_vocabulary_contract.py::test_Whenbulk_mark_WithValid_level_ThenSucceeds PASSED [  8%]
+tests/api/test_vocabulary_contract.py::test_Whenbulk_mark_WithInvalid_level_ThenReturnsError PASSED [  8%]
+tests/api/test_vocabulary_contract.py::test_Whenmark_known_WithEmpty_lemma_ThenReturnsValidationError PASSED [  8%]
+tests/api/test_vocabulary_routes.py::test_When_languages_endpoint_called_Then_returns_supported_languages PASSED [  8%]
+tests/api/test_vocabulary_routes.py::test_When_stats_called_with_language_params_Then_returns_multilingual_stats PASSED [  9%]
+tests/api/test_vocabulary_routes.py::test_When_library_level_called_with_language_params_Then_returns_multilingual_words PASSED [  9%]
+tests/api/test_vocabulary_routes.py::test_When_mark_known_called_with_lemma_Then_succeeds PASSED [  9%]
+tests/api/test_vocabulary_routes.py::test_When_mark_known_called_without_lemma_Then_returns_validation_error PASSED [  9%]
+tests/api/test_vocabulary_routes.py::test_When_mark_known_called_with_empty_lemma_Then_returns_validation_error PASSED [  9%]
+tests/api/test_vocabulary_routes.py::test_When_bulk_mark_called_with_target_language_Then_succeeds PASSED [  9%]
+tests/api/test_vocabulary_routes.py::test_When_bulk_mark_called_without_valid_level_Then_returns_error PASSED [  9%]
+tests/api/test_vocabulary_routes.py::test_When_bulk_mark_called_with_invalid_language_code_Then_returns_error PASSED [  9%]
+tests/api/test_vocabulary_routes.py::test_When_library_level_called_with_invalid_level_Then_returns_error PASSED [  9%]
+tests/api/test_vocabulary_routes.py::test_When_test_data_endpoint_called_Then_returns_database_info PASSED [  9%]
+tests/api/test_vocabulary_routes.py::test_When_blocking_words_called_Then_returns_structure PASSED [  9%]
+tests/api/test_vocabulary_routes.py::test_When_stats_called_without_auth_Then_returns_unauthorized PASSED [ 10%]
+tests/api/test_vocabulary_routes.py::test_When_mark_known_called_without_auth_Then_returns_unauthorized PASSED [ 10%]
+tests/api/test_vocabulary_routes.py::test_When_library_level_called_with_large_limit_Then_succeeds PASSED [ 10%]
+tests/api/test_vocabulary_routes.py::test_When_stats_called_with_unsupported_language_Then_handles_gracefully PASSED [ 10%]
+tests/api/test_vocabulary_routes.py::test_When_library_level_called_without_language_params_Then_uses_defaults PASSED [ 10%]
+tests/api/test_vocabulary_routes_details.py::test_Whenmark_known_can_unmarkCalled_ThenSucceeds PASSED [ 10%]
+tests/api/test_vocabulary_routes_details.py::test_Whenbulk_markCalled_ThenReturnscounts PASSED [ 10%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionManagement::test_connect_creates_new_user_entry PASSED [ 10%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionManagement::test_connect_multiple_connections_same_user PASSED [ 10%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionManagement::test_connect_multiple_users PASSED [ 10%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionManagement::test_connect_sends_connection_message PASSED [ 10%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionManagement::test_disconnect_removes_connection PASSED [ 11%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionManagement::test_disconnect_one_of_multiple_connections PASSED [ 11%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionManagement::test_disconnect_non_existent_connection PASSED [ 11%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionManagement::test_disconnect_cleans_up_empty_user_entry PASSED [ 11%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageSending::test_send_personal_message_success PASSED [ 11%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageSending::test_send_personal_message_failure_disconnects PASSED [ 11%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageSending::test_send_user_message_to_all_connections PASSED [ 11%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageSending::test_send_user_message_to_non_existent_user PASSED [ 11%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageSending::test_send_user_message_disconnects_failed_connections PASSED [ 11%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageSending::test_broadcast_to_all_users PASSED [ 11%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageSending::test_broadcast_with_exclude_user PASSED [ 11%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageSending::test_broadcast_disconnects_failed_connections PASSED [ 11%]
+tests/api/test_websocket_manager_comprehensive.py::TestProgressAndErrors::test_send_progress_update PASSED [ 12%]
+tests/api/test_websocket_manager_comprehensive.py::TestProgressAndErrors::test_send_error_with_task_id PASSED [ 12%]
+tests/api/test_websocket_manager_comprehensive.py::TestProgressAndErrors::test_send_error_without_task_id PASSED [ 12%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageHandling::test_handle_ping_responds_with_pong PASSED [ 12%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageHandling::test_handle_ping_updates_last_ping_time PASSED [ 12%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageHandling::test_handle_subscribe_logs_subscription PASSED [ 12%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageHandling::test_handle_unknown_message_type PASSED [ 12%]
+tests/api/test_websocket_manager_comprehensive.py::TestMessageHandling::test_handle_message_for_disconnected_websocket PASSED [ 12%]
+tests/api/test_websocket_manager_comprehensive.py::TestHealthChecks::test_start_health_checks_creates_task PASSED [ 12%]
+tests/api/test_websocket_manager_comprehensive.py::TestHealthChecks::test_stop_health_checks_cancels_task PASSED [ 12%]
+tests/api/test_websocket_manager_comprehensive.py::TestHealthChecks::test_health_check_sends_heartbeat PASSED [ 12%]
+tests/api/test_websocket_manager_comprehensive.py::TestHealthChecks::test_health_check_disconnects_timeout_connections PASSED [ 13%]
+tests/api/test_websocket_manager_comprehensive.py::TestHealthChecks::test_health_check_handles_send_failure PASSED [ 13%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionStatistics::test_get_connection_count_zero PASSED [ 13%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionStatistics::test_get_connection_count_multiple_users PASSED [ 13%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionStatistics::test_get_user_connection_count_zero PASSED [ 13%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionStatistics::test_get_user_connection_count PASSED [ 13%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionStatistics::test_get_connected_users_empty PASSED [ 13%]
+tests/api/test_websocket_manager_comprehensive.py::TestConnectionStatistics::test_get_connected_users PASSED [ 13%]
+tests/api/test_websocket_manager_unit.py::test_Whenconnect_send_disconnectCalled_ThenSucceeds PASSED [ 13%]
+tests/api/test_websocket_manager_unit.py::test_Whensend_personal_message_failure_removes_connectionCalled_ThenSucceeds PASSED [ 13%]
+tests/api/test_websocket_manager_unit.py::test_Whenhandle_message_subscribe_and_unknownCalled_ThenSucceeds PASSED [ 13%]
+tests/api/test_websocket_route.py::test_Whenws_missing_token_closesCalled_ThenSucceeds PASSED [ 14%]
+tests/api/test_websocket_route.py::test_ws_InvalidToken_closes PASSED    [ 14%]
+tests/api/test_websocket_route.py::test_Whenws_success_connect_and_disconnectCalled_ThenSucceeds PASSED [ 14%]
+tests/api/test_websocket_route.py::test_Whenws_status_routeCalled_ThenSucceeds PASSED [ 14%]
+tests/core/test_config_parsing.py::test_Whencors_origins_parsing_csvCalled_ThenSucceeds PASSED [ 14%]
+tests/core/test_config_parsing.py::test_Whencors_origins_parsing_jsonCalled_ThenSucceeds PASSED [ 14%]
+tests/core/test_config_paths.py::test_WhenGetVideos_path_overrideCalled_ThenSucceeds PASSED [ 14%]
+tests/core/test_config_paths.py::test_Whenget_database_path_sqlite_urlCalled_ThenSucceeds PASSED [ 14%]
+tests/core/test_config_paths.py::test_Whenget_data_path_override_createsCalled_ThenSucceeds PASSED [ 14%]
+tests/core/test_dependencies_auth.py::test_Whenget_current_user_ws_successCalled_ThenSucceeds PASSED [ 14%]
+tests/core/test_dependencies_auth.py::test_get_current_user_ws_InvalidToken PASSED [ 14%]
+tests/core/test_dependencies_auth.py::test_Whenget_current_user_ws_auth_exceptionCalled_ThenSucceeds PASSED [ 14%]
+tests/core/test_exceptions.py::test_Whenexception_status_codesCalled_ThenSucceeds PASSED [ 15%]
+tests/core/test_logging_config.py::test_Whenjson_formatter_serializes_recordCalled_ThenSucceeds PASSED [ 15%]
+tests/core/test_logging_config.py::test_Whensetup_logging_configures_correctlyCalled_ThenSucceeds PASSED [ 15%]
+tests/core/test_logging_middleware.py::test_Whenlogging_middleware_adds_headerCalled_ThenSucceeds PASSED [ 15%]
+tests/core/test_middleware.py::test_Whencors_and_exception_handlerCalled_ThenSucceeds PASSED [ 15%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiContractCompliance::test_register_endpoint_contract PASSED [ 15%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiContractCompliance::test_register_endpoint_validation_errors PASSED [ 15%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiContractCompliance::test_login_endpoint_contract PASSED [ 15%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiContractCompliance::test_login_endpoint_invalid_credentials PASSED [ 15%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiContractCompliance::test_login_endpoint_validation_errors PASSED [ 15%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiContractCompliance::test_me_endpoint_contract SKIPPEDst) [ 15%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiContractCompliance::test_me_endpoint_unauthorized PASSED [ 16%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiRequestValidation::test_register_request_model_validation PASSED [ 16%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiRequestValidation::test_login_request_model_validation PASSED [ 16%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiResponseValidation::test_user_response_model_structure PASSED [ 16%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiResponseValidation::test_auth_response_model_structure PASSED [ 16%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiErrorHandling::test_error_response_structure PASSED [ 16%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiErrorHandling::test_authentication_error_structure PASSED [ 16%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiErrorHandling::test_authorization_error_structure PASSED [ 16%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiHeaders::test_content_type_headers PASSED [ 16%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiHeaders::test_cors_headers PASSED [ 16%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiHeaders::test_security_headers PASSED [ 16%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiDocumentation::test_openapi_schema_compliance PASSED [ 17%]
+tests/integration/api/test_auth_api_contract.py::TestAuthApiDocumentation::test_api_endpoint_documentation PASSED [ 17%]
+tests/integration/test_ai_service_integration.py::TestTranscriptionServiceIntegration::test_whisper_tiny_service_creation_and_basic_functionality PASSED [ 17%]
+tests/integration/test_ai_service_integration.py::TestTranscriptionServiceIntegration::test_whisper_tiny_actual_transcription FAILED [ 17%]
+tests/integration/test_ai_service_integration.py::TestTranslationServiceIntegration::test_opus_de_es_service_creation_and_configuration PASSED [ 17%]
+tests/integration/test_ai_service_integration.py::TestTranslationServiceIntegration::test_nllb_distilled_600m_service_creation PASSED [ 17%]
+tests/integration/test_ai_service_integration.py::TestTranslationServiceIntegration::test_opus_de_es_actual_translation PASSED [ 17%]
+tests/integration/test_ai_service_integration.py::TestTranslationServiceIntegration::test_nllb_distilled_basic_functionality PASSED [ 17%]
+tests/integration/test_ai_service_integration.py::TestServiceFactoryConfiguration::test_transcription_service_factory_has_expected_models PASSED [ 17%]
+tests/integration/test_ai_service_integration.py::TestServiceFactoryConfiguration::test_translation_service_factory_has_expected_models PASSED [ 17%]
+tests/integration/test_ai_service_integration.py::TestServiceFactoryConfiguration::test_test_environment_uses_fastest_models PASSED [ 17%]
+tests/integration/test_ai_service_integration.py::TestServiceFactoryConfiguration::test_service_creation_with_test_config PASSED [ 18%]
+tests/integration/test_ai_service_minimal.py::test_whisper_tiny_hello_world FAILED [ 18%]
+tests/integration/test_ai_service_minimal.py::test_opus_de_es_hello_world PASSED [ 18%]
+tests/integration/test_ai_service_minimal.py::test_nllb_distilled_hello_world PASSED [ 18%]
+tests/integration/test_ai_service_minimal.py::test_parakeet_tiny_hello_world SKIPPED [ 18%]
+tests/integration/test_api_endpoints_in_process.py::TestAuthenticationEndpoints::test_When_user_registration_flow_completed_Then_user_created_successfully PASSED [ 18%]
+tests/integration/test_api_endpoints_in_process.py::TestAuthenticationEndpoints::test_When_user_registered_and_logs_in_Then_receives_valid_token PASSED [ 18%]
+tests/integration/test_api_endpoints_in_process.py::TestAuthenticationEndpoints::test_When_authenticated_user_accesses_profile_Then_profile_returned PASSED [ 18%]
+tests/integration/test_api_endpoints_in_process.py::TestAuthenticationEndpoints::test_When_unauthenticated_user_accesses_protected_endpoint_Then_authentication_required PASSED [ 18%]
+tests/integration/test_api_endpoints_in_process.py::TestAuthenticationEndpoints::test_When_user_logs_out_Then_token_invalidated PASSED [ 18%]
+tests/integration/test_api_endpoints_in_process.py::TestVocabularyEndpoints::test_When_authenticated_user_gets_vocabulary_stats_Then_stats_returned PASSED [ 18%]
+tests/integration/test_api_endpoints_in_process.py::TestVocabularyEndpoints::test_When_authenticated_user_gets_supported_languages_Then_languages_returned PASSED [ 18%]
+tests/integration/test_api_endpoints_in_process.py::TestVocabularyEndpoints::test_When_authenticated_user_gets_vocabulary_level_Then_words_returned PASSED [ 19%]
+tests/integration/test_api_endpoints_in_process.py::TestVocabularyEndpoints::test_When_authenticated_user_marks_word_known_Then_success_returned SKIPPED [ 19%]
+tests/integration/test_api_endpoints_in_process.py::TestVocabularyEndpoints::test_When_unauthenticated_user_accesses_vocabulary_Then_authentication_required PASSED [ 19%]
+tests/integration/test_api_endpoints_in_process.py::TestVocabularyEndpoints::test_When_bulk_mark_operation_performed_Then_batch_update_succeeds PASSED [ 19%]
+tests/integration/test_api_endpoints_in_process.py::TestEndpointValidation::test_When_invalid_vocabulary_level_requested_Then_validation_error_returned PASSED [ 19%]
+tests/integration/test_api_endpoints_in_process.py::TestEndpointValidation::test_When_mark_known_without_concept_id_Then_validation_error_returned PASSED [ 19%]
+tests/integration/test_api_endpoints_in_process.py::TestEndpointValidation::test_When_mark_known_with_invalid_uuid_Then_validation_error_returned PASSED [ 19%]
+tests/integration/test_api_endpoints_in_process.py::TestEndpointValidation::test_When_bulk_mark_with_invalid_level_Then_validation_error_returned PASSED [ 19%]
+tests/integration/test_api_endpoints_in_process.py::TestEndpointSecurity::test_When_malformed_token_used_Then_authentication_fails PASSED [ 19%]
+tests/integration/test_api_endpoints_in_process.py::TestEndpointSecurity::test_When_expired_token_used_Then_authentication_fails PASSED [ 19%]
+tests/integration/test_api_endpoints_in_process.py::TestEndpointSecurity::test_When_multiple_users_access_own_data_Then_data_isolated PASSED [ 19%]
+tests/integration/test_api_endpoints_in_process.py::TestEndpointPerformance::test_When_health_endpoint_called_Then_responds_quickly PASSED [ 20%]
+tests/integration/test_api_endpoints_in_process.py::TestEndpointPerformance::test_When_concurrent_auth_requests_made_Then_all_succeed PASSED [ 20%]
+tests/integration/test_api_http_integration.py::TestAPIHTTPProtocol::test_health_endpoint_returns_200 PASSED [ 20%]
+tests/integration/test_api_http_integration.py::TestAPIHTTPProtocol::test_404_for_nonexistent_endpoint FAILED [ 20%]
+tests/integration/test_api_http_integration.py::TestAPIHTTPProtocol::test_cors_headers_present PASSED [ 20%]
+tests/integration/test_api_http_integration.py::TestAPIHTTPProtocol::test_json_content_type_required PASSED [ 20%]
+tests/integration/test_api_http_integration.py::TestPydanticValidation::test_malformed_json_returns_422 PASSED [ 20%]
+tests/integration/test_api_http_integration.py::TestPydanticValidation::test_missing_required_fields_returns_422 PASSED [ 20%]
+tests/integration/test_api_http_integration.py::TestMiddlewareBehavior::test_security_headers_present PASSED [ 20%]
+tests/integration/test_api_http_integration.py::TestMiddlewareBehavior::test_error_handling_middleware_catches_exceptions FAILED [ 20%]
+tests/integration/test_api_http_integration.py::TestDataContractAtHTTPLevel::test_vocabulary_service_generates_valid_uuids PASSED [ 20%]
+tests/integration/test_api_http_integration.py::TestDataContractAtHTTPLevel::test_response_format_matches_openapi_spec PASSED [ 21%]
+tests/integration/test_api_http_integration.py::TestBug8AtHTTPLevel::test_invalid_uuid_strings_would_fail_pydantic PASSED [ 21%]
+tests/integration/test_api_http_integration.py::TestBug8AtHTTPLevel::test_valid_uuids_pass_pydantic PASSED [ 21%]
+tests/integration/test_api_http_integration.py::TestHTTPRequestResponseCycle::test_http_headers_preserved PASSED [ 21%]
+tests/integration/test_api_http_integration.py::TestHTTPRequestResponseCycle::test_response_times_reasonable PASSED [ 21%]
+tests/integration/test_api_integration.py::TestAuthenticationIntegration::test_complete_user_registration_flow SKIPPED [ 21%]
+tests/integration/test_api_integration.py::TestAuthenticationIntegration::test_user_profile_access SKIPPED [ 21%]
+tests/integration/test_api_integration.py::TestAuthenticationIntegration::test_protected_endpoint_without_auth SKIPPED [ 21%]
+tests/integration/test_api_integration.py::TestVocabularyIntegration::test_vocabulary_crud_operations SKIPPED [ 21%]
+tests/integration/test_api_integration.py::TestVocabularyIntegration::test_vocabulary_statistics SKIPPED [ 21%]
+tests/integration/test_api_integration.py::TestVideoProcessingIntegration::test_video_upload_endpoint SKIPPED [ 21%]
+tests/integration/test_api_integration.py::TestVideoProcessingIntegration::test_video_list_endpoint SKIPPED [ 22%]
+tests/integration/test_api_simple.py::test_health_endpoint PASSED        [ 22%]
+tests/integration/test_api_simple.py::test_test_endpoint PASSED          [ 22%]
+tests/integration/test_api_simple.py::test_docs_endpoint PASSED          [ 22%]
+tests/integration/test_api_simple.py::test_openapi_endpoint PASSED       [ 22%]
+tests/integration/test_api_simple.py::test_protected_endpoint_without_auth FAILED [ 22%]
 
-The above exception was the direct cause of the following exception:
-api_venv/lib/python3.11/site-packages/_pytest/python.py:498: in importtestmodule
-    mod = import_path(
-api_venv/lib/python3.11/site-packages/_pytest/pathlib.py:587: in import_path
-    importlib.import_module(module_name)
-/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/importlib/__init__.py:126: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-<frozen importlib._bootstrap>:1204: in _gcd_import
-    ???
-<frozen importlib._bootstrap>:1176: in _find_and_load
-    ???
-<frozen importlib._bootstrap>:1147: in _find_and_load_unlocked
-    ???
-<frozen importlib._bootstrap>:690: in _load_unlocked
-    ???
-api_venv/lib/python3.11/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
-    exec(co, module.__dict__)
-tests/manual/smoke/test_e2e_simple.py:25: in <module>
-    raise ImportError(
-E   ImportError: Playwright not installed. Install with: pip install playwright && python -m playwright install chromium
-____ ERROR collecting tests/manual/smoke/test_e2e_subtitle_verification.py _____
-ImportError while importing test module '/home/runner/work/IdeaProjects/IdeaProjects/src/backend/tests/manual/smoke/test_e2e_subtitle_verification.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-tests/manual/smoke/test_e2e_subtitle_verification.py:23: in <module>
-    from playwright.async_api import TimeoutError as PlaywrightTimeout
-E   ModuleNotFoundError: No module named 'playwright'
-
-The above exception was the direct cause of the following exception:
-api_venv/lib/python3.11/site-packages/_pytest/python.py:498: in importtestmodule
-    mod = import_path(
-api_venv/lib/python3.11/site-packages/_pytest/pathlib.py:587: in import_path
-    importlib.import_module(module_name)
-/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/importlib/__init__.py:126: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-<frozen importlib._bootstrap>:1204: in _gcd_import
-    ???
-<frozen importlib._bootstrap>:1176: in _find_and_load
-    ???
-<frozen importlib._bootstrap>:1147: in _find_and_load_unlocked
-    ???
-<frozen importlib._bootstrap>:690: in _load_unlocked
-    ???
-api_venv/lib/python3.11/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
-    exec(co, module.__dict__)
-tests/manual/smoke/test_e2e_subtitle_verification.py:26: in <module>
-    raise ImportError(
-E   ImportError: Playwright not installed. Install with: pip install playwright && python -m playwright install chromium
+=================================== FAILURES ===================================
+__ TestTranscriptionServiceIntegration.test_whisper_tiny_actual_transcription __
+tests/integration/test_ai_service_integration.py:66: in test_whisper_tiny_actual_transcription
+    result = service.transcribe(audio_file_path, language="de")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+services/transcriptionservice/whisper_implementation.py:124: in transcribe
+    result = self._model.transcribe(audio_path, language=language, task="transcribe")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+api_venv/lib/python3.11/site-packages/whisper/transcribe.py:139: in transcribe
+    mel = log_mel_spectrogram(audio, model.dims.n_mels, padding=N_SAMPLES)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+api_venv/lib/python3.11/site-packages/whisper/audio.py:140: in log_mel_spectrogram
+    audio = load_audio(audio)
+            ^^^^^^^^^^^^^^^^^
+api_venv/lib/python3.11/site-packages/whisper/audio.py:58: in load_audio
+    out = run(cmd, capture_output=True, check=True).stdout
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/subprocess.py:1955: in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+E   FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'
+----------------------------- Captured stderr call -----------------------------
+[Whisper] [CUDA WARNING] CUDA is not available. Running on CPU (slower performance).
+To use GPU acceleration:
+  1. Install NVIDIA GPU drivers
+  2. Install PyTorch with CUDA: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+  3. Verify with: python -c "import torch; print(torch.cuda.is_available())"
+Set LANGPLUG_REQUIRE_CUDA=true to make CUDA required
+[Whisper] CPU MODE - Expect slower performance
+[MODEL DOWNLOAD] Downloading Whisper model 'tiny' (~39MB)
+[MODEL DOWNLOAD] First-time download in progress...
+[MODEL DOWNLOAD] Model will be cached at: /home/runner/.cache/whisper/tiny.pt
+[MODEL DOWNLOAD] Please wait, this is a one-time download...
+[MODEL INIT] Initializing Whisper tiny...
+  0%|                                              | 0.00/72.1M [00:00<?, ?iB/s] 28%|██████████▌                           | 20.0M/72.1M [00:00<00:00, 117MiB/s] 43%|███████████████▉                     | 31.2M/72.1M [00:00<00:00, 82.5MiB/s] 69%|██████████████████████████▎           | 49.8M/72.1M [00:00<00:00, 117MiB/s] 91%|██████████████████████████████████▌   | 65.5M/72.1M [00:00<00:00, 132MiB/s]100%|██████████████████████████████████████| 72.1M/72.1M [00:00<00:00, 121MiB/s]
+[MODEL READY] Whisper model 'tiny' loaded successfully!
+[MODEL READY] Transcription service is now operational
+/home/runner/work/IdeaProjects/IdeaProjects/src/backend/api_venv/lib/python3.11/site-packages/whisper/transcribe.py:132: UserWarning: FP16 is not supported on CPU; using FP32 instead
+  warnings.warn("FP16 is not supported on CPU; using FP32 instead")
+------------------------------ Captured log call -------------------------------
+WARNING  core.gpu_utils:gpu_utils.py:53 [Whisper] [CUDA WARNING] CUDA is not available. Running on CPU (slower performance).
+To use GPU acceleration:
+  1. Install NVIDIA GPU drivers
+  2. Install PyTorch with CUDA: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+  3. Verify with: python -c "import torch; print(torch.cuda.is_available())"
+Set LANGPLUG_REQUIRE_CUDA=true to make CUDA required
+INFO     core.gpu_utils:gpu_utils.py:54 [Whisper] CPU MODE - Expect slower performance
+INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:97 [MODEL DOWNLOAD] Downloading Whisper model 'tiny' (~39MB)
+INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:98 [MODEL DOWNLOAD] First-time download in progress...
+INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:99 [MODEL DOWNLOAD] Model will be cached at: /home/runner/.cache/whisper/tiny.pt
+INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:100 [MODEL DOWNLOAD] Please wait, this is a one-time download...
+INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:105 [MODEL INIT] Initializing Whisper tiny...
+INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:107 [MODEL READY] Whisper model 'tiny' loaded successfully!
+INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:108 [MODEL READY] Transcription service is now operational
+________________________ test_whisper_tiny_hello_world _________________________
+tests/integration/test_ai_service_minimal.py:54: in test_whisper_tiny_hello_world
+    result = service.transcribe(temp_path, language="en")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+services/transcriptionservice/whisper_implementation.py:124: in transcribe
+    result = self._model.transcribe(audio_path, language=language, task="transcribe")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+api_venv/lib/python3.11/site-packages/whisper/transcribe.py:139: in transcribe
+    mel = log_mel_spectrogram(audio, model.dims.n_mels, padding=N_SAMPLES)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+api_venv/lib/python3.11/site-packages/whisper/audio.py:140: in log_mel_spectrogram
+    audio = load_audio(audio)
+            ^^^^^^^^^^^^^^^^^
+api_venv/lib/python3.11/site-packages/whisper/audio.py:58: in load_audio
+    out = run(cmd, capture_output=True, check=True).stdout
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/subprocess.py:1955: in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+E   FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'
+----------------------------- Captured stderr call -----------------------------
+/home/runner/work/IdeaProjects/IdeaProjects/src/backend/api_venv/lib/python3.11/site-packages/whisper/transcribe.py:132: UserWarning: FP16 is not supported on CPU; using FP32 instead
+  warnings.warn("FP16 is not supported on CPU; using FP32 instead")
+____________ TestAPIHTTPProtocol.test_404_for_nonexistent_endpoint _____________
+tests/integration/test_api_http_integration.py:65: in test_404_for_nonexistent_endpoint
+    assert "detail" in error
+E   AssertionError: assert 'detail' in {'error': {'type': 'http_error', 'message': 'Not Found', 'status_code': 404}}
+----------------------------- Captured stderr call -----------------------------
+API Request: GET /api/nonexistent/endpoint
+{"status_code": 404, "detail": "Not Found", "path": "/api/nonexistent/endpoint", "method": "GET", "event": "Starlette HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-14T20:32:54.817891Z"}
+API Response: 404 GET /api/nonexistent/endpoint
+HTTP Request: GET http://test/api/nonexistent/endpoint "HTTP/1.1 404 Not Found"
+------------------------------ Captured log call -------------------------------
+INFO     api:security_middleware.py:27 API Request: GET /api/nonexistent/endpoint
+WARNING  core.exception_handlers:exception_handlers.py:69 {"status_code": 404, "detail": "Not Found", "path": "/api/nonexistent/endpoint", "method": "GET", "event": "Starlette HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-14T20:32:54.817891Z"}
+INFO     api:security_middleware.py:56 API Response: 404 GET /api/nonexistent/endpoint
+INFO     httpx:_client.py:1740 HTTP Request: GET http://test/api/nonexistent/endpoint "HTTP/1.1 404 Not Found"
+___ TestMiddlewareBehavior.test_error_handling_middleware_catches_exceptions ___
+tests/integration/test_api_http_integration.py:164: in test_error_handling_middleware_catches_exceptions
+    assert response.status_code in [200, 400, 401, 404, 422]
+E   assert 405 in [200, 400, 401, 404, 422]
+E    +  where 405 = <Response [405 Method Not Allowed]>.status_code
+----------------------------- Captured stderr call -----------------------------
+API Request: GET /api/vocabulary
+{"status_code": 405, "detail": "Method Not Allowed", "path": "/api/vocabulary", "method": "GET", "event": "Starlette HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-14T20:32:55.200288Z"}
+API Response: 405 GET /api/vocabulary
+HTTP Request: GET http://test/api/vocabulary?level=INVALID "HTTP/1.1 405 Method Not Allowed"
+------------------------------ Captured log call -------------------------------
+INFO     api:security_middleware.py:27 API Request: GET /api/vocabulary
+WARNING  core.exception_handlers:exception_handlers.py:69 {"status_code": 405, "detail": "Method Not Allowed", "path": "/api/vocabulary", "method": "GET", "event": "Starlette HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-14T20:32:55.200288Z"}
+INFO     api:security_middleware.py:56 API Response: 405 GET /api/vocabulary
+INFO     httpx:_client.py:1740 HTTP Request: GET http://test/api/vocabulary?level=INVALID "HTTP/1.1 405 Method Not Allowed"
+_____________________ test_protected_endpoint_without_auth _____________________
+tests/integration/test_api_simple.py:68: in test_protected_endpoint_without_auth
+    assert response.status_code in [401, 403, 404]
+E   assert 405 in [401, 403, 404]
+E    +  where 405 = <Response [405 Method Not Allowed]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+Security middleware configured successfully
+{"event": "Debug and test routes disabled (production mode)", "logger": "core.app", "level": "info", "timestamp": "2025-11-14T20:32:56.033785Z"}
+{"event": "FastAPI application created and configured", "logger": "core.app", "level": "info", "timestamp": "2025-11-14T20:32:56.033911Z"}
+------------------------------ Captured log setup ------------------------------
+INFO     core.security_middleware:security_middleware.py:262 Security middleware configured successfully
+INFO     core.app:app.py:190 {"event": "Debug and test routes disabled (production mode)", "logger": "core.app", "level": "info", "timestamp": "2025-11-14T20:32:56.033785Z"}
+INFO     core.app:app.py:192 {"event": "FastAPI application created and configured", "logger": "core.app", "level": "info", "timestamp": "2025-11-14T20:32:56.033911Z"}
+----------------------------- Captured stderr call -----------------------------
+API Request: GET /api/vocabulary/
+API Response: 307 GET /api/vocabulary/
+HTTP Request: GET http://testserver/api/vocabulary/ "HTTP/1.1 307 Temporary Redirect"
+API Request: GET /api/vocabulary
+{"status_code": 405, "detail": "Method Not Allowed", "path": "/api/vocabulary", "method": "GET", "event": "Starlette HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-14T20:32:56.037947Z"}
+API Response: 405 GET /api/vocabulary
+HTTP Request: GET http://testserver/api/vocabulary "HTTP/1.1 405 Method Not Allowed"
+------------------------------ Captured log call -------------------------------
+INFO     api:security_middleware.py:27 API Request: GET /api/vocabulary/
+INFO     api:security_middleware.py:56 API Response: 307 GET /api/vocabulary/
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/vocabulary/ "HTTP/1.1 307 Temporary Redirect"
+INFO     api:security_middleware.py:27 API Request: GET /api/vocabulary
+WARNING  core.exception_handlers:exception_handlers.py:69 {"status_code": 405, "detail": "Method Not Allowed", "path": "/api/vocabulary", "method": "GET", "event": "Starlette HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-14T20:32:56.037947Z"}
+INFO     api:security_middleware.py:56 API Response: 405 GET /api/vocabulary
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/vocabulary "HTTP/1.1 405 Method Not Allowed"
 =========================== short test summary info ============================
-ERROR tests/manual/performance/test_server_startup.py - ValueError: mark.asyncio accepts only a keyword argument 'loop_scope'.
-ERROR tests/manual/smoke/test_e2e_simple.py
-ERROR tests/manual/smoke/test_e2e_subtitle_verification.py
-!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
-============================== 3 errors in 9.75s ===============================
+FAILED tests/integration/test_ai_service_integration.py::TestTranscriptionServiceIntegration::test_whisper_tiny_actual_transcription - FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'
+FAILED tests/integration/test_ai_service_minimal.py::test_whisper_tiny_hello_world - FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'
+FAILED tests/integration/test_api_http_integration.py::TestAPIHTTPProtocol::test_404_for_nonexistent_endpoint - AssertionError: assert 'detail' in {'error': {'type': 'http_error', 'message': 'Not Found', 'status_code': 404}}
+FAILED tests/integration/test_api_http_integration.py::TestMiddlewareBehavior::test_error_handling_middleware_catches_exceptions - assert 405 in [200, 400, 401, 404, 422]
+ +  where 405 = <Response [405 Method Not Allowed]>.status_code
+FAILED tests/integration/test_api_simple.py::test_protected_endpoint_without_auth - assert 405 in [401, 403, 404]
+ +  where 405 = <Response [405 Method Not Allowed]>.status_code
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 5 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+============= 5 failed, 238 passed, 10 skipped in 78.29s (0:01:18) =============

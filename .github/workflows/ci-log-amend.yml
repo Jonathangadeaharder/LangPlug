@@ -106,7 +106,11 @@ jobs:
         run: |
           LOG_FILE="${GITHUB_WORKSPACE}/ci-logs/backend-test.log"
           source api_venv/bin/activate
-          python -m pytest tests/ -v 2>&1 | tee "${LOG_FILE}"
+          # Exclude manual E2E tests that require Playwright
+          python -m pytest tests/ -v \
+            --ignore=tests/manual/smoke/ \
+            --ignore=tests/manual/performance/ \
+            2>&1 | tee "${LOG_FILE}"
 
       - name: Frontend Tests
         id: frontend-test

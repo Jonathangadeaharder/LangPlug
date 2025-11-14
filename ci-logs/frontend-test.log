@@ -5,8 +5,8 @@
 
 [1m[46m RUN [49m[22m [36mv3.2.4 [39m[90m/home/runner/work/IdeaProjects/IdeaProjects/src/frontend[39m
 
- [32m✓[39m src/config/__tests__/api-config.test.ts [2m([22m[2m33 tests[22m[2m)[22m[32m 51[2mms[22m[39m
- [32m✓[39m src/store/__tests__/useAppStore.test.ts [2m([22m[2m40 tests[22m[2m)[22m[32m 109[2mms[22m[39m
+ [32m✓[39m src/config/__tests__/api-config.test.ts [2m([22m[2m33 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m src/store/__tests__/useAppStore.test.ts [2m([22m[2m40 tests[22m[2m)[22m[32m 103[2mms[22m[39m
 [90mstdout[2m | src/__tests__/App.test.tsx
 [22m[39m[Frontend Logger] Logger initialized { logLevel: [32m'DEBUG'[39m, apiEnabled: [33mtrue[39m, maxLogs: [33m1000[39m }
 
@@ -88,27 +88,27 @@ This ensures that you're testing the behavior the user would see in the browser.
 [90mstdout[2m | src/__tests__/App.test.tsx[2m > [22m[2mApp Component[2m > [22m[2mGlobal Components[2m > [22m[2mincludes global styles
 [22m[39m[auth-interceptor] Auth interceptors registered 
 
- [32m✓[39m src/__tests__/App.test.tsx [2m([22m[2m14 tests[22m[2m)[22m[32m 170[2mms[22m[39m
- [32m✓[39m src/components/ui/__tests__/Input.test.tsx [2m([22m[2m31 tests[22m[2m)[22m[33m 557[2mms[22m[39m
- [32m✓[39m src/components/ui/__tests__/Card.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[32m 108[2mms[22m[39m
- [32m✓[39m src/components/ui/__tests__/Loading.test.tsx [2m([22m[2m38 tests[22m[2m)[22m[33m 304[2mms[22m[39m
- [32m✓[39m src/components/__tests__/VocabularyGame.test.tsx [2m([22m[2m31 tests[22m[2m)[22m[33m 3422[2mms[22m[39m
-   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mGame Progression[2m > [22mWhenWordAnswered_ThenAdvancesToNextWord [33m 327[2mms[22m[39m
-   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mGame Progression[2m > [22mWhenLastWordAnswered_ThenCallsOnComplete [33m 315[2mms[22m[39m
-   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mGame Progression[2m > [22mWhenAllWordsCompleted_ThenShowsCompletionMessage [33m 308[2mms[22m[39m
-   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mGame Progression[2m > [22mWhenProgressTracked_ThenUpdatesProgressBar [33m 325[2mms[22m[39m
-   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mVisual States[2m > [22mWhenAnimationsEnabled_ThenShowsCardAnimations [33m 319[2mms[22m[39m
-   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mVisual States[2m > [22mWhenGameComplete_ThenShowsCompletionAnimation [33m 316[2mms[22m[39m
-   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mPerformance[2m > [22mWhenRapidProgression_ThenMaintainsPerformance [33m 700[2mms[22m[39m
- [32m✓[39m src/hooks/__tests__/useTaskProgress.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 46[2mms[22m[39m
- [32m✓[39m src/test/contract/schema-validation.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 15[2mms[22m[39m
- [32m✓[39m src/contexts/__tests__/ThemeContext.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[33m 373[2mms[22m[39m
+ [32m✓[39m src/__tests__/App.test.tsx [2m([22m[2m14 tests[22m[2m)[22m[32m 177[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/Input.test.tsx [2m([22m[2m31 tests[22m[2m)[22m[33m 558[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/Card.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[32m 115[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/Loading.test.tsx [2m([22m[2m38 tests[22m[2m)[22m[33m 305[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/VocabularyGame.test.tsx [2m([22m[2m31 tests[22m[2m)[22m[33m 3403[2mms[22m[39m
+   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mGame Progression[2m > [22mWhenWordAnswered_ThenAdvancesToNextWord [33m 330[2mms[22m[39m
+   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mGame Progression[2m > [22mWhenLastWordAnswered_ThenCallsOnComplete [33m 325[2mms[22m[39m
+   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mGame Progression[2m > [22mWhenAllWordsCompleted_ThenShowsCompletionMessage [33m 313[2mms[22m[39m
+   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mGame Progression[2m > [22mWhenProgressTracked_ThenUpdatesProgressBar [33m 318[2mms[22m[39m
+   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mVisual States[2m > [22mWhenAnimationsEnabled_ThenShowsCardAnimations [33m 315[2mms[22m[39m
+   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mVisual States[2m > [22mWhenGameComplete_ThenShowsCompletionAnimation [33m 314[2mms[22m[39m
+   [33m[2m✓[22m[39m VocabularyGame Component[2m > [22mPerformance[2m > [22mWhenRapidProgression_ThenMaintainsPerformance [33m 682[2mms[22m[39m
+ [32m✓[39m src/hooks/__tests__/useTaskProgress.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 63[2mms[22m[39m
+ [32m✓[39m src/test/contract/schema-validation.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/contexts/__tests__/ThemeContext.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[33m 367[2mms[22m[39m
+ [32m✓[39m src/store/__tests__/useAuthStore.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 44[2mms[22m[39m
 [90mstdout[2m | src/components/auth/__tests__/RegisterForm.test.tsx
 [22m[39m[Frontend Logger] Logger initialized { logLevel: [32m'DEBUG'[39m, apiEnabled: [33mtrue[39m, maxLogs: [33m1000[39m }
 
- [32m✓[39m src/store/__tests__/useAuthStore.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 32[2mms[22m[39m
- [32m✓[39m src/components/auth/__tests__/RegisterForm.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[33m 713[2mms[22m[39m
- [32m✓[39m src/test/contract/auth.contract.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/components/auth/__tests__/RegisterForm.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[33m 753[2mms[22m[39m
+ [32m✓[39m src/test/contract/auth.contract.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 10[2mms[22m[39m
 [90mstderr[2m | src/components/__tests__/EpisodeSelection.test.tsx[2m > [22m[2mEpisodeSelection[2m > [22m[2mrenders episodes for the current series
 [22m[39mFailed to load user preferences: Error: [vitest] No "profileGetApiProfileGet" export is defined on the "@/client/services.gen" mock. Did you forget to return it from "vi.mock"?
 If you need to partially mock a module, you can use "importOriginal" helper inside:
@@ -132,6 +132,7 @@ If you need to partially mock a module, you can use "importOriginal" helper insi
     [32m'})'[39m
 }
 
+ [32m✓[39m src/components/__tests__/ChunkedLearningFlow.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 142[2mms[22m[39m
 [90mstderr[2m | src/components/__tests__/EpisodeSelection.test.tsx[2m > [22m[2mEpisodeSelection[2m > [22m[2msurfaces errors when videos cannot be loaded
 [22m[39mFailed to load user preferences: Error: [vitest] No "profileGetApiProfileGet" export is defined on the "@/client/services.gen" mock. Did you forget to return it from "vi.mock"?
 If you need to partially mock a module, you can use "importOriginal" helper inside:
@@ -178,31 +179,31 @@ If you need to partially mock a module, you can use "importOriginal" helper insi
     [32m'})'[39m
 }
 
- [32m✓[39m src/components/__tests__/EpisodeSelection.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 713[2mms[22m[39m
-   [33m[2m✓[22m[39m EpisodeSelection[2m > [22mrenders episodes for the current series [33m 481[2mms[22m[39m
- [32m✓[39m src/components/__tests__/ChunkedLearningFlow.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 191[2mms[22m[39m
- [32m✓[39m src/components/__tests__/LoginForm.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 1548[2mms[22m[39m
-   [33m[2m✓[22m[39m LoginForm Component[2m > [22mshows validation error for invalid email format [33m 452[2mms[22m[39m
-   [33m[2m✓[22m[39m LoginForm Component[2m > [22mlogs in successfully and navigates to home [33m 360[2mms[22m[39m
-   [33m[2m✓[22m[39m LoginForm Component[2m > [22mshows error for invalid credentials [33m 356[2mms[22m[39m
- [32m✓[39m src/test/subtitle-parsing.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 11[2mms[22m[39m
- [32m✓[39m src/components/__tests__/LanguageSelector.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[32m 156[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/LoginForm.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 1494[2mms[22m[39m
+   [33m[2m✓[22m[39m LoginForm Component[2m > [22mshows validation error for invalid email format [33m 405[2mms[22m[39m
+   [33m[2m✓[22m[39m LoginForm Component[2m > [22mlogs in successfully and navigates to home [33m 340[2mms[22m[39m
+   [33m[2m✓[22m[39m LoginForm Component[2m > [22mshows error for invalid credentials [33m 323[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/EpisodeSelection.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 680[2mms[22m[39m
+   [33m[2m✓[22m[39m EpisodeSelection[2m > [22mrenders episodes for the current series [33m 442[2mms[22m[39m
+ [32m✓[39m src/test/subtitle-parsing.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/LanguageSelector.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[32m 152[2mms[22m[39m
 [90mstdout[2m | src/components/__tests__/VideoSelection.test.tsx
 [22m[39m[Frontend Logger] Logger initialized { logLevel: [32m'DEBUG'[39m, apiEnabled: [33mtrue[39m, maxLogs: [33m1000[39m }
 
 [90mstderr[2m | src/components/__tests__/VideoSelection.test.tsx[2m > [22m[2mVideoSelection Component[2m > [22m[2mWhenApiErrorOccurs_ThenHandlesErrorGracefully
 [22m[39m[API error in VideoSelection.loadVideos] Error: API Error  
 
- [32m✓[39m src/components/__tests__/VideoSelection.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 206[2mms[22m[39m
- [32m✓[39m src/test/integration/api-connection.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 12[2mms[22m[39m
- [32m✓[39m src/components/ui/__tests__/Button.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[33m 608[2mms[22m[39m
- [32m✓[39m src/components/__tests__/ChunkedLearningPlayer.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 1205[2mms[22m[39m
-   [33m[2m✓[22m[39m ChunkedLearningPlayer[2m > [22minvokes onBack when back button is clicked [33m 728[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/VideoSelection.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 187[2mms[22m[39m
+ [32m✓[39m src/test/integration/api-connection.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/Button.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[33m 663[2mms[22m[39m
+   [33m[2m✓[22m[39m Button Component[2m > [22mrenders with text content [33m 306[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/ChunkedLearningPlayer.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 1178[2mms[22m[39m
+   [33m[2m✓[22m[39m ChunkedLearningPlayer[2m > [22minvokes onBack when back button is clicked [33m 706[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m22 passed[39m[22m[90m (22)[39m
 [2m      Tests [22m [1m[32m308 passed[39m[22m[90m (308)[39m
-[2m   Start at [22m 20:25:08
-[2m   Duration [22m 14.27s[2m (transform 1.01s, setup 7.88s, collect 3.61s, tests 10.56s, environment 13.90s, prepare 2.09s)[22m
+[2m   Start at [22m 20:32:59
+[2m   Duration [22m 14.05s[2m (transform 928ms, setup 7.68s, collect 3.43s, tests 10.49s, environment 13.69s, prepare 2.02s)[22m
 
 [1m[7m[35m HTML [39m[27m[22m [35mReport is generated[39m
 [2m       You can run [22m[1mnpx vite preview --outDir test-results[22m[2m to see the test results.[22m
