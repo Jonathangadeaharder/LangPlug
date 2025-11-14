@@ -10,9 +10,11 @@ core/auth.py:18: in <module>
 core/config.py:232: in <module>
     settings = Settings()
                ^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/pydantic_settings/main.py:194: in __init__
-    super().__init__(
-E   pydantic_core._pydantic_core.ValidationError: 1 validation error for Settings
-E   LANGPLUG_SECRET_KEY
-E     Field required [type=missing, input_value={}, input_type=dict]
-E       For further information visit https://errors.pydantic.dev/2.12/v/missing
+api_venv/lib/python3.11/site-packages/pydantic_settings/main.py:195: in __init__
+    **__pydantic_self__._settings_build_values(
+api_venv/lib/python3.11/site-packages/pydantic_settings/main.py:438: in _settings_build_values
+    source_state = source()
+                   ^^^^^^^^
+api_venv/lib/python3.11/site-packages/pydantic_settings/sources/base.py:512: in __call__
+    raise SettingsError(
+E   pydantic_settings.exceptions.SettingsError: error parsing value for field "cors_origins" from source "EnvSettingsSource"

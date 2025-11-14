@@ -93,8 +93,16 @@ jobs:
         id: backend-test
         working-directory: src/backend
         continue-on-error: true
+        env:
+          LANGPLUG_SECRET_KEY: test-secret-key-for-ci-only-not-for-production
+          LANGPLUG_DB_TYPE: sqlite
+          TESTING: "1"
         run: |
           LOG_FILE="${GITHUB_WORKSPACE}/ci-logs/backend-test.log"
+          # Use .env.testing as base and override with CI-specific vars
+          if [ -f .env.testing ]; then
+            export $(grep -v '^#' .env.testing | xargs)
+          fi
           source api_venv/bin/activate
           python -m pytest tests/ -v 2>&1 | tee "${LOG_FILE}"
 
