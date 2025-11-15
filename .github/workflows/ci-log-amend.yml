@@ -89,6 +89,11 @@ jobs:
           LOG_FILE="${GITHUB_WORKSPACE}/ci-logs/frontend-lint.log"
           npm run lint 2>&1 | tee "${LOG_FILE}"
 
+      - name: Install ffmpeg for backend tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
       - name: Backend Tests
         id: backend-test
         working-directory: src/backend

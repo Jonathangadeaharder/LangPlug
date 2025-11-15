@@ -4,7 +4,7 @@ cachedir: ../../.cache/pytest
 hypothesis profile 'ci' -> database=None, deadline=None, print_blob=True, derandomize=True, suppress_health_check=(HealthCheck.too_slow,)
 rootdir: /home/runner/work/IdeaProjects/IdeaProjects/src/backend
 configfile: pytest.ini
-plugins: anyio-4.11.0, respx-0.22.0, hypothesis-6.147.0, timeout-2.4.0, cov-7.0.0, env-1.2.0, xdist-3.8.0, asyncio-0.26.0
+plugins: anyio-4.11.0, respx-0.22.0, timeout-2.4.0, cov-7.0.0, env-1.2.0, xdist-3.8.0, asyncio-0.26.0, hypothesis-6.148.0
 timeout: 30.0s
 timeout method: thread
 timeout func_only: False
@@ -205,7 +205,7 @@ tests/integration/api/test_auth_api_contract.py::TestAuthApiHeaders::test_securi
 tests/integration/api/test_auth_api_contract.py::TestAuthApiDocumentation::test_openapi_schema_compliance PASSED [ 17%]
 tests/integration/api/test_auth_api_contract.py::TestAuthApiDocumentation::test_api_endpoint_documentation PASSED [ 17%]
 tests/integration/test_ai_service_integration.py::TestTranscriptionServiceIntegration::test_whisper_tiny_service_creation_and_basic_functionality PASSED [ 17%]
-tests/integration/test_ai_service_integration.py::TestTranscriptionServiceIntegration::test_whisper_tiny_actual_transcription FAILED [ 17%]
+tests/integration/test_ai_service_integration.py::TestTranscriptionServiceIntegration::test_whisper_tiny_actual_transcription PASSED [ 17%]
 tests/integration/test_ai_service_integration.py::TestTranslationServiceIntegration::test_opus_de_es_service_creation_and_configuration PASSED [ 17%]
 tests/integration/test_ai_service_integration.py::TestTranslationServiceIntegration::test_nllb_distilled_600m_service_creation PASSED [ 17%]
 tests/integration/test_ai_service_integration.py::TestTranslationServiceIntegration::test_opus_de_es_actual_translation PASSED [ 17%]
@@ -214,7 +214,7 @@ tests/integration/test_ai_service_integration.py::TestServiceFactoryConfiguratio
 tests/integration/test_ai_service_integration.py::TestServiceFactoryConfiguration::test_translation_service_factory_has_expected_models PASSED [ 17%]
 tests/integration/test_ai_service_integration.py::TestServiceFactoryConfiguration::test_test_environment_uses_fastest_models PASSED [ 17%]
 tests/integration/test_ai_service_integration.py::TestServiceFactoryConfiguration::test_service_creation_with_test_config PASSED [ 18%]
-tests/integration/test_ai_service_minimal.py::test_whisper_tiny_hello_world FAILED [ 18%]
+tests/integration/test_ai_service_minimal.py::test_whisper_tiny_hello_world PASSED [ 18%]
 tests/integration/test_ai_service_minimal.py::test_opus_de_es_hello_world PASSED [ 18%]
 tests/integration/test_ai_service_minimal.py::test_nllb_distilled_hello_world PASSED [ 18%]
 tests/integration/test_ai_service_minimal.py::test_parakeet_tiny_hello_world SKIPPED [ 18%]
@@ -239,13 +239,13 @@ tests/integration/test_api_endpoints_in_process.py::TestEndpointSecurity::test_W
 tests/integration/test_api_endpoints_in_process.py::TestEndpointPerformance::test_When_health_endpoint_called_Then_responds_quickly PASSED [ 20%]
 tests/integration/test_api_endpoints_in_process.py::TestEndpointPerformance::test_When_concurrent_auth_requests_made_Then_all_succeed PASSED [ 20%]
 tests/integration/test_api_http_integration.py::TestAPIHTTPProtocol::test_health_endpoint_returns_200 PASSED [ 20%]
-tests/integration/test_api_http_integration.py::TestAPIHTTPProtocol::test_404_for_nonexistent_endpoint FAILED [ 20%]
+tests/integration/test_api_http_integration.py::TestAPIHTTPProtocol::test_404_for_nonexistent_endpoint PASSED [ 20%]
 tests/integration/test_api_http_integration.py::TestAPIHTTPProtocol::test_cors_headers_present PASSED [ 20%]
 tests/integration/test_api_http_integration.py::TestAPIHTTPProtocol::test_json_content_type_required PASSED [ 20%]
 tests/integration/test_api_http_integration.py::TestPydanticValidation::test_malformed_json_returns_422 PASSED [ 20%]
 tests/integration/test_api_http_integration.py::TestPydanticValidation::test_missing_required_fields_returns_422 PASSED [ 20%]
 tests/integration/test_api_http_integration.py::TestMiddlewareBehavior::test_security_headers_present PASSED [ 20%]
-tests/integration/test_api_http_integration.py::TestMiddlewareBehavior::test_error_handling_middleware_catches_exceptions FAILED [ 20%]
+tests/integration/test_api_http_integration.py::TestMiddlewareBehavior::test_error_handling_middleware_catches_exceptions PASSED [ 20%]
 tests/integration/test_api_http_integration.py::TestDataContractAtHTTPLevel::test_vocabulary_service_generates_valid_uuids PASSED [ 20%]
 tests/integration/test_api_http_integration.py::TestDataContractAtHTTPLevel::test_response_format_matches_openapi_spec PASSED [ 21%]
 tests/integration/test_api_http_integration.py::TestBug8AtHTTPLevel::test_invalid_uuid_strings_would_fail_pydantic PASSED [ 21%]
@@ -263,158 +263,974 @@ tests/integration/test_api_simple.py::test_health_endpoint PASSED        [ 22%]
 tests/integration/test_api_simple.py::test_test_endpoint PASSED          [ 22%]
 tests/integration/test_api_simple.py::test_docs_endpoint PASSED          [ 22%]
 tests/integration/test_api_simple.py::test_openapi_endpoint PASSED       [ 22%]
-tests/integration/test_api_simple.py::test_protected_endpoint_without_auth FAILED [ 22%]
+tests/integration/test_api_simple.py::test_protected_endpoint_without_auth PASSED [ 22%]
+tests/integration/test_api_simple.py::test_nonexistent_endpoint PASSED   [ 22%]
+tests/integration/test_auth_integration.py::TestAuthenticationIntegration::test_health_endpoint_reports_healthy PASSED [ 22%]
+tests/integration/test_auth_integration.py::TestAuthenticationIntegration::test_register_and_login_returns_bearer_token PASSED [ 22%]
+tests/integration/test_auth_integration.py::TestAuthenticationIntegration::test_authenticated_user_profile_matches_registration PASSED [ 22%]
+tests/integration/test_auth_integration.py::TestAuthenticationIntegration::test_login_rejects_username_credentials PASSED [ 22%]
+tests/integration/test_auth_integration.py::TestAuthenticationIntegration::test_login_rejects_invalid_password PASSED [ 22%]
+tests/integration/test_auth_integration.py::TestAuthenticationIntegration::test_auth_me_requires_valid_token PASSED [ 23%]
+tests/integration/test_auth_workflow.py::TestAuthenticationWorkflow::test_complete_registration_login_flow PASSED [ 23%]
+tests/integration/test_auth_workflow.py::TestAuthenticationWorkflow::test_registration_validation_errors PASSED [ 23%]
+tests/integration/test_auth_workflow.py::TestAuthenticationWorkflow::test_duplicate_registration PASSED [ 23%]
+tests/integration/test_auth_workflow.py::TestAuthenticationWorkflow::test_login_with_invalid_credentials PASSED [ 23%]
+tests/integration/test_auth_workflow.py::TestAuthenticationWorkflow::test_protected_endpoints_without_auth PASSED [ 23%]
+tests/integration/test_auth_workflow.py::TestAuthenticationWorkflow::test_concurrent_registrations PASSED [ 23%]
+tests/integration/test_auth_workflow.py::TestAuthenticationWorkflow::test_token_expiration PASSED [ 23%]
+tests/integration/test_auth_workflow.py::TestAuthenticationWorkflow::test_password_reset_flow PASSED [ 23%]
+tests/integration/test_auth_workflow.py::TestAuthenticationWorkflow::test_user_profile_update PASSED [ 23%]
+tests/integration/test_auth_workflow.py::TestAuthenticationWorkflow::test_rate_limiting PASSED [ 23%]
+tests/integration/test_auth_workflow.py::TestAuthenticationWorkflow::test_session_management PASSED [ 24%]
+tests/integration/test_auth_workflow.py::TestAuthenticationWorkflow::test_account_deactivation PASSED [ 24%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationWorkflow::test_When_health_endpoint_called_Then_returns_healthy_status PASSED [ 24%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationWorkflow::test_When_user_registers_and_logs_in_Then_receives_valid_token PASSED [ 24%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationWorkflow::test_When_valid_credentials_used_for_login_Then_returns_access_token PASSED [ 24%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationWorkflow::test_When_username_used_instead_of_email_Then_login_fails PASSED [ 24%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationWorkflow::test_When_invalid_credentials_used_Then_login_fails PASSED [ 24%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationWorkflow::test_When_valid_token_used_Then_user_info_returned PASSED [ 24%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationWorkflow::test_When_no_token_provided_Then_authentication_required PASSED [ 24%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationWorkflow::test_When_invalid_token_provided_Then_authentication_fails PASSED [ 24%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationWorkflow::test_When_malformed_token_provided_Then_authentication_fails PASSED [ 24%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationWorkflow::test_When_user_logs_out_Then_token_becomes_invalid PASSED [ 25%]
+tests/integration/test_authentication_workflow.py::TestCORSConfiguration::test_When_options_request_sent_Then_cors_headers_present PASSED [ 25%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationSecurity::test_When_registration_data_missing_required_fields_Then_validation_error PASSED [ 25%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationSecurity::test_When_weak_password_provided_Then_validation_error PASSED [ 25%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationSecurity::test_When_duplicate_user_registered_Then_conflict_error PASSED [ 25%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationSecurity::test_When_empty_credentials_provided_Then_validation_error PASSED [ 25%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationIntegration::test_When_authenticated_user_accesses_protected_resource_Then_succeeds PASSED [ 25%]
+tests/integration/test_authentication_workflow.py::TestAuthenticationIntegration::test_When_multiple_users_created_Then_each_has_unique_session PASSED [ 25%]
+tests/integration/test_backend_integration.py::test_Whenuser_registration_login_and_meCalled_ThenSucceeds PASSED [ 25%]
+tests/integration/test_backend_integration.py::test_Whenlogout_invalidates_tokenCalled_ThenSucceeds PASSED [ 25%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingServiceInstantiation::test_chunk_utilities_instantiation PASSED [ 25%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingServiceInstantiation::test_chunk_transcription_service_instantiation PASSED [ 25%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingServiceInstantiation::test_chunk_translation_service_instantiation PASSED [ 26%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingServiceInstantiation::test_chunk_processor_instantiation PASSED [ 26%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingLanguagePreferencesFlow::test_chunk_utilities_loads_user_preferences PASSED [ 26%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingLanguagePreferencesFlow::test_language_preferences_unpacking PASSED [ 26%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingTranslationServiceFlow::test_translation_factory_handles_chunk_params PASSED [ 26%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingTranslationServiceFlow::test_translation_service_creation_filters_runtime_params PASSED [ 26%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingTranslationServiceFlow::test_multiple_translation_services_different_pairs PASSED [ 26%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingVocabularyIntegration::test_vocabulary_service_in_filtering_flow PASSED [ 26%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingEndToEnd::test_chunk_processor_handles_missing_vocabulary_gracefully PASSED [ 26%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingEndToEnd::test_chunk_processor_language_preference_flow PASSED [ 26%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingEndToEnd::test_chunk_processor_integrates_all_services PASSED [ 26%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingErrorScenarios::test_chunk_processor_handles_db_errors PASSED [ 27%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingErrorScenarios::test_translation_service_handles_invalid_params PASSED [ 27%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingBugsReproduction::test_bug_vocabulary_service_call_signature PASSED [ 27%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingBugsReproduction::test_bug_translation_factory_unexpected_kwargs PASSED [ 27%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingBugsReproduction::test_bug_resolve_language_runtime_settings_args PASSED [ 27%]
+tests/integration/test_chunk_processing_e2e.py::TestChunkProcessingIntegrationSummary::test_full_chunk_processing_services_integrate PASSED [ 27%]
+tests/integration/test_chunk_processing_real_e2e.py::TestVocabularyServiceSessionManagement::test_vocabulary_service_accepts_external_session PASSED [ 27%]
+tests/integration/test_chunk_processing_real_e2e.py::TestVocabularyServiceSessionManagement::test_subtitle_processor_uses_correct_session_pattern PASSED [ 27%]
+tests/integration/test_chunk_processing_real_e2e.py::TestTranslationServiceMethodCalls::test_translation_service_has_translate_method PASSED [ 27%]
+tests/integration/test_chunk_processing_real_e2e.py::TestTranslationServiceMethodCalls::test_translation_service_interface_contract PASSED [ 27%]
+tests/integration/test_chunk_processing_real_e2e.py::TestTranslationServiceMethodCalls::test_translation_result_has_translated_text_attribute PASSED [ 27%]
+tests/integration/test_chunk_processing_real_e2e.py::TestIntegrationWithoutMocks::test_vocabulary_lookup_full_flow PASSED [ 28%]
+tests/integration/test_chunk_processing_real_e2e.py::TestIntegrationWithoutMocks::test_subtitle_processor_vocabulary_integration PASSED [ 28%]
+tests/integration/test_chunk_processing_real_e2e.py::TestIntegrationWithoutMocks::test_translation_factory_creates_correct_service_type PASSED [ 28%]
+tests/integration/test_chunk_processing_real_e2e.py::TestBugReproduction::test_bug_4_vocab_service_session_management PASSED [ 28%]
+tests/integration/test_chunk_processing_real_e2e.py::TestBugReproduction::test_bug_5_translation_method_name PASSED [ 28%]
+tests/integration/test_chunk_processing_real_e2e.py::TestBugReproduction::test_bug_5_translation_result_extraction PASSED [ 28%]
+tests/integration/test_complete_user_workflow.py::TestCompleteUserWorkflow::test_complete_vocabulary_game_workflow PASSED [ 28%]
+tests/integration/test_complete_user_workflow.py::TestCompleteUserWorkflow::test_vocabulary_survives_round_trip PASSED [ 28%]
+tests/integration/test_complete_user_workflow.py::TestCompleteUserWorkflow::test_multiple_words_all_have_valid_uuids PASSED [ 28%]
+tests/integration/test_complete_user_workflow.py::TestCompleteUserWorkflow::test_same_word_gets_same_uuid_across_sessions PASSED [ 28%]
+tests/integration/test_complete_user_workflow.py::TestCompleteUserWorkflow::test_frontend_can_safely_render_all_vocabulary PASSED [ 28%]
+tests/integration/test_complete_user_workflow.py::TestErrorCases::test_empty_vocabulary_doesnt_crash PASSED [ 29%]
+tests/integration/test_complete_user_workflow.py::TestErrorCases::test_vocabulary_without_lemma PASSED [ 29%]
+tests/integration/test_database_operations.py::TestVocabularyDatabaseOperations::test_create_vocabulary_word PASSED [ 29%]
+tests/integration/test_database_operations.py::TestVocabularyDatabaseOperations::test_query_by_language PASSED [ 29%]
+tests/integration/test_database_operations.py::TestVocabularyDatabaseOperations::test_query_by_level PASSED [ 29%]
+tests/integration/test_database_operations.py::TestVocabularyDatabaseOperations::test_query_by_lemma PASSED [ 29%]
+tests/integration/test_database_operations.py::TestVocabularyDatabaseOperations::test_count_by_level PASSED [ 29%]
+tests/integration/test_database_operations.py::TestVocabularyDatabaseOperations::test_update_vocabulary_word PASSED [ 29%]
+tests/integration/test_database_operations.py::TestVocabularyDatabaseOperations::test_delete_vocabulary_word PASSED [ 29%]
+tests/integration/test_database_operations.py::TestVocabularyDatabaseOperations::test_complex_query_with_multiple_conditions PASSED [ 29%]
+tests/integration/test_database_operations.py::TestUserDatabaseOperations::test_create_user PASSED [ 29%]
+tests/integration/test_database_operations.py::TestUserDatabaseOperations::test_query_user_by_email PASSED [ 29%]
+tests/integration/test_database_operations.py::TestUserDatabaseOperations::test_update_user PASSED [ 30%]
+tests/integration/test_database_operations.py::TestUserDatabaseOperations::test_user_unique_email_constraint PASSED [ 30%]
+tests/integration/test_database_operations.py::TestUserVocabularyProgressOperations::test_create_progress_record PASSED [ 30%]
+tests/integration/test_database_operations.py::TestUserVocabularyProgressOperations::test_query_user_known_words PASSED [ 30%]
+tests/integration/test_database_operations.py::TestUserVocabularyProgressOperations::test_update_progress_confidence PASSED [ 30%]
+tests/integration/test_file_uploads.py::test_Whensubtitle_uploadWithnon_srt_ThenRejects PASSED [ 30%]
+tests/integration/test_file_uploads.py::test_Whenvideo_uploadWithoutmp_ThenReturnsError4 PASSED [ 30%]
+tests/integration/test_game_vocabulary_integration.py::TestGameVocabularyLibraryIntegration::test_WhenWordMarkedKnownInGame_ThenAppearsInVocabularyLibraryAsKnown PASSED [ 30%]
+tests/integration/test_game_vocabulary_integration.py::TestGameVocabularyLibraryIntegration::test_WhenMultipleWordsMarkedKnownInGame_ThenAllAppearInVocabularyLibrary PASSED [ 30%]
+tests/integration/test_game_vocabulary_integration.py::TestGameVocabularyLibraryIntegration::test_WhenWordUnmarkedInVocabularyLibrary_ThenRemovedFromKnownList PASSED [ 30%]
+tests/integration/test_game_vocabulary_integration.py::TestGameVocabularyLibraryIntegration::test_WhenUnknownWordMarkedKnownInGame_ThenAppearsInVocabularyLibrary PASSED [ 30%]
+tests/integration/test_game_vocabulary_integration.py::TestGameVocabularyLibraryIntegration::test_WhenGameStarts_ThenOnlyShowsUnknownWords PASSED [ 31%]
+tests/integration/test_game_workflow.py::TestCompleteGameWorkflow::test_WhenCompleteVocabularyGameWorkflow_ThenSucceedsWithCorrectScoring PASSED [ 31%]
+tests/integration/test_game_workflow.py::TestCompleteGameWorkflow::test_WhenMultipleGameSessions_ThenEachSessionIsIndependent PASSED [ 31%]
+tests/integration/test_game_workflow.py::TestCompleteGameWorkflow::test_WhenVideoGameWorkflow_ThenIncludesVideoContext PASSED [ 31%]
+tests/integration/test_game_workflow.py::TestCompleteGameWorkflow::test_WhenGameSessionErrorRecovery_ThenHandlesGracefully PASSED [ 31%]
+tests/integration/test_game_workflow.py::TestCompleteGameWorkflow::test_WhenMultiUserGameSessions_ThenSessionsIsolated PASSED [ 31%]
+tests/integration/test_inprocess_api.py::test_Whenhealth_endpointCalled_ThenSucceeds PASSED [ 31%]
+tests/integration/test_inprocess_api.py::test_Whenvocabulary_statsWithoutauth_ThenReturnsError PASSED [ 31%]
+tests/integration/test_inprocess_files_and_processing.py::test_WhenFilterSubtitlesWithoutexisting_file_ThenRejected PASSED [ 31%]
+tests/integration/test_inprocess_vocabulary.py::test_Whenvocabulary_statsCalled_ThenReturnslevels PASSED [ 31%]
+tests/integration/test_inprocess_vocabulary.py::test_Whenbulk_mark_level_uses_serviceCalled_ThenSucceeds PASSED [ 31%]
+tests/integration/test_processing_endpoints.py::test_Whentranscribe_endpointCalled_ThenReturnstask PASSED [ 32%]
+tests/integration/test_processing_endpoints.py::test_Whenprepare_episodeWithoutexisting_video_ThenReturnsError PASSED [ 32%]
+tests/integration/test_server_integration.py::TestBackendIntegration::test_server_starts_and_serves_docs SKIPPED [ 32%]
+tests/integration/test_server_integration.py::TestBackendIntegration::test_server_serves_openapi_spec SKIPPED [ 32%]
+tests/integration/test_server_integration.py::TestBackendIntegration::test_health_check_endpoint SKIPPED [ 32%]
+tests/integration/test_server_integration.py::TestBackendIntegration::test_cors_headers_present SKIPPED [ 32%]
+tests/integration/test_server_integration.py::TestBackendIntegration::test_async_client_connectivity SKIPPED [ 32%]
+tests/integration/test_server_integration.py::TestBackendIntegration::test_server_handles_404_gracefully SKIPPED [ 32%]
+tests/integration/test_server_integration.py::TestBackendAPIIntegration::test_auth_register_endpoint_exists SKIPPED [ 32%]
+tests/integration/test_server_integration.py::TestBackendAPIIntegration::test_auth_login_endpoint_exists SKIPPED [ 32%]
+tests/integration/test_server_integration.py::TestBackendAPIIntegration::test_videos_endpoint_requires_auth SKIPPED [ 32%]
+tests/integration/test_subtitle_filtering_after_game.py::TestSubtitleFilteringAfterGame::test_WhenWordMarkedKnownInGame_ThenWordNotInVocabularyOnReprocess PASSED [ 33%]
+tests/integration/test_subtitle_filtering_after_game.py::TestSubtitleFilteringAfterGame::test_WhenMultipleWordsMarkedKnown_ThenAllFilteredFromNewVocabulary PASSED [ 33%]
+tests/integration/test_subtitle_filtering_after_game.py::TestSubtitleFilteringAfterGame::test_WhenUnknownWordMarkedKnown_ThenNotInSubsequentVocabularyExtraction PASSED [ 33%]
+tests/integration/test_subtitle_filtering_after_game.py::TestSubtitleFilteringAfterGame::test_WhenWordsMarkedKnownAndUnmarked_ThenReappearInVocabulary PASSED [ 33%]
+tests/integration/test_subtitle_filtering_after_game.py::TestSubtitleFilteringAfterGame::test_WhenUserHasManyKnownWords_ThenOnlyUnknownWordsInNewVocabulary PASSED [ 33%]
+tests/integration/test_subtitle_processor_real_integration.py::TestDirectSubtitleProcessorRealIntegration::test_processor_instantiates_vocabulary_service_correctly PASSED [ 33%]
+tests/integration/test_subtitle_processor_real_integration.py::TestDirectSubtitleProcessorRealIntegration::test_processor_processes_subtitles_with_real_vocab_service PASSED [ 33%]
+tests/integration/test_subtitle_processor_real_integration.py::TestDirectSubtitleProcessorRealIntegration::test_processor_uses_correct_vocabulary_call_signature PASSED [ 33%]
+tests/integration/test_subtitle_processor_real_integration.py::TestSubtitleProcessorWordLookupIntegration::test_processor_looks_up_words_in_database PASSED [ 33%]
+tests/integration/test_subtitle_processor_real_integration.py::TestSubtitleProcessorWordLookupIntegration::test_processor_handles_word_not_in_database PASSED [ 33%]
+tests/integration/test_subtitle_processor_real_integration.py::TestSubtitleProcessorWordLookupIntegration::test_processor_session_management PASSED [ 33%]
+tests/integration/test_subtitle_processor_real_integration.py::TestSubtitleProcessorServiceBoundaries::test_processor_delegates_to_subtitle_processor PASSED [ 33%]
+tests/integration/test_subtitle_processor_real_integration.py::TestSubtitleProcessorServiceBoundaries::test_processor_uses_data_loader PASSED [ 34%]
+tests/integration/test_subtitle_processor_real_integration.py::TestSubtitleProcessorServiceBoundaries::test_processor_integrates_all_services PASSED [ 34%]
+tests/integration/test_subtitle_processor_real_integration.py::TestSubtitleProcessorErrorHandling::test_processor_handles_empty_subtitles PASSED [ 34%]
+tests/integration/test_subtitle_processor_real_integration.py::TestSubtitleProcessorErrorHandling::test_processor_handles_database_errors_gracefully PASSED [ 34%]
+tests/integration/test_transcription_srt.py::test_Whentranscribe_fails_without_serviceCalled_ThenSucceeds PASSED [ 34%]
+tests/integration/test_video_processing.py::test_Whenvideo_listingCalled_ThenReturnsempty_list PASSED [ 34%]
+tests/integration/test_video_processing.py::test_stream_missing_video_returns_404 PASSED [ 34%]
+tests/integration/test_video_streaming_auth.py::TestVideoStreamingAuthentication::test_video_endpoint_with_query_token PASSED [ 34%]
+tests/integration/test_video_streaming_auth.py::TestVideoStreamingAuthentication::test_video_endpoint_with_bearer_header PASSED [ 34%]
+tests/integration/test_video_streaming_auth.py::TestVideoStreamingAuthentication::test_video_endpoint_without_token_fails PASSED [ 34%]
+tests/integration/test_video_streaming_auth.py::TestVideoStreamingAuthentication::test_video_endpoint_with_invalid_token_fails PASSED [ 34%]
+tests/integration/test_vocabulary_endpoints.py::test_Whenmark_known_endpointCalled_ThenSucceeds PASSED [ 35%]
+tests/integration/test_vocabulary_endpoints.py::test_Whenlibrary_levelWithoutvalid_code_ThenReturnsError PASSED [ 35%]
+tests/integration/test_vocabulary_endpoints.py::test_Whenvocabulary_stats_endpointCalled_ThenReturnsMultilingualStats PASSED [ 35%]
+tests/integration/test_vocabulary_endpoints.py::test_Whenlanguages_endpointCalled_ThenReturnsLanguageList PASSED [ 35%]
+tests/integration/test_vocabulary_endpoints.py::test_Whenbulk_mark_endpointCalled_ThenSucceedsWithLanguage PASSED [ 35%]
+tests/integration/test_vocabulary_service_database.py::TestVocabularyServiceDatabaseIntegration::test_get_word_info_found PASSED [ 35%]
+tests/integration/test_vocabulary_service_database.py::TestVocabularyServiceDatabaseIntegration::test_get_word_info_not_found PASSED [ 35%]
+tests/integration/test_vocabulary_service_database.py::TestVocabularyServiceDatabaseIntegration::test_mark_word_known_success PASSED [ 35%]
+tests/integration/test_vocabulary_service_database.py::TestVocabularyServiceDatabaseIntegration::test_mark_word_known_word_not_found PASSED [ 35%]
+tests/integration/test_vocabulary_service_database.py::TestVocabularyServiceDatabaseIntegration::test_mark_word_known_toggle PASSED [ 35%]
+tests/integration/test_vocabulary_service_database.py::TestVocabularyServiceDatabaseIntegration::test_get_word_info_case_insensitive PASSED [ 35%]
+tests/integration/test_vocabulary_service_database.py::TestVocabularyServiceDatabaseIntegration::test_multiple_users_independent_progress PASSED [ 36%]
+tests/integration/test_vocabulary_service_real_integration.py::TestVocabularyServiceRealIntegration::test_get_word_info_with_real_db PASSED [ 36%]
+tests/integration/test_vocabulary_service_real_integration.py::TestVocabularyServiceRealIntegration::test_get_word_info_not_found PASSED [ 36%]
+tests/integration/test_vocabulary_service_real_integration.py::TestVocabularyServiceRealIntegration::test_get_word_info_call_signature PASSED [ 36%]
+tests/integration/test_vocabulary_service_real_integration.py::TestVocabularyServiceRealIntegration::test_get_vocabulary_library_with_real_db PASSED [ 36%]
+tests/integration/test_vocabulary_service_real_integration.py::TestVocabularyServiceRealIntegration::test_service_instantiation_creates_instance PASSED [ 36%]
+tests/integration/test_vocabulary_service_real_integration.py::TestVocabularyServiceSubtitleProcessorScenario::test_subtitle_processor_usage_pattern PASSED [ 36%]
+tests/integration/test_vocabulary_service_real_integration.py::TestVocabularyServiceSubtitleProcessorScenario::test_multiple_word_lookups_same_session PASSED [ 36%]
+tests/integration/test_vocabulary_service_real_integration.py::TestVocabularyServiceIntegrationBoundaries::test_service_query_delegation PASSED [ 36%]
+tests/integration/test_vocabulary_service_real_integration.py::TestVocabularyServiceIntegrationBoundaries::test_service_handles_different_languages PASSED [ 36%]
+tests/integration/test_vocabulary_workflow.py::TestCompleteVocabularyLearningWorkflow::test_WhenCompleteVocabularyProgressionWorkflow_ThenAllStepsSucceed PASSED [ 36%]
+tests/integration/test_vocabulary_workflow.py::TestCompleteVocabularyLearningWorkflow::test_WhenMultiLevelVocabularyProgression_ThenProgressTracksAcrossLevels PASSED [ 37%]
+tests/integration/test_vocabulary_workflow.py::TestCompleteVocabularyLearningWorkflow::test_WhenBulkVocabularyOperations_ThenConsistentWithIndividualOperations PASSED [ 37%]
+tests/integration/test_vocabulary_workflow.py::TestCompleteVocabularyLearningWorkflow::test_WhenSwitchingLanguageCombinations_ThenDataRemainsConsistent PASSED [ 37%]
+tests/integration/test_vocabulary_workflow.py::TestCompleteVocabularyLearningWorkflow::test_WhenVocabularyProgressionWithUnmarkingWords_ThenStatisticsAdjustCorrectly PASSED [ 37%]
+tests/integration/test_vocabulary_workflow.py::TestMultiUserVocabularyIsolation::test_WhenMultipleUsersMarkSameWords_ThenProgressIsolatedPerUser PASSED [ 37%]
+tests/integration/test_websocket.py::test_WhenwebsocketWithouttoken_ThenReturnsError PASSED [ 37%]
+tests/integration/test_workflow.py::test_Whenfull_user_workflowCalled_ThenSucceeds PASSED [ 37%]
+tests/security/test_api_security.py::test_Whenmultilingual_vocabulary_statsWithoutauthentication_ThenReturnsError PASSED [ 37%]
+tests/security/test_api_security.py::test_invalid_BearerToken_is_rejected PASSED [ 37%]
+tests/security/test_api_security.py::test_Whensql_injection_in_concept_lookupCalled_ThenReturnssafe_response PASSED [ 37%]
+tests/security/test_api_security.py::test_Whenxss_payload_in_language_parameterCalled_ThenSucceeds PASSED [ 37%]
+tests/security/test_api_security.py::test_WhenLogoutCalled_ThenRevokesaccess PASSED [ 37%]
+tests/services/test_transcription_services.py::test_Whenservice_factory_called_ThenReturnsService SKIPPEDransformers)) [ 38%]
+tests/services/test_transcription_services.py::test_Wheninvalid_service_requested_ThenReturnsNone PASSED [ 38%]
+tests/services/test_user_vocabulary_service.py::test_Whenmark_concept_known_persists_entriesCalled_ThenSucceeds PASSED [ 38%]
+tests/services/test_user_vocabulary_service.py::test_Whenget_vocabulary_level_handles_emptyCalled_ThenSucceeds PASSED [ 38%]
+tests/services/test_user_vocabulary_service.py::test_Whenget_vocabulary_stats_reports_countsCalled_ThenSucceeds PASSED [ 38%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordHashing::test_hash_password_creates_valid_argon2_hash PASSED [ 38%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordHashing::test_verify_password_accepts_correct_password PASSED [ 38%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordHashing::test_verify_password_rejects_incorrect_password PASSED [ 38%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordHashing::test_hash_password_same_input_different_hashes PASSED [ 38%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordHashing::test_hash_password_handles_unicode PASSED [ 38%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordHashing::test_verify_password_handles_invalid_hash_format PASSED [ 38%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordHashing::test_verify_password_handles_empty_password PASSED [ 39%]
+tests/unit/core/test_auth_security_comprehensive.py::TestTokenGeneration::test_generate_secure_token_creates_unique_tokens PASSED [ 39%]
+tests/unit/core/test_auth_security_comprehensive.py::TestTokenGeneration::test_generate_secure_token_default_length PASSED [ 39%]
+tests/unit/core/test_auth_security_comprehensive.py::TestTokenGeneration::test_generate_secure_token_custom_length PASSED [ 39%]
+tests/unit/core/test_auth_security_comprehensive.py::TestTokenGeneration::test_generate_secure_token_url_safe_characters PASSED [ 39%]
+tests/unit/core/test_auth_security_comprehensive.py::TestTokenGeneration::test_generate_secure_token_no_special_characters PASSED [ 39%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordValidation::test_validate_password_strength_minimum_requirements_met PASSED [ 39%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordValidation::test_validate_password_strength_rejects_too_short PASSED [ 39%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordValidation::test_validate_password_strength_rejects_no_uppercase PASSED [ 39%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordValidation::test_validate_password_strength_rejects_no_lowercase PASSED [ 39%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordValidation::test_validate_password_strength_rejects_no_digits PASSED [ 39%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordValidation::test_validate_password_strength_rejects_no_special_chars PASSED [ 40%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordValidation::test_validate_password_strength_rejects_common_passwords PASSED [ 40%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordValidation::test_validate_password_strength_case_insensitive_common_check PASSED [ 40%]
+tests/unit/core/test_auth_security_comprehensive.py::TestPasswordValidation::test_validate_password_strength_accepts_strong_passwords PASSED [ 40%]
+tests/unit/core/test_auth_security_comprehensive.py::TestJWTTokenCreation::test_create_access_token_with_data PASSED [ 40%]
+tests/unit/core/test_auth_security_comprehensive.py::TestJWTTokenCreation::test_create_access_token_includes_expiration PASSED [ 40%]
+tests/unit/core/test_auth_security_comprehensive.py::TestJWTTokenCreation::test_create_access_token_custom_expiration PASSED [ 40%]
+tests/unit/core/test_auth_security_comprehensive.py::TestJWTTokenCreation::test_create_access_token_includes_jti PASSED [ 40%]
+tests/unit/core/test_auth_security_comprehensive.py::TestJWTTokenCreation::test_create_access_token_unique_jti_per_token PASSED [ 40%]
+tests/unit/core/test_auth_security_comprehensive.py::TestJWTTokenCreation::test_create_access_token_default_expiration PASSED [ 40%]
+tests/unit/core/test_auth_security_comprehensive.py::TestSecurityHeaders::test_get_security_headers_returns_all_headers PASSED [ 40%]
+tests/unit/core/test_auth_security_comprehensive.py::TestSecurityHeaders::test_get_security_headers_correct_values PASSED [ 40%]
+tests/unit/core/test_auth_security_comprehensive.py::TestSecurityHeaders::test_add_security_headers_middleware PASSED [ 41%]
+tests/unit/core/test_auth_security_comprehensive.py::TestLoginAttemptTracker::test_is_locked_returns_false_for_new_account PASSED [ 41%]
+tests/unit/core/test_auth_security_comprehensive.py::TestLoginAttemptTracker::test_record_attempt_tracks_successful_login PASSED [ 41%]
+tests/unit/core/test_auth_security_comprehensive.py::TestLoginAttemptTracker::test_record_attempt_tracks_failed_login PASSED [ 41%]
+tests/unit/core/test_auth_security_comprehensive.py::TestLoginAttemptTracker::test_is_locked_after_max_failed_attempts PASSED [ 41%]
+tests/unit/core/test_auth_security_comprehensive.py::TestLoginAttemptTracker::test_is_locked_not_locked_with_fewer_failures PASSED [ 41%]
+tests/unit/core/test_auth_security_comprehensive.py::TestLoginAttemptTracker::test_is_locked_expires_after_lockout_duration PASSED [ 41%]
+tests/unit/core/test_auth_security_comprehensive.py::TestLoginAttemptTracker::test_get_remaining_attempts_for_new_account PASSED [ 41%]
+tests/unit/core/test_auth_security_comprehensive.py::TestLoginAttemptTracker::test_get_remaining_attempts_decreases_with_failures PASSED [ 41%]
+tests/unit/core/test_auth_security_comprehensive.py::TestLoginAttemptTracker::test_get_remaining_attempts_zero_when_locked PASSED [ 41%]
+tests/unit/core/test_auth_security_comprehensive.py::TestLoginAttemptTracker::test_record_attempt_cleans_old_attempts PASSED [ 41%]
+tests/unit/core/test_auth_security_comprehensive.py::TestLoginAttemptTracker::test_successful_login_does_not_trigger_lockout PASSED [ 42%]
+tests/unit/core/test_auth_security_comprehensive.py::TestLoginAttemptTracker::test_multiple_accounts_tracked_independently PASSED [ 42%]
+tests/unit/core/test_auth_security_comprehensive.py::TestSecurityConfiguration::test_jwt_configuration_constants PASSED [ 42%]
+tests/unit/core/test_auth_security_comprehensive.py::TestSecurityConfiguration::test_password_policy_constants PASSED [ 42%]
+tests/unit/core/test_auth_security_comprehensive.py::TestSecurityConfiguration::test_rate_limiting_constants PASSED [ 42%]
+tests/unit/core/test_auth_security_comprehensive.py::TestSecurityConfiguration::test_session_security_constants PASSED [ 42%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_validate_file_extension_allowed_video PASSED [ 42%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_validate_file_extension_allowed_subtitle PASSED [ 42%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_validate_file_extension_case_insensitive PASSED [ 42%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_validate_file_extension_disallowed PASSED [ 42%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_validate_file_extension_no_extension PASSED [ 42%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_sanitize_filename_removes_dangerous_chars PASSED [ 43%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_sanitize_filename_limits_length PASSED [ 43%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_sanitize_filename_preserves_valid_chars PASSED [ 43%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_validate_file_upload_missing_filename PASSED [ 43%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_validate_file_upload_disallowed_extension PASSED [ 43%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_validate_file_upload_empty_file PASSED [ 43%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_validate_file_upload_file_too_large PASSED [ 43%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_validate_file_upload_success PASSED [ 43%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_get_safe_upload_path_no_extension PASSED [ 43%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_get_safe_upload_path_disallowed_extension PASSED [ 43%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_get_safe_upload_path_generates_uuid PASSED [ 43%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_get_safe_upload_path_preserves_name PASSED [ 44%]
+tests/unit/core/test_file_security.py::TestFileSecurityValidator::test_get_safe_upload_path_sanitizes_preserved_name PASSED [ 44%]
+tests/unit/core/test_file_security.py::TestPathTraversalPrevention::test_validate_file_path_rejects_parent_directory_traversal PASSED [ 44%]
+tests/unit/core/test_file_security.py::TestPathTraversalPrevention::test_validate_file_path_rejects_absolute_paths PASSED [ 44%]
+tests/unit/core/test_file_security.py::TestPathTraversalPrevention::test_validate_file_path_rejects_backslash_traversal PASSED [ 44%]
+tests/unit/core/test_file_security.py::TestSecurityEdgeCases::test_sanitize_filename_null_byte_injection PASSED [ 44%]
+tests/unit/core/test_file_security.py::TestSecurityEdgeCases::test_sanitize_filename_unicode_normalization PASSED [ 44%]
+tests/unit/core/test_file_security.py::TestSecurityEdgeCases::test_extension_double_extension_attack PASSED [ 44%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistInitialization::test_initialization PASSED [ 44%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistOperations::test_add_token PASSED [ 44%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistOperations::test_add_token_default_expiry PASSED [ 44%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistOperations::test_is_blacklisted PASSED [ 44%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistOperations::test_is_blacklisted_expired_token PASSED [ 45%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistOperations::test_remove_token PASSED [ 45%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistOperations::test_remove_nonexistent_token PASSED [ 45%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistOperations::test_cleanup_expired_tokens PASSED [ 45%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistEdgeCases::test_add_empty_token PASSED [ 45%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistEdgeCases::test_add_none_token PASSED [ 45%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistEdgeCases::test_is_blacklisted_empty_token PASSED [ 45%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistEdgeCases::test_is_blacklisted_none_token PASSED [ 45%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistEdgeCases::test_multiple_cleanup_calls PASSED [ 45%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistEdgeCases::test_cleanup_with_no_expired_tokens PASSED [ 45%]
+tests/unit/core/test_token_blacklist.py::TestTokenBlacklistEdgeCases::test_concurrent_operations PASSED [ 45%]
+tests/unit/core/test_transaction.py::TestTransactionalDecorator::test_decorator_finds_session_in_args PASSED [ 46%]
+tests/unit/core/test_transaction.py::TestTransactionalDecorator::test_decorator_finds_session_in_kwargs PASSED [ 46%]
+tests/unit/core/test_transaction.py::TestTransactionalDecorator::test_decorator_commits_on_success PASSED [ 46%]
+tests/unit/core/test_transaction.py::TestTransactionalDecorator::test_decorator_rolls_back_on_exception PASSED [ 46%]
+tests/unit/core/test_transaction.py::TestTransactionalDecorator::test_decorator_without_session_logs_warning PASSED [ 46%]
+tests/unit/core/test_transaction.py::TestTransactionalDecorator::test_decorator_preserves_function_metadata PASSED [ 46%]
+tests/unit/core/test_transaction.py::TestTransactionalDecorator::test_decorator_with_multiple_args_finds_session PASSED [ 46%]
+tests/unit/core/test_transaction.py::TestTransactionContext::test_context_manager_commits_on_success PASSED [ 46%]
+tests/unit/core/test_transaction.py::TestTransactionContext::test_context_manager_rolls_back_on_exception PASSED [ 46%]
+tests/unit/core/test_transaction.py::TestTransactionContext::test_context_manager_does_not_suppress_exception PASSED [ 46%]
+tests/unit/core/test_transaction.py::TestTransactionContext::test_context_manager_logs_rollback PASSED [ 46%]
+tests/unit/core/test_transaction.py::TestNestedTransactions::test_decorator_uses_savepoint_for_nesting PASSED [ 47%]
+tests/unit/core/test_transaction.py::TestRealWorldScenarios::test_multiple_db_operations_in_transaction PASSED [ 47%]
+tests/unit/core/test_transaction.py::TestRealWorldScenarios::test_partial_rollback_on_error PASSED [ 47%]
+tests/unit/core/test_transaction.py::TestEdgeCases::test_decorator_with_no_arguments PASSED [ 47%]
+tests/unit/core/test_transaction.py::TestEdgeCases::test_decorator_with_self_parameter PASSED [ 47%]
+tests/unit/core/test_transaction.py::TestEdgeCases::test_context_manager_with_none_session PASSED [ 47%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOValidation::test_When_valid_vocabulary_word_data_Then_dto_created PASSED [ 47%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOValidation::test_When_word_empty_string_Then_validation_error PASSED [ 47%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOValidation::test_When_word_too_long_Then_validation_error PASSED [ 47%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOValidation::test_When_word_contains_invalid_characters_Then_validation_error PASSED [ 47%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOValidation::test_When_word_contains_sql_characters_Then_validation_error PASSED [ 47%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOValidation::test_When_word_contains_special_chars_Then_validation_error PASSED [ 48%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOValidation::test_When_word_contains_valid_unicode_Then_accepted PASSED [ 48%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOValidation::test_When_word_contains_german_umlauts_Then_accepted PASSED [ 48%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOValidation::test_When_word_contains_hyphen_Then_accepted PASSED [ 48%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOValidation::test_When_word_contains_apostrophe_Then_accepted PASSED [ 48%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOValidation::test_When_word_has_leading_trailing_spaces_Then_trimmed PASSED [ 48%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTODifficultyValidation::test_When_valid_difficulty_level_Then_accepted[A1] PASSED [ 48%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTODifficultyValidation::test_When_valid_difficulty_level_Then_accepted[A2] PASSED [ 48%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTODifficultyValidation::test_When_valid_difficulty_level_Then_accepted[B1] PASSED [ 48%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTODifficultyValidation::test_When_valid_difficulty_level_Then_accepted[B2] PASSED [ 48%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTODifficultyValidation::test_When_valid_difficulty_level_Then_accepted[C1] PASSED [ 48%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTODifficultyValidation::test_When_valid_difficulty_level_Then_accepted[C2] PASSED [ 48%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTODifficultyValidation::test_When_invalid_difficulty_level_Then_validation_error PASSED [ 49%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOLanguageValidation::test_When_valid_language_code_Then_accepted[de] PASSED [ 49%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOLanguageValidation::test_When_valid_language_code_Then_accepted[en] PASSED [ 49%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOLanguageValidation::test_When_valid_language_code_Then_accepted[es] PASSED [ 49%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOLanguageValidation::test_When_valid_language_code_Then_accepted[fr] PASSED [ 49%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOLanguageValidation::test_When_valid_language_code_Then_accepted[it] PASSED [ 49%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOLanguageValidation::test_When_valid_language_code_Then_accepted[pt] PASSED [ 49%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOLanguageValidation::test_When_valid_language_code_Then_accepted[ru] PASSED [ 49%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOLanguageValidation::test_When_valid_language_code_Then_accepted[zh] PASSED [ 49%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOLanguageValidation::test_When_valid_language_code_Then_accepted[ja] PASSED [ 49%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOLanguageValidation::test_When_valid_language_code_Then_accepted[ko] PASSED [ 49%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOLanguageValidation::test_When_invalid_language_code_Then_validation_error PASSED [ 50%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOLanguageValidation::test_When_language_code_uppercase_Then_converted_to_lowercase PASSED [ 50%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOOptionalFields::test_When_frequency_negative_Then_validation_error PASSED [ 50%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOOptionalFields::test_When_example_sentence_too_long_Then_validation_error PASSED [ 50%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOOptionalFields::test_When_definition_too_long_Then_validation_error PASSED [ 50%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyWordDTOOptionalFields::test_When_lemma_contains_invalid_characters_Then_validation_error PASSED [ 50%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestUserProgressDTOValidation::test_When_valid_user_progress_data_Then_dto_created PASSED [ 50%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestUserProgressDTOValidation::test_When_user_id_zero_Then_validation_error PASSED [ 50%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestUserProgressDTOValidation::test_When_user_id_negative_Then_validation_error PASSED [ 50%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestUserProgressDTOValidation::test_When_review_count_negative_Then_validation_error PASSED [ 50%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestUserProgressDTOValidation::test_When_confidence_level_above_one_Then_validation_error PASSED [ 50%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestUserProgressDTOValidation::test_When_confidence_level_below_zero_Then_validation_error PASSED [ 51%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularySearchDTOSQLInjectionPrevention::test_When_valid_search_query_Then_dto_created PASSED [ 51%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularySearchDTOSQLInjectionPrevention::test_When_query_contains_semicolon_Then_removed PASSED [ 51%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularySearchDTOSQLInjectionPrevention::test_When_query_contains_single_quote_Then_removed PASSED [ 51%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularySearchDTOSQLInjectionPrevention::test_When_query_contains_double_quote_Then_removed PASSED [ 51%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularySearchDTOSQLInjectionPrevention::test_When_query_contains_backslash_Then_removed PASSED [ 51%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularySearchDTOSQLInjectionPrevention::test_When_query_all_special_chars_Then_validation_error PASSED [ 51%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularySearchDTOSQLInjectionPrevention::test_When_query_has_leading_trailing_spaces_Then_trimmed PASSED [ 51%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularySearchDTOSQLInjectionPrevention::test_When_query_too_short_Then_validation_error PASSED [ 51%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularySearchDTOSQLInjectionPrevention::test_When_query_too_long_Then_validation_error PASSED [ 51%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyLibraryDTOValidation::test_When_valid_library_data_Then_dto_created PASSED [ 51%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyLibraryDTOValidation::test_When_total_count_negative_Then_validation_error PASSED [ 51%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyLibraryDTOValidation::test_When_page_zero_Then_validation_error PASSED [ 52%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyLibraryDTOValidation::test_When_page_exceeds_limit_Then_validation_error PASSED [ 52%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyLibraryDTOValidation::test_When_per_page_zero_Then_validation_error PASSED [ 52%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyLibraryDTOValidation::test_When_per_page_exceeds_limit_Then_validation_error PASSED [ 52%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyStatsDTOValidation::test_When_valid_stats_data_Then_dto_created PASSED [ 52%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyStatsDTOValidation::test_When_negative_counts_Then_validation_error PASSED [ 52%]
+tests/unit/dtos/test_vocabulary_dto_validation.py::TestVocabularyStatsDTOValidation::test_When_recent_progress_exceeds_limit_Then_validation_error PASSED [ 52%]
+tests/unit/models/test_auth_models.py::test_register_request_rejects_password_without_required_character[weakpass1-Password must contain at least one uppercase letter] PASSED [ 52%]
+tests/unit/models/test_auth_models.py::test_register_request_rejects_password_without_required_character[WEAKPASS1-Password must contain at least one lowercase letter] PASSED [ 52%]
+tests/unit/models/test_auth_models.py::test_register_request_rejects_password_without_required_character[Weakpass-Password must contain at least one digit] PASSED [ 52%]
+tests/unit/models/test_auth_models.py::test_register_request_accepts_strong_password PASSED [ 52%]
+tests/unit/models/test_auth_models.py::test_auth_response_includes_nested_user_model PASSED [ 53%]
+tests/unit/models/test_model_validation.py::TestAuthModelValidation::test_When_valid_registration_data_provided_Then_model_created_successfully PASSED [ 53%]
+tests/unit/models/test_model_validation.py::TestAuthModelValidation::test_When_password_missing_uppercase_Then_validation_error_raised PASSED [ 53%]
+tests/unit/models/test_model_validation.py::TestAuthModelValidation::test_When_password_missing_digits_Then_validation_error_raised PASSED [ 53%]
+tests/unit/models/test_model_validation.py::TestAuthModelValidation::test_When_username_too_short_Then_validation_error_raised PASSED [ 53%]
+tests/unit/models/test_model_validation.py::TestAuthModelValidation::test_When_required_fields_missing_Then_validation_error_raised PASSED [ 53%]
+tests/unit/models/test_model_validation.py::TestVocabularyModelValidation::test_When_valid_vocabulary_word_data_provided_Then_model_created_successfully PASSED [ 53%]
+tests/unit/models/test_model_validation.py::TestVocabularyModelValidation::test_When_valid_mark_known_request_provided_Then_model_created_successfully PASSED [ 53%]
+tests/unit/models/test_model_validation.py::TestProcessingModelValidation::test_When_valid_transcription_request_provided_Then_model_created_successfully PASSED [ 53%]
+tests/unit/models/test_model_validation.py::TestProcessingModelValidation::test_When_valid_chunk_processing_request_provided_Then_model_created_successfully PASSED [ 53%]
+tests/unit/models/test_model_validation.py::TestProcessingModelValidation::test_When_invalid_time_range_provided_Then_validation_handled_appropriately PASSED [ 53%]
+tests/unit/models/test_model_validation.py::TestTranscriptionInterfaceValidation::test_When_transcription_service_interface_inspected_Then_is_properly_abstract PASSED [ 54%]
+tests/unit/models/test_model_validation.py::TestTranscriptionInterfaceValidation::test_When_transcription_segment_created_Then_has_expected_properties PASSED [ 54%]
+tests/unit/models/test_model_validation.py::TestTranscriptionInterfaceValidation::test_When_transcription_result_created_Then_has_expected_structure PASSED [ 54%]
+tests/unit/models/test_model_validation.py::TestModelValidationIntegration::test_When_all_auth_models_validated_Then_consistent_error_handling PASSED [ 54%]
+tests/unit/models/test_model_validation.py::TestModelValidationIntegration::test_When_vocabulary_models_used_together_Then_compatible_data_structures PASSED [ 54%]
+tests/unit/models/test_processing_models.py::TestTranscribeRequestValidation::test_validate_video_path_valid_paths PASSED [ 54%]
+tests/unit/models/test_processing_models.py::TestTranscribeRequestValidation::test_validate_video_path_empty_path PASSED [ 54%]
+tests/unit/models/test_processing_models.py::TestTranscribeRequestValidation::test_validate_video_path_whitespace_only PASSED [ 54%]
+tests/unit/models/test_processing_models.py::TestTranscribeRequestValidation::test_validate_video_path_invalid_extension PASSED [ 54%]
+tests/unit/models/test_processing_models.py::TestTranscribeRequestValidation::test_validate_video_path_relative_paths PASSED [ 54%]
+tests/unit/models/test_processing_models.py::TestFilterRequestValidation::test_validate_video_path_valid_paths PASSED [ 54%]
+tests/unit/models/test_processing_models.py::TestFilterRequestValidation::test_validate_video_path_empty_path PASSED [ 55%]
+tests/unit/models/test_processing_models.py::TestFilterRequestValidation::test_validate_video_path_with_valid_path PASSED [ 55%]
+tests/unit/models/test_processing_models.py::TestTranslateRequestValidation::test_validate_video_path_valid_translation PASSED [ 55%]
+tests/unit/models/test_processing_models.py::TestTranslateRequestValidation::test_validate_video_path_empty_path PASSED [ 55%]
+tests/unit/models/test_processing_models.py::TestTranslateRequestValidation::test_validate_different_languages_valid_pairs PASSED [ 55%]
+tests/unit/models/test_processing_models.py::TestTranslateRequestValidation::test_validate_different_languages_same_languages PASSED [ 55%]
+tests/unit/models/test_processing_models.py::TestTranslateRequestValidation::test_validate_different_languages_case_sensitivity PASSED [ 55%]
+tests/unit/models/test_processing_models.py::TestFullPipelineRequestValidation::test_validate_video_path_full_pipeline PASSED [ 55%]
+tests/unit/models/test_processing_models.py::TestFullPipelineRequestValidation::test_validate_video_path_empty_path PASSED [ 55%]
+tests/unit/models/test_processing_models.py::TestFullPipelineRequestValidation::test_validate_language_codes_valid_codes PASSED [ 55%]
+tests/unit/models/test_processing_models.py::TestFullPipelineRequestValidation::test_validate_language_codes_invalid_codes PASSED [ 55%]
+tests/unit/models/test_processing_models.py::TestFullPipelineRequestValidation::test_validate_different_languages_full_pipeline PASSED [ 55%]
+tests/unit/models/test_processing_models.py::TestChunkProcessingRequestValidation::test_validate_video_path_chunk_processing PASSED [ 56%]
+tests/unit/models/test_processing_models.py::TestChunkProcessingRequestValidation::test_validate_video_path_empty_path PASSED [ 56%]
+tests/unit/models/test_processing_models.py::TestChunkProcessingRequestValidation::test_validate_time_range_valid_ranges PASSED [ 56%]
+tests/unit/models/test_processing_models.py::TestChunkProcessingRequestValidation::test_validate_time_range_invalid_ranges PASSED [ 56%]
+tests/unit/models/test_processing_models.py::TestChunkProcessingRequestValidation::test_validate_time_range_boundary_values PASSED [ 56%]
+tests/unit/models/test_processing_models.py::TestProcessingStatusModel::test_valid_processing_status PASSED [ 56%]
+tests/unit/models/test_processing_models.py::TestProcessingStatusModel::test_processing_status_different_states PASSED [ 56%]
+tests/unit/models/test_processing_models.py::TestProcessingStatusModel::test_processing_status_with_result PASSED [ 56%]
+tests/unit/models/test_processing_models.py::TestProcessingStatusModel::test_processing_status_with_error PASSED [ 56%]
+tests/unit/models/test_processing_models.py::TestModelIntegration::test_request_inheritance_patterns PASSED [ 56%]
+tests/unit/models/test_processing_models.py::TestModelIntegration::test_language_validation_consistency PASSED [ 56%]
+tests/unit/models/test_vocabulary_models.py::TestVocabularyWordValidation::test_validate_word_valid_multilingual_data PASSED [ 57%]
+tests/unit/models/test_vocabulary_models.py::TestVocabularyWordValidation::test_validate_word_empty_word PASSED [ 57%]
+tests/unit/models/test_vocabulary_models.py::TestVocabularyWordValidation::test_validate_word_whitespace_only PASSED [ 57%]
+tests/unit/models/test_vocabulary_models.py::TestVocabularyWordValidation::test_validate_difficulty_level_invalid PASSED [ 57%]
+tests/unit/models/test_vocabulary_models.py::TestVocabularyWordValidation::test_validate_multilingual_metadata PASSED [ 57%]
+tests/unit/models/test_vocabulary_models.py::TestMarkKnownRequestValidation::test_validate_concept_id_valid_requests FAILED [ 57%]
+tests/unit/models/test_vocabulary_models.py::TestMarkKnownRequestValidation::test_validate_concept_id_invalid_uuid PASSED [ 57%]
+tests/unit/models/test_vocabulary_models.py::TestMarkKnownRequestValidation::test_validate_known_field_missing PASSED [ 57%]
+tests/unit/models/test_vocabulary_models.py::TestMarkKnownRequestValidation::test_validate_known_field_wrong_type FAILED [ 57%]
+tests/unit/models/test_vocabulary_models.py::TestVocabularyLevelValidation::test_validate_level_with_multilingual_support PASSED [ 57%]
+tests/unit/models/test_vocabulary_models.py::TestVocabularyLevelValidation::test_validate_known_count_exceeds_total PASSED [ 57%]
+tests/unit/models/test_vocabulary_models.py::TestVocabularyLevelValidation::test_validate_invalid_language_codes PASSED [ 58%]
+tests/unit/models/test_vocabulary_models.py::TestVocabularyStatsValidation::test_validate_multilingual_stats PASSED [ 58%]
+tests/unit/models/test_vocabulary_models.py::TestVocabularyStatsValidation::test_validate_total_known_exceeds_total PASSED [ 58%]
+tests/unit/models/test_vocabulary_models.py::TestVocabularyLibraryWord::test_valid_library_word_multilingual PASSED [ 58%]
+tests/unit/models/test_vocabulary_models.py::TestBulkMarkRequest::test_valid_bulk_mark_multilingual PASSED [ 58%]
+tests/unit/models/test_vocabulary_models.py::TestBulkMarkRequest::test_invalid_language_code PASSED [ 58%]
+tests/unit/models/test_vocabulary_models.py::TestSupportedLanguage::test_valid_supported_language PASSED [ 58%]
+tests/unit/models/test_vocabulary_models.py::TestLanguagesResponse::test_valid_languages_response PASSED [ 58%]
+tests/unit/models/test_vocabulary_models.py::TestTranslationPair::test_valid_translation_pair PASSED [ 58%]
+tests/unit/models/test_vocabulary_models.py::TestTranslationPair::test_invalid_difficulty_level PASSED [ 58%]
+tests/unit/models/test_vocabulary_models.py::TestImportRequest::test_valid_import_request PASSED [ 58%]
+tests/unit/models/test_vocabulary_models.py::TestImportRequest::test_empty_translation_pairs PASSED [ 59%]
+tests/unit/models/test_vocabulary_models.py::TestLanguageRequest::test_valid_language_request PASSED [ 59%]
+tests/unit/models/test_vocabulary_models.py::TestLanguageRequest::test_valid_language_request_no_translation PASSED [ 59%]
+tests/unit/models/test_vocabulary_models.py::TestModelIntegration::test_vocabulary_level_with_multilingual_words PASSED [ 59%]
+tests/unit/models/test_vocabulary_models.py::TestModelIntegration::test_vocabulary_stats_multilingual_consistency PASSED [ 59%]
+tests/unit/services/authservice/test_password_validator.py::TestPasswordValidation::test_validate_minimum_length_too_short PASSED [ 59%]
+tests/unit/services/authservice/test_password_validator.py::TestPasswordValidation::test_validate_minimum_length_exactly_12 PASSED [ 59%]
+tests/unit/services/authservice/test_password_validator.py::TestPasswordValidation::test_validate_requires_uppercase PASSED [ 59%]
+tests/unit/services/authservice/test_password_validator.py::TestPasswordValidation::test_validate_requires_lowercase PASSED [ 59%]
+tests/unit/services/authservice/test_password_validator.py::TestPasswordValidation::test_validate_requires_digit PASSED [ 59%]
+tests/unit/services/authservice/test_password_validator.py::TestPasswordValidation::test_validate_requires_special_character PASSED [ 59%]
+tests/unit/services/authservice/test_password_validator.py::TestPasswordValidation::test_validate_strong_password_success PASSED [ 59%]
+tests/unit/services/authservice/test_password_validator.py::TestPasswordValidation::test_validate_various_special_characters PASSED [ 60%]
+tests/unit/services/authservice/test_password_validator.py::TestCommonPasswordBlocking::test_validate_blocks_common_password_lowercase PASSED [ 60%]
+tests/unit/services/authservice/test_password_validator.py::TestCommonPasswordBlocking::test_validate_blocks_common_password_uppercase PASSED [ 60%]
+tests/unit/services/authservice/test_password_validator.py::TestCommonPasswordBlocking::test_validate_blocks_common_password_mixed_case PASSED [ 60%]
+tests/unit/services/authservice/test_password_validator.py::TestCommonPasswordBlocking::test_validate_blocks_admin_password PASSED [ 60%]
+tests/unit/services/authservice/test_password_validator.py::TestCommonPasswordBlocking::test_validate_blocks_welcome_password PASSED [ 60%]
+tests/unit/services/authservice/test_password_validator.py::TestCommonPasswordBlocking::test_validate_blocks_langplug_password PASSED [ 60%]
+tests/unit/services/authservice/test_password_validator.py::TestCommonPasswordBlocking::test_validate_allows_similar_to_common PASSED [ 60%]
+tests/unit/services/authservice/test_password_validator.py::TestEdgeCases::test_validate_exactly_minimum_length_with_all_requirements PASSED [ 60%]
+tests/unit/services/authservice/test_password_validator.py::TestEdgeCases::test_validate_very_long_password PASSED [ 60%]
+tests/unit/services/authservice/test_password_validator.py::TestEdgeCases::test_validate_only_special_characters_with_requirements PASSED [ 60%]
+tests/unit/services/authservice/test_password_validator.py::TestEdgeCases::test_validate_unicode_characters PASSED [ 61%]
+tests/unit/services/authservice/test_password_validator.py::TestValidationReturnFormat::test_validate_success_returns_tuple PASSED [ 61%]
+tests/unit/services/authservice/test_password_validator.py::TestValidationReturnFormat::test_validate_failure_returns_tuple PASSED [ 61%]
+tests/unit/services/authservice/test_password_validator.py::TestValidationReturnFormat::test_validate_error_messages_are_descriptive PASSED [ 61%]
+tests/unit/services/authservice/test_token_service.py::TestTokenCreation::test_create_access_token_returns_valid_jwt PASSED [ 61%]
+tests/unit/services/authservice/test_token_service.py::TestTokenCreation::test_create_access_token_encodes_user_id PASSED [ 61%]
+tests/unit/services/authservice/test_token_service.py::TestTokenCreation::test_create_access_token_has_correct_type PASSED [ 61%]
+tests/unit/services/authservice/test_token_service.py::TestTokenCreation::test_create_access_token_has_expiration PASSED [ 61%]
+tests/unit/services/authservice/test_token_service.py::TestTokenCreation::test_create_access_token_expiration_duration PASSED [ 61%]
+tests/unit/services/authservice/test_token_service.py::TestTokenCreation::test_create_access_token_with_additional_claims PASSED [ 61%]
+tests/unit/services/authservice/test_token_service.py::TestTokenCreation::test_create_refresh_token_returns_valid_jwt PASSED [ 61%]
+tests/unit/services/authservice/test_token_service.py::TestTokenCreation::test_create_refresh_token_has_correct_type PASSED [ 62%]
+tests/unit/services/authservice/test_token_service.py::TestTokenCreation::test_create_refresh_token_longer_expiration PASSED [ 62%]
+tests/unit/services/authservice/test_token_service.py::TestTokenCreation::test_create_token_pair_returns_both_tokens PASSED [ 62%]
+tests/unit/services/authservice/test_token_service.py::TestTokenCreation::test_create_token_pair_different_tokens PASSED [ 62%]
+tests/unit/services/authservice/test_token_service.py::TestTokenDecoding::test_decode_token_valid_access_token PASSED [ 62%]
+tests/unit/services/authservice/test_token_service.py::TestTokenDecoding::test_decode_token_with_type_validation PASSED [ 62%]
+tests/unit/services/authservice/test_token_service.py::TestTokenDecoding::test_decode_token_wrong_type_raises_error PASSED [ 62%]
+tests/unit/services/authservice/test_token_service.py::TestTokenDecoding::test_decode_token_invalid_signature_raises_error PASSED [ 62%]
+tests/unit/services/authservice/test_token_service.py::TestTokenDecoding::test_decode_token_malformed_token_raises_error PASSED [ 62%]
+tests/unit/services/authservice/test_token_service.py::TestTokenDecoding::test_decode_token_expired_token_raises_error PASSED [ 62%]
+tests/unit/services/authservice/test_token_service.py::TestTokenRefresh::test_refresh_access_token_returns_new_token PASSED [ 62%]
+tests/unit/services/authservice/test_token_service.py::TestTokenRefresh::test_refresh_access_token_preserves_user_id PASSED [ 62%]
+tests/unit/services/authservice/test_token_service.py::TestTokenRefresh::test_refresh_access_token_with_access_token_fails PASSED [ 63%]
+tests/unit/services/authservice/test_token_service.py::TestTokenRefresh::test_refresh_access_token_with_invalid_token_fails PASSED [ 63%]
+tests/unit/services/authservice/test_token_service.py::TestTokenUtilities::test_get_user_id_from_token PASSED [ 63%]
+tests/unit/services/authservice/test_token_service.py::TestTokenUtilities::test_get_user_id_from_refresh_token PASSED [ 63%]
+tests/unit/services/authservice/test_token_service.py::TestTokenUtilities::test_verify_access_token_valid PASSED [ 63%]
+tests/unit/services/authservice/test_token_service.py::TestTokenUtilities::test_verify_access_token_with_refresh_token_fails PASSED [ 63%]
+tests/unit/services/authservice/test_token_service.py::TestTokenUtilities::test_is_token_expired_not_expired PASSED [ 63%]
+tests/unit/services/authservice/test_token_service.py::TestTokenUtilities::test_is_token_expired_expired_token PASSED [ 63%]
+tests/unit/services/authservice/test_token_service.py::TestTokenUtilities::test_is_token_expired_invalid_token PASSED [ 63%]
+tests/unit/services/authservice/test_token_service.py::TestTokenUtilities::test_get_token_expiry_valid_token PASSED [ 63%]
+tests/unit/services/authservice/test_token_service.py::TestTokenUtilities::test_get_token_expiry_invalid_token PASSED [ 63%]
+tests/unit/services/authservice/test_token_service.py::TestSecurityConsiderations::test_tokens_are_unique_for_same_user PASSED [ 64%]
+tests/unit/services/authservice/test_token_service.py::TestSecurityConsiderations::test_access_token_cannot_be_used_as_refresh PASSED [ 64%]
+tests/unit/services/authservice/test_token_service.py::TestSecurityConsiderations::test_refresh_token_cannot_be_used_for_access PASSED [ 64%]
+tests/unit/services/authservice/test_token_service.py::TestSecurityConsiderations::test_token_without_type_field_fails_validation PASSED [ 64%]
+tests/unit/services/authservice/test_token_service.py::TestConvenienceFunctions::test_create_tokens_for_user PASSED [ 64%]
+tests/unit/services/authservice/test_token_service.py::TestConvenienceFunctions::test_verify_access_token_convenience PASSED [ 64%]
+tests/unit/services/authservice/test_token_service.py::TestConvenienceFunctions::test_refresh_token_convenience PASSED [ 64%]
+tests/unit/services/processing/test_chunk_processor.py::TestChunkProcessingServiceInitialization::test_initialization PASSED [ 64%]
+tests/unit/services/processing/test_chunk_processor.py::TestProcessChunk::test_process_chunk_success_flow PASSED [ 64%]
+tests/unit/services/processing/test_chunk_processor.py::TestProcessChunk::test_process_chunk_error_cleanup PASSED [ 64%]
+tests/unit/services/processing/test_chunk_processor.py::TestHealthCheck::test_health_check PASSED [ 64%]
+tests/unit/services/processing/test_chunk_processor.py::TestLifecycleMethods::test_initialize PASSED [ 65%]
+tests/unit/services/processing/test_chunk_processor.py::TestLifecycleMethods::test_cleanup PASSED [ 65%]
+tests/unit/services/processing/test_chunk_processor.py::TestHandleMethod::test_handle_delegates_to_process_chunk PASSED [ 65%]
+tests/unit/services/processing/test_chunk_processor.py::TestValidateParameters::test_validate_parameters_all_present PASSED [ 65%]
+tests/unit/services/processing/test_chunk_processor.py::TestValidateParameters::test_validate_parameters_missing_parameter PASSED [ 65%]
+tests/unit/services/processing/test_chunk_processor.py::TestValidateParameters::test_validate_parameters_empty PASSED [ 65%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestChunkTranscriptionServiceInitialization::test_initialization PASSED [ 65%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestFormatSrtTimestamp::test_format_srt_timestamp_zero PASSED [ 65%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestFormatSrtTimestamp::test_format_srt_timestamp_seconds PASSED [ 65%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestFormatSrtTimestamp::test_format_srt_timestamp_minutes PASSED [ 65%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestFormatSrtTimestamp::test_format_srt_timestamp_hours PASSED [ 65%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestFormatSrtTimestamp::test_format_srt_timestamp_milliseconds PASSED [ 66%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestCreateChunkSrt::test_create_chunk_srt_success PASSED [ 66%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestCreateChunkSrt::test_create_chunk_srt_with_whitespace PASSED [ 66%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestCreateChunkSrt::test_create_chunk_srt_with_offset PASSED [ 66%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestCreateChunkSrt::test_create_chunk_srt_file_error PASSED [ 66%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestCreateSrtFromSegments::test_create_srt_from_segments_success PASSED [ 66%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestCreateSrtFromSegments::test_create_srt_from_empty_segments PASSED [ 66%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestFindMatchingSrtFile::test_find_matching_srt_file_exact_match PASSED [ 66%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestFindMatchingSrtFile::test_find_matching_srt_file_language_suffix PASSED [ 66%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestFindMatchingSrtFile::test_find_matching_srt_file_not_found PASSED [ 66%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestCleanupTempAudioFile::test_cleanup_temp_audio_file_success PASSED [ 66%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestCleanupTempAudioFile::test_cleanup_temp_audio_file_preserves_video PASSED [ 66%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestCleanupTempAudioFile::test_cleanup_temp_audio_file_already_deleted PASSED [ 67%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestExtractAudioChunk::test_extract_audio_chunk_ffmpeg_not_found PASSED [ 67%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestExtractAudioChunk::test_extract_audio_chunk_timeout PASSED [ 67%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestTranscribeChunk::test_transcribe_chunk_service_not_available PASSED [ 67%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestTranscribeChunk::test_transcribe_chunk_no_audio_file PASSED [ 67%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestTranscribeChunk::test_transcribe_chunk_with_segments PASSED [ 67%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestTranscribeChunk::test_transcribe_chunk_fallback_single_segment PASSED [ 67%]
+tests/unit/services/processing/test_chunk_transcription_service.py::TestTranscribeChunk::test_transcribe_chunk_error_no_fallback PASSED [ 67%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestChunkTranslationServiceInitialization::test_initialization PASSED [ 67%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestGetTranslationService::test_get_translation_service_creates_new PASSED [ 67%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestGetTranslationService::test_get_translation_service_caches PASSED [ 67%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestGetTranslationService::test_get_translation_service_different_pairs PASSED [ 68%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestGetTranslationService::test_get_translation_service_different_quality PASSED [ 68%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestBuildTranslationSegments::test_build_translation_segments_empty_vocabulary PASSED [ 68%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestBuildTranslationSegments::test_build_translation_segments_no_segments_in_file PASSED [ 68%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestBuildTranslationSegments::test_build_translation_segments_success PASSED [ 68%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestBuildTranslationSegments::test_build_translation_segments_no_active_words_in_segments SKIPPED [ 68%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestMapActiveWordsToSegments::test_map_active_words_finds_words PASSED [ 68%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestMapActiveWordsToSegments::test_map_active_words_case_insensitive PASSED [ 68%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestMapActiveWordsToSegments::test_map_active_words_skips_inactive PASSED [ 68%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestMapActiveWordsToSegments::test_map_active_words_skips_invalid_entries PASSED [ 68%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestMapActiveWordsToSegments::test_map_active_words_one_segment_per_word PASSED [ 68%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestBuildTranslationTexts::test_build_translation_texts_success PASSED [ 69%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestBuildTranslationTexts::test_build_translation_texts_handles_errors PASSED [ 69%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestBuildTranslationTexts::test_build_translation_texts_updates_progress PASSED [ 69%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestSegmentsOverlap::test_segments_overlap_full_overlap PASSED [ 69%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestSegmentsOverlap::test_segments_overlap_significant_overlap PASSED [ 69%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestSegmentsOverlap::test_segments_overlap_no_overlap PASSED [ 69%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestSegmentsOverlap::test_segments_overlap_minimal_overlap PASSED [ 69%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestSegmentsOverlap::test_segments_overlap_partial_contained PASSED [ 69%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestSegmentsOverlap::test_segments_overlap_zero_duration PASSED [ 69%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestSegmentsOverlap::test_segments_overlap_touching_edges PASSED [ 69%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestSegmentsOverlap::test_segments_overlap_custom_threshold PASSED [ 69%]
+tests/unit/services/processing/test_chunk_translation_service.py::TestIntegration::test_end_to_end_translation_workflow PASSED [ 70%]
+tests/unit/services/processing/test_chunk_utilities.py::TestChunkUtilitiesInitialization::test_initialization PASSED [ 70%]
+tests/unit/services/processing/test_chunk_utilities.py::TestResolveVideoPath::test_resolve_video_path_absolute PASSED [ 70%]
+tests/unit/services/processing/test_chunk_utilities.py::TestResolveVideoPath::test_resolve_video_path_relative PASSED [ 70%]
+tests/unit/services/processing/test_chunk_utilities.py::TestGetAuthenticatedUser::test_get_authenticated_user_success PASSED [ 70%]
+tests/unit/services/processing/test_chunk_utilities.py::TestGetAuthenticatedUser::test_get_authenticated_user_not_found PASSED [ 70%]
+tests/unit/services/processing/test_chunk_utilities.py::TestGetAuthenticatedUser::test_get_authenticated_user_with_session_token PASSED [ 70%]
+tests/unit/services/processing/test_chunk_utilities.py::TestGetAuthenticatedUser::test_get_authenticated_user_database_error PASSED [ 70%]
+tests/unit/services/processing/test_chunk_utilities.py::TestNormalizeUserIdentifier::test_normalize_user_identifier_uuid_string PASSED [ 70%]
+tests/unit/services/processing/test_chunk_utilities.py::TestNormalizeUserIdentifier::test_normalize_user_identifier_int_string PASSED [ 70%]
+tests/unit/services/processing/test_chunk_utilities.py::TestNormalizeUserIdentifier::test_normalize_user_identifier_regular_string PASSED [ 70%]
+tests/unit/services/processing/test_chunk_utilities.py::TestNormalizeUserIdentifier::test_normalize_user_identifier_int PASSED [ 70%]
+tests/unit/services/processing/test_chunk_utilities.py::TestNormalizeUserIdentifier::test_normalize_user_identifier_uuid PASSED [ 71%]
+tests/unit/services/processing/test_chunk_utilities.py::TestLoadUserLanguagePreferences::test_load_user_language_preferences PASSED [ 71%]
+tests/unit/services/processing/test_chunk_utilities.py::TestCleanupOldChunkFiles::test_cleanup_old_chunk_files_success PASSED [ 71%]
+tests/unit/services/processing/test_chunk_utilities.py::TestCleanupOldChunkFiles::test_cleanup_old_chunk_files_no_files PASSED [ 71%]
+tests/unit/services/processing/test_chunk_utilities.py::TestCleanupOldChunkFiles::test_cleanup_old_chunk_files_preserves_video PASSED [ 71%]
+tests/unit/services/processing/test_chunk_utilities.py::TestCleanupOldChunkFiles::test_cleanup_old_chunk_files_handles_errors PASSED [ 71%]
+tests/unit/services/processing/test_chunk_utilities.py::TestInitializeProgress::test_initialize_progress PASSED [ 71%]
+tests/unit/services/processing/test_chunk_utilities.py::TestCompleteProcessing::test_complete_processing_without_vocabulary PASSED [ 71%]
+tests/unit/services/processing/test_chunk_utilities.py::TestCompleteProcessing::test_complete_processing_with_vocabulary PASSED [ 71%]
+tests/unit/services/processing/test_chunk_utilities.py::TestHandleError::test_handle_error PASSED [ 71%]
+tests/unit/services/processing/test_chunk_utilities.py::TestDebugEmptyVocabulary::test_debug_empty_vocabulary_with_result PASSED [ 71%]
+tests/unit/services/processing/test_chunk_utilities.py::TestDebugEmptyVocabulary::test_debug_empty_vocabulary_none_result PASSED [ 72%]
+tests/unit/services/processing/test_chunk_utilities.py::TestDebugEmptyVocabulary::test_debug_empty_vocabulary_empty_dict PASSED [ 72%]
+tests/unit/services/processing/test_chunk_utilities.py::TestIntegration::test_full_workflow PASSED [ 72%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceResourceCleanup::test_When_audio_extraction_succeeds_Then_audio_file_created PASSED [ 72%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceResourceCleanup::test_When_audio_extraction_fails_Then_partial_file_cleaned_up PASSED [ 72%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceResourceCleanup::test_When_ffmpeg_times_out_Then_process_killed_and_error_raised PASSED [ 72%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceResourceCleanup::test_When_cleanup_temp_audio_file_called_Then_file_deleted PASSED [ 72%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceResourceCleanup::test_When_cleanup_video_file_Then_not_deleted PASSED [ 72%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceResourceCleanup::test_When_cleanup_nonexistent_file_Then_no_error PASSED [ 72%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceResourceCleanup::test_When_cleanup_fails_Then_logged_but_not_raised PASSED [ 72%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceErrorHandling::test_When_ffmpeg_not_found_Then_fallback_mode PASSED [ 72%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceErrorHandling::test_When_unexpected_error_Then_cleanup_and_raise PASSED [ 73%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceErrorHandling::test_When_transcription_fails_Then_fallback_to_existing_srt PASSED [ 73%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceTimeoutConfiguration::test_When_audio_extraction_Then_timeout_set_to_600_seconds PASSED [ 73%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceSRTHandling::test_When_find_matching_srt_Then_returns_existing_file PASSED [ 73%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceSRTHandling::test_When_no_srt_exists_Then_returns_default_path PASSED [ 73%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceSRTHandling::test_When_create_chunk_srt_Then_srt_file_created PASSED [ 73%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceSRTHandling::test_When_create_srt_fails_Then_error_raised PASSED [ 73%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceTimestampFormatting::test_When_format_srt_timestamp_Then_correct_format PASSED [ 73%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceTimestampFormatting::test_When_format_zero_seconds_Then_correct_format PASSED [ 73%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceTimestampFormatting::test_When_format_hours_Then_correct_format PASSED [ 73%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceProgressTracking::test_When_extract_audio_chunk_Then_progress_updated PASSED [ 73%]
+tests/unit/services/test_chunk_processing_resource_management.py::TestChunkTranscriptionServiceProgressTracking::test_When_transcribe_chunk_Then_progress_updated PASSED [ 74%]
+tests/unit/services/test_direct_subtitle_processor.py::TestDirectSubtitleProcessor::test_process_subtitles_empty_list PASSED [ 74%]
+tests/unit/services/test_direct_subtitle_processor.py::TestDirectSubtitleProcessor::test_process_subtitles_with_content PASSED [ 74%]
+tests/unit/services/test_direct_subtitle_processor.py::TestDirectSubtitleProcessor::test_process_srt_file PASSED [ 74%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_interface_is_abstract PASSED [ 74%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_service_implements_interface PASSED [ 74%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_initialization_lifecycle PASSED [ 74%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_service_properties PASSED [ 74%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_transcribe_requires_initialization PASSED [ 74%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_transcribe_basic_functionality PASSED [ 74%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_transcribe_with_language_hint PASSED [ 74%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_transcribe_with_timestamps PASSED [ 74%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_transcribe_batch_processing PASSED [ 75%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_transcribe_batch_empty_list PASSED [ 75%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_video_support_capability PASSED [ 75%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_video_audio_extraction PASSED [ 75%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_supported_languages PASSED [ 75%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionServiceInterface::test_error_handling_patterns PASSED [ 75%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionResultDataStructures::test_transcription_segment_creation PASSED [ 75%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionResultDataStructures::test_transcription_segment_optional_fields PASSED [ 75%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionResultDataStructures::test_transcription_segment_with_metadata PASSED [ 75%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionResultDataStructures::test_transcription_result_creation PASSED [ 75%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionResultDataStructures::test_transcription_result_optional_fields PASSED [ 75%]
+tests/unit/services/test_transcription_interface.py::TestTranscriptionResultDataStructures::test_transcription_result_with_metadata PASSED [ 76%]
+tests/unit/services/test_transcription_interface.py::TestInterfaceContractEnforcement::test_all_methods_must_be_implemented PASSED [ 76%]
+tests/unit/services/test_transcription_interface.py::TestInterfaceContractEnforcement::test_property_contracts PASSED [ 76%]
+tests/unit/services/test_transcription_interface.py::TestInterfaceContractEnforcement::test_method_signatures PASSED [ 76%]
+tests/unit/services/test_transcription_interface.py::TestInterfaceContractEnforcement::test_return_type_contracts PASSED [ 76%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryParameterVariations::test_factory_creates_nllb_with_default_params PASSED [ 76%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryParameterVariations::test_factory_creates_opus_with_default_params PASSED [ 76%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryParameterVariations::test_factory_filters_source_lang_parameter PASSED [ 76%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryParameterVariations::test_factory_filters_quality_parameter PASSED [ 76%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryParameterVariations::test_factory_caches_instances_correctly PASSED [ 76%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryParameterVariations::test_factory_creates_different_instances_for_different_configs PASSED [ 76%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryParameterVariations::test_factory_accepts_custom_model_name PASSED [ 77%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryParameterVariations::test_factory_accepts_device_parameter PASSED [ 77%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryParameterVariations::test_factory_accepts_max_length_parameter PASSED [ 77%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryParameterVariations::test_factory_raises_on_unknown_service PASSED [ 77%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryParameterVariations::test_factory_handles_all_nllb_variants PASSED [ 77%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryParameterVariations::test_factory_handles_all_opus_variants PASSED [ 77%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryChunkProcessingScenario::test_factory_handles_chunk_translation_service_call PASSED [ 77%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryChunkProcessingScenario::test_factory_handles_multiple_language_pairs PASSED [ 77%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryServiceRegistry::test_get_available_services PASSED [ 77%]
+tests/unit/services/test_translation_factory.py::TestTranslationFactoryServiceRegistry::test_all_registered_services_can_be_instantiated PASSED [ 77%]
+tests/unit/services/test_video_service.py::TestVideoService::test_init_stores_dependencies PASSED [ 77%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_available_videos_empty_directory PASSED [ 77%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_available_videos_nonexistent_directory PASSED [ 78%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_available_videos_not_directory PASSED [ 78%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_available_videos_permission_error PASSED [ 78%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_available_videos_success_with_direct_videos PASSED [ 78%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_available_videos_success_with_series PASSED [ 78%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_available_videos_with_subtitles PASSED [ 78%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_available_videos_handles_series_processing_error PASSED [ 78%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_available_videos_fatal_error PASSED [ 78%]
+tests/unit/services/test_video_service.py::TestVideoService::test_parse_episode_filename_simple PASSED [ 78%]
+tests/unit/services/test_video_service.py::TestVideoService::test_parse_episode_filename_with_episode PASSED [ 78%]
+tests/unit/services/test_video_service.py::TestVideoService::test_parse_episode_filename_with_staffel PASSED [ 78%]
+tests/unit/services/test_video_service.py::TestVideoService::test_parse_episode_filename_with_both PASSED [ 79%]
+tests/unit/services/test_video_service.py::TestVideoService::test_parse_episode_filename_case_insensitive PASSED [ 79%]
+tests/unit/services/test_video_service.py::TestVideoService::test_parse_episode_filename_no_following_part PASSED [ 79%]
+tests/unit/services/test_video_service.py::TestVideoService::test_scan_videos_directory_success PASSED [ 79%]
+tests/unit/services/test_video_service.py::TestVideoService::test_scan_videos_directory_nonexistent_path PASSED [ 79%]
+tests/unit/services/test_video_service.py::TestVideoService::test_scan_videos_directory_not_directory PASSED [ 79%]
+tests/unit/services/test_video_service.py::TestVideoService::test_scan_videos_directory_with_errors PASSED [ 79%]
+tests/unit/services/test_video_service.py::TestVideoService::test_scan_videos_directory_fatal_error PASSED [ 79%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_subtitle_file_path_absolute_windows_path PASSED [ 79%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_subtitle_file_path_absolute_wsl_path PASSED [ 79%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_subtitle_file_path_relative_path PASSED [ 79%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_subtitle_file_path_no_videos_directory_in_path PASSED [ 80%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_video_file_path_success_exact_match PASSED [ 80%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_video_file_path_series_not_found PASSED [ 80%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_video_file_path_episode_not_found PASSED [ 80%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_video_file_path_flexible_matching PASSED [ 80%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_available_videos_logging PASSED [ 80%]
+tests/unit/services/test_video_service.py::TestVideoService::test_video_service_dependencies_isolation PASSED [ 80%]
+tests/unit/services/test_video_service.py::TestVideoService::test_get_available_videos_video_info_creation PASSED [ 80%]
+tests/unit/services/test_video_service.py::TestVideoService::test_scan_videos_directory_comprehensive_error_handling PASSED [ 80%]
+tests/unit/services/test_video_service.py::TestVideoServiceAdvancedScenarios::test_get_available_videos_complex_directory_structure PASSED [ 80%]
+tests/unit/services/test_video_service.py::TestVideoServiceAdvancedScenarios::test_get_available_videos_unicode_filenames PASSED [ 80%]
+tests/unit/services/test_video_service.py::TestVideoServiceAdvancedScenarios::test_get_available_videos_mixed_file_types PASSED [ 81%]
+tests/unit/services/test_video_service.py::TestVideoServiceAdvancedScenarios::test_get_available_videos_empty_series_directories PASSED [ 81%]
+tests/unit/services/test_video_service.py::TestVideoServiceAdvancedScenarios::test_get_available_videos_very_long_filenames PASSED [ 81%]
+tests/unit/services/test_video_service.py::TestVideoServiceAdvancedScenarios::test_get_available_videos_special_characters_in_paths PASSED [ 81%]
+tests/unit/services/test_video_service.py::TestVideoServiceAdvancedScenarios::test_get_available_videos_concurrent_file_changes PASSED [ 81%]
+tests/unit/services/test_video_service.py::TestVideoServiceAdvancedScenarios::test_get_available_videos_case_sensitive_extensions PASSED [ 81%]
+tests/unit/services/test_video_service.py::TestVideoServiceEpisodeParsing::test_parse_episode_filename_international_formats PASSED [ 81%]
+tests/unit/services/test_video_service.py::TestVideoServiceEpisodeParsing::test_parse_episode_filename_complex_numbering PASSED [ 81%]
+tests/unit/services/test_video_service.py::TestVideoServiceEpisodeParsing::test_parse_episode_filename_special_characters PASSED [ 81%]
+tests/unit/services/test_video_service.py::TestVideoServiceEpisodeParsing::test_parse_episode_filename_edge_cases PASSED [ 81%]
+tests/unit/services/test_video_service.py::TestVideoServiceEpisodeParsing::test_parse_episode_filename_very_long_names PASSED [ 81%]
+tests/unit/services/test_video_service.py::TestVideoServiceEpisodeParsing::test_parse_episode_filename_malformed_patterns PASSED [ 81%]
+tests/unit/services/test_video_service.py::TestVideoServiceEpisodeParsing::test_parse_episode_filename_performance_stress PASSED [ 82%]
+tests/unit/services/test_video_service.py::TestVideoServiceEpisodeParsing::test_parse_episode_filename_boundary_numbers PASSED [ 82%]
+tests/unit/services/test_video_service.py::TestVideoServiceEpisodeParsing::test_parse_episode_filename_case_variations PASSED [ 82%]
+tests/unit/services/test_video_service.py::TestVideoServiceExceptionCoverage::test_get_available_videos_iterdir_general_exception PASSED [ 82%]
+tests/unit/services/test_video_service.py::TestVideoServiceExceptionCoverage::test_get_available_videos_direct_video_processing_exception PASSED [ 82%]
+tests/unit/services/test_video_service.py::TestVideoServiceExceptionCoverage::test_get_available_videos_series_video_processing_exception PASSED [ 82%]
+tests/unit/services/test_video_service.py::TestVideoServiceExceptionCoverage::test_scan_videos_directory_series_scanning_exception PASSED [ 82%]
+tests/unit/services/test_vocabulary_filter_contract.py::TestFrontendBackendContract::test_vocabulary_response_matches_frontend_type SKIPPED [ 82%]
+tests/unit/services/test_vocabulary_filter_contract.py::TestFrontendBackendContract::test_vocabulary_filter_service_response_contract PASSED [ 82%]
+tests/unit/services/test_vocabulary_filter_contract.py::TestFrontendBackendContract::test_bug_6_difficulty_vs_difficulty_level PASSED [ 82%]
+tests/unit/services/test_vocabulary_filter_contract.py::TestAPIContractValidation::test_vocabulary_word_matches_typescript_interface PASSED [ 82%]
+tests/unit/services/test_vocabulary_filter_contract.py::TestAPIContractValidation::test_difficulty_level_field_contract PASSED [ 83%]
+tests/unit/services/test_vocabulary_filter_contract.py::TestEndToEndContractValidation::test_chunk_processing_vocabulary_contract SKIPPED [ 83%]
+tests/unit/services/test_vocabulary_filter_contract.py::TestUUIDValidation::test_bug_7_concept_id_never_none PASSED [ 83%]
+tests/unit/services/test_vocabulary_filter_contract.py::TestUUIDValidation::test_bug_8_concept_id_is_valid_uuid PASSED [ 83%]
+tests/unit/services/test_vocabulary_filter_contract.py::TestUUIDValidation::test_uuid_deterministic PASSED [ 83%]
+tests/unit/services/test_vocabulary_filter_contract.py::TestUUIDValidation::test_all_vocabulary_words_have_valid_uuids PASSED [ 83%]
+tests/unit/services/test_vocabulary_filter_contract.py::TestUUIDValidation::test_concept_id_without_lemma PASSED [ 83%]
+tests/unit/services/test_vocabulary_preload_service.py::TestVocabularyPreloadService::test_initialization PASSED [ 83%]
+tests/unit/services/test_vocabulary_preload_service.py::TestVocabularyPreloadService::test_initialization_with_custom_path PASSED [ 83%]
+tests/unit/services/test_vocabulary_preload_service.py::TestVocabularyPreloadService::test_get_vocabulary_preload_service_utility PASSED [ 83%]
+tests/unit/services/test_vocabulary_preload_service.py::TestLoadVocabularyFiles::test_load_vocabulary_files_success PASSED [ 83%]
+tests/unit/services/test_vocabulary_preload_service.py::TestLoadVocabularyFiles::test_load_vocabulary_files_missing_files PASSED [ 84%]
+tests/unit/services/test_vocabulary_preload_service.py::TestLoadVocabularyFiles::test_load_vocabulary_files_mixed_scenario PASSED [ 84%]
+tests/unit/services/test_vocabulary_preload_service.py::TestLoadLevelVocabulary::test_load_level_vocabulary_success PASSED [ 84%]
+tests/unit/services/test_vocabulary_preload_service.py::TestLoadLevelVocabulary::test_load_level_vocabulary_empty_file PASSED [ 84%]
+tests/unit/services/test_vocabulary_preload_service.py::TestLoadLevelVocabulary::test_load_level_vocabulary_file_error PASSED [ 84%]
+tests/unit/services/test_vocabulary_preload_service.py::TestLoadLevelVocabulary::test_load_level_vocabulary_database_error PASSED [ 84%]
+tests/unit/services/test_vocabulary_preload_service.py::TestGetLevelWords::test_get_level_words_with_session PASSED [ 84%]
+tests/unit/services/test_vocabulary_preload_service.py::TestGetLevelWords::test_get_level_words_without_session PASSED [ 84%]
+tests/unit/services/test_vocabulary_preload_service.py::TestGetLevelWords::test_get_level_words_error_handling PASSED [ 84%]
+tests/unit/services/test_vocabulary_preload_service.py::TestGetLevelWords::test_execute_get_level_words PASSED [ 84%]
+tests/unit/services/test_vocabulary_preload_service.py::TestGetUserKnownWords::test_get_user_known_words_with_session PASSED [ 84%]
+tests/unit/services/test_vocabulary_preload_service.py::TestGetUserKnownWords::test_get_user_known_words_without_session PASSED [ 85%]
+tests/unit/services/test_vocabulary_preload_service.py::TestGetUserKnownWords::test_get_user_known_words_error_handling PASSED [ 85%]
+tests/unit/services/test_vocabulary_preload_service.py::TestGetUserKnownWords::test_execute_get_user_known_words_with_level PASSED [ 85%]
+tests/unit/services/test_vocabulary_preload_service.py::TestGetUserKnownWords::test_execute_get_user_known_words_without_level PASSED [ 85%]
+tests/unit/services/test_vocabulary_preload_service.py::TestMarkUserWordKnown::test_mark_user_word_known_success PASSED [ 85%]
+tests/unit/services/test_vocabulary_preload_service.py::TestMarkUserWordKnown::test_mark_user_word_known_word_not_found PASSED [ 85%]
+tests/unit/services/test_vocabulary_preload_service.py::TestMarkUserWordKnown::test_mark_user_word_known_error_handling PASSED [ 85%]
+tests/unit/services/test_vocabulary_preload_service.py::TestBulkMarkLevelKnown::test_bulk_mark_level_known_success PASSED [ 85%]
+tests/unit/services/test_vocabulary_preload_service.py::TestBulkMarkLevelKnown::test_bulk_mark_level_known_partial_success PASSED [ 85%]
+tests/unit/services/test_vocabulary_preload_service.py::TestBulkMarkLevelKnown::test_bulk_mark_level_known_error PASSED [ 85%]
+tests/unit/services/test_vocabulary_preload_service.py::TestGetVocabularyStats::test_get_vocabulary_stats_with_session PASSED [ 85%]
+tests/unit/services/test_vocabulary_preload_service.py::TestGetVocabularyStats::test_get_vocabulary_stats_without_session PASSED [ 85%]
+tests/unit/services/test_vocabulary_preload_service.py::TestGetVocabularyStats::test_get_vocabulary_stats_error_handling PASSED [ 86%]
+tests/unit/services/test_vocabulary_progress_service.py::TestMarkWordKnown::test_mark_word_known_new_word PASSED [ 86%]
+tests/unit/services/test_vocabulary_progress_service.py::TestMarkWordKnown::test_mark_word_known_existing_progress PASSED [ 86%]
+tests/unit/services/test_vocabulary_progress_service.py::TestMarkWordKnown::test_mark_word_known_word_not_found PASSED [ 86%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestMarkWordKnownEdgeCases::test_mark_word_as_unknown_new_word PASSED [ 86%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestMarkWordKnownEdgeCases::test_mark_word_as_unknown_existing_progress PASSED [ 86%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestMarkWordKnownEdgeCases::test_confidence_level_max_boundary PASSED [ 86%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestMarkWordKnownEdgeCases::test_confidence_level_min_boundary PASSED [ 86%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestBulkMarkLevel::test_bulk_mark_level_empty_level PASSED [ 86%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestBulkMarkLevel::test_bulk_mark_level_creates_new_progress_records PASSED [ 86%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestBulkMarkLevel::test_bulk_mark_level_updates_existing_progress_records PASSED [ 86%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestBulkMarkLevel::test_bulk_mark_level_mixed_existing_and_new PASSED [ 87%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestBulkMarkLevel::test_bulk_mark_level_as_unknown PASSED [ 87%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestGetUserVocabularyStats::test_stats_with_no_words PASSED [ 87%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestGetUserVocabularyStats::test_stats_with_some_known_words PASSED [ 87%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestGetUserVocabularyStats::test_stats_handles_null_known_counts PASSED [ 87%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestGetUserVocabularyStats::test_stats_percentage_rounding PASSED [ 87%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestFactoryFunction::test_factory_returns_instance PASSED [ 87%]
+tests/unit/services/test_vocabulary_progress_service_comprehensive.py::TestFactoryFunction::test_factory_returns_fresh_instance PASSED [ 87%]
+tests/unit/services/test_vocabulary_serialization.py::test_vocabulary_word_schema_validation PASSED [ 87%]
+tests/unit/services/test_vocabulary_serialization.py::test_vocabulary_filter_service_creates_correct_structure PASSED [ 87%]
+tests/unit/services/test_vocabulary_service.py::TestVocabularyServiceGetWordInfo::test_When_word_found_in_database_Then_returns_word_info PASSED [ 87%]
+tests/unit/services/test_vocabulary_service.py::TestVocabularyServiceGetWordInfo::test_When_word_not_found_Then_returns_not_found_info PASSED [ 88%]
+tests/unit/services/test_vocabulary_service.py::TestVocabularyServiceGetWordInfo::test_When_word_not_found_Then_tracks_unknown_word PASSED [ 88%]
+tests/unit/services/test_vocabulary_service.py::TestVocabularyServiceMarkWordKnown::test_When_marking_known_word_for_first_time_Then_creates_progress PASSED [ 88%]
+tests/unit/services/test_vocabulary_service.py::TestVocabularyServiceMarkWordKnown::test_When_marking_word_not_in_database_Then_returns_failure PASSED [ 88%]
+tests/unit/services/test_vocabulary_service.py::TestVocabularyServiceMarkWordKnown::test_When_updating_existing_progress_as_known_Then_increases_confidence PASSED [ 88%]
+tests/unit/services/test_vocabulary_service.py::TestVocabularyServiceGetUserStats::test_When_getting_stats_Then_returns_total_and_known_counts PASSED [ 88%]
+tests/unit/services/test_vocabulary_service.py::TestVocabularyServiceGetUserStats::test_When_user_has_no_progress_Then_returns_zero_known PASSED [ 88%]
+tests/unit/services/test_vocabulary_service.py::TestVocabularyServiceGetVocabularyLevel::test_When_getting_vocabulary_by_level_Then_returns_words FAILED [ 88%]
+tests/unit/services/test_vocabulary_service.py::TestVocabularyServiceGetVocabularyLevel::test_When_getting_level_with_limit_Then_respects_limit FAILED [ 88%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestVocabularyServiceFacadePatternFunctionality::test_get_vocabulary_library_delegates_to_query_service PASSED [ 88%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestVocabularyServiceFacadePatternFunctionality::test_search_vocabulary_delegates_to_query_service PASSED [ 88%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestVocabularyServiceFacadePatternFunctionality::test_bulk_mark_level_delegates_to_progress_service PASSED [ 88%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestVocabularyServiceFacadePatternFunctionality::test_get_vocabulary_stats_delegates_to_stats_service PASSED [ 89%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestVocabularyServiceFacadePatternFunctionality::test_get_user_progress_summary_delegates_to_stats_service PASSED [ 89%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestVocabularyServiceFacadePatternFunctionality::test_get_supported_languages_delegates_to_stats_service PASSED [ 89%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestExtractBlockingWordsFromSrt::test_extract_blocking_words_from_valid_srt PASSED [ 89%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestExtractBlockingWordsFromSrt::test_extract_blocking_words_filters_common_words PASSED [ 89%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestExtractBlockingWordsFromSrt::test_extract_blocking_words_handles_empty_srt PASSED [ 89%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestExtractBlockingWordsFromSrt::test_extract_blocking_words_handles_malformed_srt PASSED [ 89%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestExtractBlockingWordsFromSrt::test_extract_blocking_words_returns_unique_words PASSED [ 89%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestExtractBlockingWordsFromSrt::test_extract_blocking_words_limits_to_20_words PASSED [ 89%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestExtractBlockingWordsFromSrt::test_extract_blocking_words_handles_exception PASSED [ 89%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestGetVocabularyService::test_get_vocabulary_service_returns_instance PASSED [ 89%]
+tests/unit/services/test_vocabulary_service_comprehensive.py::TestGetVocabularyService::test_get_vocabulary_service_returns_fresh_instance PASSED [ 90%]
+tests/unit/services/test_vocabulary_stats.py::test_get_supported_languages_delegates_to_stats PASSED [ 90%]
+tests/unit/services/test_vocabulary_stats.py::test_get_vocabulary_stats_passes_through_arguments PASSED [ 90%]
+tests/unit/services/test_vocabulary_stats.py::test_get_user_progress_summary_delegates_to_stats PASSED [ 90%]
+tests/unit/services/test_vocabulary_stats_service_comprehensive.py::TestGetVocabularyStats::test_get_vocabulary_stats_delegates_to_internal_method PASSED [ 90%]
+tests/unit/services/test_vocabulary_stats_service_comprehensive.py::TestGetVocabularyStats::test_get_vocabulary_stats_with_session_all_levels_empty PASSED [ 90%]
+tests/unit/services/test_vocabulary_stats_service_comprehensive.py::TestGetVocabularyStats::test_get_vocabulary_stats_with_session_some_known_words PASSED [ 90%]
+tests/unit/services/test_vocabulary_stats_service_comprehensive.py::TestGetVocabularyStats::test_get_vocabulary_stats_with_session_handles_none_results PASSED [ 90%]
+tests/unit/services/test_vocabulary_stats_service_comprehensive.py::TestGetUserProgressSummary::test_progress_summary_no_words PASSED [ 90%]
+tests/unit/services/test_vocabulary_stats_service_comprehensive.py::TestGetUserProgressSummary::test_progress_summary_partial_knowledge PASSED [ 90%]
+tests/unit/services/test_vocabulary_stats_service_comprehensive.py::TestGetUserProgressSummary::test_progress_summary_percentage_rounding PASSED [ 90%]
+tests/unit/services/test_vocabulary_stats_service_comprehensive.py::TestGetSupportedLanguages::test_supported_languages_no_language_table SKIPPED [ 91%]
+tests/unit/services/test_vocabulary_stats_service_comprehensive.py::TestGetSupportedLanguages::test_supported_languages_with_language_table PASSED [ 91%]
+tests/unit/services/test_vocabulary_stats_service_comprehensive.py::TestGetSupportedLanguages::test_supported_languages_empty_table PASSED [ 91%]
+tests/unit/services/test_vocabulary_stats_service_comprehensive.py::TestFactoryFunction::test_factory_returns_instance PASSED [ 91%]
+tests/unit/services/test_vocabulary_stats_service_comprehensive.py::TestFactoryFunction::test_factory_returns_fresh_instance PASSED [ 91%]
+tests/unit/services/test_vocabulary_user_progress.py::test_mark_word_known_delegates_to_progress PASSED [ 91%]
+tests/unit/services/test_vocabulary_user_progress.py::test_bulk_mark_level_delegates_to_progress PASSED [ 91%]
+tests/unit/services/test_vocabulary_user_progress.py::test_get_user_vocabulary_stats_delegates_to_progress PASSED [ 91%]
+tests/unit/services/utils/test_srt_parser.py::TestSRTSegmentDataclass::test_segment_creation_minimal PASSED [ 91%]
+tests/unit/services/utils/test_srt_parser.py::TestSRTSegmentDataclass::test_segment_creation_dual_language PASSED [ 91%]
+tests/unit/services/utils/test_srt_parser.py::TestParseTimestamp::test_parse_timestamp_zero PASSED [ 91%]
+tests/unit/services/utils/test_srt_parser.py::TestParseTimestamp::test_parse_timestamp_seconds PASSED [ 92%]
+tests/unit/services/utils/test_srt_parser.py::TestParseTimestamp::test_parse_timestamp_minutes PASSED [ 92%]
+tests/unit/services/utils/test_srt_parser.py::TestParseTimestamp::test_parse_timestamp_hours PASSED [ 92%]
+tests/unit/services/utils/test_srt_parser.py::TestParseTimestamp::test_parse_timestamp_invalid_format PASSED [ 92%]
+tests/unit/services/utils/test_srt_parser.py::TestParseTimestamp::test_parse_timestamp_missing_parts PASSED [ 92%]
+tests/unit/services/utils/test_srt_parser.py::TestFormatTimestamp::test_format_timestamp_zero PASSED [ 92%]
+tests/unit/services/utils/test_srt_parser.py::TestFormatTimestamp::test_format_timestamp_seconds PASSED [ 92%]
+tests/unit/services/utils/test_srt_parser.py::TestFormatTimestamp::test_format_timestamp_minutes PASSED [ 92%]
+tests/unit/services/utils/test_srt_parser.py::TestFormatTimestamp::test_format_timestamp_hours PASSED [ 92%]
+tests/unit/services/utils/test_srt_parser.py::TestFormatTimestamp::test_format_timestamp_milliseconds_rounding PASSED [ 92%]
+tests/unit/services/utils/test_srt_parser.py::TestParseFile::test_parse_file_simple PASSED [ 92%]
+tests/unit/services/utils/test_srt_parser.py::TestParseFile::test_parse_file_not_found PASSED [ 92%]
+tests/unit/services/utils/test_srt_parser.py::TestParseFile::test_parse_file_unicode_decode_fallback PASSED [ 93%]
+tests/unit/services/utils/test_srt_parser.py::TestParseContent::test_parse_content_empty PASSED [ 93%]
+tests/unit/services/utils/test_srt_parser.py::TestParseContent::test_parse_content_single_segment PASSED [ 93%]
+tests/unit/services/utils/test_srt_parser.py::TestParseContent::test_parse_content_multiline_text PASSED [ 93%]
+tests/unit/services/utils/test_srt_parser.py::TestParseContent::test_parse_content_dual_language PASSED [ 93%]
+tests/unit/services/utils/test_srt_parser.py::TestParseContent::test_parse_content_windows_line_endings PASSED [ 93%]
+tests/unit/services/utils/test_srt_parser.py::TestParseContent::test_parse_content_malformed_block_too_few_lines PASSED [ 93%]
+tests/unit/services/utils/test_srt_parser.py::TestParseContent::test_parse_content_malformed_timestamp PASSED [ 93%]
+tests/unit/services/utils/test_srt_parser.py::TestParseContent::test_parse_content_malformed_index PASSED [ 93%]
+tests/unit/services/utils/test_srt_parser.py::TestParseContent::test_parse_content_empty_blocks PASSED [ 93%]
+tests/unit/services/utils/test_srt_parser.py::TestSegmentsToSrt::test_segments_to_srt_single PASSED [ 93%]
+tests/unit/services/utils/test_srt_parser.py::TestSegmentsToSrt::test_segments_to_srt_multiple PASSED [ 94%]
+tests/unit/services/utils/test_srt_parser.py::TestSegmentsToSrt::test_segments_to_srt_dual_language PASSED [ 94%]
+tests/unit/services/utils/test_srt_parser.py::TestSegmentsToSrt::test_segments_to_srt_empty_text_fallback PASSED [ 94%]
+tests/unit/services/utils/test_srt_parser.py::TestSegmentsToSrt::test_segments_to_srt_completely_empty_text PASSED [ 94%]
+tests/unit/services/utils/test_srt_parser.py::TestSaveSegments::test_save_segments_success PASSED [ 94%]
+tests/unit/services/utils/test_srt_parser.py::TestSaveSegments::test_save_segments_creates_parent_directory PASSED [ 94%]
+tests/unit/services/utils/test_srt_parser.py::TestSaveSegments::test_save_segments_empty_file_retry PASSED [ 94%]
+tests/unit/services/utils/test_srt_parser.py::TestRoundTripConversion::test_roundtrip_simple PASSED [ 94%]
+tests/unit/services/utils/test_srt_parser.py::TestRoundTripConversion::test_roundtrip_dual_language PASSED [ 94%]
+tests/unit/services/vocabulary/test_service_integration.py::TestVocabularyServiceArchitecture::test_service_initialization PASSED [ 94%]
+tests/unit/services/vocabulary/test_service_integration.py::TestVocabularyServiceArchitecture::test_facade_delegates_to_query_service PASSED [ 94%]
+tests/unit/services/vocabulary/test_service_integration.py::TestVocabularyServiceArchitecture::test_facade_delegates_to_progress_service PASSED [ 95%]
+tests/unit/services/vocabulary/test_service_integration.py::TestVocabularyServiceArchitecture::test_facade_delegates_to_stats_service PASSED [ 95%]
+tests/unit/services/vocabulary/test_service_integration.py::TestServiceArchitectureMetrics::test_service_line_counts_reasonable PASSED [ 95%]
+tests/unit/test_game_models.py::TestGameSessionValidation::test_WhenValidGameSessionData_ThenCreatesSuccessfully PASSED [ 95%]
+tests/unit/test_game_models.py::TestGameSessionValidation::test_WhenGameSessionWithVideo_ThenIncludesVideoId PASSED [ 95%]
+tests/unit/test_game_models.py::TestGameSessionValidation::test_WhenGameSessionWithCompleteData_ThenSetsAllFields PASSED [ 95%]
+tests/unit/test_game_models.py::TestGameSessionValidation::test_WhenGameSessionDefaultValues_ThenSetsCorrectDefaults PASSED [ 95%]
+tests/unit/test_game_models.py::TestGameSessionValidation::test_WhenMissingRequiredFields_ThenRaisesValidationError PASSED [ 95%]
+tests/unit/test_game_models.py::TestGameSessionValidation::test_WhenInvalidUuidFields_ThenRaisesValidationError PASSED [ 95%]
+tests/unit/test_game_models.py::TestGameQuestionValidation::test_WhenValidQuestionData_ThenCreatesSuccessfully PASSED [ 95%]
+tests/unit/test_game_models.py::TestGameQuestionValidation::test_WhenFillBlankQuestion_ThenHandlesNoOptions PASSED [ 95%]
+tests/unit/test_game_models.py::TestGameQuestionValidation::test_WhenTranslationQuestion_ThenSetsCorrectType PASSED [ 96%]
+tests/unit/test_game_models.py::TestGameQuestionValidation::test_WhenQuestionWithUserAnswer_ThenSetsAnswerData PASSED [ 96%]
+tests/unit/test_game_models.py::TestGameQuestionValidation::test_WhenQuestionDefaultValues_ThenSetsCorrectDefaults PASSED [ 96%]
+tests/unit/test_game_models.py::TestGameQuestionValidation::test_WhenMissingRequiredQuestionFields_ThenRaisesValidationError PASSED [ 96%]
+tests/unit/test_game_models.py::TestGameQuestionValidation::test_WhenEmptyQuestionText_ThenRaisesValidationError PASSED [ 96%]
+tests/unit/test_game_models.py::TestGameQuestionValidation::test_WhenNegativePoints_ThenAcceptsValue PASSED [ 96%]
+tests/unit/test_game_models.py::TestGameModelBusinessLogic::test_WhenCalculateSessionScore_ThenSumsQuestionPoints PASSED [ 96%]
+tests/unit/test_game_models.py::TestGameModelBusinessLogic::test_WhenCalculateAccuracyPercentage_ThenReturnsCorrectRatio PASSED [ 96%]
+tests/unit/test_game_models.py::TestGameModelBusinessLogic::test_WhenSessionComplete_ThenAllQuestionsAnswered PASSED [ 96%]
+tests/unit/test_pydantic_serialization_warnings.py::TestVocabularyWordValidation::test_vocabulary_word_with_known_field_succeeds PASSED [ 96%]
+tests/unit/test_pydantic_serialization_warnings.py::TestVocabularyWordValidation::test_vocabulary_word_with_active_field_fails_strict_mode PASSED [ 96%]
+tests/unit/test_pydantic_serialization_warnings.py::TestVocabularyWordValidation::test_vocabulary_word_missing_required_fields_fails PASSED [ 96%]
+tests/unit/test_pydantic_serialization_warnings.py::TestVocabularyWordValidation::test_vocabulary_word_invalid_difficulty_level_fails PASSED [ 97%]
+tests/unit/test_pydantic_serialization_warnings.py::TestVocabularyWordValidation::test_vocabulary_word_all_fields_succeeds PASSED [ 97%]
+tests/unit/test_pydantic_serialization_warnings.py::TestProcessingStatusWithVocabulary::test_processing_status_with_valid_vocabulary_succeeds PASSED [ 97%]
+tests/unit/test_pydantic_serialization_warnings.py::TestProcessingStatusWithVocabulary::test_processing_status_with_invalid_vocabulary_fails PASSED [ 97%]
+tests/unit/test_pydantic_serialization_warnings.py::TestProcessingStatusWithVocabulary::test_processing_status_assignment_validates PASSED [ 97%]
+tests/unit/test_pydantic_serialization_warnings.py::TestPydanticWarningsDetection::test_no_warnings_with_correct_structure PASSED [ 97%]
+tests/unit/test_pydantic_serialization_warnings.py::TestPydanticWarningsDetection::test_vocabulary_filter_service_output_validates PASSED [ 97%]
+tests/unit/test_pydantic_serialization_warnings.py::TestRegressionPrevention::test_vocabulary_dict_with_active_field_is_rejected PASSED [ 97%]
+tests/unit/test_pydantic_serialization_warnings.py::TestRegressionPrevention::test_processing_status_with_buggy_vocabulary_is_rejected PASSED [ 97%]
+tests/unit/test_pydantic_serialization_warnings.py::TestRegressionPrevention::test_vocabulary_service_creates_correct_field_name PASSED [ 97%]
+tests/unit/test_real_srt_generation.py::test_Wheninvalid_model_size_ThenRaisesError PASSED [ 97%]
+tests/unit/test_real_srt_generation.py::test_Whentranscribe_called_ThenUsesModel PASSED [ 98%]
+tests/unit/test_real_srt_generation.py::test_Whenvideo_file_provided_ThenExtractsAudio PASSED [ 98%]
+tests/unit/test_subtitle_chunk_generation.py::test_WhenParsecontentCalled_ThenReturnssegments PASSED [ 98%]
+tests/unit/test_subtitle_chunk_generation.py::test_WhenSegmentsToSrtCalled_ThenRoundtripWorks PASSED [ 98%]
+tests/unit/test_subtitle_chunk_generation.py::test_WhenFormattimestampCalled_ThenMatchesparse PASSED [ 98%]
+tests/unit/test_vocabulary_routes.py::TestVocabularyRoutesCore::test_get_supported_languages_success PASSED [ 98%]
+tests/unit/test_vocabulary_routes.py::TestVocabularyRoutesCore::test_get_supported_languages_error FAILED [ 98%]
 
 =================================== FAILURES ===================================
-__ TestTranscriptionServiceIntegration.test_whisper_tiny_actual_transcription __
-tests/integration/test_ai_service_integration.py:66: in test_whisper_tiny_actual_transcription
-    result = service.transcribe(audio_file_path, language="de")
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-services/transcriptionservice/whisper_implementation.py:124: in transcribe
-    result = self._model.transcribe(audio_path, language=language, task="transcribe")
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/whisper/transcribe.py:139: in transcribe
-    mel = log_mel_spectrogram(audio, model.dims.n_mels, padding=N_SAMPLES)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/whisper/audio.py:140: in log_mel_spectrogram
-    audio = load_audio(audio)
-            ^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/whisper/audio.py:58: in load_audio
-    out = run(cmd, capture_output=True, check=True).stdout
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/subprocess.py:548: in run
-    with Popen(*popenargs, **kwargs) as process:
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/subprocess.py:1026: in __init__
-    self._execute_child(args, executable, preexec_fn, close_fds,
-/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/subprocess.py:1955: in _execute_child
-    raise child_exception_type(errno_num, err_msg, err_filename)
-E   FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'
------------------------------ Captured stderr call -----------------------------
-[Whisper] [CUDA WARNING] CUDA is not available. Running on CPU (slower performance).
-To use GPU acceleration:
-  1. Install NVIDIA GPU drivers
-  2. Install PyTorch with CUDA: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-  3. Verify with: python -c "import torch; print(torch.cuda.is_available())"
-Set LANGPLUG_REQUIRE_CUDA=true to make CUDA required
-[Whisper] CPU MODE - Expect slower performance
-[MODEL DOWNLOAD] Downloading Whisper model 'tiny' (~39MB)
-[MODEL DOWNLOAD] First-time download in progress...
-[MODEL DOWNLOAD] Model will be cached at: /home/runner/.cache/whisper/tiny.pt
-[MODEL DOWNLOAD] Please wait, this is a one-time download...
-[MODEL INIT] Initializing Whisper tiny...
-  0%|                                              | 0.00/72.1M [00:00<?, ?iB/s] 28%|██████████▌                           | 20.0M/72.1M [00:00<00:00, 117MiB/s] 43%|███████████████▉                     | 31.2M/72.1M [00:00<00:00, 82.5MiB/s] 69%|██████████████████████████▎           | 49.8M/72.1M [00:00<00:00, 117MiB/s] 91%|██████████████████████████████████▌   | 65.5M/72.1M [00:00<00:00, 132MiB/s]100%|██████████████████████████████████████| 72.1M/72.1M [00:00<00:00, 121MiB/s]
-[MODEL READY] Whisper model 'tiny' loaded successfully!
-[MODEL READY] Transcription service is now operational
-/home/runner/work/IdeaProjects/IdeaProjects/src/backend/api_venv/lib/python3.11/site-packages/whisper/transcribe.py:132: UserWarning: FP16 is not supported on CPU; using FP32 instead
-  warnings.warn("FP16 is not supported on CPU; using FP32 instead")
------------------------------- Captured log call -------------------------------
-WARNING  core.gpu_utils:gpu_utils.py:53 [Whisper] [CUDA WARNING] CUDA is not available. Running on CPU (slower performance).
-To use GPU acceleration:
-  1. Install NVIDIA GPU drivers
-  2. Install PyTorch with CUDA: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-  3. Verify with: python -c "import torch; print(torch.cuda.is_available())"
-Set LANGPLUG_REQUIRE_CUDA=true to make CUDA required
-INFO     core.gpu_utils:gpu_utils.py:54 [Whisper] CPU MODE - Expect slower performance
-INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:97 [MODEL DOWNLOAD] Downloading Whisper model 'tiny' (~39MB)
-INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:98 [MODEL DOWNLOAD] First-time download in progress...
-INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:99 [MODEL DOWNLOAD] Model will be cached at: /home/runner/.cache/whisper/tiny.pt
-INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:100 [MODEL DOWNLOAD] Please wait, this is a one-time download...
-INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:105 [MODEL INIT] Initializing Whisper tiny...
-INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:107 [MODEL READY] Whisper model 'tiny' loaded successfully!
-INFO     services.transcriptionservice.whisper_implementation:whisper_implementation.py:108 [MODEL READY] Transcription service is now operational
-________________________ test_whisper_tiny_hello_world _________________________
-tests/integration/test_ai_service_minimal.py:54: in test_whisper_tiny_hello_world
-    result = service.transcribe(temp_path, language="en")
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-services/transcriptionservice/whisper_implementation.py:124: in transcribe
-    result = self._model.transcribe(audio_path, language=language, task="transcribe")
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/whisper/transcribe.py:139: in transcribe
-    mel = log_mel_spectrogram(audio, model.dims.n_mels, padding=N_SAMPLES)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/whisper/audio.py:140: in log_mel_spectrogram
-    audio = load_audio(audio)
-            ^^^^^^^^^^^^^^^^^
-api_venv/lib/python3.11/site-packages/whisper/audio.py:58: in load_audio
-    out = run(cmd, capture_output=True, check=True).stdout
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/subprocess.py:548: in run
-    with Popen(*popenargs, **kwargs) as process:
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/subprocess.py:1026: in __init__
-    self._execute_child(args, executable, preexec_fn, close_fds,
-/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/subprocess.py:1955: in _execute_child
-    raise child_exception_type(errno_num, err_msg, err_filename)
-E   FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'
------------------------------ Captured stderr call -----------------------------
-/home/runner/work/IdeaProjects/IdeaProjects/src/backend/api_venv/lib/python3.11/site-packages/whisper/transcribe.py:132: UserWarning: FP16 is not supported on CPU; using FP32 instead
-  warnings.warn("FP16 is not supported on CPU; using FP32 instead")
-____________ TestAPIHTTPProtocol.test_404_for_nonexistent_endpoint _____________
-tests/integration/test_api_http_integration.py:65: in test_404_for_nonexistent_endpoint
-    assert "detail" in error
-E   AssertionError: assert 'detail' in {'error': {'type': 'http_error', 'message': 'Not Found', 'status_code': 404}}
------------------------------ Captured stderr call -----------------------------
-API Request: GET /api/nonexistent/endpoint
-{"status_code": 404, "detail": "Not Found", "path": "/api/nonexistent/endpoint", "method": "GET", "event": "Starlette HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-14T20:32:54.817891Z"}
-API Response: 404 GET /api/nonexistent/endpoint
-HTTP Request: GET http://test/api/nonexistent/endpoint "HTTP/1.1 404 Not Found"
------------------------------- Captured log call -------------------------------
-INFO     api:security_middleware.py:27 API Request: GET /api/nonexistent/endpoint
-WARNING  core.exception_handlers:exception_handlers.py:69 {"status_code": 404, "detail": "Not Found", "path": "/api/nonexistent/endpoint", "method": "GET", "event": "Starlette HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-14T20:32:54.817891Z"}
-INFO     api:security_middleware.py:56 API Response: 404 GET /api/nonexistent/endpoint
-INFO     httpx:_client.py:1740 HTTP Request: GET http://test/api/nonexistent/endpoint "HTTP/1.1 404 Not Found"
-___ TestMiddlewareBehavior.test_error_handling_middleware_catches_exceptions ___
-tests/integration/test_api_http_integration.py:164: in test_error_handling_middleware_catches_exceptions
-    assert response.status_code in [200, 400, 401, 404, 422]
-E   assert 405 in [200, 400, 401, 404, 422]
-E    +  where 405 = <Response [405 Method Not Allowed]>.status_code
------------------------------ Captured stderr call -----------------------------
-API Request: GET /api/vocabulary
-{"status_code": 405, "detail": "Method Not Allowed", "path": "/api/vocabulary", "method": "GET", "event": "Starlette HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-14T20:32:55.200288Z"}
-API Response: 405 GET /api/vocabulary
-HTTP Request: GET http://test/api/vocabulary?level=INVALID "HTTP/1.1 405 Method Not Allowed"
------------------------------- Captured log call -------------------------------
-INFO     api:security_middleware.py:27 API Request: GET /api/vocabulary
-WARNING  core.exception_handlers:exception_handlers.py:69 {"status_code": 405, "detail": "Method Not Allowed", "path": "/api/vocabulary", "method": "GET", "event": "Starlette HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-14T20:32:55.200288Z"}
-INFO     api:security_middleware.py:56 API Response: 405 GET /api/vocabulary
-INFO     httpx:_client.py:1740 HTTP Request: GET http://test/api/vocabulary?level=INVALID "HTTP/1.1 405 Method Not Allowed"
-_____________________ test_protected_endpoint_without_auth _____________________
-tests/integration/test_api_simple.py:68: in test_protected_endpoint_without_auth
-    assert response.status_code in [401, 403, 404]
-E   assert 405 in [401, 403, 404]
-E    +  where 405 = <Response [405 Method Not Allowed]>.status_code
+____ TestMarkKnownRequestValidation.test_validate_concept_id_valid_requests ____
+tests/unit/models/test_vocabulary_models.py:133: in test_validate_concept_id_valid_requests
+    request = MarkKnownRequest(**request_data)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   pydantic_core._pydantic_core.ValidationError: 2 validation errors for MarkKnownRequest
+E   lemma
+E     Field required [type=missing, input_value={'concept_id': '3d26a47c-...23203b4', 'known': True}, input_type=dict]
+E       For further information visit https://errors.pydantic.dev/2.12/v/missing
+E   language
+E     Field required [type=missing, input_value={'concept_id': '3d26a47c-...23203b4', 'known': True}, input_type=dict]
+E       For further information visit https://errors.pydantic.dev/2.12/v/missing
+_____ TestMarkKnownRequestValidation.test_validate_known_field_wrong_type ______
+tests/unit/models/test_vocabulary_models.py:153: in test_validate_known_field_wrong_type
+    request = MarkKnownRequest(concept_id=str(uuid4()), known="yes")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   pydantic_core._pydantic_core.ValidationError: 2 validation errors for MarkKnownRequest
+E   lemma
+E     Field required [type=missing, input_value={'concept_id': '4e4af3fb-...3b936e', 'known': 'yes'}, input_type=dict]
+E       For further information visit https://errors.pydantic.dev/2.12/v/missing
+E   language
+E     Field required [type=missing, input_value={'concept_id': '4e4af3fb-...3b936e', 'known': 'yes'}, input_type=dict]
+E       For further information visit https://errors.pydantic.dev/2.12/v/missing
+_ TestVocabularyServiceGetVocabularyLevel.test_When_getting_vocabulary_by_level_Then_returns_words _
+tests/unit/services/test_vocabulary_service.py:313: in test_When_getting_vocabulary_by_level_Then_returns_words
+    result = await service.get_vocabulary_level(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'VocabularyService' object has no attribute 'get_vocabulary_level'
+_ TestVocabularyServiceGetVocabularyLevel.test_When_getting_level_with_limit_Then_respects_limit _
+tests/unit/services/test_vocabulary_service.py:339: in test_When_getting_level_with_limit_Then_respects_limit
+    result = await service.get_vocabulary_level(level, "de", "es", None, limit=limit, offset=0)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'VocabularyService' object has no attribute 'get_vocabulary_level'
+_________ TestVocabularyRoutesCore.test_get_supported_languages_error __________
+tests/unit/test_vocabulary_routes.py:260: in test_get_supported_languages_error
+    assert "Error retrieving languages" in response.json()["detail"]
+E   AssertionError: assert 'Error retrieving languages' in 'Error retrieving supported languages: Database connection failed'
 ---------------------------- Captured stderr setup -----------------------------
 Security middleware configured successfully
-{"event": "Debug and test routes disabled (production mode)", "logger": "core.app", "level": "info", "timestamp": "2025-11-14T20:32:56.033785Z"}
-{"event": "FastAPI application created and configured", "logger": "core.app", "level": "info", "timestamp": "2025-11-14T20:32:56.033911Z"}
+Contract validation middleware enabled: requests=True, responses=True, logging=True
+{"event": "Debug and test routes enabled (debug mode)", "logger": "core.app", "level": "info", "timestamp": "2025-11-15T15:56:17.709958Z"}
+{"event": "FastAPI application created and configured", "logger": "core.app", "level": "info", "timestamp": "2025-11-15T15:56:17.710123Z"}
 ------------------------------ Captured log setup ------------------------------
 INFO     core.security_middleware:security_middleware.py:262 Security middleware configured successfully
-INFO     core.app:app.py:190 {"event": "Debug and test routes disabled (production mode)", "logger": "core.app", "level": "info", "timestamp": "2025-11-14T20:32:56.033785Z"}
-INFO     core.app:app.py:192 {"event": "FastAPI application created and configured", "logger": "core.app", "level": "info", "timestamp": "2025-11-14T20:32:56.033911Z"}
+INFO     core.contract_middleware:contract_middleware.py:221 Contract validation middleware enabled: requests=True, responses=True, logging=True
+INFO     core.app:app.py:188 {"event": "Debug and test routes enabled (debug mode)", "logger": "core.app", "level": "info", "timestamp": "2025-11-15T15:56:17.709958Z"}
+INFO     core.app:app.py:192 {"event": "FastAPI application created and configured", "logger": "core.app", "level": "info", "timestamp": "2025-11-15T15:56:17.710123Z"}
 ----------------------------- Captured stderr call -----------------------------
-API Request: GET /api/vocabulary/
-API Response: 307 GET /api/vocabulary/
-HTTP Request: GET http://testserver/api/vocabulary/ "HTTP/1.1 307 Temporary Redirect"
-API Request: GET /api/vocabulary
-{"status_code": 405, "detail": "Method Not Allowed", "path": "/api/vocabulary", "method": "GET", "event": "Starlette HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-14T20:32:56.037947Z"}
-API Response: 405 GET /api/vocabulary
-HTTP Request: GET http://testserver/api/vocabulary "HTTP/1.1 405 Method Not Allowed"
+API Request: POST /api/auth/register
+API Response: 201 POST /api/auth/register
+HTTP Request: POST http://test/api/auth/register "HTTP/1.1 201 Created"
+API Request: POST /api/auth/login
+API Response: 200 POST /api/auth/login
+HTTP Request: POST http://test/api/auth/login "HTTP/1.1 200 OK"
+API Request: GET /api/vocabulary/languages
+Error retrieving supported languages: Database connection failed
+Traceback (most recent call last):
+  File "/home/runner/work/IdeaProjects/IdeaProjects/src/backend/api/error_handlers.py", line 59, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/IdeaProjects/IdeaProjects/src/backend/api/routes/vocabulary.py", line 395, in get_supported_languages
+    result = await db.execute(stmt)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/unittest/mock.py", line 2240, in _execute_mock_call
+    raise effect
+Exception: Database connection failed
+{"status_code": 500, "detail": "Error retrieving supported languages: Database connection failed", "path": "/api/vocabulary/languages", "method": "GET", "event": "HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-15T15:56:17.918277Z"}
+API Response: 500 GET /api/vocabulary/languages
+HTTP Request: GET http://test/api/vocabulary/languages "HTTP/1.1 500 Internal Server Error"
 ------------------------------ Captured log call -------------------------------
-INFO     api:security_middleware.py:27 API Request: GET /api/vocabulary/
-INFO     api:security_middleware.py:56 API Response: 307 GET /api/vocabulary/
-INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/vocabulary/ "HTTP/1.1 307 Temporary Redirect"
-INFO     api:security_middleware.py:27 API Request: GET /api/vocabulary
-WARNING  core.exception_handlers:exception_handlers.py:69 {"status_code": 405, "detail": "Method Not Allowed", "path": "/api/vocabulary", "method": "GET", "event": "Starlette HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-14T20:32:56.037947Z"}
-INFO     api:security_middleware.py:56 API Response: 405 GET /api/vocabulary
-INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/vocabulary "HTTP/1.1 405 Method Not Allowed"
+INFO     api:security_middleware.py:27 API Request: POST /api/auth/register
+INFO     api:security_middleware.py:56 API Response: 201 POST /api/auth/register
+INFO     httpx:_client.py:1740 HTTP Request: POST http://test/api/auth/register "HTTP/1.1 201 Created"
+INFO     api:security_middleware.py:27 API Request: POST /api/auth/login
+INFO     api:security_middleware.py:56 API Response: 200 POST /api/auth/login
+INFO     httpx:_client.py:1740 HTTP Request: POST http://test/api/auth/login "HTTP/1.1 200 OK"
+INFO     api:security_middleware.py:27 API Request: GET /api/vocabulary/languages
+ERROR    api.error_handlers:error_handlers.py:65 Error retrieving supported languages: Database connection failed
+Traceback (most recent call last):
+  File "/home/runner/work/IdeaProjects/IdeaProjects/src/backend/api/error_handlers.py", line 59, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/IdeaProjects/IdeaProjects/src/backend/api/routes/vocabulary.py", line 395, in get_supported_languages
+    result = await db.execute(stmt)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/unittest/mock.py", line 2240, in _execute_mock_call
+    raise effect
+Exception: Database connection failed
+WARNING  core.exception_handlers:exception_handlers.py:40 {"status_code": 500, "detail": "Error retrieving supported languages: Database connection failed", "path": "/api/vocabulary/languages", "method": "GET", "event": "HTTP exception", "logger": "core.exception_handlers", "level": "warning", "timestamp": "2025-11-15T15:56:17.918277Z"}
+INFO     api:security_middleware.py:56 API Response: 500 GET /api/vocabulary/languages
+INFO     httpx:_client.py:1740 HTTP Request: GET http://test/api/vocabulary/languages "HTTP/1.1 500 Internal Server Error"
 =========================== short test summary info ============================
-FAILED tests/integration/test_ai_service_integration.py::TestTranscriptionServiceIntegration::test_whisper_tiny_actual_transcription - FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'
-FAILED tests/integration/test_ai_service_minimal.py::test_whisper_tiny_hello_world - FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'
-FAILED tests/integration/test_api_http_integration.py::TestAPIHTTPProtocol::test_404_for_nonexistent_endpoint - AssertionError: assert 'detail' in {'error': {'type': 'http_error', 'message': 'Not Found', 'status_code': 404}}
-FAILED tests/integration/test_api_http_integration.py::TestMiddlewareBehavior::test_error_handling_middleware_catches_exceptions - assert 405 in [200, 400, 401, 404, 422]
- +  where 405 = <Response [405 Method Not Allowed]>.status_code
-FAILED tests/integration/test_api_simple.py::test_protected_endpoint_without_auth - assert 405 in [401, 403, 404]
- +  where 405 = <Response [405 Method Not Allowed]>.status_code
+FAILED tests/unit/models/test_vocabulary_models.py::TestMarkKnownRequestValidation::test_validate_concept_id_valid_requests - pydantic_core._pydantic_core.ValidationError: 2 validation errors for MarkKnownRequest
+lemma
+  Field required [type=missing, input_value={'concept_id': '3d26a47c-...23203b4', 'known': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+language
+  Field required [type=missing, input_value={'concept_id': '3d26a47c-...23203b4', 'known': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+FAILED tests/unit/models/test_vocabulary_models.py::TestMarkKnownRequestValidation::test_validate_known_field_wrong_type - pydantic_core._pydantic_core.ValidationError: 2 validation errors for MarkKnownRequest
+lemma
+  Field required [type=missing, input_value={'concept_id': '4e4af3fb-...3b936e', 'known': 'yes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+language
+  Field required [type=missing, input_value={'concept_id': '4e4af3fb-...3b936e', 'known': 'yes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+FAILED tests/unit/services/test_vocabulary_service.py::TestVocabularyServiceGetVocabularyLevel::test_When_getting_vocabulary_by_level_Then_returns_words - AttributeError: 'VocabularyService' object has no attribute 'get_vocabulary_level'
+FAILED tests/unit/services/test_vocabulary_service.py::TestVocabularyServiceGetVocabularyLevel::test_When_getting_level_with_limit_Then_respects_limit - AttributeError: 'VocabularyService' object has no attribute 'get_vocabulary_level'
+FAILED tests/unit/test_vocabulary_routes.py::TestVocabularyRoutesCore::test_get_supported_languages_error - AssertionError: assert 'Error retrieving languages' in 'Error retrieving supported languages: Database connection failed'
 !!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 5 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
-============= 5 failed, 238 passed, 10 skipped in 78.29s (0:01:18) =============
+============ 5 failed, 1082 passed, 24 skipped in 119.08s (0:01:59) ============

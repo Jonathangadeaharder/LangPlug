@@ -63,7 +63,8 @@ def test_openapi_endpoint(client):
 @pytest.mark.integration
 def test_protected_endpoint_without_auth(client):
     """Test that protected endpoints require authentication."""
-    response = client.get("/api/vocabulary/")
+    # Use an existing GET endpoint that requires authentication
+    response = client.get("/api/vocabulary/stats")
     # Should return 401, 403, or 404 for unauthorized access to protected endpoints
     assert response.status_code in [401, 403, 404]
 
