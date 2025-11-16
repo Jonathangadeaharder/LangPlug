@@ -48,9 +48,21 @@ jobs:
         working-directory: ./src/backend
         run: |
           python -m pip install --upgrade pip
-          echo "Installing dependencies from requirements.txt..."
-          pip install -r requirements.txt 2>&1 | tee pip-install.log
-          echo "Installation complete. Log saved to pip-install.log"
+          echo "Installing dependencies from requirements.txt with CPU-only torch and small spacy models..."
+
+          # Install CPU-only torch (much smaller than CUDA version)
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+          # Install core dependencies excluding large models
+          grep -v "^https://github.com/explosion/spacy-models" requirements.txt | \
+          grep -v "^torch" | \
+          pip install -r /dev/stdin
+
+          # Install small spacy models only (non-CUDA)
+          pip install https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-3.8.0/de_core_news_sm-3.8.0-py3-none-any.whl
+          pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+
+          echo "Installation complete with CPU-only dependencies" 2>&1 | tee pip-install.log
 
       - name: Upload pip install log
         if: always()

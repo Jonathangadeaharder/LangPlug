@@ -1,5 +1,1 @@
-Collecting ruff
-  Using cached ruff-0.14.5-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (25 kB)
-Using cached ruff-0.14.5-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (13.8 MB)
-Installing collected packages: ruff
-Successfully installed ruff-0.14.5
+Installed dependencies with CPU-only torch and small spacy models
