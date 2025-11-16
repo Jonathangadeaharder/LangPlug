@@ -1,9 +1,9 @@
 Collecting de-core-news-lg==3.8.0 (from -r requirements.txt (line 39))
   Downloading https://github.com/explosion/spacy-models/releases/download/de_core_news_lg-3.8.0/de_core_news_lg-3.8.0-py3-none-any.whl (567.8 MB)
-     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 567.8/567.8 MB 76.6 MB/s  0:00:04
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 567.8/567.8 MB 66.2 MB/s  0:00:05
 Collecting en-core-web-sm==3.8.0 (from -r requirements.txt (line 40))
   Downloading https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl (12.8 MB)
-     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 245.4 MB/s  0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 135.8 MB/s  0:00:00
 Collecting fastapi<1.0.0,>=0.118.3 (from -r requirements.txt (line 7))
   Using cached fastapi-0.121.2-py3-none-any.whl.metadata (28 kB)
 Collecting pydantic<3.0.0,>=2.12.0 (from -r requirements.txt (line 8))
@@ -435,7 +435,7 @@ Using cached pytest_cov-7.0.0-py3-none-any.whl (22 kB)
 Using cached pytest_xdist-3.8.0-py3-none-any.whl (46 kB)
 Using cached pytest_timeout-2.4.0-py3-none-any.whl (14 kB)
 Downloading hypothesis-6.148.1-py3-none-any.whl (535 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 535.7/535.7 kB 54.2 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 535.7/535.7 kB 893.7 kB/s  0:00:00
 Using cached pytest_env-1.2.0-py3-none-any.whl (6.3 kB)
 Using cached httpx-0.28.1-py3-none-any.whl (73 kB)
 Using cached respx-0.22.0-py2.py3-none-any.whl (25 kB)
