@@ -1,0 +1,4 @@
+
+> langplug-frontend@1.0.0 lint
+> eslint src --max-warnings 0
+
