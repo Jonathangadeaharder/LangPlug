@@ -23,6 +23,119 @@ LangPlug/
 - **NO BACKWARD COMPATIBILITY LAYERS**: When refactoring, update ALL dependencies to use the new architecture directly. Do NOT maintain facades, convenience functions, or compatibility layers just for backward compatibility. Update all imports and usages across the codebase to use the new services/modules. Keep the code modern and slim by removing all boilerplate that exists only for backward compatibility. Source control is the safety net, not compatibility layers in production code.
 - **NEVER COMMENT OUT CODE**: ALWAYS delete obsolete code completely. Never use comments to "disable" code (e.g., `# old_function()` or `# TODO: uncomment when ready`). If code is not needed, delete it entirely. Source control (Git) is the safety net for retrieving old code if needed. Commented-out code creates confusion, bloats the codebase, and suggests uncertainty. Be decisive: either keep the code active or delete it completely.
 
+## Structurelint - Project Structure Enforcement
+
+The project uses [structurelint](https://github.com/structurelint/structurelint) to enforce architectural integrity and project organization.
+
+### Installation
+
+**Go Install (Recommended)**:
+```bash
+go install github.com/structurelint/structurelint/cmd/structurelint@latest
+```
+
+**Build from Source** (if go install fails):
+```bash
+git clone https://github.com/structurelint/structurelint.git
+cd structurelint
+go build -o structurelint ./cmd/structurelint
+# Move binary to PATH or use directly
+```
+
+**Download Binary**:
+```bash
+# Linux
+curl -L https://github.com/structurelint/structurelint/releases/latest/download/structurelint-linux-amd64 -o structurelint
+chmod +x structurelint
+sudo mv structurelint /usr/local/bin/
+
+# Windows (PowerShell)
+Invoke-WebRequest -Uri "https://github.com/structurelint/structurelint/releases/latest/download/structurelint-windows-amd64.exe" -OutFile "structurelint.exe"
+# Move structurelint.exe to a directory in your system's PATH
+```
+
+### Running Structurelint
+
+```bash
+# Check entire project
+structurelint .
+
+# Check specific directory
+structurelint src/backend
+
+# Auto-fix issues (if supported)
+structurelint --fix .
+```
+
+### What Structurelint Enforces
+
+The `.structurelint.yml` configuration provides **comprehensive enforcement** across 8 phases:
+
+#### Phase 0: Filesystem Structure (ENABLED ✓)
+- **Maximum Folder Depth**: 7 levels (industry best practice)
+- **Maximum Files Per Directory**: 20 default, 15 for services/components, 25 for tests
+- **Maximum Subdirectories**: 10 (cognitive load best practice)
+- **Naming Conventions**: `snake_case` (Python), `kebab-case` (TS files), `PascalCase` (React)
+- **Version Suffix Prevention**: Blocks `_v2`, `_new`, `_old`, `_temp`, `_backup`
+
+#### Phase 1: Architectural Layer Enforcement (ENABLED ✓)
+- **Clean Architecture**: Backend layers (core → database → services → api)
+- **Dependency Direction**: Enforces one-way dependencies
+
+#### Phase 2: Dead Code Detection (ENABLED ✓)
+- **Orphaned Files**: Detects files never imported anywhere
+- **Unused Exports**: Finds dead exports that can be removed
+
+#### Phase 3: Test Validation (ENABLED ✓)
+- **Test Adjacency**: Backend=separate tests/, Frontend=adjacent .test.ts
+- **Test Location**: Validates test directory structure
+- **Required Files**: `conftest.py` or `__init__.py` in test directories
+
+#### Phase 5: Evidence-Based Complexity Metrics (ENABLED ✓)
+- **Cognitive Complexity**: Max 15 (r=0.54 correlation with comprehension time)
+  - Services: Max 12, Data scripts: Max 20
+- **Halstead Effort**: Max 100k (Python), 120k (TypeScript)
+  - Research: rs=0.901 correlation with EEG cognitive load
+
+#### Phase 8: GitHub Workflows Enforcement (ENABLED ✓)
+- **Test Workflows**: Requires automated testing in CI/CD
+- **Security Scanning**: Requires CodeQL/dependency scanning
+- **Code Quality**: Requires linting/formatting checks
+
+**Current Status**: 593 violations detected after configuration tuning
+
+Breakdown of remaining violations:
+- **Cognitive Complexity**: 64 functions exceed CoC=15 (actual technical debt)
+- **Unused Exports**: ~315 exports never imported (APIs, test exports, DTOs)
+- **Orphaned Files**: ~198 files (primarily test utilities, examples)
+- **Structural**: 12 file/subdirectory limit violations
+
+The configuration balances strict enforcement with practical project needs.
+
+### Integration with CI/CD
+
+Add structurelint to your CI pipeline by adding this step:
+
+```yaml
+- name: Lint Project Structure
+  run: structurelint .
+```
+
+Consider adding it to pre-commit hooks for early detection:
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: local
+    hooks:
+      - id: structurelint
+        name: structurelint
+        entry: structurelint
+        args: [.]
+        language: system
+        pass_filenames: false
+```
+
 ## PowerShell Integration Hook (Last Resort)
 
 A PreToolUse hook is configured in `~/.claude/settings.json` that automatically intercepts Python/Node commands and suggests PowerShell-wrapped versions. This hook should be a **last resort** when Claude consistently forgets to use PowerShell commands.
