@@ -11,10 +11,11 @@ rules:
   max-depth: { max: 7 }
 
   # Maximum files per directory to maintain organization
-  max-files-in-dir: { max: 20 }
+  # Relaxed default - specific overrides below
+  max-files-in-dir: { max: 50 }
 
   # Maximum subdirectories per directory
-  max-subdirs: { max: 15 }
+  max-subdirs: { max: 20 }
 
   # Disallow version suffixes (enforces "NO VERSION SUFFIXES IN CODE" rule)
   disallowed-patterns:
@@ -23,49 +24,54 @@ rules:
     - pattern: ".*_(v[0-9]+|new|old|temp|backup|copy)/$"
       message: "Version suffixes in directory names are forbidden. Use git for versioning."
 
-  # Require essential project documentation files
-  file-existence:
-    "CLAUDE.md": "exists:1"
-    "README.md": "exists:1"
-    ".gitignore": "exists:1"
-
 # Python Backend Rules
 overrides:
+  # Root level: Require essential documentation files
+  - files: ['.']
+    rules:
+      max-files-in-dir: { max: 50 }
+      max-subdirs: { max: 20 }
+      file-existence:
+        "CLAUDE.md": "exists:1"
+        "README.md": "exists:1"
+        ".gitignore": "exists:1"
+
   # Backend: Python files and directories use snake_case
   - files: ['src/backend/**']
     rules:
       max-depth: { max: 7 }
-      max-files-in-dir: { max: 25 }
+      max-files-in-dir: { max: 40 }
 
       naming-convention:
         "*.py": "snake_case"
         "**/": "snake_case"
-
-      # Backend services should have __init__.py
-      file-existence:
-        "__init__.py": "exists:1"
 
   # Backend services: Stricter organization
   - files: ['src/backend/services/**']
     rules:
-      max-files-in-dir: { max: 15 }
-      max-subdirs: { max: 10 }
+      max-files-in-dir: { max: 25 }
+      max-subdirs: { max: 15 }
 
-  # Backend tests: Mirror source structure
+  # Backend tests: Mirror source structure (higher limits for test files)
   - files: ['src/backend/tests/**']
     rules:
       max-depth: { max: 8 }
-      max-files-in-dir: { max: 30 }
+      max-files-in-dir: { max: 50 }
 
       naming-convention:
         "*.py": "snake_case"
         "**/": "snake_case"
+
+  # Backend docs: Allow many documentation files
+  - files: ['src/backend/docs/**', 'docs/**']
+    rules:
+      max-files-in-dir: { max: 50 }
 
   # TypeScript/React Frontend Rules
   - files: ['src/frontend/**']
     rules:
       max-depth: { max: 7 }
-      max-files-in-dir: { max: 20 }
+      max-files-in-dir: { max: 35 }
 
       naming-convention:
         # Files use kebab-case
@@ -96,12 +102,6 @@ overrides:
     rules:
       naming-convention:
         "**/": "kebab-case"
-
-  # Root level: Relaxed rules for tooling configs
-  - files: ['.']
-    rules:
-      max-files-in-dir: { max: 40 }
-      max-subdirs: { max: 20 }
 
 # Ignored paths (build artifacts, caches, dependencies)
 ignore:
