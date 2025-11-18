@@ -1,43 +1,113 @@
 # Structurelint Configuration for LangPlug
-# Enforces project structure, organization, and architectural integrity
+# Comprehensive enforcement of structure, architecture, quality, and testing
 # See: https://github.com/structurelint/structurelint
 
 root: true
 
-# Global rules for all directories (BEST PRACTICE LIMITS)
+# ============================================================================
+# Entry Points (for orphaned file detection)
+# ============================================================================
+entrypoints:
+  # Backend entry points
+  - "src/backend/run_backend.py"
+  - "src/backend/core/app.py"
+  - "src/backend/alembic/env.py"
+  # Frontend entry points
+  - "src/frontend/src/main.tsx"
+  - "src/frontend/src/App.tsx"
+  # Test files (not orphaned)
+  - "**/*test*.py"
+  - "**/*test*.ts"
+  - "**/*test*.tsx"
+  - "**/__tests__/**"
+  - "**/*.spec.ts"
+
+# ============================================================================
+# Architectural Layers (Clean Architecture enforcement)
+# ============================================================================
+layers:
+  # Backend layers (dependency direction: domain <- application <- presentation)
+  - name: 'backend-core'
+    path: 'src/backend/core/**'
+    dependsOn: []
+
+  - name: 'backend-database'
+    path: 'src/backend/database/**'
+    dependsOn: ['backend-core']
+
+  - name: 'backend-services'
+    path: 'src/backend/services/**'
+    dependsOn: ['backend-core', 'backend-database']
+
+  - name: 'backend-api'
+    path: 'src/backend/api/**'
+    dependsOn: ['backend-core', 'backend-database', 'backend-services']
+
+# ============================================================================
+# Global Rules (BEST PRACTICE LIMITS)
+# ============================================================================
 rules:
-  # Maximum folder depth to prevent over-nesting
-  # Best practice: 6-7 levels maximum
+  # Phase 0: Filesystem Structure
   max-depth: { max: 7 }
-
-  # Maximum files per directory to maintain organization
-  # Best practice: 15-20 files (forces modularization)
   max-files-in-dir: { max: 20 }
-
-  # Maximum subdirectories per directory
-  # Best practice: 8-10 subdirectories (cognitive load)
   max-subdirs: { max: 10 }
 
-  # Disallow version suffixes (enforces "NO VERSION SUFFIXES IN CODE" rule)
+  # Phase 1: Architectural Layer Enforcement
+  enforce-layer-boundaries: true
+
+  # Phase 2: Dead Code Detection
+  disallow-orphaned-files: true
+  disallow-unused-exports: true
+
+  # Phase 5: Evidence-Based Complexity Metrics
+  # Cognitive Complexity - superior to Cyclomatic Complexity
+  # Research: r=0.54 correlation with comprehension time
+  max-cognitive-complexity:
+    max: 15
+    file-patterns:
+      - "**/*.py"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+
+  # Halstead Effort - captures data complexity
+  # Research: rs=0.901 correlation with EEG-measured cognitive load
+  max-halstead-effort:
+    max: 100000  # Python
+    file-patterns:
+      - "**/*.py"
+
+  # Phase 8: GitHub Workflows Enforcement
+  github-workflows:
+    require-tests: true
+    require-security: true
+    require-quality: true
+
+  # Version suffix prevention (enforces project rules)
   disallowed-patterns:
     - pattern: ".*_(v[0-9]+|new|old|temp|backup|copy)\\.(py|ts|tsx|js|jsx)$"
       message: "Version suffixes (_v2, _new, _old, _temp, _backup) are forbidden. Use git for versioning."
     - pattern: ".*_(v[0-9]+|new|old|temp|backup|copy)/$"
       message: "Version suffixes in directory names are forbidden. Use git for versioning."
+    - pattern: ".*/utils/.*"
+      message: "Generic utils folders discouraged. Use specific domain modules."
 
-# Advanced Rules
+# ============================================================================
+# Advanced Rules by Directory
+# ============================================================================
 overrides:
-  # Root level: Require essential documentation files
+  # Root level: Documentation requirements
   - files: ['.']
     rules:
-      max-files-in-dir: { max: 25 }  # Root can have more config files
+      max-files-in-dir: { max: 25 }
       max-subdirs: { max: 15 }
       file-existence:
         "CLAUDE.md": "exists:1"
         "README.md": "exists:1"
         ".gitignore": "exists:1"
 
-  # Backend: Python files and directories use snake_case
+  # Backend: Python naming + test adjacency
   - files: ['src/backend/**']
     rules:
       max-depth: { max: 7 }
@@ -47,80 +117,164 @@ overrides:
         "*.py": "snake_case"
         "**/": "snake_case"
 
-  # Backend services: Strict organization for core business logic
+      # Phase 3: Test validation for backend
+      test-adjacency:
+        pattern: "separate"  # Backend uses tests/ directory
+        file-patterns:
+          - "**/*.py"
+        exemptions:
+          - "**/__init__.py"
+          - "**/conftest.py"
+          - "**/*_test.py"  # Test files themselves
+          - "src/backend/alembic/**"  # Migration scripts
+          - "src/backend/scripts/**"  # Utility scripts
+
+  # Backend services: Focused modules + stricter limits
   - files: ['src/backend/services/**']
     rules:
-      max-files-in-dir: { max: 15 }  # Services should be focused
+      max-files-in-dir: { max: 15 }
       max-subdirs: { max: 8 }
+      max-cognitive-complexity:
+        max: 12  # Services should be simpler
+        file-patterns: ["**/*.py"]
 
-  # Backend API routes: Keep route files organized
+  # Backend API routes: Organization
   - files: ['src/backend/api/routes/**']
     rules:
       max-files-in-dir: { max: 15 }
 
-  # Backend tests: Allow more files but enforce organization
+  # Backend tests: Higher limits + test-specific rules
   - files: ['src/backend/tests/**']
     rules:
       max-depth: { max: 8 }
-      max-files-in-dir: { max: 25 }  # Test directories can be larger
+      max-files-in-dir: { max: 25 }
 
       naming-convention:
         "*.py": "snake_case"
         "**/": "snake_case"
 
-      # Require conftest.py for pytest
+      # Tests must have conftest.py or __init__.py
       file-existence:
         "conftest.py|__init__.py": "exists:1"
+
+      # Test location validation
+      test-location:
+        integration-test-dir: "tests/integration"
+        allow-adjacent: false  # Backend uses separate test directory
+
+      # Disable dead code detection for tests
+      disallow-orphaned-files: false
+      disallow-unused-exports: false
 
   # Backend docs: Documentation organization
   - files: ['src/backend/docs/**', 'docs/**']
     rules:
       max-files-in-dir: { max: 20 }
+      disallow-orphaned-files: false  # Docs can be standalone
 
-  # TypeScript/React Frontend Rules
+  # Frontend: TypeScript/React naming + test adjacency
   - files: ['src/frontend/**']
     rules:
       max-depth: { max: 7 }
       max-files-in-dir: { max: 20 }
 
       naming-convention:
-        # Files use kebab-case
         "*.ts": "kebab-case"
         "*.js": "kebab-case"
         "**/": "kebab-case"
 
-  # React components: PascalCase for component files
+      # Halstead for TypeScript (higher limit due to type annotations)
+      max-halstead-effort:
+        max: 120000
+        file-patterns:
+          - "**/*.ts"
+          - "**/*.tsx"
+
+      # Phase 3: Test validation for frontend
+      test-adjacency:
+        pattern: "adjacent"  # Frontend uses adjacent tests
+        file-patterns:
+          - "**/*.ts"
+          - "**/*.tsx"
+        exemptions:
+          - "**/*.d.ts"
+          - "**/*.config.ts"
+          - "**/vite-env.d.ts"
+          - "src/frontend/src/main.tsx"
+
+  # React components: PascalCase + component-specific rules
   - files: ['src/frontend/src/components/**', 'src/frontend/src/screens/**', 'src/frontend/src/contexts/**']
     rules:
-      max-files-in-dir: { max: 15 }  # Keep components focused
+      max-files-in-dir: { max: 15 }
+      max-cognitive-complexity:
+        max: 12  # Components should be simple
+        file-patterns: ["**/*.tsx"]
 
       naming-convention:
         "*.tsx": "PascalCase"
         "*.jsx": "PascalCase"
         "**/": "PascalCase"
 
-      # Each component directory should have index or main component
+      # Components may have index files
       file-existence:
         "index.ts|index.tsx": "exists:0-1"
 
-  # Scripts: Use snake_case and keep organized
+      # Regex: Component file should match directory name
+      regex-match:
+        "*/*/": "regex:${0}"  # e.g., Button/Button.tsx
+
+  # Scripts: Utility organization
   - files: ['scripts/**']
     rules:
       max-files-in-dir: { max: 15 }
-
       naming-convention:
         "*.py": "snake_case"
         "*.sh": "snake_case"
         "*.bat": "snake_case"
         "**/": "snake_case"
+      disallow-orphaned-files: false  # Scripts can be standalone
 
-  # Config: kebab-case
+  # Config: Naming
   - files: ['config/**']
     rules:
       naming-convention:
         "**/": "kebab-case"
 
-# Ignored paths (build artifacts, caches, dependencies)
+  # GitHub workflows: Disable checks (special directory)
+  - files: ['.github/**']
+    rules:
+      max-depth: 0
+      max-files-in-dir: 0
+      naming-convention: false
+      disallow-orphaned-files: false
+      disallow-unused-exports: false
+      test-adjacency: false
+
+  # Project metadata: Config files are standalone
+  - files: ['.ls-lint.yml', '.nxignore', '.qwen/**', '.windsurf/**', '.codex/**']
+    rules:
+      disallow-orphaned-files: false
+
+  # Data processing scripts: Can be standalone
+  - files: ['src/backend/data/**']
+    rules:
+      max-files-in-dir: { max: 25 }  # Data processing needs more files
+      disallow-orphaned-files: false
+      max-cognitive-complexity:
+        max: 20  # Data scripts can be more complex
+        file-patterns: ["**/*.py"]
+
+  # Tools and utilities: Can be standalone
+  - files: ['tools/**', 'management/**']
+    rules:
+      disallow-orphaned-files: false
+      max-cognitive-complexity:
+        max: 20  # Management tools can be complex
+        file-patterns: ["**/*.py"]
+
+# ============================================================================
+# Ignored Paths
+# ============================================================================
 ignore:
   - .git
   - .cache
@@ -142,7 +296,6 @@ ignore:
   - src/backend/logs
   - src/frontend/frontend.log
   - ci-logs
-  - .github
   - .qwen
   - .windsurf
   - .codex

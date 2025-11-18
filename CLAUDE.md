@@ -69,26 +69,40 @@ structurelint --fix .
 
 ### What Structurelint Enforces
 
-The `.structurelint.yml` configuration enforces **best practice** limits:
+The `.structurelint.yml` configuration provides **comprehensive enforcement** across 8 phases:
 
-1. **Maximum Folder Depth**: 7 levels maximum (industry best practice)
-2. **Maximum Files Per Directory** (Best Practice: 15-20 files to force modularization):
-   - Global default: 20 files
-   - Root: 25 files (config files)
-   - Services: 15 files (focused modules)
-   - Components: 15 files (React best practice)
-   - Tests: 25 files (test suites can be larger)
-   - API Routes: 15 files
-3. **Maximum Subdirectories**: 10 subdirectories (cognitive load best practice)
-4. **Naming Conventions**:
-   - Backend Python: `snake_case` for files and directories
-   - Frontend TypeScript: `kebab-case` for files, `PascalCase` for React components
-   - Scripts: `snake_case`
-5. **Version Suffix Prevention**: Blocks `_v2`, `_new`, `_old`, `_temp`, `_backup` suffixes (enforces "NO VERSION SUFFIXES IN CODE" rule)
-6. **Required Files**:
-   - Project root must have: `CLAUDE.md`, `README.md`, `.gitignore`
-   - Test directories should have: `conftest.py` or `__init__.py`
-   - Component directories may have: `index.ts` or `index.tsx`
+#### Phase 0: Filesystem Structure (ENABLED ✓)
+- **Maximum Folder Depth**: 7 levels (industry best practice)
+- **Maximum Files Per Directory**: 20 default, 15 for services/components, 25 for tests
+- **Maximum Subdirectories**: 10 (cognitive load best practice)
+- **Naming Conventions**: `snake_case` (Python), `kebab-case` (TS files), `PascalCase` (React)
+- **Version Suffix Prevention**: Blocks `_v2`, `_new`, `_old`, `_temp`, `_backup`
+
+#### Phase 1: Architectural Layer Enforcement (ENABLED ✓)
+- **Clean Architecture**: Backend layers (core → database → services → api)
+- **Dependency Direction**: Enforces one-way dependencies
+
+#### Phase 2: Dead Code Detection (ENABLED ✓)
+- **Orphaned Files**: Detects files never imported anywhere
+- **Unused Exports**: Finds dead exports that can be removed
+
+#### Phase 3: Test Validation (ENABLED ✓)
+- **Test Adjacency**: Backend=separate tests/, Frontend=adjacent .test.ts
+- **Test Location**: Validates test directory structure
+- **Required Files**: `conftest.py` or `__init__.py` in test directories
+
+#### Phase 5: Evidence-Based Complexity Metrics (ENABLED ✓)
+- **Cognitive Complexity**: Max 15 (r=0.54 correlation with comprehension time)
+  - Services: Max 12, Data scripts: Max 20
+- **Halstead Effort**: Max 100k (Python), 120k (TypeScript)
+  - Research: rs=0.901 correlation with EEG cognitive load
+
+#### Phase 8: GitHub Workflows Enforcement (ENABLED ✓)
+- **Test Workflows**: Requires automated testing in CI/CD
+- **Security Scanning**: Requires CodeQL/dependency scanning
+- **Code Quality**: Requires linting/formatting checks
+
+**Current Status**: 829 violations detected (68 functions exceed CoC=15)
 
 ### Integration with CI/CD
 
