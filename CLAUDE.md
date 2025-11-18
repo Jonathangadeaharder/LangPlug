@@ -69,20 +69,26 @@ structurelint --fix .
 
 ### What Structurelint Enforces
 
-The `.structurelint.yml` configuration enforces:
+The `.structurelint.yml` configuration enforces **best practice** limits:
 
-1. **Maximum Folder Depth**: 7 levels maximum (aligned with project standard)
-2. **Maximum Files Per Directory**: 50 files globally, with stricter limits in specific areas:
-   - Backend: 40 files
-   - Frontend: 35 files
-   - Services: 25 files
-   - Tests/Docs: 50 files
-3. **Naming Conventions**:
+1. **Maximum Folder Depth**: 7 levels maximum (industry best practice)
+2. **Maximum Files Per Directory** (Best Practice: 15-20 files to force modularization):
+   - Global default: 20 files
+   - Root: 25 files (config files)
+   - Services: 15 files (focused modules)
+   - Components: 15 files (React best practice)
+   - Tests: 25 files (test suites can be larger)
+   - API Routes: 15 files
+3. **Maximum Subdirectories**: 10 subdirectories (cognitive load best practice)
+4. **Naming Conventions**:
    - Backend Python: `snake_case` for files and directories
    - Frontend TypeScript: `kebab-case` for files, `PascalCase` for React components
    - Scripts: `snake_case`
-4. **Version Suffix Prevention**: Blocks `_v2`, `_new`, `_old`, `_temp`, `_backup` suffixes (enforces "NO VERSION SUFFIXES IN CODE" rule)
-5. **Required Files**: Ensures `CLAUDE.md`, `README.md`, `.gitignore` exist at project root
+5. **Version Suffix Prevention**: Blocks `_v2`, `_new`, `_old`, `_temp`, `_backup` suffixes (enforces "NO VERSION SUFFIXES IN CODE" rule)
+6. **Required Files**:
+   - Project root must have: `CLAUDE.md`, `README.md`, `.gitignore`
+   - Test directories should have: `conftest.py` or `__init__.py`
+   - Component directories may have: `index.ts` or `index.tsx`
 
 ### Integration with CI/CD
 

@@ -4,18 +4,19 @@
 
 root: true
 
-# Global rules for all directories
+# Global rules for all directories (BEST PRACTICE LIMITS)
 rules:
   # Maximum folder depth to prevent over-nesting
-  # Aligned with project standard: max depth of 6-7
+  # Best practice: 6-7 levels maximum
   max-depth: { max: 7 }
 
   # Maximum files per directory to maintain organization
-  # Relaxed default - specific overrides below
-  max-files-in-dir: { max: 50 }
+  # Best practice: 15-20 files (forces modularization)
+  max-files-in-dir: { max: 20 }
 
   # Maximum subdirectories per directory
-  max-subdirs: { max: 20 }
+  # Best practice: 8-10 subdirectories (cognitive load)
+  max-subdirs: { max: 10 }
 
   # Disallow version suffixes (enforces "NO VERSION SUFFIXES IN CODE" rule)
   disallowed-patterns:
@@ -24,13 +25,13 @@ rules:
     - pattern: ".*_(v[0-9]+|new|old|temp|backup|copy)/$"
       message: "Version suffixes in directory names are forbidden. Use git for versioning."
 
-# Python Backend Rules
+# Advanced Rules
 overrides:
   # Root level: Require essential documentation files
   - files: ['.']
     rules:
-      max-files-in-dir: { max: 50 }
-      max-subdirs: { max: 20 }
+      max-files-in-dir: { max: 25 }  # Root can have more config files
+      max-subdirs: { max: 15 }
       file-existence:
         "CLAUDE.md": "exists:1"
         "README.md": "exists:1"
@@ -40,38 +41,47 @@ overrides:
   - files: ['src/backend/**']
     rules:
       max-depth: { max: 7 }
-      max-files-in-dir: { max: 40 }
+      max-files-in-dir: { max: 20 }
 
       naming-convention:
         "*.py": "snake_case"
         "**/": "snake_case"
 
-  # Backend services: Stricter organization
+  # Backend services: Strict organization for core business logic
   - files: ['src/backend/services/**']
     rules:
-      max-files-in-dir: { max: 25 }
-      max-subdirs: { max: 15 }
+      max-files-in-dir: { max: 15 }  # Services should be focused
+      max-subdirs: { max: 8 }
 
-  # Backend tests: Mirror source structure (higher limits for test files)
+  # Backend API routes: Keep route files organized
+  - files: ['src/backend/api/routes/**']
+    rules:
+      max-files-in-dir: { max: 15 }
+
+  # Backend tests: Allow more files but enforce organization
   - files: ['src/backend/tests/**']
     rules:
       max-depth: { max: 8 }
-      max-files-in-dir: { max: 50 }
+      max-files-in-dir: { max: 25 }  # Test directories can be larger
 
       naming-convention:
         "*.py": "snake_case"
         "**/": "snake_case"
 
-  # Backend docs: Allow many documentation files
+      # Require conftest.py for pytest
+      file-existence:
+        "conftest.py|__init__.py": "exists:1"
+
+  # Backend docs: Documentation organization
   - files: ['src/backend/docs/**', 'docs/**']
     rules:
-      max-files-in-dir: { max: 50 }
+      max-files-in-dir: { max: 20 }
 
   # TypeScript/React Frontend Rules
   - files: ['src/frontend/**']
     rules:
       max-depth: { max: 7 }
-      max-files-in-dir: { max: 35 }
+      max-files-in-dir: { max: 20 }
 
       naming-convention:
         # Files use kebab-case
@@ -79,14 +89,21 @@ overrides:
         "*.js": "kebab-case"
         "**/": "kebab-case"
 
-  # React components can use PascalCase
+  # React components: PascalCase for component files
   - files: ['src/frontend/src/components/**', 'src/frontend/src/screens/**', 'src/frontend/src/contexts/**']
     rules:
+      max-files-in-dir: { max: 15 }  # Keep components focused
+
       naming-convention:
         "*.tsx": "PascalCase"
         "*.jsx": "PascalCase"
+        "**/": "PascalCase"
 
-  # Scripts: Use snake_case
+      # Each component directory should have index or main component
+      file-existence:
+        "index.ts|index.tsx": "exists:0-1"
+
+  # Scripts: Use snake_case and keep organized
   - files: ['scripts/**']
     rules:
       max-files-in-dir: { max: 15 }
@@ -125,3 +142,7 @@ ignore:
   - src/backend/logs
   - src/frontend/frontend.log
   - ci-logs
+  - .github
+  - .qwen
+  - .windsurf
+  - .codex

@@ -34,4 +34,4 @@ computing gzip size...
 [2mdist/[22m[2massets/[22m[36mChunkedLearningPage-8c3dda5a.js  [39m[1m[2m 79.38 kB[22m[1m[22m[2m │ gzip:  24.95 kB[22m[2m │ map:   257.52 kB[22m
 [2mdist/[22m[2massets/[22m[36mRegisterForm-39a2eaec.js         [39m[1m[2m127.49 kB[22m[1m[22m[2m │ gzip:  29.17 kB[22m[2m │ map:   368.16 kB[22m
 [2mdist/[22m[2massets/[22m[36mindex-cabec698.js                [39m[1m[2m419.54 kB[22m[1m[22m[2m │ gzip: 141.75 kB[22m[2m │ map: 1,888.92 kB[22m
-[32m✓ built in 4.48s[39m
+[32m✓ built in 4.37s[39m
