@@ -6,7 +6,6 @@ Based on SM-2 algorithm research and Vocabulary Builder patterns.
 """
 
 import logging
-import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -16,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_async_session
 from core.dependencies import current_active_user
 from database.models import User
-from services.learning.quiz_generator import QuizGenerator, QuizType, QuizQuestion, QuizSession
+from services.learning.quiz_generator import QuizGenerator, QuizSession, QuizType
 from services.learning.spaced_repetition import ReviewQuality
 
 logger = logging.getLogger(__name__)
@@ -131,11 +130,11 @@ async def start_quiz_session(
         if request.quiz_types:
             try:
                 quiz_types_enum = [QuizType(qt) for qt in request.quiz_types]
-            except ValueError as e:
+            except ValueError:
                 raise HTTPException(
                     status_code=422,
                     detail=f"Invalid quiz type. Valid types: {[qt.value for qt in QuizType]}"
-                )
+                ) from None
 
         # Generate quiz session
         generator = QuizGenerator(db)
@@ -180,7 +179,7 @@ async def start_quiz_session(
         logger.error(f"Failed to start quiz session: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to start quiz: {str(e)}"
+            detail=f"Failed to start quiz: {e!s}"
         ) from e
 
 

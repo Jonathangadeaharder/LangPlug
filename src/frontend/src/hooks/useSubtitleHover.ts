@@ -25,7 +25,7 @@ interface UseSubtitleHoverReturn {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-export const useSubtitleHover = (language: string = 'de'): UseSubtitleHoverReturn => {
+export const useSubtitleHover = (language = 'de'): UseSubtitleHoverReturn => {
   const [hoveredWord, setHoveredWord] = useState<string | null>(null)
   const [translationData, setTranslationData] = useState<WordTranslationData | null>(null)
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null)

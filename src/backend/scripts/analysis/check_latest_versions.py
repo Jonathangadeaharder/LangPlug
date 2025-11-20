@@ -102,7 +102,7 @@ def get_latest_version(package: str) -> tuple[str, str]:
         return (package, f"ERROR: {e}")
 
 
-print("Checking latest versions from PyPI (this may take 1-2 minutes)...\n")  # noqa: T201
+print("Checking latest versions from PyPI (this may take 1-2 minutes)...\n")
 
 with ThreadPoolExecutor(max_workers=10) as executor:
     futures = {executor.submit(get_latest_version, pkg): pkg for pkg in PACKAGES}
@@ -111,11 +111,11 @@ with ThreadPoolExecutor(max_workers=10) as executor:
     for future in as_completed(futures):
         package, version = future.result()
         results[package] = version
-        print(f"[OK] {package}: {version}")  # noqa: T201
+        print(f"[OK] {package}: {version}")
 
-print("\n" + "=" * 80)  # noqa: T201
-print("Summary:")  # noqa: T201
-print("=" * 80)  # noqa: T201
+print("\n" + "=" * 80)
+print("Summary:")
+print("=" * 80)
 for package in sorted(PACKAGES):
     version = results.get(package, "NOT CHECKED")
-    print(f"{package:30} {version}")  # noqa: T201
+    print(f"{package:30} {version}")

@@ -13,7 +13,6 @@ import logging
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +111,7 @@ class AudioChunker:
         self,
         min_silence_duration: float = None,
         silence_threshold: int = None
-    ) -> List[float]:
+    ) -> list[float]:
         """
         Detect silence points for intelligent chunking.
 
@@ -176,7 +175,7 @@ class AudioChunker:
             logger.warning(f"Silence detection failed: {e}, using uniform chunks")
             return []
 
-    def create_intelligent_chunks(self) -> List[Tuple[float, float]]:
+    def create_intelligent_chunks(self) -> list[tuple[float, float]]:
         """
         Create chunks aligned with silence points for better transcription quality.
 
@@ -280,7 +279,7 @@ class AudioChunker:
                 stderr=asyncio.subprocess.PIPE
             )
 
-            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60)
+            _stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60)
 
             if process.returncode != 0:
                 error_msg = stderr.decode('utf-8', errors='replace')
@@ -292,7 +291,7 @@ class AudioChunker:
             logger.debug(f"Extracted chunk {chunk_index}: {start:.1f}s - {end:.1f}s")
             return output_path
 
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             raise AudioChunkingError(f"Chunk extraction timed out: chunk {chunk_index}") from e
         except FileNotFoundError as e:
             raise AudioChunkingError(

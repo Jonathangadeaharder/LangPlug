@@ -144,7 +144,7 @@ const ParallelTranscriptionProgress: React.FC<ParallelTranscriptionProgressProps
   if (!jobStatus) {
     return (
       <div className={`transcription-progress loading ${className}`}>
-        <div className="loading-spinner"></div>
+        <div className="loading-spinner" />
         <p>Loading job status...</p>
       </div>
     )

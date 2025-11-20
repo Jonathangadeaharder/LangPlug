@@ -30,7 +30,6 @@ export const useSubtitleSeek = (
 
         if (wordData) {
           video.currentTime = wordData.start
-          console.log(`[INFO] Seeking to word "${word}" at ${wordData.start.toFixed(2)}s`)
           return
         }
       }
@@ -48,9 +47,6 @@ export const useSubtitleSeek = (
       if (segmentIndex >= 0 && segmentIndex < segments.length) {
         const segment = segments[segmentIndex]
         video.currentTime = segment.start
-        console.log(
-          `[INFO] Seeking to segment ${segmentIndex + 1}/${segments.length} at ${segment.start.toFixed(2)}s`
-        )
       } else {
         console.warn(`[WARN] Segment index ${segmentIndex} out of bounds (0-${segments.length - 1})`)
       }
@@ -65,7 +61,6 @@ export const useSubtitleSeek = (
 
       if (timeInSeconds >= 0 && timeInSeconds <= video.duration) {
         video.currentTime = timeInSeconds
-        console.log(`[INFO] Seeking to time ${timeInSeconds.toFixed(2)}s`)
       } else {
         console.warn(`[WARN] Time ${timeInSeconds}s out of bounds (0-${video.duration})`)
       }
@@ -82,11 +77,9 @@ export const useSubtitleSeek = (
 
     if (previousSegment) {
       video.currentTime = previousSegment.start
-      console.log(`[INFO] Seeking to previous segment at ${previousSegment.start.toFixed(2)}s`)
     } else {
       // Jump to start if no previous segment
       video.currentTime = 0
-      console.log('[INFO] No previous segment, seeking to start')
     }
   }, [videoRef, segments])
 
@@ -99,9 +92,6 @@ export const useSubtitleSeek = (
 
     if (nextSegment) {
       video.currentTime = nextSegment.start
-      console.log(`[INFO] Seeking to next segment at ${nextSegment.start.toFixed(2)}s`)
-    } else {
-      console.log('[INFO] No next segment available (end of video)')
     }
   }, [videoRef, segments])
 

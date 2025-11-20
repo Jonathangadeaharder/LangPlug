@@ -45,7 +45,6 @@ const InteractiveSubtitleExample: React.FC = () => {
     // Parse example SRT on mount
     const parsedSegments = subtitleSyncService.parseSRT(EXAMPLE_SRT)
     setSegments(parsedSegments)
-    console.log(`[INFO] Parsed ${parsedSegments.length} subtitle segments`)
   }, [])
 
   useEffect(() => {
@@ -80,8 +79,7 @@ const InteractiveSubtitleExample: React.FC = () => {
     }
   }
 
-  const handleWordClick = (word: string) => {
-    console.log(`[INFO] Word clicked: ${word}`)
+  const handleWordClick = (_word: string) => {
     // Here you could trigger additional actions like:
     // - Mark word as known/unknown
     // - Add to vocabulary list
@@ -102,6 +100,7 @@ const InteractiveSubtitleExample: React.FC = () => {
           onPause={() => setIsPlaying(false)}
         >
           <source src="/path/to/example/video.mp4" type="video/mp4" />
+          <track kind="captions" src="/path/to/example/captions.vtt" srcLang="de" label="German" />
           Your browser does not support the video tag.
         </video>
 
@@ -155,7 +154,15 @@ const InteractiveSubtitleExample: React.FC = () => {
           <div
             key={segment.id}
             style={styles.segmentItem}
+            role="button"
+            tabIndex={0}
             onClick={() => seekToSegment(index)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                seekToSegment(index)
+              }
+            }}
           >
             <strong>{index + 1}.</strong> {segment.text}
             <span style={styles.timestamp}>

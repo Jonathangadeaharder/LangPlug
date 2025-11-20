@@ -102,9 +102,17 @@ const SyncedSubtitleDisplay: React.FC<SyncedSubtitleDisplayProps> = ({
               className={`subtitle-word ${isActive ? 'active' : ''} ${isKnown ? 'known' : 'unknown'} ${
                 isHovered ? 'hovered' : ''
               }`}
+              role="button"
+              tabIndex={0}
               onMouseEnter={e => onWordHover(wordData.word, e)}
               onMouseLeave={onWordLeave}
               onClick={() => handleWordClick(wordData.word)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  handleWordClick(wordData.word)
+                }
+              }}
               data-word={wordData.word}
               data-start={wordData.start}
               data-end={wordData.end}

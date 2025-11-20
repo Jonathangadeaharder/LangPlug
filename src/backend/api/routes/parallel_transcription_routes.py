@@ -7,20 +7,16 @@ Based on research from fast-audio-video-transcribe.
 
 import logging
 import uuid
-from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel
 
 from core.config import settings
 from core.dependencies import current_active_user, get_transcription_service
 from database.models import User
-from services.parallel_transcription.job_tracker import get_job_tracker, JobStatus
-from services.parallel_transcription.parallel_transcriber import (
-    ParallelTranscriber,
-    ParallelTranscriptionError
-)
+from services.parallel_transcription.job_tracker import JobStatus, get_job_tracker
+from services.parallel_transcription.parallel_transcriber import ParallelTranscriber, ParallelTranscriptionError
 from utils.media_validator import is_valid_video_file
 
 logger = logging.getLogger(__name__)
@@ -246,7 +242,7 @@ async def transcribe_parallel(
         logger.error(f"Failed to start parallel transcription: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to start transcription: {str(e)}"
+            detail=f"Failed to start transcription: {e!s}"
         ) from e
 
 

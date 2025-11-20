@@ -14,9 +14,9 @@ Features:
 import json
 import logging
 import time
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -39,18 +39,18 @@ class TranscriptionJob:
     video_path: str
     started_at: float
     updated_at: float
-    completed_at: Optional[float] = None
-    error: Optional[str] = None
-    result: Optional[Dict[str, Any]] = None
+    completed_at: float | None = None
+    error: str | None = None
+    result: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
         data = asdict(self)
         data['status'] = self.status.value
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TranscriptionJob':
+    def from_dict(cls, data: dict[str, Any]) -> 'TranscriptionJob':
         """Create from dictionary"""
         data['status'] = JobStatus(data['status'])
         return cls(**data)
@@ -92,7 +92,7 @@ class JobTracker:
             redis_client: Optional Redis client (redis.Redis instance)
         """
         self.redis = redis_client
-        self._memory_store: Dict[str, TranscriptionJob] = {}
+        self._memory_store: dict[str, TranscriptionJob] = {}
 
         if self.redis:
             try:
@@ -164,7 +164,7 @@ class JobTracker:
     def complete_job(
         self,
         job_id: str,
-        result: Dict[str, Any],
+        result: dict[str, Any],
         message: str = "Transcription completed"
     ) -> None:
         """
@@ -218,7 +218,7 @@ class JobTracker:
         self._save_job(job)
         logger.error(f"Job failed: {job_id} - {error}")
 
-    def get_job(self, job_id: str) -> Optional[TranscriptionJob]:
+    def get_job(self, job_id: str) -> TranscriptionJob | None:
         """
         Get job by ID.
 
@@ -279,7 +279,7 @@ class JobTracker:
         """Make Redis key for job"""
         return f"langplug:transcription:job:{job_id}"
 
-    def list_active_jobs(self) -> Dict[str, TranscriptionJob]:
+    def list_active_jobs(self) -> dict[str, TranscriptionJob]:
         """
         List all active (non-completed, non-failed) jobs.
 
@@ -307,15 +307,14 @@ class JobTracker:
 
         # Also check memory store
         for job_id, job in self._memory_store.items():
-            if job.status in [JobStatus.QUEUED, JobStatus.PROCESSING]:
-                if job_id not in active_jobs:
-                    active_jobs[job_id] = job
+            if job.status in [JobStatus.QUEUED, JobStatus.PROCESSING] and job_id not in active_jobs:
+                active_jobs[job_id] = job
 
         return active_jobs
 
 
 # Global instance (will be initialized with Redis client if available)
-_job_tracker: Optional[JobTracker] = None
+_job_tracker: JobTracker | None = None
 
 
 def get_job_tracker(redis_client: Any = None) -> JobTracker:

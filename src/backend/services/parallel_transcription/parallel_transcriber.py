@@ -11,10 +11,11 @@ Parallel CPU approach = ~1 min for same content (10x improvement).
 
 import asyncio
 import logging
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from services.parallel_transcription.audio_chunker import AudioChunker, AudioChunkingError
 
@@ -28,7 +29,7 @@ class TranscriptionChunk:
     start_time: float
     end_time: float
     text: str
-    segments: List[Any]  # Whisper segments
+    segments: list[Any]  # Whisper segments
     confidence: float = 1.0
 
 
@@ -87,7 +88,7 @@ class ParallelTranscriber:
         self.transcription_service = transcription_service
         self.max_workers = max_workers
         self.chunk_duration = chunk_duration
-        self.chunker: Optional[AudioChunker] = None
+        self.chunker: AudioChunker | None = None
 
         logger.info(f"ParallelTranscriber initialized with {max_workers} workers")
 
@@ -151,8 +152,8 @@ class ParallelTranscriber:
         self,
         video_path: Path,
         language: str = "de",
-        progress_callback: Optional[Callable[[float], None]] = None
-    ) -> Dict[str, Any]:
+        progress_callback: Callable[[float], None] | None = None
+    ) -> dict[str, Any]:
         """
         Transcribe audio using parallel chunk processing.
 
@@ -293,7 +294,7 @@ class ParallelTranscriber:
             if self.chunker:
                 self.chunker.cleanup()
 
-    def _write_srt(self, segments: List[Any], output_path: Path) -> None:
+    def _write_srt(self, segments: list[Any], output_path: Path) -> None:
         """
         Write segments to SRT file.
 

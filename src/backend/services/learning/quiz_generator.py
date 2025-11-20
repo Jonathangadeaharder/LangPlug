@@ -15,7 +15,6 @@ import logging
 import random
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Literal
 
 from services.learning.spaced_repetition import SM2Algorithm, VocabularyReviewItem
 
@@ -48,7 +47,7 @@ class QuizQuestion:
     question_type: QuizType
     word: str
     correct_answer: str
-    options: List[str]  # For multiple choice
+    options: list[str]  # For multiple choice
     hint: str | None = None
     context_sentence: str | None = None
 
@@ -81,7 +80,7 @@ class QuizSession:
     """
     session_id: str
     user_id: int
-    questions: List[QuizQuestion]
+    questions: list[QuizQuestion]
     started_at: str
     completed_at: str | None = None
     score: int = 0
@@ -132,7 +131,7 @@ class QuizGenerator:
         self,
         user_id: int,
         num_questions: int = 10,
-        quiz_types: List[QuizType] | None = None,
+        quiz_types: list[QuizType] | None = None,
         difficulty_filter: str | None = None
     ) -> QuizSession:
         """
@@ -162,8 +161,8 @@ class QuizGenerator:
             ... )
             >>> print(f"Quiz ready: {session.total_questions} questions")
         """
-        from datetime import datetime
         import uuid
+        from datetime import datetime
 
         # Default to all question types
         if quiz_types is None:
@@ -331,7 +330,7 @@ class QuizGenerator:
         if sentence_context:
             # Replace word with blank
             blank_sentence = sentence_context.replace(word, "______")
-            hint = f"Complete the sentence"
+            hint = "Complete the sentence"
         else:
             blank_sentence = f"'{word}' means ______"
             hint = "Type the English translation"
@@ -391,7 +390,7 @@ class QuizGenerator:
         self,
         user_id: int,
         difficulty_filter: str | None = None
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Fetch user's vocabulary from database.
 
@@ -439,7 +438,7 @@ class QuizGenerator:
         word: str,
         count: int,
         user_id: int
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Get similar words for distractor generation.
 
@@ -467,7 +466,7 @@ class QuizGenerator:
         word: str,
         count: int,
         user_id: int
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Get related words (synonyms, related concepts).
 
