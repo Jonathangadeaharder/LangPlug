@@ -7,8 +7,9 @@
   97:13  error  'container' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
 
 /home/runner/work/IdeaProjects/IdeaProjects/src/frontend/src/components/common/__tests__/ErrorBoundary.test.tsx
-  353:83  error  Unexpected empty arrow function                                                  @typescript-eslint/no-empty-function
-  511:13  error  'user' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  132:83  error  Unexpected empty arrow function                                                  @typescript-eslint/no-empty-function
+  378:83  error  Unexpected empty arrow function                                                  @typescript-eslint/no-empty-function
+  536:13  error  'user' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
 
 /home/runner/work/IdeaProjects/IdeaProjects/src/frontend/src/hooks/__tests__/useSubtitleSeek.test.ts
    87:81  error  Unexpected empty arrow function  @typescript-eslint/no-empty-function
@@ -37,5 +38,5 @@
   457:14  warning  Forbidden non-null assertion                    @typescript-eslint/no-non-null-assertion
   472:14  warning  Forbidden non-null assertion                    @typescript-eslint/no-non-null-assertion
 
-✖ 24 problems (14 errors, 10 warnings)
+✖ 25 problems (15 errors, 10 warnings)
 

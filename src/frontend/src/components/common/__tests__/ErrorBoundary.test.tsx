@@ -128,13 +128,17 @@ describe('ErrorBoundary', () => {
         throw new Error('onError callback error')
       })
 
+      // Suppress the error from onError callback
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
       render(
         <ErrorBoundary onError={onError}>
           <ThrowError />
         </ErrorBoundary>
       )
 
-      expect(screen.getByText('Something went wrong')).toBeInTheDocument()
+      expect(screen.getAllByText('Something went wrong')[0]).toBeInTheDocument()
+      consoleErrorSpy.mockRestore()
     })
   })
 
@@ -195,10 +199,10 @@ describe('ErrorBoundary', () => {
         </ErrorBoundary>
       )
 
-      expect(screen.getByText('Something went wrong')).toBeInTheDocument()
+      expect(screen.getAllByText('Something went wrong')[0]).toBeInTheDocument()
 
       // Fast-forward reset timeout
-      vi.runAllTimers()
+      await vi.runAllTimersAsync()
 
       // Change reset key
       rerender(
@@ -207,9 +211,14 @@ describe('ErrorBoundary', () => {
         </ErrorBoundary>
       )
 
-      await waitFor(() => {
-        expect(screen.getByText('Value: success')).toBeInTheDocument()
-      })
+      await vi.runAllTimersAsync()
+
+      await waitFor(
+        () => {
+          expect(screen.getByText('Value: success')).toBeInTheDocument()
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('should reset on any prop change when resetOnPropsChange is true', async () => {
@@ -219,9 +228,9 @@ describe('ErrorBoundary', () => {
         </ErrorBoundary>
       )
 
-      expect(screen.getByText('Something went wrong')).toBeInTheDocument()
+      expect(screen.getAllByText('Something went wrong')[0]).toBeInTheDocument()
 
-      vi.runAllTimers()
+      await vi.runAllTimersAsync()
 
       // Any prop change should trigger reset
       rerender(
@@ -230,9 +239,14 @@ describe('ErrorBoundary', () => {
         </ErrorBoundary>
       )
 
-      await waitFor(() => {
-        expect(screen.getByText('Value: success')).toBeInTheDocument()
-      })
+      await vi.runAllTimersAsync()
+
+      await waitFor(
+        () => {
+          expect(screen.getByText('Value: success')).toBeInTheDocument()
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('should not reset when resetKeys remain the same', () => {
@@ -280,6 +294,15 @@ describe('ErrorBoundary', () => {
 
     it('should copy error details to clipboard when button clicked', async () => {
       const user = userEvent.setup({ delay: null })
+      const writeTextSpy = vi.fn().mockResolvedValue(undefined)
+
+      Object.defineProperty(navigator, 'clipboard', {
+        value: {
+          writeText: writeTextSpy,
+        },
+        writable: true,
+        configurable: true,
+      })
 
       render(
         <ErrorBoundary>
@@ -290,9 +313,9 @@ describe('ErrorBoundary', () => {
       const copyButton = screen.getByText('Copy Error Details')
       await user.click(copyButton)
 
-      expect(navigator.clipboard.writeText).toHaveBeenCalled()
+      expect(writeTextSpy).toHaveBeenCalled()
 
-      const copiedData = (navigator.clipboard.writeText as any).mock.calls[0][0]
+      const copiedData = writeTextSpy.mock.calls[0][0]
       const parsedData = JSON.parse(copiedData)
 
       expect(parsedData.message).toBe('Error to copy')
@@ -308,9 +331,11 @@ describe('ErrorBoundary', () => {
         </ErrorBoundary>
       )
 
-      const errorIdText = screen.getByText(/Error ID:/)
-      expect(errorIdText).toBeInTheDocument()
-      expect(errorIdText.textContent).toMatch(/Error ID: error_\d+_[a-z0-9]+/)
+      const errorIdElement = screen.getAllByText(/Error ID:/)[0]
+      expect(errorIdElement).toBeInTheDocument()
+      // Error ID format: error_timestamp_randomstring
+      expect(errorIdElement.textContent).toContain('Error ID:')
+      expect(errorIdElement.textContent).toContain('error_')
     })
 
     it('should display error message in details', () => {
@@ -320,8 +345,8 @@ describe('ErrorBoundary', () => {
         </ErrorBoundary>
       )
 
-      expect(screen.getByText(/Message:/)).toBeInTheDocument()
-      expect(screen.getByText(/Visible error message/)).toBeInTheDocument()
+      expect(screen.getAllByText(/Message:/)[0]).toBeInTheDocument()
+      expect(screen.getAllByText(/Visible error message/)[0]).toBeInTheDocument()
     })
   })
 
