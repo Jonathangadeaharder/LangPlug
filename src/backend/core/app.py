@@ -26,6 +26,7 @@ from api.routes import (
     parallel_transcription_routes,
     processing,
     progress,
+    quiz_routes,
     srt_utilities,
     test,
     user_profile,
@@ -177,6 +178,7 @@ def create_app() -> FastAPI:
     app.include_router(processing.router, prefix="/api/process")
     app.include_router(parallel_transcription_routes.router, prefix="/api/processing")
     app.include_router(vocabulary.router, prefix="/api/vocabulary")
+    app.include_router(quiz_routes.router, prefix="/api")
     app.include_router(user_profile.router, prefix="/api/profile")
     app.include_router(websocket.router, prefix="/api/ws")
     app.include_router(progress.router, prefix="/api/progress")

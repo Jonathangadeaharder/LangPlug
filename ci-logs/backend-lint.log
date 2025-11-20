@@ -62,6 +62,76 @@ RUF010 [*] Use explicit conversion flag
     |
 help: Replace with conversion flag
 
+I001 [*] Import block is un-sorted or un-formatted
+  --> api/routes/quiz_routes.py:8:1
+   |
+ 6 |   """
+ 7 |
+ 8 | / import logging
+ 9 | | import uuid
+10 | | from datetime import datetime
+11 | |
+12 | | from fastapi import APIRouter, Depends, HTTPException
+13 | | from pydantic import BaseModel, Field
+14 | | from sqlalchemy.ext.asyncio import AsyncSession
+15 | |
+16 | | from core.database import get_async_session
+17 | | from core.dependencies import current_active_user
+18 | | from database.models import User
+19 | | from services.learning.quiz_generator import QuizGenerator, QuizType, QuizQuestion, QuizSession
+20 | | from services.learning.spaced_repetition import ReviewQuality
+   | |_____________________________________________________________^
+21 |
+22 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+F401 [*] `uuid` imported but unused
+  --> api/routes/quiz_routes.py:9:8
+   |
+ 8 | import logging
+ 9 | import uuid
+   |        ^^^^
+10 | from datetime import datetime
+   |
+help: Remove unused import: `uuid`
+
+F401 [*] `services.learning.quiz_generator.QuizQuestion` imported but unused
+  --> api/routes/quiz_routes.py:19:71
+   |
+17 | from core.dependencies import current_active_user
+18 | from database.models import User
+19 | from services.learning.quiz_generator import QuizGenerator, QuizType, QuizQuestion, QuizSession
+   |                                                                       ^^^^^^^^^^^^
+20 | from services.learning.spaced_repetition import ReviewQuality
+   |
+help: Remove unused import: `services.learning.quiz_generator.QuizQuestion`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> api/routes/quiz_routes.py:135:17
+    |
+133 |                   quiz_types_enum = [QuizType(qt) for qt in request.quiz_types]
+134 |               except ValueError as e:
+135 | /                 raise HTTPException(
+136 | |                     status_code=422,
+137 | |                     detail=f"Invalid quiz type. Valid types: {[qt.value for qt in QuizType]}"
+138 | |                 )
+    | |_________________^
+139 |
+140 |           # Generate quiz session
+    |
+
+RUF010 [*] Use explicit conversion flag
+   --> api/routes/quiz_routes.py:183:45
+    |
+181 |         raise HTTPException(
+182 |             status_code=500,
+183 |             detail=f"Failed to start quiz: {str(e)}"
+    |                                             ^^^^^^
+184 |         ) from e
+    |
+help: Replace with conversion flag
+
 RUF100 [*] Unused blanket `noqa` directive
  --> core/__init__.py:5:24
   |
@@ -739,6 +809,126 @@ RUF100 [*] Unused `noqa` directive (non-enabled: `T201`)
 help: Remove unused `noqa` directive
 
 UP035 `typing.List` is deprecated, use `list` instead
+  --> services/learning/quiz_generator.py:18:1
+   |
+16 | from dataclasses import dataclass
+17 | from enum import Enum
+18 | from typing import List, Literal
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+19 |
+20 | from services.learning.spaced_repetition import SM2Algorithm, VocabularyReviewItem
+   |
+
+F401 [*] `typing.Literal` imported but unused
+  --> services/learning/quiz_generator.py:18:26
+   |
+16 | from dataclasses import dataclass
+17 | from enum import Enum
+18 | from typing import List, Literal
+   |                          ^^^^^^^
+19 |
+20 | from services.learning.spaced_repetition import SM2Algorithm, VocabularyReviewItem
+   |
+help: Remove unused import: `typing.Literal`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> services/learning/quiz_generator.py:51:14
+   |
+49 |     word: str
+50 |     correct_answer: str
+51 |     options: List[str]  # For multiple choice
+   |              ^^^^
+52 |     hint: str | None = None
+53 |     context_sentence: str | None = None
+   |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> services/learning/quiz_generator.py:84:16
+   |
+82 |     session_id: str
+83 |     user_id: int
+84 |     questions: List[QuizQuestion]
+   |                ^^^^
+85 |     started_at: str
+86 |     completed_at: str | None = None
+   |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> services/learning/quiz_generator.py:135:21
+    |
+133 |         user_id: int,
+134 |         num_questions: int = 10,
+135 |         quiz_types: List[QuizType] | None = None,
+    |                     ^^^^
+136 |         difficulty_filter: str | None = None
+137 |     ) -> QuizSession:
+    |
+help: Replace with `list`
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> services/learning/quiz_generator.py:165:9
+    |
+163 |               >>> print(f"Quiz ready: {session.total_questions} questions")
+164 |           """
+165 | /         from datetime import datetime
+166 | |         import uuid
+    | |___________________^
+167 |
+168 |           # Default to all question types
+    |
+help: Organize imports
+
+F541 [*] f-string without any placeholders
+   --> services/learning/quiz_generator.py:334:20
+    |
+332 |             # Replace word with blank
+333 |             blank_sentence = sentence_context.replace(word, "______")
+334 |             hint = f"Complete the sentence"
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^
+335 |         else:
+336 |             blank_sentence = f"'{word}' means ______"
+    |
+help: Remove extraneous `f` prefix
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> services/learning/quiz_generator.py:394:10
+    |
+392 |         user_id: int,
+393 |         difficulty_filter: str | None = None
+394 |     ) -> List[dict]:
+    |          ^^^^
+395 |         """
+396 |         Fetch user's vocabulary from database.
+    |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> services/learning/quiz_generator.py:442:10
+    |
+440 |         count: int,
+441 |         user_id: int
+442 |     ) -> List[dict]:
+    |          ^^^^
+443 |         """
+444 |         Get similar words for distractor generation.
+    |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> services/learning/quiz_generator.py:470:10
+    |
+468 |         count: int,
+469 |         user_id: int
+470 |     ) -> List[dict]:
+    |          ^^^^
+471 |         """
+472 |         Get related words (synonyms, related concepts).
+    |
+help: Replace with `list`
+
+UP035 `typing.List` is deprecated, use `list` instead
   --> services/parallel_transcription/audio_chunker.py:16:1
    |
 14 | import tempfile
@@ -1091,5 +1281,5 @@ UP006 [*] Use `list` instead of `List` for type annotation
     |
 help: Replace with `list`
 
-Found 95 errors.
-[*] 86 fixable with the `--fix` option (2 hidden fixes can be enabled with the `--unsafe-fixes` option).
+Found 110 errors.
+[*] 99 fixable with the `--fix` option (2 hidden fixes can be enabled with the `--unsafe-fixes` option).
