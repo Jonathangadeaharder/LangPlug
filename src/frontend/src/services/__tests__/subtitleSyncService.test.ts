@@ -19,7 +19,7 @@ describe('subtitleSyncService', () => {
       const segments = subtitleSyncService.parseSRT(SAMPLE_SRT)
 
       expect(segments).toHaveLength(3)
-      expect(segments[0].id).toBe('1')
+      expect(segments[0].id).toBe('segment-1-3.5')
       expect(segments[0].text).toBe('Hello world')
       expect(segments[0].start).toBeCloseTo(1.0, 1)
       expect(segments[0].end).toBeCloseTo(3.5, 1)

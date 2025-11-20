@@ -50,10 +50,14 @@ export function formatApiError(error: unknown, fallback: string): string {
 
 /**
  * Check if error is a specific HTTP status code
+ * Prioritizes err.status over err.response.status
  */
 export function isHttpError(error: unknown, statusCode: number): boolean {
   const err = error as ApiError
-  return err?.status === statusCode || err?.response?.status === statusCode
+  if (err?.status !== undefined) {
+    return err.status === statusCode
+  }
+  return err?.response?.status === statusCode
 }
 
 /**

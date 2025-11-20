@@ -1,23 +1,26 @@
 import { describe, it, expect, beforeEach, afterEach, vi, beforeAll } from 'vitest'
 
 // Mock axios BEFORE importing api-client
-const axiosInstance = {
-  get: vi.fn(),
-  post: vi.fn(),
-  put: vi.fn(),
-  delete: vi.fn(),
-  patch: vi.fn(),
-  interceptors: {
-    request: { use: vi.fn(), eject: vi.fn() },
-    response: { use: vi.fn(), eject: vi.fn() },
-  },
-}
+// Define axiosInstance inside the factory to avoid hoisting issues
+vi.mock('axios', () => {
+  const axiosInstance = {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    patch: vi.fn(),
+    interceptors: {
+      request: { use: vi.fn(), eject: vi.fn() },
+      response: { use: vi.fn(), eject: vi.fn() },
+    },
+  }
 
-vi.mock('axios', () => ({
-  default: {
-    create: vi.fn(() => axiosInstance),
-  },
-}))
+  return {
+    default: {
+      create: vi.fn(() => axiosInstance),
+    },
+  }
+})
 
 vi.mock('react-hot-toast', () => ({
   toast: {
@@ -42,6 +45,10 @@ import { toast } from 'react-hot-toast'
 import axios from 'axios'
 
 const mockedAxios = axios as any
+
+// Get the axiosInstance from the mocked create call
+// @ts-expect-error - accessing mock internals
+const axiosInstance = mockedAxios.create.mock.results[0]?.value
 
 describe('ApiClient', () => {
   beforeAll(() => {

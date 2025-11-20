@@ -462,8 +462,8 @@ describe('auth-interceptor', () => {
 
       const result = await authRequestInterceptor(config)
 
-      // Empty string is still a value, so it should add header
-      expect(result.headers!['Authorization']).toBe('Bearer ')
+      // Empty string is treated as falsy, no header should be added
+      expect(result.headers).toBeUndefined()
     })
 
     it('should handle special characters in tokens', async () => {

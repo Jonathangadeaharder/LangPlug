@@ -1,14 +1,36 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, beforeAll } from 'vitest'
 import { tokenStorage } from '../token-storage'
 
+let localStorageMock: { [key: string]: string }
+
 describe('tokenStorage', () => {
+  beforeAll(() => {
+    // Mock localStorage for all tests
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: (key: string) => localStorageMock[key] || null,
+        setItem: (key: string, value: string) => {
+          localStorageMock[key] = value
+        },
+        removeItem: (key: string) => {
+          delete localStorageMock[key]
+        },
+        clear: () => {
+          localStorageMock = {}
+        },
+      },
+      writable: true,
+      configurable: true,
+    })
+  })
+
   beforeEach(() => {
-    localStorage.clear()
+    localStorageMock = {}
     tokenStorage.clear()
   })
 
   afterEach(() => {
-    localStorage.clear()
+    localStorageMock = {}
     tokenStorage.clear()
   })
 
