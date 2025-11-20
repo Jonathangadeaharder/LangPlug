@@ -1,6 +1,67 @@
 warning: The following rules have been removed and ignoring them has no effect:
     - UP038
 
+I001 [*] Import block is un-sorted or un-formatted
+  --> api/routes/parallel_transcription_routes.py:8:1
+   |
+ 6 |   """
+ 7 |
+ 8 | / import logging
+ 9 | | import uuid
+10 | | from datetime import datetime
+11 | | from pathlib import Path
+12 | |
+13 | | from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+14 | | from pydantic import BaseModel
+15 | |
+16 | | from core.config import settings
+17 | | from core.dependencies import current_active_user, get_transcription_service
+18 | | from database.models import User
+19 | | from services.parallel_transcription.job_tracker import get_job_tracker, JobStatus
+20 | | from services.parallel_transcription.parallel_transcriber import (
+21 | |     ParallelTranscriber,
+22 | |     ParallelTranscriptionError
+23 | | )
+24 | | from utils.media_validator import is_valid_video_file
+   | |_____________________________________________________^
+25 |
+26 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+F401 [*] `datetime.datetime` imported but unused
+  --> api/routes/parallel_transcription_routes.py:10:22
+   |
+ 8 | import logging
+ 9 | import uuid
+10 | from datetime import datetime
+   |                      ^^^^^^^^
+11 | from pathlib import Path
+   |
+help: Remove unused import: `datetime.datetime`
+
+F401 [*] `fastapi.Query` imported but unused
+  --> api/routes/parallel_transcription_routes.py:13:73
+   |
+11 | from pathlib import Path
+12 |
+13 | from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+   |                                                                         ^^^^^
+14 | from pydantic import BaseModel
+   |
+help: Remove unused import: `fastapi.Query`
+
+RUF010 [*] Use explicit conversion flag
+   --> api/routes/parallel_transcription_routes.py:249:54
+    |
+247 |         raise HTTPException(
+248 |             status_code=500,
+249 |             detail=f"Failed to start transcription: {str(e)}"
+    |                                                      ^^^^^^
+250 |         ) from e
+    |
+help: Replace with conversion flag
+
 RUF100 [*] Unused blanket `noqa` directive
  --> core/__init__.py:5:24
   |
@@ -677,5 +738,358 @@ RUF100 [*] Unused `noqa` directive (non-enabled: `T201`)
    |
 help: Remove unused `noqa` directive
 
-Found 61 errors.
-[*] 60 fixable with the `--fix` option.
+UP035 `typing.List` is deprecated, use `list` instead
+  --> services/parallel_transcription/audio_chunker.py:16:1
+   |
+14 | import tempfile
+15 | from pathlib import Path
+16 | from typing import List, Tuple
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+17 |
+18 | logger = logging.getLogger(__name__)
+   |
+
+UP035 `typing.Tuple` is deprecated, use `tuple` instead
+  --> services/parallel_transcription/audio_chunker.py:16:1
+   |
+14 | import tempfile
+15 | from pathlib import Path
+16 | from typing import List, Tuple
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+17 |
+18 | logger = logging.getLogger(__name__)
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> services/parallel_transcription/audio_chunker.py:115:10
+    |
+113 |         min_silence_duration: float = None,
+114 |         silence_threshold: int = None
+115 |     ) -> List[float]:
+    |          ^^^^
+116 |         """
+117 |         Detect silence points for intelligent chunking.
+    |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> services/parallel_transcription/audio_chunker.py:179:44
+    |
+177 |             return []
+178 |
+179 |     def create_intelligent_chunks(self) -> List[Tuple[float, float]]:
+    |                                            ^^^^
+180 |         """
+181 |         Create chunks aligned with silence points for better transcription quality.
+    |
+help: Replace with `list`
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> services/parallel_transcription/audio_chunker.py:179:49
+    |
+177 |             return []
+178 |
+179 |     def create_intelligent_chunks(self) -> List[Tuple[float, float]]:
+    |                                                 ^^^^^
+180 |         """
+181 |         Create chunks aligned with silence points for better transcription quality.
+    |
+help: Replace with `tuple`
+
+RUF059 Unpacked variable `stdout` is never used
+   --> services/parallel_transcription/audio_chunker.py:283:13
+    |
+281 |             )
+282 |
+283 |             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60)
+    |             ^^^^^^
+284 |
+285 |             if process.returncode != 0:
+    |
+help: Prefix it with an underscore or any other dummy variable pattern
+
+UP041 [*] Replace aliased errors with `TimeoutError`
+   --> services/parallel_transcription/audio_chunker.py:295:16
+    |
+293 |             return output_path
+294 |
+295 |         except asyncio.TimeoutError as e:
+    |                ^^^^^^^^^^^^^^^^^^^^
+296 |             raise AudioChunkingError(f"Chunk extraction timed out: chunk {chunk_index}") from e
+297 |         except FileNotFoundError as e:
+    |
+help: Replace `asyncio.TimeoutError` with builtin `TimeoutError`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> services/parallel_transcription/job_tracker.py:14:1
+   |
+12 |   """
+13 |
+14 | / import json
+15 | | import logging
+16 | | import time
+17 | | from dataclasses import dataclass, asdict
+18 | | from enum import Enum
+19 | | from typing import Any, Dict, Optional
+   | |______________________________________^
+20 |
+21 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+UP035 `typing.Dict` is deprecated, use `dict` instead
+  --> services/parallel_transcription/job_tracker.py:19:1
+   |
+17 | from dataclasses import dataclass, asdict
+18 | from enum import Enum
+19 | from typing import Any, Dict, Optional
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+20 |
+21 | logger = logging.getLogger(__name__)
+   |
+
+UP045 [*] Use `X | None` for type annotations
+  --> services/parallel_transcription/job_tracker.py:42:19
+   |
+40 |     started_at: float
+41 |     updated_at: float
+42 |     completed_at: Optional[float] = None
+   |                   ^^^^^^^^^^^^^^^
+43 |     error: Optional[str] = None
+44 |     result: Optional[Dict[str, Any]] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> services/parallel_transcription/job_tracker.py:43:12
+   |
+41 |     updated_at: float
+42 |     completed_at: Optional[float] = None
+43 |     error: Optional[str] = None
+   |            ^^^^^^^^^^^^^
+44 |     result: Optional[Dict[str, Any]] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> services/parallel_transcription/job_tracker.py:44:13
+   |
+42 |     completed_at: Optional[float] = None
+43 |     error: Optional[str] = None
+44 |     result: Optional[Dict[str, Any]] = None
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^
+45 |
+46 |     def to_dict(self) -> Dict[str, Any]:
+   |
+help: Convert to `X | None`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> services/parallel_transcription/job_tracker.py:44:22
+   |
+42 |     completed_at: Optional[float] = None
+43 |     error: Optional[str] = None
+44 |     result: Optional[Dict[str, Any]] = None
+   |                      ^^^^
+45 |
+46 |     def to_dict(self) -> Dict[str, Any]:
+   |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> services/parallel_transcription/job_tracker.py:46:26
+   |
+44 |     result: Optional[Dict[str, Any]] = None
+45 |
+46 |     def to_dict(self) -> Dict[str, Any]:
+   |                          ^^^^
+47 |         """Convert to dictionary for JSON serialization"""
+48 |         data = asdict(self)
+   |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> services/parallel_transcription/job_tracker.py:53:30
+   |
+52 |     @classmethod
+53 |     def from_dict(cls, data: Dict[str, Any]) -> 'TranscriptionJob':
+   |                              ^^^^
+54 |         """Create from dictionary"""
+55 |         data['status'] = JobStatus(data['status'])
+   |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> services/parallel_transcription/job_tracker.py:95:29
+   |
+93 |         """
+94 |         self.redis = redis_client
+95 |         self._memory_store: Dict[str, TranscriptionJob] = {}
+   |                             ^^^^
+96 |
+97 |         if self.redis:
+   |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> services/parallel_transcription/job_tracker.py:167:17
+    |
+165 |         self,
+166 |         job_id: str,
+167 |         result: Dict[str, Any],
+    |                 ^^^^
+168 |         message: str = "Transcription completed"
+169 |     ) -> None:
+    |
+help: Replace with `dict`
+
+UP045 [*] Use `X | None` for type annotations
+   --> services/parallel_transcription/job_tracker.py:221:39
+    |
+219 |         logger.error(f"Job failed: {job_id} - {error}")
+220 |
+221 |     def get_job(self, job_id: str) -> Optional[TranscriptionJob]:
+    |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+222 |         """
+223 |         Get job by ID.
+    |
+help: Convert to `X | None`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> services/parallel_transcription/job_tracker.py:282:35
+    |
+280 |         return f"langplug:transcription:job:{job_id}"
+281 |
+282 |     def list_active_jobs(self) -> Dict[str, TranscriptionJob]:
+    |                                   ^^^^
+283 |         """
+284 |         List all active (non-completed, non-failed) jobs.
+    |
+help: Replace with `dict`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> services/parallel_transcription/job_tracker.py:310:13
+    |
+308 |           # Also check memory store
+309 |           for job_id, job in self._memory_store.items():
+310 | /             if job.status in [JobStatus.QUEUED, JobStatus.PROCESSING]:
+311 | |                 if job_id not in active_jobs:
+    | |_____________________________________________^
+312 |                       active_jobs[job_id] = job
+    |
+help: Combine `if` statements using `and`
+
+UP045 [*] Use `X | None` for type annotations
+   --> services/parallel_transcription/job_tracker.py:318:15
+    |
+317 | # Global instance (will be initialized with Redis client if available)
+318 | _job_tracker: Optional[JobTracker] = None
+    |               ^^^^^^^^^^^^^^^^^^^^
+    |
+help: Convert to `X | None`
+
+UP035 [*] Import from `collections.abc` instead: `Callable`
+  --> services/parallel_transcription/parallel_transcriber.py:17:1
+   |
+15 | from dataclasses import dataclass
+16 | from pathlib import Path
+17 | from typing import Any, Callable, Dict, List, Optional
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+18 |
+19 | from services.parallel_transcription.audio_chunker import AudioChunker, AudioChunkingError
+   |
+help: Import from `collections.abc`
+
+UP035 `typing.Dict` is deprecated, use `dict` instead
+  --> services/parallel_transcription/parallel_transcriber.py:17:1
+   |
+15 | from dataclasses import dataclass
+16 | from pathlib import Path
+17 | from typing import Any, Callable, Dict, List, Optional
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+18 |
+19 | from services.parallel_transcription.audio_chunker import AudioChunker, AudioChunkingError
+   |
+
+UP035 `typing.List` is deprecated, use `list` instead
+  --> services/parallel_transcription/parallel_transcriber.py:17:1
+   |
+15 | from dataclasses import dataclass
+16 | from pathlib import Path
+17 | from typing import Any, Callable, Dict, List, Optional
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+18 |
+19 | from services.parallel_transcription.audio_chunker import AudioChunker, AudioChunkingError
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> services/parallel_transcription/parallel_transcriber.py:31:15
+   |
+29 |     end_time: float
+30 |     text: str
+31 |     segments: List[Any]  # Whisper segments
+   |               ^^^^
+32 |     confidence: float = 1.0
+   |
+help: Replace with `list`
+
+UP045 [*] Use `X | None` for type annotations
+  --> services/parallel_transcription/parallel_transcriber.py:90:23
+   |
+88 |         self.max_workers = max_workers
+89 |         self.chunk_duration = chunk_duration
+90 |         self.chunker: Optional[AudioChunker] = None
+   |                       ^^^^^^^^^^^^^^^^^^^^^^
+91 |
+92 |         logger.info(f"ParallelTranscriber initialized with {max_workers} workers")
+   |
+help: Convert to `X | None`
+
+C901 `transcribe_parallel` is too complex (18 > 10)
+   --> services/parallel_transcription/parallel_transcriber.py:150:15
+    |
+148 |             raise ParallelTranscriptionError(f"Chunk {chunk_index} failed: {e}") from e
+149 |
+150 |     async def transcribe_parallel(
+    |               ^^^^^^^^^^^^^^^^^^^
+151 |         self,
+152 |         video_path: Path,
+    |
+
+UP045 [*] Use `X | None` for type annotations
+   --> services/parallel_transcription/parallel_transcriber.py:154:28
+    |
+152 |         video_path: Path,
+153 |         language: str = "de",
+154 |         progress_callback: Optional[Callable[[float], None]] = None
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+155 |     ) -> Dict[str, Any]:
+156 |         """
+    |
+help: Convert to `X | None`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> services/parallel_transcription/parallel_transcriber.py:155:10
+    |
+153 |         language: str = "de",
+154 |         progress_callback: Optional[Callable[[float], None]] = None
+155 |     ) -> Dict[str, Any]:
+    |          ^^^^
+156 |         """
+157 |         Transcribe audio using parallel chunk processing.
+    |
+help: Replace with `dict`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> services/parallel_transcription/parallel_transcriber.py:296:36
+    |
+294 |                 self.chunker.cleanup()
+295 |
+296 |     def _write_srt(self, segments: List[Any], output_path: Path) -> None:
+    |                                    ^^^^
+297 |         """
+298 |         Write segments to SRT file.
+    |
+help: Replace with `list`
+
+Found 95 errors.
+[*] 86 fixable with the `--fix` option (2 hidden fixes can be enabled with the `--unsafe-fixes` option).

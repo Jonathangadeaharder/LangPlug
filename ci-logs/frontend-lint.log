@@ -3,6 +3,9 @@
 > eslint src --max-warnings 0
 
 
+/home/runner/work/IdeaProjects/IdeaProjects/src/frontend/src/components/ParallelTranscriptionProgress.tsx
+  147:9  warning  Empty components are self-closing  react/self-closing-comp
+
 /home/runner/work/IdeaProjects/IdeaProjects/src/frontend/src/components/SyncedSubtitleDisplay.tsx
   100:13  warning  Visible, non-interactive elements with click handlers must have at least one keyboard listener                                                                                                     jsx-a11y/click-events-have-key-events
   100:13  warning  Avoid non-native interactive elements. If using native HTML is not possible, add an appropriate role and support for tabbing, mouse, keyboard, and touch inputs to an interactive content element  jsx-a11y/no-static-element-interactions
@@ -26,6 +29,6 @@
   102:7   warning  Unexpected console statement  no-console
   104:7   warning  Unexpected console statement  no-console
 
-✖ 15 problems (2 errors, 13 warnings)
-  1 error and 0 warnings potentially fixable with the `--fix` option.
+✖ 16 problems (2 errors, 14 warnings)
+  1 error and 1 warning potentially fixable with the `--fix` option.
 
