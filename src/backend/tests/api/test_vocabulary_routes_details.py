@@ -51,7 +51,7 @@ async def test_Whenbulk_markCalled_ThenReturnscounts(async_client, url_builder, 
     """Happy path: bulk mark returns the number of affected words."""
     from unittest.mock import AsyncMock
 
-    from core.service_dependencies import get_vocabulary_service
+    from core.dependencies import get_vocabulary_service
     from services.vocabulary.vocabulary_service import VocabularyService
 
     # Create mock service with mocked progress_service

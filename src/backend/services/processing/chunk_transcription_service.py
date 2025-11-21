@@ -281,7 +281,7 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
         task_progress[task_id].message = f"Converting speech ({target_language}) to text"
 
         # Lazy import to avoid circular dependencies
-        from core.service_dependencies import get_transcription_service
+        from core.dependencies import get_transcription_service
 
         transcription_service = get_transcription_service()
         if not transcription_service:

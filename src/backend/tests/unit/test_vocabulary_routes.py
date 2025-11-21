@@ -397,7 +397,7 @@ class TestVocabularyRoutesCore:
         word = "haus"
 
         # Mock the service using dependency injection override
-        from core.service_dependencies import get_vocabulary_service
+        from core.dependencies import get_vocabulary_service
         from services.vocabulary.vocabulary_service import VocabularyService
 
         mock_service = VocabularyService()
@@ -446,7 +446,7 @@ class TestVocabularyRoutesCore:
         word = "welt"
 
         # Mock the service using dependency injection override
-        from core.service_dependencies import get_vocabulary_service
+        from core.dependencies import get_vocabulary_service
         from services.vocabulary.vocabulary_service import VocabularyService
 
         mock_service = VocabularyService()
@@ -642,7 +642,7 @@ class TestVocabularyRoutesCore:
             mock_settings.get_videos_path.return_value = mock_videos_path
 
             # Mock vocabulary service
-            from core.service_dependencies import get_vocabulary_service
+            from core.dependencies import get_vocabulary_service
             from services.vocabulary.vocabulary_service import VocabularyService
 
             mock_service = VocabularyService()
