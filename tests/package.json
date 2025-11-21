@@ -24,7 +24,7 @@
     "playwright:smoke:ui": "cd e2e && E2E_SMOKE_TESTS=1 playwright test --config=playwright-smoke.config.ts --ui"
   },
   "dependencies": {
-    "@faker-js/faker": "^8.3.1",
+    "@faker-js/faker": "^10.1.0",
     "@playwright/test": "^1.55.1",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
