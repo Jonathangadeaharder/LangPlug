@@ -72,15 +72,15 @@ Updated 41+ packages including:
 Updated src/backend/requirements.txt to use latest compatible versions:
 
 ### Core Framework
-- fastapi: >=0.115.0 (was >=0.118.3)
-- pydantic: >=2.10.0 (was >=2.12.0)
-- pydantic-settings: >=2.6.0 (was >=2.11.0)
-- uvicorn: >=0.32.0 (was >=0.37.0)
+- fastapi: >=0.118.3 (maintained)
+- pydantic: >=2.12.0 (maintained)
+- pydantic-settings: >=2.11.0 (maintained)
+- uvicorn: >=0.37.0 (maintained)
 
 ### Database
-- sqlalchemy: >=2.0.36 (was >=2.0.44)
-- aiosqlite: >=0.20.0 (was >=0.21.0)
-- alembic: >=1.14.0 (was >=1.16.5)
+- sqlalchemy: >=2.0.44 (maintained)
+- aiosqlite: >=0.21.0 (maintained)
+- alembic: >=1.16.5 (maintained)
 
 ### AI/ML
 - transformers: >=4.45.0 (was >=4.35.0)
@@ -90,8 +90,8 @@ Updated src/backend/requirements.txt to use latest compatible versions:
 - protobuf: <6.0.0 (was <5.0.0)
 
 ### Audio/Video
-- moviepy: >=2.1.0 (was >=2.2.1)
-- opencv-python: <5.0.0 (was <4.11.0)
+- moviepy: >=2.2.1 (maintained)
+- opencv-python: expanded upper bound to <5.0.0 (was <4.11.0)
 
 ### Monitoring & Logging
 - structlog: >=24.4.0 (was >=24.1.0)
