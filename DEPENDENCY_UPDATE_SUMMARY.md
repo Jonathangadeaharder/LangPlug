@@ -84,10 +84,10 @@ Updated src/backend/requirements.txt to use latest compatible versions:
 
 ### AI/ML
 - transformers: >=4.45.0 (was >=4.35.0)
-- torch: >=2.5.0 (was >=2.0.0)
-- spacy: >=3.8.0 with expanded range to <4.0.0 (was <3.9.0)
+- torch: >=2.0.0 (maintained for broad compatibility)
+- spacy: expanded upper bound to <4.0.0 (was <3.9.0)
 - sentencepiece: >=0.2.0 (was >=0.1.99)
-- protobuf: <6.0.0 (was <5.0.0)
+- protobuf: >=3.20.0,<5.0.0 (maintained for ML library compatibility)
 
 ### Audio/Video
 - moviepy: >=2.2.1 (maintained)

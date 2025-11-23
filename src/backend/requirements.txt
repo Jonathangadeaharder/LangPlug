@@ -30,10 +30,10 @@ alembic>=1.16.5,<2.0.0
 # ============================================================================
 openai-whisper>=20231117,<20260000
 transformers>=4.45.0,<5.0.0
-torch>=2.5.0,<3.0.0
+torch>=2.0.0,<3.0.0
 spacy>=3.8.0,<4.0.0
 sentencepiece>=0.2.0,<1.0.0
-protobuf>=3.20.0,<6.0.0
+protobuf>=3.20.0,<5.0.0
 
 # Spacy language models (pip-installable)
 https://github.com/explosion/spacy-models/releases/download/de_core_news_lg-3.8.0/de_core_news_lg-3.8.0-py3-none-any.whl
