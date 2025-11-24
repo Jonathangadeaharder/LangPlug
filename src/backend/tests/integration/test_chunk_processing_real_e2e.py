@@ -94,7 +94,15 @@ class TestVocabularyServiceSessionManagement:
         VocabularyService should accept external database session
         This test reproduces Bug #4 - would have caught get_db_session() error
         """
-        service = VocabularyService()
+        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
+        from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
+        from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
+
+        # Create real service instances
+        query_service = get_vocabulary_query_service()
+        progress_service = get_vocabulary_progress_service()
+        stats_service = get_vocabulary_stats_service()
+        service = VocabularyService(query_service, progress_service, stats_service)
 
         # Service should accept passed-in session (the correct pattern)
         result = await service.get_word_info("hallo", "de", test_db_session)
@@ -202,8 +210,15 @@ class TestIntegrationWithoutMocks:
         Test vocabulary lookup using actual VocabularyService and real database
         No mocks - exercises actual production code path
         """
-        # Create service (not mocked)
-        vocab_service = VocabularyService()
+        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
+        from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
+        from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
+
+        # Create real service instances
+        query_service = get_vocabulary_query_service()
+        progress_service = get_vocabulary_progress_service()
+        stats_service = get_vocabulary_stats_service()
+        vocab_service = VocabularyService(query_service, progress_service, stats_service)
 
         # Look up a word using real database session
         result = await vocab_service.get_word_info("welt", "de", test_db_session)
