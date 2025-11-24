@@ -10,7 +10,9 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {},
+    "metadata": {
+      "actualWorkers": 1
+    },
     "preserveOutput": "always",
     "reporter": [
       [
@@ -40,7 +42,9 @@
         "outputDir": "E:/Users/Jonandrop/IdeaProjects/LangPlug/test-results",
         "repeatEach": 1,
         "retries": 1,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 1
+        },
         "id": "chromium",
         "name": "chromium",
         "testDir": "E:/Users/Jonandrop/IdeaProjects/LangPlug/tests/e2e",
@@ -54,7 +58,9 @@
         "outputDir": "E:/Users/Jonandrop/IdeaProjects/LangPlug/test-results",
         "repeatEach": 1,
         "retries": 1,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 1
+        },
         "id": "firefox",
         "name": "firefox",
         "testDir": "E:/Users/Jonandrop/IdeaProjects/LangPlug/tests/e2e",
@@ -72,19 +78,1014 @@
     "workers": 2,
     "webServer": null
   },
-  "suites": [],
-  "errors": [
+  "suites": [
     {
-      "message": "Error: Process from config.webServer was not able to start. Exit code: 1",
-      "stack": "Error: Process from config.webServer was not able to start. Exit code: 1"
+      "title": "auth.spec.ts",
+      "file": "auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication - User Registration",
+          "file": "auth.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should register with valid credentials",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 9454,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\u001b[7mvideos\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mregister\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"http://localhost:3000/register\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\u001b[7mvideos\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mregister\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"http://localhost:3000/register\"\u001b[22m\n\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:13:24",
+                        "location": {
+                          "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                          "column": 24,
+                          "line": 13
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m     \u001b[90m// Verify successful registration\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 13 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[33mROUTES\u001b[39m\u001b[33m.\u001b[39mvideos)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 14 |\u001b[39m     \u001b[36mawait\u001b[39m assertions\u001b[33m.\u001b[39massertUserLoggedIn(page\u001b[33m,\u001b[39m \u001b[32m'newuser'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 15 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 16 |\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                            "column": 24,
+                            "line": 13
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\u001b[7mvideos\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mregister\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"http://localhost:3000/register\"\u001b[22m\n\n\n  11 |\n  12 |     // Verify successful registration\n> 13 |     await expect(page).toHaveURL(ROUTES.videos);\n     |                        ^\n  14 |     await assertions.assertUserLoggedIn(page, 'newuser');\n  15 |   });\n  16 |\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:13:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-24T19:25:58.062Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-5abb5-ster-with-valid-credentials-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-5abb5-ster-with-valid-credentials-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-5abb5-ster-with-valid-credentials-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                        "column": 24,
+                        "line": 13
+                      }
+                    },
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 8115,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\u001b[7mvideos\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mregister\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"http://localhost:3000/register\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\u001b[7mvideos\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mregister\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"http://localhost:3000/register\"\u001b[22m\n\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:13:24",
+                        "location": {
+                          "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                          "column": 24,
+                          "line": 13
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m     \u001b[90m// Verify successful registration\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 13 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[33mROUTES\u001b[39m\u001b[33m.\u001b[39mvideos)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 14 |\u001b[39m     \u001b[36mawait\u001b[39m assertions\u001b[33m.\u001b[39massertUserLoggedIn(page\u001b[33m,\u001b[39m \u001b[32m'newuser'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 15 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 16 |\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                            "column": 24,
+                            "line": 13
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\u001b[7mvideos\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mregister\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"http://localhost:3000/register\"\u001b[22m\n\n\n  11 |\n  12 |     // Verify successful registration\n> 13 |     await expect(page).toHaveURL(ROUTES.videos);\n     |                        ^\n  14 |     await assertions.assertUserLoggedIn(page, 'newuser');\n  15 |   });\n  16 |\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:13:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-11-24T19:26:10.775Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-5abb5-ster-with-valid-credentials-chromium-retry1\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-5abb5-ster-with-valid-credentials-chromium-retry1\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-5abb5-ster-with-valid-credentials-chromium-retry1\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-5abb5-ster-with-valid-credentials-chromium-retry1\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                        "column": 24,
+                        "line": 13
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-f3dc1bbff94c3f16c097",
+              "file": "auth.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "should reject password without special character",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 7831,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Failed to create account')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Failed to create account')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Failed to create account')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Failed to create account')\u001b[22m\n\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:36:32",
+                        "location": {
+                          "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                          "column": 32,
+                          "line": 36
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 34 |\u001b[39m     \u001b[90m// Check for error message (currently generic, but should be specific)\u001b[39m\n \u001b[90m 35 |\u001b[39m     \u001b[36mconst\u001b[39m errorMessage \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Failed to create account'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 36 |\u001b[39m     \u001b[36mawait\u001b[39m expect(errorMessage)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 37 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 38 |\u001b[39m\n \u001b[90m 39 |\u001b[39m   test(\u001b[32m'should reject password shorter than 12 characters'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page\u001b[33m,\u001b[39m freshPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                            "column": 32,
+                            "line": 36
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Failed to create account')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Failed to create account')\u001b[22m\n\n\n  34 |     // Check for error message (currently generic, but should be specific)\n  35 |     const errorMessage = page.locator('text=Failed to create account');\n> 36 |     await expect(errorMessage).toBeVisible();\n     |                                ^\n  37 |   });\n  38 |\n  39 |   test('should reject password shorter than 12 characters', async ({ page, freshPage }) => {\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:36:32"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-24T19:26:20.946Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-6dd6f-d-without-special-character-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-6dd6f-d-without-special-character-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-6dd6f-d-without-special-character-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                        "column": 32,
+                        "line": 36
+                      }
+                    },
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 7871,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Failed to create account')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Failed to create account')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Failed to create account')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Failed to create account')\u001b[22m\n\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:36:32",
+                        "location": {
+                          "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                          "column": 32,
+                          "line": 36
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 34 |\u001b[39m     \u001b[90m// Check for error message (currently generic, but should be specific)\u001b[39m\n \u001b[90m 35 |\u001b[39m     \u001b[36mconst\u001b[39m errorMessage \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Failed to create account'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 36 |\u001b[39m     \u001b[36mawait\u001b[39m expect(errorMessage)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 37 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 38 |\u001b[39m\n \u001b[90m 39 |\u001b[39m   test(\u001b[32m'should reject password shorter than 12 characters'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page\u001b[33m,\u001b[39m freshPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                            "column": 32,
+                            "line": 36
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Failed to create account')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Failed to create account')\u001b[22m\n\n\n  34 |     // Check for error message (currently generic, but should be specific)\n  35 |     const errorMessage = page.locator('text=Failed to create account');\n> 36 |     await expect(errorMessage).toBeVisible();\n     |                                ^\n  37 |   });\n  38 |\n  39 |   test('should reject password shorter than 12 characters', async ({ page, freshPage }) => {\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:36:32"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-11-24T19:26:31.270Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-6dd6f-d-without-special-character-chromium-retry1\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-6dd6f-d-without-special-character-chromium-retry1\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-6dd6f-d-without-special-character-chromium-retry1\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-6dd6f-d-without-special-character-chromium-retry1\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                        "column": 32,
+                        "line": 36
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-cef1f47899e119d63da3",
+              "file": "auth.spec.ts",
+              "line": 17,
+              "column": 7
+            },
+            {
+              "title": "should reject password shorter than 12 characters",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2310,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-24T19:26:41.108Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-7e57379df7316314c96a",
+              "file": "auth.spec.ts",
+              "line": 39,
+              "column": 7
+            },
+            {
+              "title": "should show form validation for empty fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1704,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-24T19:26:43.611Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-4ea63d787138ed0694d1",
+              "file": "auth.spec.ts",
+              "line": 56,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Authentication - User Login",
+          "file": "auth.spec.ts",
+          "line": 69,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should login with valid credentials",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 32846,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts",
+                            "column": 16,
+                            "line": 131
+                          },
+                          "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Logout\")')\u001b[22m\n\n\n   at ..\\fixtures\\fixtures.ts:131\n\n  129 |\n  130 |   logout: async (page: any) => {\n> 131 |     await page.click('button:has-text(\"Logout\")');\n      |                ^\n  132 |     await page.waitForURL(ROUTES.login);\n  133 |   },\n  134 | };\n    at Object.logout (E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts:131:16)\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:82:19"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-24T19:26:45.339Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-4b1bb-ogin-with-valid-credentials-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-4b1bb-ogin-with-valid-credentials-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-4b1bb-ogin-with-valid-credentials-chromium\\error-context.md"
+                        }
+                      ]
+                    },
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 32695,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts",
+                            "column": 16,
+                            "line": 131
+                          },
+                          "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Logout\")')\u001b[22m\n\n\n   at ..\\fixtures\\fixtures.ts:131\n\n  129 |\n  130 |   logout: async (page: any) => {\n> 131 |     await page.click('button:has-text(\"Logout\")');\n      |                ^\n  132 |     await page.waitForURL(ROUTES.login);\n  133 |   },\n  134 | };\n    at Object.logout (E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts:131:16)\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:82:19"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-11-24T19:27:20.710Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-4b1bb-ogin-with-valid-credentials-chromium-retry1\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-4b1bb-ogin-with-valid-credentials-chromium-retry1\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-4b1bb-ogin-with-valid-credentials-chromium-retry1\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-4b1bb-ogin-with-valid-credentials-chromium-retry1\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-e6f34d4a957bc16eb9e8",
+              "file": "auth.spec.ts",
+              "line": 70,
+              "column": 7
+            },
+            {
+              "title": "should reject login with wrong password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2570,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-24T19:27:56.205Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-6f792c9e42c9e9ffc214",
+              "file": "auth.spec.ts",
+              "line": 90,
+              "column": 7
+            },
+            {
+              "title": "should reject login with non-existent email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2243,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-24T19:27:59.007Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-7b84dfd7d916eeb01462",
+              "file": "auth.spec.ts",
+              "line": 109,
+              "column": 7
+            },
+            {
+              "title": "should persist login session across navigation",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 7581,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\u001b[7mvocabulary\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mlogin\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    8 × unexpected value \"http://localhost:3000/login\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\u001b[7mvocabulary\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mlogin\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    8 × unexpected value \"http://localhost:3000/login\"\u001b[22m\n\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:135:24",
+                        "location": {
+                          "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                          "column": 24,
+                          "line": 135
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 133 |\u001b[39m     \u001b[90m// Navigate to different pages\u001b[39m\n \u001b[90m 134 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[33mROUTES\u001b[39m\u001b[33m.\u001b[39mvocabulary)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 135 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[33mROUTES\u001b[39m\u001b[33m.\u001b[39mvocabulary)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 136 |\u001b[39m\n \u001b[90m 137 |\u001b[39m     \u001b[90m// User should still be logged in\u001b[39m\n \u001b[90m 138 |\u001b[39m     \u001b[36mawait\u001b[39m assertions\u001b[33m.\u001b[39massertUserLoggedIn(page\u001b[33m,\u001b[39m \u001b[32m'sessionuser'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                            "column": 24,
+                            "line": 135
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\u001b[7mvocabulary\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mlogin\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    8 × unexpected value \"http://localhost:3000/login\"\u001b[22m\n\n\n  133 |     // Navigate to different pages\n  134 |     await page.goto(ROUTES.vocabulary);\n> 135 |     await expect(page).toHaveURL(ROUTES.vocabulary);\n      |                        ^\n  136 |\n  137 |     // User should still be logged in\n  138 |     await assertions.assertUserLoggedIn(page, 'sessionuser');\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:135:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-24T19:28:01.281Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-623b0-n-session-across-navigation-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-623b0-n-session-across-navigation-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-623b0-n-session-across-navigation-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                        "column": 24,
+                        "line": 135
+                      }
+                    },
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 8135,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\u001b[7mvocabulary\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mlogin\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"http://localhost:3000/login\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\u001b[7mvocabulary\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mlogin\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"http://localhost:3000/login\"\u001b[22m\n\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:135:24",
+                        "location": {
+                          "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                          "column": 24,
+                          "line": 135
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 133 |\u001b[39m     \u001b[90m// Navigate to different pages\u001b[39m\n \u001b[90m 134 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[33mROUTES\u001b[39m\u001b[33m.\u001b[39mvocabulary)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 135 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[33mROUTES\u001b[39m\u001b[33m.\u001b[39mvocabulary)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 136 |\u001b[39m\n \u001b[90m 137 |\u001b[39m     \u001b[90m// User should still be logged in\u001b[39m\n \u001b[90m 138 |\u001b[39m     \u001b[36mawait\u001b[39m assertions\u001b[33m.\u001b[39massertUserLoggedIn(page\u001b[33m,\u001b[39m \u001b[32m'sessionuser'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                            "column": 24,
+                            "line": 135
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\u001b[7mvocabulary\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mlogin\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"http://localhost:3000/login\"\u001b[22m\n\n\n  133 |     // Navigate to different pages\n  134 |     await page.goto(ROUTES.vocabulary);\n> 135 |     await expect(page).toHaveURL(ROUTES.vocabulary);\n      |                        ^\n  136 |\n  137 |     // User should still be logged in\n  138 |     await assertions.assertUserLoggedIn(page, 'sessionuser');\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:135:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-11-24T19:28:11.106Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-623b0-n-session-across-navigation-chromium-retry1\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-623b0-n-session-across-navigation-chromium-retry1\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-623b0-n-session-across-navigation-chromium-retry1\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-623b0-n-session-across-navigation-chromium-retry1\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                        "column": 24,
+                        "line": 135
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-40b2fb7bb46b96522036",
+              "file": "auth.spec.ts",
+              "line": 123,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Authentication - User Logout",
+          "file": "auth.spec.ts",
+          "line": 149,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should logout and clear session",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 7673,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Welcome, logoutuser')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Welcome, logoutuser')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Welcome, logoutuser')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Welcome, logoutuser')\u001b[22m\n\n    at Object.assertUserLoggedIn (E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts:53:61)\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:158:22",
+                        "location": {
+                          "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts",
+                          "column": 61,
+                          "line": 53
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39m..\\fixtures\\fixtures.ts:53\n\n\u001b[0m \u001b[90m 51 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36mconst\u001b[39m assertions \u001b[33m=\u001b[39m {\n \u001b[90m 52 |\u001b[39m   assertUserLoggedIn\u001b[33m:\u001b[39m \u001b[36masync\u001b[39m (page\u001b[33m:\u001b[39m any\u001b[33m,\u001b[39m username\u001b[33m:\u001b[39m string) \u001b[33m=>\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 53 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m`text=Welcome, ${username}`\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 54 |\u001b[39m   }\u001b[33m,\u001b[39m\n \u001b[90m 55 |\u001b[39m\n \u001b[90m 56 |\u001b[39m   assertUserLoggedOut\u001b[33m:\u001b[39m \u001b[36masync\u001b[39m (page\u001b[33m:\u001b[39m any) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts",
+                            "column": 61,
+                            "line": 53
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Welcome, logoutuser')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Welcome, logoutuser')\u001b[22m\n\n\n   at ..\\fixtures\\fixtures.ts:53\n\n  51 | export const assertions = {\n  52 |   assertUserLoggedIn: async (page: any, username: string) => {\n> 53 |     await expect(page.locator(`text=Welcome, ${username}`)).toBeVisible();\n     |                                                             ^\n  54 |   },\n  55 |\n  56 |   assertUserLoggedOut: async (page: any) => {\n    at Object.assertUserLoggedIn (E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts:53:61)\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:158:22"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-24T19:28:21.446Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-052af-ld-logout-and-clear-session-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-052af-ld-logout-and-clear-session-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-052af-ld-logout-and-clear-session-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts",
+                        "column": 61,
+                        "line": 53
+                      }
+                    },
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 7515,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Sign In')\nExpected: visible\nError: strict mode violation: locator('text=Sign In') resolved to 2 elements:\n    1) <h2 class=\"sc-cCVJLD iWabKu\">Sign In</h2> aka getByRole('heading', { name: 'Sign In' })\n    2) <button type=\"submit\" data-testid=\"login-submit-button\" class=\"sc-hvigdm sc-dNFkOE fTIQry fPOfWt\">Sign In</button> aka getByTestId('login-submit-button')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Sign In')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Sign In')\nExpected: visible\nError: strict mode violation: locator('text=Sign In') resolved to 2 elements:\n    1) <h2 class=\"sc-cCVJLD iWabKu\">Sign In</h2> aka getByRole('heading', { name: 'Sign In' })\n    2) <button type=\"submit\" data-testid=\"login-submit-button\" class=\"sc-hvigdm sc-dNFkOE fTIQry fPOfWt\">Sign In</button> aka getByTestId('login-submit-button')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Sign In')\u001b[22m\n\n    at Object.assertUserLoggedOut (E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts:57:48)\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:164:22",
+                        "location": {
+                          "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts",
+                          "column": 48,
+                          "line": 57
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39m..\\fixtures\\fixtures.ts:57\n\n\u001b[0m \u001b[90m 55 |\u001b[39m\n \u001b[90m 56 |\u001b[39m   assertUserLoggedOut\u001b[33m:\u001b[39m \u001b[36masync\u001b[39m (page\u001b[33m:\u001b[39m any) \u001b[33m=>\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 57 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Sign In'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 58 |\u001b[39m   }\u001b[33m,\u001b[39m\n \u001b[90m 59 |\u001b[39m\n \u001b[90m 60 |\u001b[39m   assertVocabularyStatsUpdated\u001b[33m:\u001b[39m \u001b[36masync\u001b[39m (page\u001b[33m:\u001b[39m any\u001b[33m,\u001b[39m expectedKnownWords\u001b[33m:\u001b[39m number) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts",
+                            "column": 48,
+                            "line": 57
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Sign In')\nExpected: visible\nError: strict mode violation: locator('text=Sign In') resolved to 2 elements:\n    1) <h2 class=\"sc-cCVJLD iWabKu\">Sign In</h2> aka getByRole('heading', { name: 'Sign In' })\n    2) <button type=\"submit\" data-testid=\"login-submit-button\" class=\"sc-hvigdm sc-dNFkOE fTIQry fPOfWt\">Sign In</button> aka getByTestId('login-submit-button')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Sign In')\u001b[22m\n\n\n   at ..\\fixtures\\fixtures.ts:57\n\n  55 |\n  56 |   assertUserLoggedOut: async (page: any) => {\n> 57 |     await expect(page.locator('text=Sign In')).toBeVisible();\n     |                                                ^\n  58 |   },\n  59 |\n  60 |   assertVocabularyStatsUpdated: async (page: any, expectedKnownWords: number) => {\n    at Object.assertUserLoggedOut (E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts:57:48)\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:164:22"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-11-24T19:28:31.076Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-052af-ld-logout-and-clear-session-chromium-retry1\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-052af-ld-logout-and-clear-session-chromium-retry1\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-052af-ld-logout-and-clear-session-chromium-retry1\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-052af-ld-logout-and-clear-session-chromium-retry1\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts",
+                        "column": 48,
+                        "line": 57
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-fac9bc22871c95e5b5b0",
+              "file": "auth.spec.ts",
+              "line": 150,
+              "column": 7
+            },
+            {
+              "title": "should show success message on logout",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 32772,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts",
+                            "column": 16,
+                            "line": 180
+                          },
+                          "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Logout\")')\u001b[22m\n\n\n  178 |\n  179 |     // Logout\n> 180 |     await page.click('button:has-text(\"Logout\")');\n      |                ^\n  181 |\n  182 |     // Wait for logout to complete\n  183 |     await page.waitForURL(ROUTES.login);\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:180:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-24T19:28:41.392Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-11e70-w-success-message-on-logout-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-11e70-w-success-message-on-logout-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-11e70-w-success-message-on-logout-chromium\\error-context.md"
+                        }
+                      ]
+                    },
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7264,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-11-24T19:29:16.758Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---User-11e70-w-success-message-on-logout-chromium-retry1\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "flaky"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-60b7e5ad90d08ddd3529",
+              "file": "auth.spec.ts",
+              "line": 172,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Authentication - Session Management",
+          "file": "auth.spec.ts",
+          "line": 191,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should preserve user info after page refresh",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 7792,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Welcome, refreshuser')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Welcome, refreshuser')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Welcome, refreshuser')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Welcome, refreshuser')\u001b[22m\n\n    at Object.assertUserLoggedIn (E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts:53:61)\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:204:22",
+                        "location": {
+                          "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts",
+                          "column": 61,
+                          "line": 53
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39m..\\fixtures\\fixtures.ts:53\n\n\u001b[0m \u001b[90m 51 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36mconst\u001b[39m assertions \u001b[33m=\u001b[39m {\n \u001b[90m 52 |\u001b[39m   assertUserLoggedIn\u001b[33m:\u001b[39m \u001b[36masync\u001b[39m (page\u001b[33m:\u001b[39m any\u001b[33m,\u001b[39m username\u001b[33m:\u001b[39m string) \u001b[33m=>\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 53 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m`text=Welcome, ${username}`\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 54 |\u001b[39m   }\u001b[33m,\u001b[39m\n \u001b[90m 55 |\u001b[39m\n \u001b[90m 56 |\u001b[39m   assertUserLoggedOut\u001b[33m:\u001b[39m \u001b[36masync\u001b[39m (page\u001b[33m:\u001b[39m any) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts",
+                            "column": 61,
+                            "line": 53
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=Welcome, refreshuser')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Welcome, refreshuser')\u001b[22m\n\n\n   at ..\\fixtures\\fixtures.ts:53\n\n  51 | export const assertions = {\n  52 |   assertUserLoggedIn: async (page: any, username: string) => {\n> 53 |     await expect(page.locator(`text=Welcome, ${username}`)).toBeVisible();\n     |                                                             ^\n  54 |   },\n  55 |\n  56 |   assertUserLoggedOut: async (page: any) => {\n    at Object.assertUserLoggedIn (E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts:53:61)\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth.spec.ts:204:22"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-24T19:29:24.878Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---Sess-141f1-ser-info-after-page-refresh-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---Sess-141f1-ser-info-after-page-refresh-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---Sess-141f1-ser-info-after-page-refresh-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\fixtures\\fixtures.ts",
+                        "column": 61,
+                        "line": 53
+                      }
+                    },
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4098,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-11-24T19:29:35.110Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-Authentication---Sess-141f1-ser-info-after-page-refresh-chromium-retry1\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "flaky"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-4fac61c409f560d1c205",
+              "file": "auth.spec.ts",
+              "line": 192,
+              "column": 7
+            }
+          ]
+        }
+      ]
     }
   ],
+  "errors": [],
   "stats": {
-    "startTime": "2025-11-23T12:24:03.473Z",
-    "duration": 1174.0280000000002,
-    "expected": 0,
+    "startTime": "2025-11-24T19:25:56.164Z",
+    "duration": 223739.24599999998,
+    "expected": 4,
     "skipped": 0,
-    "unexpected": 0,
-    "flaky": 0
+    "unexpected": 5,
+    "flaky": 2
   }
 }

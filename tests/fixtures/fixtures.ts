@@ -15,8 +15,8 @@ export const test = base.extend<LangPlugFixtures>({
   authenticatedPage: async ({ page }, use) => {
     // Register and login a test user
     await page.goto(ROUTES.register);
-    await page.fill('text=Email', TEST_USERS.valid.email);
-    await page.fill('text=Username', TEST_USERS.valid.username);
+    await page.fill('input[type="email"]', TEST_USERS.valid.email);
+    await page.fill('input[placeholder*="Username"]', TEST_USERS.valid.username);
     await page.fill('[type="password"]', TEST_USERS.valid.password);
 
     // Get all password fields and fill the second one (confirm password)
@@ -26,7 +26,8 @@ export const test = base.extend<LangPlugFixtures>({
     await page.click('button:has-text("Sign Up")');
     await page.waitForURL(ROUTES.videos);
 
-    yield;
+    // Use the authenticated page
+    await use();
 
     // Cleanup - logout
     await page.click('button:has-text("Logout")');
@@ -37,7 +38,8 @@ export const test = base.extend<LangPlugFixtures>({
     await page.goto(ROUTES.login);
     // Wait for login page to fully load
     await page.waitForSelector('text=Sign In');
-    yield;
+    // Use the fresh page
+    await use();
   },
 });
 

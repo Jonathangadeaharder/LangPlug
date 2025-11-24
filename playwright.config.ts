@@ -29,25 +29,26 @@ export default defineConfig({
     },
   ],
 
-  webServer: [
-    {
-      command: 'npm run dev',
-      url: 'http://localhost:3000',
-      reuseExistingServer: !process.env.CI,
-      cwd: './src/frontend',
-    },
-    {
-      command: '..\\..\\api_venv\\Scripts\\python.exe run_backend.py',
-      url: 'http://localhost:8000/health',
-      reuseExistingServer: !process.env.CI,
-      cwd: './src/backend',
-      env: {
-        LANGPLUG_PORT: '8000',
-        LANGPLUG_RELOAD: '0',
-        LANGPLUG_TRANSCRIPTION_SERVICE: 'whisper-tiny',
-        LANGPLUG_TRANSLATION_SERVICE: 'opus-de-es',
-        LANGPLUG_DEFAULT_LANGUAGE: 'de',
-      },
-    },
-  ],
+  // webServer is disabled - start backends manually before running tests
+  // webServer: [
+  //   {
+  //     command: 'npm run dev',
+  //     url: 'http://localhost:3000',
+  //     reuseExistingServer: !process.env.CI,
+  //     cwd: './src/frontend',
+  //   },
+  //   {
+  //     command: 'python run_backend.py',
+  //     url: 'http://localhost:8000/health',
+  //     reuseExistingServer: !process.env.CI,
+  //     cwd: './src/backend',
+  //     env: {
+  //       LANGPLUG_PORT: '8000',
+  //       LANGPLUG_RELOAD: '0',
+  //       LANGPLUG_TRANSCRIPTION_SERVICE: 'whisper-tiny',
+  //       LANGPLUG_TRANSLATION_SERVICE: 'opus-de-es',
+  //       LANGPLUG_DEFAULT_LANGUAGE: 'de',
+  //     },
+  //   },
+  // ],
 });
