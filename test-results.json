@@ -96,74 +96,6 @@
           "specs": [
             {
               "title": "should register new user successfully",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2017,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-11-24T23:04:31.522Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "18d5c52bc1b99e9de4f3-8a3280f8f93285763188",
-              "file": "auth-pom.spec.ts",
-              "line": 18,
-              "column": 7
-            },
-            {
-              "title": "should navigate to login from register page",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1126,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-11-24T23:04:33.653Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "18d5c52bc1b99e9de4f3-e4c24a67ff09fbb30cd6",
-              "file": "auth-pom.spec.ts",
-              "line": 33,
-              "column": 7
-            },
-            {
-              "title": "should login with valid credentials",
               "ok": false,
               "tags": [],
               "tests": [
@@ -178,120 +110,154 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 12078,
+                      "duration": 2206,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: not \u001b[32m\"/login\"\u001b[39m\nReceived string:        \u001b[31m\"http://127.0.0.1:3000\u001b[7m/login\u001b[27m\"\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: not \u001b[32m\"/login\"\u001b[39m\nReceived string:        \u001b[31m\"http://127.0.0.1:3000\u001b[7m/login\u001b[27m\"\u001b[39m\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts:62:26",
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts:29:26",
                         "location": {
                           "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts",
                           "column": 26,
-                          "line": 62
+                          "line": 29
                         },
-                        "snippet": "\u001b[0m \u001b[90m 60 |\u001b[39m     \u001b[90m// Should be on dashboard\u001b[39m\n \u001b[90m 61 |\u001b[39m     \u001b[36mconst\u001b[39m finalUrl \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginPage\u001b[33m.\u001b[39mgetCurrentUrl()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 62 |\u001b[39m     expect(finalUrl)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContain(\u001b[32m'/login'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 63 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 64 |\u001b[39m\n \u001b[90m 65 |\u001b[39m   test(\u001b[32m'should reject login with wrong password'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m () \u001b[33m=>\u001b[39m {\u001b[0m"
+                        "snippet": "\u001b[0m \u001b[90m 27 |\u001b[39m     \u001b[36mconst\u001b[39m url \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39murl()\u001b[33m;\u001b[39m\n \u001b[90m 28 |\u001b[39m     \u001b[36mconst\u001b[39m isRedirected \u001b[33m=\u001b[39m url \u001b[33m!==\u001b[39m \u001b[32m'http://127.0.0.1:3000/register'\u001b[39m\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 29 |\u001b[39m     expect(isRedirected)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 30 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 31 |\u001b[39m\n \u001b[90m 32 |\u001b[39m   test(\u001b[32m'should navigate between auth pages'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m () \u001b[33m=>\u001b[39m {\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts",
                             "column": 26,
-                            "line": 62
+                            "line": 29
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: not \u001b[32m\"/login\"\u001b[39m\nReceived string:        \u001b[31m\"http://127.0.0.1:3000\u001b[7m/login\u001b[27m\"\u001b[39m\n\n  60 |     // Should be on dashboard\n  61 |     const finalUrl = await loginPage.getCurrentUrl();\n> 62 |     expect(finalUrl).not.toContain('/login');\n     |                          ^\n  63 |   });\n  64 |\n  65 |   test('should reject login with wrong password', async () => {\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts:62:26"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  27 |     const url = await page.url();\n  28 |     const isRedirected = url !== 'http://127.0.0.1:3000/register';\n> 29 |     expect(isRedirected).toBe(true);\n     |                          ^\n  30 |   });\n  31 |\n  32 |   test('should navigate between auth pages', async () => {\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts:29:26"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-24T23:04:34.790Z",
+                      "startTime": "2025-11-24T23:30:18.179Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-8ce77-ogin-with-valid-credentials-chromium\\test-failed-1.png"
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-ab512-ister-new-user-successfully-chromium\\test-failed-1.png"
                         },
                         {
                           "name": "video",
                           "contentType": "video/webm",
-                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-8ce77-ogin-with-valid-credentials-chromium\\video.webm"
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-ab512-ister-new-user-successfully-chromium\\video.webm"
                         },
                         {
                           "name": "error-context",
                           "contentType": "text/markdown",
-                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-8ce77-ogin-with-valid-credentials-chromium\\error-context.md"
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-ab512-ister-new-user-successfully-chromium\\error-context.md"
                         }
                       ],
                       "errorLocation": {
                         "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts",
                         "column": 26,
-                        "line": 62
+                        "line": 29
                       }
                     },
                     {
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 2900,
+                      "duration": 1566,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts:55:22",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts:29:26",
                         "location": {
                           "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts",
-                          "column": 22,
-                          "line": 55
+                          "column": 26,
+                          "line": 29
                         },
-                        "snippet": "\u001b[0m \u001b[90m 53 |\u001b[39m     \u001b[36mawait\u001b[39m loginPage\u001b[33m.\u001b[39mgoto()\u001b[33m;\u001b[39m\n \u001b[90m 54 |\u001b[39m     \u001b[36mconst\u001b[39m isLoaded \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginPage\u001b[33m.\u001b[39misLoaded()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 55 |\u001b[39m     expect(isLoaded)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 56 |\u001b[39m\n \u001b[90m 57 |\u001b[39m     \u001b[90m// Fill in credentials and login\u001b[39m\n \u001b[90m 58 |\u001b[39m     \u001b[36mawait\u001b[39m loginPage\u001b[33m.\u001b[39mlogin(\u001b[33mTEST_USER_EMAIL\u001b[39m\u001b[33m,\u001b[39m \u001b[33mTEST_USER_PASSWORD\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                        "snippet": "\u001b[0m \u001b[90m 27 |\u001b[39m     \u001b[36mconst\u001b[39m url \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39murl()\u001b[33m;\u001b[39m\n \u001b[90m 28 |\u001b[39m     \u001b[36mconst\u001b[39m isRedirected \u001b[33m=\u001b[39m url \u001b[33m!==\u001b[39m \u001b[32m'http://127.0.0.1:3000/register'\u001b[39m\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 29 |\u001b[39m     expect(isRedirected)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 30 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 31 |\u001b[39m\n \u001b[90m 32 |\u001b[39m   test(\u001b[32m'should navigate between auth pages'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m () \u001b[33m=>\u001b[39m {\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts",
-                            "column": 22,
-                            "line": 55
+                            "column": 26,
+                            "line": 29
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  53 |     await loginPage.goto();\n  54 |     const isLoaded = await loginPage.isLoaded();\n> 55 |     expect(isLoaded).toBe(true);\n     |                      ^\n  56 |\n  57 |     // Fill in credentials and login\n  58 |     await loginPage.login(TEST_USER_EMAIL, TEST_USER_PASSWORD);\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts:55:22"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  27 |     const url = await page.url();\n  28 |     const isRedirected = url !== 'http://127.0.0.1:3000/register';\n> 29 |     expect(isRedirected).toBe(true);\n     |                          ^\n  30 |   });\n  31 |\n  32 |   test('should navigate between auth pages', async () => {\n    at E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts:29:26"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 1,
-                      "startTime": "2025-11-24T23:04:48.073Z",
+                      "startTime": "2025-11-24T23:30:21.568Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-8ce77-ogin-with-valid-credentials-chromium-retry1\\test-failed-1.png"
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-ab512-ister-new-user-successfully-chromium-retry1\\test-failed-1.png"
                         },
                         {
                           "name": "video",
                           "contentType": "video/webm",
-                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-8ce77-ogin-with-valid-credentials-chromium-retry1\\video.webm"
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-ab512-ister-new-user-successfully-chromium-retry1\\video.webm"
                         },
                         {
                           "name": "error-context",
                           "contentType": "text/markdown",
-                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-8ce77-ogin-with-valid-credentials-chromium-retry1\\error-context.md"
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-ab512-ister-new-user-successfully-chromium-retry1\\error-context.md"
                         },
                         {
                           "name": "trace",
                           "contentType": "application/zip",
-                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-8ce77-ogin-with-valid-credentials-chromium-retry1\\trace.zip"
+                          "path": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\test-results\\auth-pom-Authentication-E2-ab512-ister-new-user-successfully-chromium-retry1\\trace.zip"
                         }
                       ],
                       "errorLocation": {
                         "file": "E:\\Users\\Jonandrop\\IdeaProjects\\LangPlug\\tests\\e2e\\auth-pom.spec.ts",
-                        "column": 22,
-                        "line": 55
+                        "column": 26,
+                        "line": 29
                       }
                     }
                   ],
                   "status": "unexpected"
                 }
               ],
-              "id": "18d5c52bc1b99e9de4f3-c49d4e84be5eef17c094",
+              "id": "18d5c52bc1b99e9de4f3-8a3280f8f93285763188",
               "file": "auth-pom.spec.ts",
-              "line": 44,
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should navigate between auth pages",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1282,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-24T23:30:24.217Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "18d5c52bc1b99e9de4f3-727272f2619873bd6f33",
+              "file": "auth-pom.spec.ts",
+              "line": 32,
               "column": 7
             },
             {
@@ -310,12 +276,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1292,
+                      "duration": 1229,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-24T23:04:52.038Z",
+                      "startTime": "2025-11-24T23:30:25.661Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -325,7 +291,7 @@
               ],
               "id": "18d5c52bc1b99e9de4f3-e87295fe317d8171f94f",
               "file": "auth-pom.spec.ts",
-              "line": 65,
+              "line": 42,
               "column": 7
             },
             {
@@ -344,12 +310,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1211,
+                      "duration": 1158,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-24T23:04:53.433Z",
+                      "startTime": "2025-11-24T23:30:26.906Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -359,7 +325,7 @@
               ],
               "id": "18d5c52bc1b99e9de4f3-a04ae3df48b83a871487",
               "file": "auth-pom.spec.ts",
-              "line": 81,
+              "line": 58,
               "column": 7
             }
           ]
@@ -369,9 +335,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-11-24T23:04:30.665Z",
-    "duration": 24093.388000000003,
-    "expected": 4,
+    "startTime": "2025-11-24T23:30:17.111Z",
+    "duration": 11070.238,
+    "expected": 3,
     "skipped": 0,
     "unexpected": 1,
     "flaky": 0
