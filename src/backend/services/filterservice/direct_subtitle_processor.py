@@ -108,7 +108,7 @@ class DirectSubtitleProcessor:
         self.file_handler = srt_file_handler
 
     async def process_subtitles(
-        self, subtitles: list[FilteredSubtitle], user_id: int | str, user_level: str = "A1", language: str = "de", db=None
+        self, subtitles: list[FilteredSubtitle], user_id: int | str, db: Any, user_level: str = "A1", language: str = "de"
     ) -> FilteringResult:
         """
         Process subtitles - delegates to SubtitleProcessor service
@@ -116,15 +116,16 @@ class DirectSubtitleProcessor:
         Args:
             subtitles: List of subtitle objects to process
             user_id: User ID for personalized filtering
+            db: Database session (required)
             user_level: User's language level (A1, A2, B1, B2, C1, C2)
             language: Target language code
-            db: Optional database session (creates one if not provided)
 
         Returns:
             FilteringResult with categorized content
         """
-        from core.database import AsyncSessionLocal
-        
+        if db is None:
+            raise ValueError("Database session is required for process_subtitles")
+
         user_id_str = str(user_id)
         logger.info(f"Processing {len(subtitles)} subtitles for user {user_id_str}")
 
@@ -132,17 +133,10 @@ class DirectSubtitleProcessor:
         user_known_words = await self.data_loader.get_user_known_words(user_id_str, language)
         await self.data_loader.load_word_difficulties(language)
 
-        # Use provided db session or create new one
-        if db is None:
-            async with AsyncSessionLocal() as session:
-                result = await self.processor.process_subtitles(
-                    subtitles, user_known_words, user_level, language, self.vocab_service, session
-                )
-        else:
-            # Delegate to SubtitleProcessor
-            result = await self.processor.process_subtitles(
-                subtitles, user_known_words, user_level, language, self.vocab_service, db
-            )
+        # Delegate to SubtitleProcessor with mandatory db session
+        result = await self.processor.process_subtitles(
+            subtitles, user_known_words, user_level, language, self.vocab_service, db
+        )
 
         # Add user_id to statistics for backward compatibility
         result.statistics["user_id"] = user_id_str
@@ -150,7 +144,7 @@ class DirectSubtitleProcessor:
         return result
 
     async def process_srt_file(
-        self, srt_file_path: str, user_id: int | str, user_level: str = "A1", language: str = "de"
+        self, srt_file_path: str, user_id: int | str, db: Any, user_level: str = "A1", language: str = "de"
     ) -> dict[str, Any]:
         """
         Process an SRT file - delegates to SRTFileHandler and SubtitleProcessor
@@ -158,6 +152,7 @@ class DirectSubtitleProcessor:
         Args:
             srt_file_path: Path to SRT file
             user_id: User ID
+            db: Database session
             user_level: User's language level
             language: Language code
 
@@ -171,7 +166,13 @@ class DirectSubtitleProcessor:
             filtered_subtitles = await self.file_handler.parse_srt_file(srt_file_path)
 
             # Process through filtering pipeline
-            filtering_result = await self.process_subtitles(filtered_subtitles, str(user_id), user_level, language)
+            filtering_result = await self.process_subtitles(
+                subtitles=filtered_subtitles,
+                user_id=str(user_id),
+                db=db,
+                user_level=user_level,
+                language=language
+            )
 
             # Format result using file handler
             result = self.file_handler.format_processing_result(filtering_result, srt_file_path)

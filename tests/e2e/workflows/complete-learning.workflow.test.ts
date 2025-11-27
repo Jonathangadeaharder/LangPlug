@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { TestDataManager, TestUser } from '../utils/test-data-manager';
+import { TEST_CONFIG } from '../utils/test-config';
+import { loginUser, authenticatedGet, authenticatedPost, unauthenticatedGet } from '../utils/page-helpers';
 
 test.describe('Complete Learning Workflow @smoke', () => {
   let testDataManager: TestDataManager;
@@ -8,14 +10,7 @@ test.describe('Complete Learning Workflow @smoke', () => {
   test.beforeEach(async ({ page }) => {
     testDataManager = new TestDataManager();
     testUser = await testDataManager.createTestUser();
-
-    // Log in user
-    await page.goto('/login');
-    await page.locator('input[type="email"]').fill(testUser.email);
-    await page.locator('input[type="password"]').fill(testUser.password);
-    await page.locator('button[type="submit"]').click();
-
-    await expect(page.locator('[data-testid="user-menu"]')).toBeVisible({ timeout: 10000 });
+    await loginUser(page, testUser);
   });
 
   test.afterEach(async () => {
@@ -24,25 +19,21 @@ test.describe('Complete Learning Workflow @smoke', () => {
 
   test('WhenUserCompletesFullLearningFlow_ThenAllFeaturesWorkTogether @smoke', async ({ page }) => {
     await test.step('Verify authentication and core APIs work together', async () => {
-      // Test that authenticated user can access multiple API endpoints
-
       // 1. Videos API
-      const videosResponse = await page.request.get('http://127.0.0.1:8000/api/videos', {
-        headers: { Authorization: `Bearer ${testUser.token}` }
-      });
-      expect(videosResponse.ok()).toBeTruthy();
+      const { ok: videosOk } = await authenticatedGet(page, TEST_CONFIG.ENDPOINTS.VIDEOS, testUser);
+      expect(videosOk).toBeTruthy();
 
       // 2. Vocabulary API
-      const vocabResponse = await page.request.get('http://127.0.0.1:8000/api/vocabulary?cefr_level=A1&limit=1', {
-        headers: { Authorization: `Bearer ${testUser.token}` }
-      });
-      expect(vocabResponse.status()).not.toBe(401); // Should be authorized
+      const { status: vocabStatus } = await authenticatedGet(
+        page,
+        `${TEST_CONFIG.ENDPOINTS.VOCABULARY_LIBRARY}?level=A1&limit=1`,
+        testUser
+      );
+      expect(vocabStatus).not.toBe(401);
 
       // 3. Video scan API
-      const scanResponse = await page.request.post('http://127.0.0.1:8000/api/videos/scan', {
-        headers: { Authorization: `Bearer ${testUser.token}` }
-      });
-      expect(scanResponse.ok()).toBeTruthy();
+      const { ok: scanOk } = await authenticatedPost(page, TEST_CONFIG.ENDPOINTS.VIDEOS_SCAN, testUser);
+      expect(scanOk).toBeTruthy();
     });
 
     // Note: Full learning flow UI (video player, game integration, progress tracking) not implemented yet
@@ -55,15 +46,15 @@ test.describe('Complete Learning Workflow @smoke', () => {
       const testVocab = await testDataManager.createTestVocabulary(testUser, {
         word: 'Progresstest',
         translation: 'Progress test',
-        difficulty_level: 'beginner'
+        difficulty_level: 'beginner' as const
       });
 
       // Verify vocabulary was created successfully
       expect(testVocab.id).toBeDefined();
 
       // Verify backend is still accessible with health check
-      const healthResponse = await page.request.get('http://127.0.0.1:8000/health');
-      expect(healthResponse.status()).toBe(200);
+      const { status } = await unauthenticatedGet(page, TEST_CONFIG.ENDPOINTS.HEALTH);
+      expect(status).toBe(200);
     });
 
     // Note: Episode progress tracking and repeat learning UI not implemented yet

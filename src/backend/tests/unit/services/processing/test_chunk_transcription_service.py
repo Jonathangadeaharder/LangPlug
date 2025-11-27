@@ -400,3 +400,71 @@ class TestTranscribeChunk:
                     await service.transcribe_chunk(
                         task_id, task_progress, video_file, audio_file, {"target": "de"}, 0.0, 30.0
                     )
+
+
+class TestProgressSimulation:
+    """Test progress simulation during transcription"""
+
+    @pytest.fixture
+    def service(self):
+        return ChunkTranscriptionService()
+
+    @pytest.mark.asyncio
+    async def test_progress_updates_during_transcription(self, service):
+        """Test that progress is updated during simulated transcription wait."""
+        import asyncio
+
+        task_id = "test_task"
+        task_progress = {task_id: Mock(progress=5, current_step="", message="")}
+        stop_event = asyncio.Event()
+        
+        # Start progress simulation for a 60-second audio (estimated ~12s transcription)
+        progress_task = asyncio.create_task(
+            service._simulate_transcription_progress(task_id, task_progress, 60.0, stop_event)
+        )
+        
+        # Wait a bit for progress to update
+        await asyncio.sleep(2.5)
+        
+        # Stop simulation
+        stop_event.set()
+        progress_task.cancel()
+        try:
+            await progress_task
+        except asyncio.CancelledError:
+            pass
+        
+        # Progress should have increased from initial 5%
+        assert task_progress[task_id].progress > 5, "Progress should increase during transcription"
+        # Progress should be less than 35% (end of transcription phase)
+        assert task_progress[task_id].progress < 35, "Progress should not exceed transcription phase end"
+        # Message should include elapsed time
+        assert "elapsed" in task_progress[task_id].message.lower(), "Message should show elapsed time"
+
+    @pytest.mark.asyncio
+    async def test_progress_caps_at_95_percent_of_target(self, service):
+        """Test that progress caps at 95% of target range to leave room for completion."""
+        import asyncio
+
+        task_id = "test_task"
+        task_progress = {task_id: Mock(progress=5, current_step="", message="")}
+        stop_event = asyncio.Event()
+        
+        # Start progress simulation for very short audio (2s -> estimated 0.4s transcription)
+        progress_task = asyncio.create_task(
+            service._simulate_transcription_progress(task_id, task_progress, 2.0, stop_event)
+        )
+        
+        # Wait longer than estimated time
+        await asyncio.sleep(5.0)
+        
+        # Stop simulation
+        stop_event.set()
+        progress_task.cancel()
+        try:
+            await progress_task
+        except asyncio.CancelledError:
+            pass
+        
+        # Progress should not exceed ~33.5% (5% + 0.95 * 30% = 33.5%)
+        assert task_progress[task_id].progress <= 34, "Progress should cap at ~95% of target range"

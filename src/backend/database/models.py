@@ -332,19 +332,3 @@ class UnknownWord(Base):
     )
 
 
-# Legacy model for test compatibility
-class VocabularyConcept(Base):
-    """Legacy vocabulary concept model for test compatibility"""
-
-    __tablename__ = "vocabulary_concepts"
-
-    id = Column(String(36), primary_key=True)
-    difficulty_level = Column(String(5), nullable=False)
-    semantic_category = Column(String(50))
-    domain = Column(String(50))
-
-    # Mock translations relationship for tests
-    @property
-    def translations(self):
-        """Mock translations for test compatibility"""
-        return []

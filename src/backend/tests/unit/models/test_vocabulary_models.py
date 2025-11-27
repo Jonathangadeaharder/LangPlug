@@ -20,7 +20,7 @@ from api.models.vocabulary import (
     VocabularyStats,
     VocabularyWord,
 )
-from api.routes.vocabulary import MarkKnownRequest
+from api.routes.vocabulary_progress_routes import MarkKnownRequest
 
 
 class TestVocabularyWordValidation:

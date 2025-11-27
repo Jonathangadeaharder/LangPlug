@@ -68,13 +68,19 @@ describe('ChunkedLearningPlayer', () => {
 
   test('displays chunk information', () => {
     render(<ChunkedLearningPlayer {...createProps()} />)
-    expect(screen.getByText('Playing Chunk')).toBeInTheDocument()
-    expect(screen.getByText('1 of 3 • 5:00')).toBeInTheDocument()
+    // Use getAllByText because "Chunk 1/3" appears in both desktop and mobile views (via styled components)
+    const chunkInfoElements = screen.getAllByText((content, element) => {
+      return element?.textContent === 'Chunk 1/3'
+    })
+    expect(chunkInfoElements.length).toBeGreaterThan(0)
+    expect(chunkInfoElements[0]).toBeInTheDocument()
   })
 
   test('displays learned words count', () => {
     render(<ChunkedLearningPlayer {...createProps()} />)
-    expect(screen.getByText('1 learned')).toBeInTheDocument()
+    const learnedElements = screen.getAllByText('1 learned')
+    expect(learnedElements.length).toBeGreaterThan(0)
+    expect(learnedElements[0]).toBeInTheDocument()
   })
 
   test('invokes onBack when back button is clicked', () => {
@@ -87,7 +93,7 @@ describe('ChunkedLearningPlayer', () => {
   test('invokes onSkipChunk when next button is clicked', () => {
     const onSkipChunk = vi.fn()
     render(<ChunkedLearningPlayer {...createProps({ onSkipChunk })} />)
-    const skipButtons = screen.getAllByRole('button', { name: /skip chunk/i })
+    const skipButtons = screen.getAllByRole('button', { name: /skip/i })
     fireEvent.click(skipButtons[0])
     expect(onSkipChunk).toHaveBeenCalled()
   })

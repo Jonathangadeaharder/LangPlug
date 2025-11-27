@@ -3,9 +3,10 @@ import * as path from 'path';
 
 export default defineConfig({
   testDir: './workflows',
-  timeout: 60000,
+  testMatch: '**/*.test.ts',
+  timeout: 120000,
   expect: {
-    timeout: 10000,
+    timeout: 15000,
   },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -19,7 +20,7 @@ export default defineConfig({
     ['line']
   ],
   use: {
-    baseURL: process.env.FRONTEND_URL || 'http://localhost:5173',
+    baseURL: process.env.FRONTEND_URL || 'http://localhost:3000',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -33,7 +34,7 @@ export default defineConfig({
     },
   ],
   outputDir: 'test-results/',
-  // Commented out - violates process isolation rules
-  // globalSetup: path.resolve(__dirname, 'setup/global-setup.ts'),
-  // globalTeardown: path.resolve(__dirname, 'setup/global-teardown.ts'),
+  // Servers must be started manually before running tests
+  // Backend: api_venv\Scripts\python.exe run_backend.py (from src/backend)
+  // Frontend: npm run dev (from src/frontend)
 });

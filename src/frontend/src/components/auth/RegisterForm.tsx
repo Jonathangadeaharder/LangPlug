@@ -123,7 +123,7 @@ const RegisterFormSchema = schemas.UserCreate.extend({
       /^[a-zA-Z0-9_-]+$/,
       'Username must contain only alphanumeric characters, underscores, and hyphens'
     ),
-  password: z.string().min(12, 'Password must be at least 12 characters long'),
+  password: z.string().min(8, 'Password must be at least 8 characters long'),
   confirmPassword: z.string(),
 }).refine(
   (data: { password: string; confirmPassword: string }) => data.password === data.confirmPassword,
@@ -141,7 +141,7 @@ export const RegisterForm: React.FC = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  const { register, isLoading, error: authError } = useAuthStore()
+  const { register, isLoading, error: _authError } = useAuthStore()
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -175,13 +175,14 @@ export const RegisterForm: React.FC = () => {
     } catch (error: unknown) {
       // Handle validation errors from backend using standardized formatter
       // This correctly handles both Pydantic/FastAPI validation errors (422)
-      // and generic API errors
+      // and LangPlug custom error format ({ error: { details: [...] } })
+      // Don't use error.message directly as it's often just "Validation Error"
       const errorMessage = formatApiError(error, 'Failed to create account. Please try again.')
       setError(errorMessage)
     }
   }
 
-  const isPasswordValid = password.length >= 12
+  const isPasswordValid = password.length >= 8
   const doPasswordsMatch = password === confirmPassword && confirmPassword.length > 0
 
   return (

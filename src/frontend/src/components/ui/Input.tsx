@@ -16,12 +16,12 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 const InputWrapper = styled.div.withConfig({
   shouldForwardProp: prop => !['fullWidth'].includes(prop),
-})<{ fullWidth?: boolean }>`
+})<{ $fullWidth?: boolean }>`
   position: relative;
   display: inline-flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.xs};
-  width: ${({ fullWidth }) => (fullWidth ? '100%' : 'auto')};
+  width: ${({ $fullWidth }) => ($fullWidth ? '100%' : 'auto')};
 `
 
 const Label = styled.label`
@@ -37,9 +37,9 @@ const InputContainer = styled.div`
   align-items: center;
 `
 
-const IconWrapper = styled.span<{ position: 'left' | 'right' }>`
+const IconWrapper = styled.span<{ $position: 'left' | 'right' }>`
   position: absolute;
-  ${({ position }) => (position === 'left' ? 'left' : 'right')}: ${({ theme }) => theme.spacing.md};
+  ${({ $position }) => ($position === 'left' ? 'left' : 'right')}: ${({ theme }) => theme.spacing.md};
   display: flex;
   align-items: center;
   color: ${({ theme }) => theme.colors.textSecondary};
@@ -92,17 +92,17 @@ const variantStyles = {
 }
 
 const StyledInput = styled.input<{
-  hasIcon?: boolean
-  iconPosition?: 'left' | 'right'
-  hasError?: boolean
-  hasSuccess?: boolean
+  $hasIcon?: boolean
+  $iconPosition?: 'left' | 'right'
+  $hasError?: boolean
+  $hasSuccess?: boolean
   variant?: 'default' | 'filled' | 'outlined'
 }>`
   width: 100%;
-  padding: ${({ theme, hasIcon, iconPosition }) => {
+  padding: ${({ theme, $hasIcon, $iconPosition }) => {
     const base = `${theme.spacing.sm} ${theme.spacing.md}`
-    if (!hasIcon) return base
-    return iconPosition === 'left'
+    if (!$hasIcon) return base
+    return $iconPosition === 'left'
       ? `${theme.spacing.sm} ${theme.spacing.md} ${theme.spacing.sm} calc(${theme.spacing.md} * 2.5)`
       : `${theme.spacing.sm} calc(${theme.spacing.md} * 2.5) ${theme.spacing.sm} ${theme.spacing.md}`
   }};
@@ -115,8 +115,8 @@ const StyledInput = styled.input<{
 
   ${({ variant = 'default' }) => variantStyles[variant]}
 
-  ${({ hasError, theme }) =>
-    hasError &&
+  ${({ $hasError, theme }) =>
+    $hasError &&
     css`
       border-color: ${theme.colors.error} !important;
 
@@ -125,8 +125,8 @@ const StyledInput = styled.input<{
       }
     `}
 
-  ${({ hasSuccess, theme }) =>
-    hasSuccess &&
+  ${({ $hasSuccess, theme }) =>
+    $hasSuccess &&
     css`
       border-color: ${theme.colors.success} !important;
 
@@ -157,17 +157,17 @@ const StyledInput = styled.input<{
 
 const HelperText = styled(motion.span).withConfig({
   shouldForwardProp: prop => !['error', 'success'].includes(prop),
-})<{ error?: boolean; success?: boolean }>`
+})<{ $error?: boolean; $success?: boolean }>`
   font-size: ${({ theme }) => theme.typography.fontSize.xs};
-  color: ${({ theme, error, success }) =>
-    error ? theme.colors.error : success ? theme.colors.success : theme.colors.textSecondary};
+  color: ${({ theme, $error, $success }) =>
+    $error ? theme.colors.error : $success ? theme.colors.success : theme.colors.textSecondary};
   margin-top: ${({ theme }) => theme.spacing.xs};
   display: block;
 `
 
 const FloatingLabel = styled(motion.label).withConfig({
   shouldForwardProp: prop => !['isFocused', 'hasValue'].includes(prop),
-})<{ isFocused: boolean; hasValue: boolean }>`
+})<{ $isFocused: boolean; $hasValue: boolean }>`
   position: absolute;
   left: ${({ theme }) => theme.spacing.md};
   background: ${({ theme }) => theme.colors.background};
@@ -176,8 +176,8 @@ const FloatingLabel = styled(motion.label).withConfig({
   pointer-events: none;
   transition: all ${({ theme }) => theme.transitions.fast};
 
-  ${({ isFocused, hasValue }) =>
-    isFocused || hasValue
+  ${({ $isFocused, $hasValue }) =>
+    $isFocused || $hasValue
       ? css`
           top: -8px;
           font-size: ${({ theme }) => theme.typography.fontSize.xs};
@@ -224,24 +224,24 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     }
 
     return (
-      <InputWrapper fullWidth={fullWidth} className={className}>
+      <InputWrapper $fullWidth={fullWidth} className={className}>
         {label && !props.placeholder && <Label>{label}</Label>}
 
         <InputContainer>
-          {icon && <IconWrapper position={iconPosition}>{icon}</IconWrapper>}
+          {icon && <IconWrapper $position={iconPosition}>{icon}</IconWrapper>}
 
           {label && props.placeholder && (
-            <FloatingLabel isFocused={isFocused} hasValue={hasValue}>
+            <FloatingLabel $isFocused={isFocused} $hasValue={hasValue}>
               {label}
             </FloatingLabel>
           )}
 
           <StyledInput
             ref={ref}
-            hasIcon={!!icon}
-            iconPosition={iconPosition}
-            hasError={!!error}
-            hasSuccess={!!success}
+            $hasIcon={!!icon}
+            $iconPosition={iconPosition}
+            $hasError={!!error}
+            $hasSuccess={!!success}
             variant={variant}
             onFocus={handleFocus}
             onBlur={handleBlur}
@@ -253,8 +253,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <AnimatePresence mode="wait">
           {(error || success || helperText) && (
             <HelperText
-              error={!!error}
-              success={!!success}
+              $error={!!error}
+              $success={!!success}
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}

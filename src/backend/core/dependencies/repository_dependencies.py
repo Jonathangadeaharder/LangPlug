@@ -65,7 +65,7 @@ def get_user_repository(db: Annotated[AsyncSession, Depends(get_async_session)])
             return await user_repo.get_by_id(user_id)
         ```
     """
-    return UserRepository(db)  # type: ignore[return-value]
+    return UserRepository(db)
 
 
 def get_vocabulary_repository(db: Annotated[AsyncSession, Depends(get_async_session)]) -> VocabularyRepositoryInterface:
@@ -88,7 +88,7 @@ def get_vocabulary_repository(db: Annotated[AsyncSession, Depends(get_async_sess
             return await vocab_repo.get_by_difficulty_level(level)
         ```
     """
-    return VocabularyRepository(db)  # type: ignore[abstract]
+    return VocabularyRepository(db)
 
 
 def get_user_vocabulary_progress_repository(
@@ -113,7 +113,7 @@ def get_user_vocabulary_progress_repository(
             return await progress_repo.get_user_progress(user_id)
         ```
     """
-    return UserVocabularyProgressRepository(db)  # type: ignore[call-arg]
+    return UserVocabularyProgressRepository(db)
 
 
 def get_processing_session_repository(
@@ -138,7 +138,7 @@ def get_processing_session_repository(
             return await session_repo.get_by_session_id(session_id)
         ```
     """
-    return ProcessingSessionRepository(db)  # type: ignore[call-arg]
+    return ProcessingSessionRepository(db)
 
 
 __all__ = [

@@ -29,7 +29,7 @@ export const UserSchema = z.object({
 export const CreateUserSchema = z.object({
   email: z.string().email(),
   username: z.string().min(1),
-  password: z.string().min(6),
+  password: z.string().min(8),
 })
 
 export const LoginRequestSchema = z.object({

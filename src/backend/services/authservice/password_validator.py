@@ -39,6 +39,8 @@ Performance Notes:
 
 import re
 
+from core.config import settings
+
 
 class PasswordValidator:
     """
@@ -69,11 +71,11 @@ class PasswordValidator:
         Validation is case-insensitive for common password checking.
     """
 
-    MIN_LENGTH = 12
-    REQUIRE_UPPERCASE = True
-    REQUIRE_LOWERCASE = True
-    REQUIRE_DIGITS = True
-    REQUIRE_SPECIAL = True
+    MIN_LENGTH = settings.password_min_length
+    REQUIRE_UPPERCASE = settings.password_require_uppercase
+    REQUIRE_LOWERCASE = settings.password_require_lowercase
+    REQUIRE_DIGITS = settings.password_require_digits
+    REQUIRE_SPECIAL = settings.password_require_special
 
     # Common passwords to block (top 100 most common)
     # Includes variations that meet complexity requirements (12+ chars, upper/lower/digit/special)

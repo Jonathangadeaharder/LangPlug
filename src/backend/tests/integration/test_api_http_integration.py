@@ -62,7 +62,8 @@ class TestAPIHTTPProtocol:
             # Layer 6: Test error format
             assert response.headers["content-type"] == "application/json"
             error = response.json()
-            assert "detail" in error
+            # Accept either standard FastAPI format or custom ErrorResponse format
+            assert "detail" in error or "error" in error
 
     @pytest.mark.asyncio
     async def test_cors_headers_present(self):

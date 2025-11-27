@@ -7,6 +7,12 @@ import logging
 from typing import Any
 
 from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
+from services.vocabulary import (
+    get_vocabulary_progress_service,
+    get_vocabulary_query_service,
+    get_vocabulary_service,
+    get_vocabulary_stats_service,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +21,13 @@ class TranslationManagementService:
     """Service for managing selective translations based on known words"""
 
     def __init__(self):
-        self.subtitle_processor = DirectSubtitleProcessor()
+        # Initialize vocabulary service for DirectSubtitleProcessor
+        query_service = get_vocabulary_query_service()
+        progress_service = get_vocabulary_progress_service()
+        stats_service = get_vocabulary_stats_service()
+        vocab_service = get_vocabulary_service(query_service, progress_service, stats_service)
+
+        self.subtitle_processor = DirectSubtitleProcessor(vocab_service=vocab_service)
 
     async def apply_selective_translations(
         self,

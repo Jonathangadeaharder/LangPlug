@@ -11,42 +11,51 @@ class TestPasswordValidation:
     """Test password strength validation rules"""
 
     def test_validate_minimum_length_too_short(self):
-        """Passwords shorter than 12 characters should be rejected"""
+        """Passwords shorter than 8 characters should be rejected"""
         is_valid, error = PasswordValidator.validate("Short1!")
         assert is_valid is False
-        assert "12 characters" in error
+        assert "8 characters" in error
 
-    def test_validate_minimum_length_exactly_12(self):
-        """Password with exactly 12 characters should pass length check"""
-        # This will fail other checks, but should pass length
-        password = "a" * 12
+    def test_validate_minimum_length_exactly_8(self):
+        """Password with exactly 8 characters should pass length check"""
+        # This will fail other checks if they are enabled, but length is fine
+        # Given we disabled uppercase/special, "a" * 8 might still fail digits/lowercase if enabled
+        # Let's use a simple valid one: "password" (8 chars, lowercase)
+        # But wait, common password check might block it.
+        # Use "pass1234" (8 chars, lowercase + digits)
+        password = "pass1234" 
         _is_valid, error = PasswordValidator.validate(password)
-        # Will fail for other reasons, but not length
-        assert "12 characters" not in error
+        # Will fail for other reasons if any, but not length
+        assert "8 characters" not in error
 
-    def test_validate_requires_uppercase(self):
-        """Password without uppercase should be rejected"""
+    def test_validate_requires_uppercase_is_optional(self):
+        """Password without uppercase should be accepted now"""
+        # "lowercase123!" -> lowercase + digits + special + 13 chars
+        # Should pass even without uppercase
         is_valid, error = PasswordValidator.validate("lowercase123!")
-        assert is_valid is False
-        assert "uppercase" in error.lower()
+        assert is_valid is True
+        assert error == ""
 
     def test_validate_requires_lowercase(self):
         """Password without lowercase should be rejected"""
+        # Assuming lowercase is still required
         is_valid, error = PasswordValidator.validate("UPPERCASE123!")
         assert is_valid is False
         assert "lowercase" in error.lower()
 
     def test_validate_requires_digit(self):
         """Password without digit should be rejected"""
+        # Assuming digits are still required
         is_valid, error = PasswordValidator.validate("NoDigitsHere!")
         assert is_valid is False
         assert "digit" in error.lower()
 
-    def test_validate_requires_special_character(self):
-        """Password without special character should be rejected"""
+    def test_validate_requires_special_character_is_optional(self):
+        """Password without special character should be accepted now"""
+        # "NoSpecial123" -> Mixed case + digits + 12 chars
         is_valid, error = PasswordValidator.validate("NoSpecial123")
-        assert is_valid is False
-        assert "special character" in error.lower()
+        assert is_valid is True
+        assert error == ""
 
     def test_validate_strong_password_success(self):
         """Strong password meeting all requirements should pass"""
@@ -68,14 +77,14 @@ class TestCommonPasswordBlocking:
 
     def test_validate_blocks_common_password_lowercase(self):
         """Common passwords should be blocked (case-insensitive)"""
-        # "password1234" is in COMMON_PASSWORDS, meets length (12), needs complexity
+        # "password1234" meets length (8+)
         is_valid, error = PasswordValidator.validate("Password1234!")
         assert is_valid is False
         assert "common" in error.lower()
 
     def test_validate_blocks_common_password_uppercase(self):
         """Common passwords should be blocked regardless of case"""
-        # Case variation of password1234 with complexity (has lowercase 'p')
+        # Case variation of password1234
         is_valid, error = PasswordValidator.validate("pASSWORD1234!")
         assert is_valid is False
         assert "common" in error.lower()
@@ -89,21 +98,18 @@ class TestCommonPasswordBlocking:
 
     def test_validate_blocks_admin_password(self):
         """Admin variations should be blocked"""
-        # "admin1234567" is in COMMON_PASSWORDS (12 chars)
         is_valid, error = PasswordValidator.validate("Admin1234567!")
         assert is_valid is False
         assert "common" in error.lower()
 
     def test_validate_blocks_welcome_password(self):
         """Welcome variations should be blocked"""
-        # "welcome1234!" is in COMMON_PASSWORDS (12 chars)
         is_valid, error = PasswordValidator.validate("Welcome1234!")
         assert is_valid is False
         assert "common" in error.lower()
 
     def test_validate_blocks_langplug_password(self):
         """Application-specific common passwords should be blocked"""
-        # "langplug123!" is in COMMON_PASSWORDS (12 chars)
         is_valid, error = PasswordValidator.validate("Langplug123!")
         assert is_valid is False
         assert "common" in error.lower()
@@ -119,8 +125,8 @@ class TestEdgeCases:
     """Test edge cases and boundary conditions"""
 
     def test_validate_exactly_minimum_length_with_all_requirements(self):
-        """12-character password with all requirements should pass"""
-        is_valid, _error = PasswordValidator.validate("SecurePass1!")  # Exactly 12 chars
+        """8-character password with requirements should pass"""
+        is_valid, _error = PasswordValidator.validate("Secure1!")  # Exactly 8 chars
         assert is_valid is True
 
     def test_validate_very_long_password(self):
@@ -165,11 +171,11 @@ class TestValidationReturnFormat:
     def test_validate_error_messages_are_descriptive(self):
         """Error messages should clearly describe the issue"""
         test_cases = [
-            ("short", "12 characters"),
-            ("nouppercase123!", "uppercase"),
+            ("short", "8 characters"),
+            # ("nouppercase123!", "uppercase"), # No longer required
             ("NOLOWERCASE123!", "lowercase"),
             ("NoDigitsHere!", "digit"),
-            ("NoSpecial123", "special"),
+            # ("NoSpecial123", "special"), # No longer required
             ("Password1234!", "common"),  # Meets complexity but is common
         ]
 

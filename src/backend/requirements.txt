@@ -29,6 +29,8 @@ alembic>=1.16.5,<2.0.0
 # AI/ML - Core Models
 # ============================================================================
 openai-whisper>=20231117,<20260000
+faster-whisper>=1.0.0,<2.0.0  # CTranslate2-based, 4x faster transcription
+ctranslate2>=4.0.0,<5.0.0  # CTranslate2 for 9x faster translation
 transformers>=4.45.0,<5.0.0
 torch>=2.0.0,<3.0.0
 spacy>=3.8.0,<4.0.0
@@ -66,6 +68,8 @@ psutil>=6.1.0,<8.0.0
 websockets>=13.0,<16.0.0
 pyyaml>=6.0.2,<7.0.0
 rich>=13.9.0,<15.0.0
+aiofiles>=23.0.0,<25.0.0  # Async file I/O
+sacremoses>=0.1.0,<1.0.0  # Better tokenization for OPUS-MT
 tqdm>=4.67.0,<5.0.0
 pandas>=2.2.0,<3.0.0
 numpy>=1.26.0,<3.0.0

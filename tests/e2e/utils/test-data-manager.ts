@@ -110,7 +110,7 @@ export class TestDataManager {
     };
 
     try {
-      const response = await this.api.post('/api/vocabulary', vocabulary, {
+      const response = await this.api.post('/api/vocabulary/create', vocabulary, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
 

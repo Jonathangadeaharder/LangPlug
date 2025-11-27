@@ -5,11 +5,12 @@ Video management API routes
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.error_handlers import handle_api_errors, raise_bad_request, raise_conflict, raise_not_found
+from core.exceptions import EpisodeNotFoundError, SeriesNotFoundError, VideoNotFoundError
 from api.models.processing import ProcessingStatus
 from api.models.video import VideoInfo
 from api.models.vocabulary import VocabularyWord
@@ -86,8 +87,10 @@ async def stream_video(
     """Stream video file - Requires authentication"""
     try:
         video_file = video_service.get_video_file_path(series, episode)
-    except HTTPException:
-        raise
+    except SeriesNotFoundError:
+        raise_not_found("Series", series)
+    except EpisodeNotFoundError:
+        raise_not_found("Episode", f"{episode} in series {series}")
     except Exception as e:
         # Map unexpected errors if any
         logger.error(f"Error finding video: {e}")

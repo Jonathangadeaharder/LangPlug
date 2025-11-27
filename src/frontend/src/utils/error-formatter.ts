@@ -3,9 +3,21 @@
  * Extracts user-friendly error messages from API errors
  */
 
+export interface ValidationErrorItem {
+  loc?: (string | number)[]
+  msg?: string
+  type?: string
+}
+
 export interface ApiError {
   body?: {
-    detail?: string
+    detail?: string | ValidationErrorItem[]
+    // Custom error format used by LangPlug backend
+    error?: {
+      code?: string
+      message?: string
+      details?: ValidationErrorItem[]
+    }
   }
   message?: string
   status?: number
@@ -15,12 +27,28 @@ export interface ApiError {
   response?: {
     data?: {
       detail?: string | Array<{ msg?: string }>
+      error?: {
+        code?: string
+        message?: string
+        details?: Array<{ msg?: string }>
+      }
     }
     status?: number
     headers?: {
       'retry-after'?: string
     }
   }
+}
+
+/**
+ * Strip Pydantic's "Value error, " prefix from validation messages
+ */
+function cleanValidationMessage(msg: string): string {
+  // Pydantic prefixes ValueError messages with "Value error, "
+  if (msg.startsWith('Value error, ')) {
+    return msg.slice('Value error, '.length)
+  }
+  return msg
 }
 
 /**
@@ -33,16 +61,56 @@ export function formatApiError(error: unknown, fallback: string): string {
   if (!error) return fallback
 
   const err = error as ApiError
-  // Try different error structures
-  if (err?.body?.detail) return err.body.detail
+  
+  // Try body.error.details first (LangPlug custom validation error format)
+  if (err?.body?.error?.details && Array.isArray(err.body.error.details)) {
+    const messages = err.body.error.details
+      .map(item => item.msg ? cleanValidationMessage(item.msg) : JSON.stringify(item))
+      .filter(Boolean)
+    if (messages.length > 0) return messages.join('; ')
+  }
+  
+  // Try body.detail (standard FastAPI/OpenAPI format)
+  if (err?.body?.detail) {
+    const detail = err.body.detail
+    // Handle array of validation errors (Pydantic/FastAPI 422 format)
+    if (Array.isArray(detail)) {
+      const messages = detail
+        .map(item => item.msg ? cleanValidationMessage(item.msg) : JSON.stringify(item))
+        .filter(Boolean)
+      return messages.length > 0 ? messages.join('; ') : fallback
+    }
+    // Handle string detail
+    if (typeof detail === 'string') {
+      return cleanValidationMessage(detail)
+    }
+  }
+  
+  // Try response.data.error.details (axios + LangPlug custom format)
+  if (err?.response?.data?.error?.details && Array.isArray(err.response.data.error.details)) {
+    const messages = err.response.data.error.details
+      .map(item => item.msg ? cleanValidationMessage(item.msg) : JSON.stringify(item))
+      .filter(Boolean)
+    if (messages.length > 0) return messages.join('; ')
+  }
+  
+  // Try response.data.detail (axios-style format)
   if (err?.response?.data?.detail) {
     const detail = err.response.data.detail
     // Handle array of validation errors
     if (Array.isArray(detail)) {
-      return detail.map(item => item.msg || JSON.stringify(item)).join('; ')
+      const messages = detail
+        .map(item => item.msg ? cleanValidationMessage(item.msg) : JSON.stringify(item))
+        .filter(Boolean)
+      return messages.length > 0 ? messages.join('; ') : fallback
     }
-    return detail
+    // Handle string detail
+    if (typeof detail === 'string') {
+      return cleanValidationMessage(detail)
+    }
   }
+  
+  // Try message property
   if (err?.message) return err.message
 
   return fallback

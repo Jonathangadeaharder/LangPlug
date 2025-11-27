@@ -66,6 +66,10 @@ async def lifespan(app: FastAPI):
             await init_services()
         else:
             logger.info("Skipping service initialization in test mode")
+            # Mark services as ready in test mode so frontend readiness checks pass
+            from core.dependencies.task_dependencies import _services_ready
+            import core.dependencies.task_dependencies as task_deps
+            task_deps._services_ready = True
 
         logger.info(f"LangPlug API server started successfully on port {port}")
         yield

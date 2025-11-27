@@ -8,6 +8,12 @@ import uuid
 from typing import Any
 
 from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
+from services.vocabulary import (
+    get_vocabulary_progress_service,
+    get_vocabulary_query_service,
+    get_vocabulary_service,
+    get_vocabulary_stats_service,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,13 +25,20 @@ class VocabularyFilterService:
     """Service for filtering vocabulary from subtitles"""
 
     def __init__(self):
-        self.subtitle_processor = DirectSubtitleProcessor()
+        # Initialize vocabulary service for DirectSubtitleProcessor
+        query_service = get_vocabulary_query_service()
+        progress_service = get_vocabulary_progress_service()
+        stats_service = get_vocabulary_stats_service()
+        vocab_service = get_vocabulary_service(query_service, progress_service, stats_service)
+
+        self.subtitle_processor = DirectSubtitleProcessor(vocab_service=vocab_service)
 
     async def filter_vocabulary_from_srt(
         self,
         srt_file_path: str,
         user: Any,
         language_preferences: dict[str, Any],
+        db_session: Any,
         task_id: str | None = None,
         task_progress: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
@@ -36,12 +49,16 @@ class VocabularyFilterService:
             srt_file_path: Path to SRT file
             user: Authenticated user object
             language_preferences: User language preferences
+            db_session: Database session (required)
             task_id: Optional task ID for progress tracking
             task_progress: Optional progress tracking dictionary
 
         Returns:
             List of vocabulary words for learning
         """
+        if db_session is None:
+            raise ValueError("Database session is required for filter_vocabulary_from_srt")
+
         logger.info(f"Filtering vocabulary from {srt_file_path}")
 
         # Update progress: Start processing (35% -> 40%)
@@ -51,8 +68,9 @@ class VocabularyFilterService:
 
         # Use subtitle processor to filter vocabulary
         filter_result = await self.subtitle_processor.process_srt_file(
-            srt_file_path,
-            str(user.id),
+            srt_file_path=srt_file_path,
+            user_id=str(user.id),
+            db=db_session,
             user_level=language_preferences.get("level", "A1"),
             language=language_preferences.get("target", "de"),
         )

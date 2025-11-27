@@ -27,7 +27,7 @@ SUPPORTED_TRANSLATION_PAIRS: set[tuple[str, str]] = {
 }
 
 TRANSCRIPTION_MODEL_MAP: dict[str, str] = {
-    "default": "whisper-small",
+    "default": "faster-whisper-turbo",  # Uses deepdml/faster-whisper-large-v3-turbo-ct2
 }
 
 SPACY_MODEL_MAP: dict[str, str] = {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App, { AppRoutes } from '../App'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -77,7 +77,7 @@ describe('App Component', () => {
   })
 
   describe('Authentication Routing', () => {
-    it('renders login form for unauthenticated user on /login', () => {
+    it('renders login form for unauthenticated user on /login', async () => {
       mockUseAuthStore.mockReturnValue({
         isAuthenticated: false,
         user: null,
@@ -90,17 +90,21 @@ describe('App Component', () => {
         error: null,
       })
 
-      render(
-        <MemoryRouter initialEntries={['/login']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
+      await act(async () => {
+        render(
+          <MemoryRouter initialEntries={['/login']}>
+            <AppRoutes />
+          </MemoryRouter>
+        )
+      })
 
-      expect(screen.getByTestId('login-form')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('login-form')).toBeInTheDocument()
+      })
       expect(screen.queryByTestId('video-selection')).not.toBeInTheDocument()
     })
 
-    it('renders register form for unauthenticated user on /register', () => {
+    it('renders register form for unauthenticated user on /register', async () => {
       mockUseAuthStore.mockReturnValue({
         isAuthenticated: false,
         user: null,
@@ -113,17 +117,21 @@ describe('App Component', () => {
         error: null,
       })
 
-      render(
-        <MemoryRouter initialEntries={['/register']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
+      await act(async () => {
+        render(
+          <MemoryRouter initialEntries={['/register']}>
+            <AppRoutes />
+          </MemoryRouter>
+        )
+      })
 
-      expect(screen.getByTestId('register-form')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('register-form')).toBeInTheDocument()
+      })
       expect(screen.queryByTestId('video-selection')).not.toBeInTheDocument()
     })
 
-    it('redirects authenticated user from /login to home', () => {
+    it('redirects authenticated user from /login to home', async () => {
       mockUseAuthStore.mockReturnValue({
         isAuthenticated: true,
         user: { id: '1', email: 'test@example.com', username: 'testuser' },
@@ -136,19 +144,23 @@ describe('App Component', () => {
         error: null,
       })
 
-      render(
-        <MemoryRouter initialEntries={['/login']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
+      await act(async () => {
+        render(
+          <MemoryRouter initialEntries={['/login']}>
+            <AppRoutes />
+          </MemoryRouter>
+        )
+      })
 
       // Should redirect to home and show video selection
-      expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      })
       expect(screen.getByTestId('video-selection')).toBeInTheDocument()
       expect(screen.queryByTestId('login-form')).not.toBeInTheDocument()
     })
 
-    it('redirects authenticated user from /register to home', () => {
+    it('redirects authenticated user from /register to home', async () => {
       mockUseAuthStore.mockReturnValue({
         isAuthenticated: true,
         user: { id: '1', email: 'test@example.com', username: 'testuser' },
@@ -161,14 +173,18 @@ describe('App Component', () => {
         error: null,
       })
 
-      render(
-        <MemoryRouter initialEntries={['/register']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
+      await act(async () => {
+        render(
+          <MemoryRouter initialEntries={['/register']}>
+            <AppRoutes />
+          </MemoryRouter>
+        )
+      })
 
       // Should redirect to home and show video selection
-      expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      })
       expect(screen.getByTestId('video-selection')).toBeInTheDocument()
       expect(screen.queryByTestId('register-form')).not.toBeInTheDocument()
     })
@@ -189,66 +205,69 @@ describe('App Component', () => {
       })
     })
 
-    it('renders video selection on home route', () => {
-      render(
-        <MemoryRouter initialEntries={['/']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
+    it('renders video selection on home route', async () => {
+      await act(async () => {
+        render(
+          <MemoryRouter initialEntries={['/']}>
+            <AppRoutes />
+          </MemoryRouter>
+        )
+      })
 
-      expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      })
       expect(screen.getByTestId('video-selection')).toBeInTheDocument()
     })
 
-    it('renders episode selection route', () => {
-      render(
-        <MemoryRouter initialEntries={['/episodes/test-series']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
+    it('renders episode selection route', async () => {
+      await act(async () => {
+        render(
+          <MemoryRouter initialEntries={['/episodes/test-series']}>
+            <AppRoutes />
+          </MemoryRouter>
+        )
+      })
 
-      expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      })
       expect(screen.getByTestId('episode-selection')).toBeInTheDocument()
     })
 
-    it('renders chunked learning route', () => {
-      render(
-        <MemoryRouter initialEntries={['/learn/test-series/test-episode']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
+    it('renders chunked learning route', async () => {
+      await act(async () => {
+        render(
+          <MemoryRouter initialEntries={['/learn/test-series/test-episode']}>
+            <AppRoutes />
+          </MemoryRouter>
+        )
+      })
 
-      expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      })
       expect(screen.getByTestId('chunked-learning')).toBeInTheDocument()
     })
 
-    // Pipeline progress route removed from app - test no longer needed
+    it('renders vocabulary library route', async () => {
+      await act(async () => {
+        render(
+          <MemoryRouter initialEntries={['/vocabulary']}>
+            <AppRoutes />
+          </MemoryRouter>
+        )
+      })
 
-    it('renders vocabulary library route', () => {
-      render(
-        <MemoryRouter initialEntries={['/vocabulary']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
-
-      expect(screen.getByTestId('protected-route')).toBeInTheDocument()
-      expect(screen.getByTestId('vocabulary-library')).toBeInTheDocument()
-    })
-
-    it('renders vocabulary library route', () => {
-      render(
-        <MemoryRouter initialEntries={['/vocabulary']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
-
-      expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      })
       expect(screen.getByTestId('vocabulary-library')).toBeInTheDocument()
     })
   })
 
   describe('Error Handling', () => {
-    it('wraps app in error boundary', () => {
+    it('wraps app in error boundary', async () => {
       mockUseAuthStore.mockReturnValue({
         isAuthenticated: false,
         user: null,
@@ -261,14 +280,18 @@ describe('App Component', () => {
         error: null,
       })
 
-      render(<App />)
+      await act(async () => {
+        render(<App />)
+      })
 
-      expect(screen.getByTestId('error-boundary')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('error-boundary')).toBeInTheDocument()
+      })
     })
   })
 
   describe('Global Components', () => {
-    it('includes global styles', () => {
+    it('includes global styles', async () => {
       mockUseAuthStore.mockReturnValue({
         isAuthenticated: false,
         user: null,
@@ -281,12 +304,16 @@ describe('App Component', () => {
         error: null,
       })
 
-      render(<App />)
+      await act(async () => {
+        render(<App />)
+      })
 
-      expect(screen.getByTestId('global-style')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('global-style')).toBeInTheDocument()
+      })
     })
 
-    it('configures router with future flags', () => {
+    it('configures router with future flags', async () => {
       mockUseAuthStore.mockReturnValue({
         isAuthenticated: false,
         user: null,
@@ -299,20 +326,22 @@ describe('App Component', () => {
         error: null,
       })
 
-      // This test verifies the router renders without errors
-      // The future flags are configured correctly if no console warnings appear
-      render(
-        <MemoryRouter initialEntries={['/login']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
+      await act(async () => {
+        render(
+          <MemoryRouter initialEntries={['/login']}>
+            <AppRoutes />
+          </MemoryRouter>
+        )
+      })
 
-      expect(screen.getByTestId('login-form')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('login-form')).toBeInTheDocument()
+      })
     })
   })
 
   describe('Route Navigation Integration', () => {
-    it('handles navigation between public and protected routes', () => {
+    it('handles navigation between public and protected routes', async () => {
       // Initially unauthenticated
       mockUseAuthStore.mockReturnValue({
         isAuthenticated: false,
@@ -332,7 +361,9 @@ describe('App Component', () => {
         </MemoryRouter>
       )
 
-      expect(screen.getByTestId('login-form')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('login-form')).toBeInTheDocument()
+      })
 
       // Simulate authentication
       mockUseAuthStore.mockReturnValue({
@@ -347,18 +378,22 @@ describe('App Component', () => {
         error: null,
       })
 
-      rerender(
-        <MemoryRouter initialEntries={['/login']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
+      await act(async () => {
+        rerender(
+          <MemoryRouter initialEntries={['/login']}>
+            <AppRoutes />
+          </MemoryRouter>
+        )
+      })
 
       // Should redirect to protected route
-      expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      })
       expect(screen.getByTestId('video-selection')).toBeInTheDocument()
     })
 
-    it('handles invalid routes gracefully', () => {
+    it('handles invalid routes gracefully', async () => {
       mockUseAuthStore.mockReturnValue({
         isAuthenticated: true,
         user: { id: '1', email: 'test@example.com', username: 'testuser' },
@@ -371,19 +406,19 @@ describe('App Component', () => {
         error: null,
       })
 
-      render(
-        <MemoryRouter initialEntries={['/nonexistent-route']}>
-          <AppRoutes />
-        </MemoryRouter>
-      )
+      await act(async () => {
+        render(
+          <MemoryRouter initialEntries={['/nonexistent-route']}>
+            <AppRoutes />
+          </MemoryRouter>
+        )
+      })
 
       // Should redirect to home page for authenticated users
-      expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByTestId('protected-route')).toBeInTheDocument()
+      })
       expect(screen.getByTestId('video-selection')).toBeInTheDocument()
     })
   })
-
-  // Test for authentication state changes removed - it was testing mock implementation
-  // rather than actual application behavior. The "Route Navigation Integration" test
-  // already covers authentication state changes with actual rerenders.
 })

@@ -577,12 +577,14 @@ class TestVideoService(ServiceTestBase):
 
         # Mock path construction
         with patch.object(videos_root, "__truediv__", return_value=series_path):
-            # Execute & Verify
-            with pytest.raises(HTTPException) as exc_info:
+            # Execute & Verify - domain exception now raised instead of HTTPException
+            from core.exceptions import SeriesNotFoundError
+
+            with pytest.raises(SeriesNotFoundError) as exc_info:
                 video_service.get_video_file_path("NonexistentSeries", "1")
 
             assert exc_info.value.status_code == 404
-            assert "not found" in str(exc_info.value.detail)
+            assert "not found" in str(exc_info.value)
 
     @patch("services.videoservice.video_service.settings")
     def test_get_video_file_path_episode_not_found(self, mock_settings, video_service):
@@ -598,12 +600,14 @@ class TestVideoService(ServiceTestBase):
 
         mock_settings.get_videos_path.return_value = videos_root
 
-        # Execute & Verify
-        with pytest.raises(HTTPException) as exc_info:
+        # Execute & Verify - domain exception now raised instead of HTTPException
+        from core.exceptions import EpisodeNotFoundError
+
+        with pytest.raises(EpisodeNotFoundError) as exc_info:
             video_service.get_video_file_path("TestSeries", "1")
 
         assert exc_info.value.status_code == 404
-        assert "Episode '1' not found" in str(exc_info.value.detail)
+        assert "Episode '1'" in str(exc_info.value)
 
     @patch("services.videoservice.video_service.settings")
     def test_get_video_file_path_flexible_matching(self, mock_settings, video_service):

@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { TestDataManager, TestUser } from '../utils/test-data-manager';
+import { TEST_CONFIG } from '../utils/test-config';
+import { loginUser, authenticatedGet, authenticatedPost, unauthenticatedGet } from '../utils/page-helpers';
 
 test.describe('Video Processing Workflow @smoke', () => {
   let testDataManager: TestDataManager;
@@ -8,15 +10,7 @@ test.describe('Video Processing Workflow @smoke', () => {
   test.beforeEach(async ({ page }) => {
     testDataManager = new TestDataManager();
     testUser = await testDataManager.createTestUser();
-
-    // Log in user
-    await page.goto('/login');
-    await page.locator('input[type="email"]').fill(testUser.email);
-    await page.locator('input[type="password"]').fill(testUser.password);
-    await page.locator('button[type="submit"]').click();
-
-    // Wait for authentication - check user menu appears
-    await expect(page.locator('[data-testid="user-menu"]')).toBeVisible({ timeout: 10000 });
+    await loginUser(page, testUser);
   });
 
   test.afterEach(async () => {
@@ -25,16 +19,9 @@ test.describe('Video Processing Workflow @smoke', () => {
 
   test('WhenUserUploadsVideo_ThenProcessingStartsAndCompletes @smoke', async ({ page }) => {
     await test.step('Verify videos can be listed via API', async () => {
-      // Test that the GET /api/videos endpoint works
-      const response = await page.request.get('http://127.0.0.1:8000/api/videos', {
-        headers: {
-          Authorization: `Bearer ${testUser.token}`
-        }
-      });
-
-      expect(response.ok()).toBeTruthy();
-      const videos = await response.json();
-      expect(Array.isArray(videos)).toBeTruthy();
+      const { ok, data } = await authenticatedGet(page, TEST_CONFIG.ENDPOINTS.VIDEOS, testUser);
+      expect(ok).toBeTruthy();
+      expect(Array.isArray(data)).toBeTruthy();
     });
 
     // Note: This is a backend API smoke test
@@ -43,16 +30,12 @@ test.describe('Video Processing Workflow @smoke', () => {
 
   test('WhenProcessingFails_ThenUserSeesErrorAndCanRetry @smoke', async ({ page }) => {
     await test.step('Verify processing status endpoint works', async () => {
-      // Test that processing status can be checked via API
-      // Using a non-existent video should return 404
-      const response = await page.request.get('http://127.0.0.1:8000/api/videos/nonexistent/status', {
-        headers: {
-          Authorization: `Bearer ${testUser.token}`
-        }
-      });
-
-      // Should return 404 for non-existent video
-      expect(response.status()).toBe(404);
+      const { status } = await authenticatedGet(
+        page,
+        `${TEST_CONFIG.ENDPOINTS.VIDEOS}/nonexistent/status`,
+        testUser
+      );
+      expect(status).toBe(404);
     });
 
     // Note: Error handling UI not implemented yet
@@ -61,16 +44,9 @@ test.describe('Video Processing Workflow @smoke', () => {
 
   test('WhenUserCancelsProcessing_ThenCanRestartLater @smoke', async ({ page }) => {
     await test.step('Verify video scan endpoint works', async () => {
-      // Test that video directory scan works
-      const response = await page.request.post('http://127.0.0.1:8000/api/videos/scan', {
-        headers: {
-          Authorization: `Bearer ${testUser.token}`
-        }
-      });
-
-      expect(response.ok()).toBeTruthy();
-      const result = await response.json();
-      expect(result).toBeDefined();
+      const { ok, data } = await authenticatedPost(page, TEST_CONFIG.ENDPOINTS.VIDEOS_SCAN, testUser);
+      expect(ok).toBeTruthy();
+      expect(data).toBeDefined();
     });
 
     // Note: Processing cancellation UI not implemented yet
@@ -79,13 +55,9 @@ test.describe('Video Processing Workflow @smoke', () => {
 
   test('WhenVideoProcessingCompletes_ThenVocabularyGameStarts @smoke', async ({ page }) => {
     await test.step('Verify health check endpoint works', async () => {
-      // Test the simplest possible endpoint - health check
-      const response = await page.request.get('http://127.0.0.1:8000/health');
-
-      // Should return 200 OK
-      expect(response.status()).toBe(200);
-      const health = await response.json();
-      expect(health.status).toBeDefined();
+      const { status, data } = await unauthenticatedGet(page, TEST_CONFIG.ENDPOINTS.HEALTH);
+      expect(status).toBe(200);
+      expect((data as { status: string }).status).toBeDefined();
     });
 
     // Note: Video player and vocabulary game UI not implemented yet

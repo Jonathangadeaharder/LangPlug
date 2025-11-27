@@ -42,6 +42,7 @@ class TranscriptionServiceFactory:
     # Registry of available transcription services
     _services: dict[str, str | type[ITranscriptionService]] = {
         # Lazy string paths for heavy services
+        # Standard OpenAI Whisper
         "whisper": "services.transcriptionservice.whisper_implementation.WhisperTranscriptionService",
         "whisper-tiny": "services.transcriptionservice.whisper_implementation.WhisperTranscriptionService",
         "whisper-base": "services.transcriptionservice.whisper_implementation.WhisperTranscriptionService",
@@ -50,6 +51,16 @@ class TranscriptionServiceFactory:
         "whisper-large": "services.transcriptionservice.whisper_implementation.WhisperTranscriptionService",
         "whisper-turbo": "services.transcriptionservice.whisper_implementation.WhisperTranscriptionService",
         "whisper-large-v3-turbo": "services.transcriptionservice.whisper_implementation.WhisperTranscriptionService",
+        # Faster-Whisper (CTranslate2) - 4x faster, less memory
+        "faster-whisper": "services.transcriptionservice.faster_whisper_implementation.FasterWhisperTranscriptionService",
+        "faster-whisper-tiny": "services.transcriptionservice.faster_whisper_implementation.FasterWhisperTranscriptionService",
+        "faster-whisper-base": "services.transcriptionservice.faster_whisper_implementation.FasterWhisperTranscriptionService",
+        "faster-whisper-small": "services.transcriptionservice.faster_whisper_implementation.FasterWhisperTranscriptionService",
+        "faster-whisper-medium": "services.transcriptionservice.faster_whisper_implementation.FasterWhisperTranscriptionService",
+        "faster-whisper-large": "services.transcriptionservice.faster_whisper_implementation.FasterWhisperTranscriptionService",
+        "faster-whisper-turbo": "services.transcriptionservice.faster_whisper_implementation.FasterWhisperTranscriptionService",
+        "faster-whisper-large-v3-turbo": "services.transcriptionservice.faster_whisper_implementation.FasterWhisperTranscriptionService",
+        # NVIDIA Parakeet
         "parakeet": "services.transcriptionservice.parakeet_implementation.ParakeetTranscriptionService",
         "parakeet-tdt-1.1b": "services.transcriptionservice.parakeet_implementation.ParakeetTranscriptionService",
         "parakeet-ctc-1.1b": "services.transcriptionservice.parakeet_implementation.ParakeetTranscriptionService",
@@ -59,6 +70,7 @@ class TranscriptionServiceFactory:
 
     # Default configurations for each service
     _default_configs = {
+        # Standard Whisper
         "whisper": {"model_size": "large-v3-turbo"},
         "whisper-tiny": {"model_size": "tiny"},
         "whisper-base": {"model_size": "base"},
@@ -67,6 +79,17 @@ class TranscriptionServiceFactory:
         "whisper-large": {"model_size": "large"},
         "whisper-turbo": {"model_size": "large-v3-turbo"},
         "whisper-large-v3-turbo": {"model_size": "large-v3-turbo"},
+        # Faster-Whisper (CTranslate2)
+        # Note: turbo models need HuggingFace model ID since not in default faster-whisper
+        "faster-whisper": {"model_size": "deepdml/faster-whisper-large-v3-turbo-ct2"},
+        "faster-whisper-tiny": {"model_size": "tiny"},
+        "faster-whisper-base": {"model_size": "base"},
+        "faster-whisper-small": {"model_size": "small"},
+        "faster-whisper-medium": {"model_size": "medium"},
+        "faster-whisper-large": {"model_size": "large-v3"},
+        "faster-whisper-turbo": {"model_size": "deepdml/faster-whisper-large-v3-turbo-ct2"},
+        "faster-whisper-large-v3-turbo": {"model_size": "deepdml/faster-whisper-large-v3-turbo-ct2"},
+        # Parakeet
         "parakeet": {"model_name": "parakeet-tdt-1.1b"},
         "parakeet-tdt-1.1b": {"model_name": "parakeet-tdt-1.1b"},
         "parakeet-ctc-1.1b": {"model_name": "parakeet-ctc-1.1b"},
@@ -97,7 +120,7 @@ class TranscriptionServiceFactory:
             cls._default_configs[name.lower()] = default_config
 
     @classmethod
-    def create_service(cls, service_name: str = "whisper", **kwargs) -> ITranscriptionService:
+    def create_service(cls, service_name: str = "faster-whisper-turbo", **kwargs) -> ITranscriptionService:
         """
         Create a transcription service instance
 
@@ -113,17 +136,16 @@ class TranscriptionServiceFactory:
         """
         import os
 
-        # Force whisper-tiny in test environment to prevent timeouts and high resource usage
-        if os.environ.get("TESTING") == "1":
-            # Override service name and config for tests
-            if service_name != "whisper-tiny":
-                # Only log if we're actually changing it
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.info(f"[TEST MODE] Overriding transcription service '{service_name}' with 'whisper-tiny'")
-
-            service_name = "whisper-tiny"
-            # Ensure model_size matches if provided in kwargs
+        # Force faster-whisper-tiny in test/debug environment for speed
+        if os.environ.get("TESTING") == "1" or os.environ.get("DEBUG") == "1":
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            if service_name != "faster-whisper-tiny":
+                logger.info(f"[TEST/DEBUG MODE] Overriding '{service_name}' with 'faster-whisper-tiny'")
+            service_name = "faster-whisper-tiny"
+            
+            # Ensure model_size matches
             if "model_size" in kwargs:
                 kwargs["model_size"] = "tiny"
 
@@ -172,6 +194,7 @@ class TranscriptionServiceFactory:
             Dictionary mapping service names to descriptions
         """
         return {
+            # Standard OpenAI Whisper
             "whisper": "OpenAI Whisper - Multi-language ASR",
             "whisper-tiny": "Whisper Tiny (39M params) - Fastest",
             "whisper-base": "Whisper Base (74M params) - Good balance",
@@ -180,6 +203,16 @@ class TranscriptionServiceFactory:
             "whisper-large": "Whisper Large (1550M params) - Best accuracy",
             "whisper-turbo": "Whisper Turbo (809M params) - Fast & accurate",
             "whisper-large-v3-turbo": "Whisper Large v3 Turbo (809M params) - Fast & accurate",
+            # Faster-Whisper (CTranslate2) - RECOMMENDED
+            "faster-whisper": "Faster-Whisper (CTranslate2) - 4x faster, less memory",
+            "faster-whisper-tiny": "Faster-Whisper Tiny - Fastest, INT8 quantization",
+            "faster-whisper-base": "Faster-Whisper Base - Good balance",
+            "faster-whisper-small": "Faster-Whisper Small - Better accuracy",
+            "faster-whisper-medium": "Faster-Whisper Medium - High accuracy",
+            "faster-whisper-large": "Faster-Whisper Large-v3 - Best accuracy",
+            "faster-whisper-turbo": "Faster-Whisper Turbo - 4x faster than standard",
+            "faster-whisper-large-v3-turbo": "Faster-Whisper Large-v3-Turbo - Best speed/accuracy",
+            # NVIDIA Parakeet
             "parakeet": "NVIDIA Parakeet - Fast English ASR",
             "parakeet-tdt-1.1b": "Parakeet TDT 1.1B - Transducer model",
             "parakeet-ctc-1.1b": "Parakeet CTC 1.1B - CTC model",
@@ -197,7 +230,7 @@ class TranscriptionServiceFactory:
 
 
 # Convenience function for quick service creation
-def get_transcription_service(name: str = "whisper", **kwargs) -> ITranscriptionService:
+def get_transcription_service(name: str = "faster-whisper-turbo", **kwargs) -> ITranscriptionService:
     """
     Get a transcription service instance
 

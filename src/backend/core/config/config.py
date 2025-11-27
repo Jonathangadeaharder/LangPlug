@@ -45,8 +45,8 @@ class Settings(BaseSettings):
     data_path: str | None = Field(default=None, alias="LANGPLUG_DATA_PATH")
     logs_path: str | None = Field(default=None, alias="LANGPLUG_LOGS_PATH")
 
-    # Service settings
-    transcription_service: str = Field(default="whisper-turbo", alias="LANGPLUG_TRANSCRIPTION_SERVICE")
+    # Service settings (CTranslate2 optimized backends)
+    transcription_service: str = Field(default="faster-whisper-turbo", alias="LANGPLUG_TRANSCRIPTION_SERVICE")
     translation_service: str = Field(default="opus-de-es-big", alias="LANGPLUG_TRANSLATION_SERVICE")  # de->es big model
     default_language: str = Field(default="de", alias="LANGPLUG_DEFAULT_LANGUAGE")
 
@@ -68,11 +68,11 @@ class Settings(BaseSettings):
     jwt_refresh_token_expire_days: int = Field(default=30, alias="LANGPLUG_JWT_REFRESH_TOKEN_EXPIRE_DAYS")
 
     # Password policy
-    password_min_length: int = Field(default=12, alias="LANGPLUG_PASSWORD_MIN_LENGTH")
-    password_require_uppercase: bool = Field(default=True, alias="LANGPLUG_PASSWORD_REQUIRE_UPPERCASE")
+    password_min_length: int = Field(default=8, alias="LANGPLUG_PASSWORD_MIN_LENGTH")
+    password_require_uppercase: bool = Field(default=False, alias="LANGPLUG_PASSWORD_REQUIRE_UPPERCASE")
     password_require_lowercase: bool = Field(default=True, alias="LANGPLUG_PASSWORD_REQUIRE_LOWERCASE")
     password_require_digits: bool = Field(default=True, alias="LANGPLUG_PASSWORD_REQUIRE_DIGITS")
-    password_require_special: bool = Field(default=True, alias="LANGPLUG_PASSWORD_REQUIRE_SPECIAL")
+    password_require_special: bool = Field(default=False, alias="LANGPLUG_PASSWORD_REQUIRE_SPECIAL")
 
     # Rate limiting
     rate_limit_requests_per_minute: int = Field(default=300, alias="LANGPLUG_RATE_LIMIT_REQUESTS_PER_MINUTE")

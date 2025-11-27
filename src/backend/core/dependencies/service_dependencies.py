@@ -1,7 +1,7 @@
 """Service dependencies for FastAPI using direct singleton pattern"""
 
 import logging
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,13 +14,22 @@ from services.interfaces import (
     IChunkTranslationService,
 )
 
+# Type hints for services (avoid circular imports)
+if TYPE_CHECKING:
+    from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
+    from services.processing.chunk_processor import ChunkProcessingService
+    from services.processing.chunk_utilities import ChunkUtilities
+    from services.transcriptionservice.interface import ITranscriptionService
+    from services.translationservice.interface import ITranslationService
+    from services.vocabulary.vocabulary_service import VocabularyService
+
 logger = logging.getLogger(__name__)
 
 
 # Core service dependencies using direct imports
 def get_vocabulary_service(
     db: Annotated[AsyncSession, Depends(get_db_session)]
-):
+) -> "VocabularyService":
     """Get vocabulary service instance with proper dependency injection"""
     from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
     from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
@@ -36,8 +45,8 @@ def get_vocabulary_service(
 
 def get_subtitle_processor(
     db: Annotated[AsyncSession, Depends(get_db_session)],
-    vocab_service = Depends(get_vocabulary_service)
-):
+    vocab_service: "VocabularyService" = Depends(get_vocabulary_service),
+) -> "DirectSubtitleProcessor":
     """Get subtitle processor instance with injected vocab service"""
     from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 
@@ -47,22 +56,31 @@ def get_subtitle_processor(
 def get_user_subtitle_processor(
     current_user: Annotated[User, Depends(current_active_user)],
     db: Annotated[AsyncSession, Depends(get_db_session)],
-    vocab_service = Depends(get_vocabulary_service)
-):
+    vocab_service: "VocabularyService" = Depends(get_vocabulary_service),
+) -> "DirectSubtitleProcessor":
     """Get subtitle processor for authenticated user with injected vocab service"""
     from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 
     return DirectSubtitleProcessor(vocab_service=vocab_service)
 
 
-def get_processing_service():
-    """Get processing pipeline service instance"""
+def get_processing_service(
+    db: Annotated[AsyncSession, Depends(get_db_session)] | None = None,
+) -> "ChunkProcessingService":
+    """Get processing pipeline service instance.
+    
+    Args:
+        db: Optional database session for utilities that need DB access
+        
+    Returns:
+        Configured ChunkProcessingService instance
+    """
     from services.processing.chunk_processor import ChunkProcessingService
 
-    return ChunkProcessingService()
+    return ChunkProcessingService(db_session=db)
 
 
-def get_transcription_service():
+def get_transcription_service() -> "ITranscriptionService | None":
     """Get transcription service instance (singleton)"""
     try:
         from core.config.config import settings
@@ -84,7 +102,7 @@ def get_transcription_service():
         return None
 
 
-def get_translation_service():
+def get_translation_service() -> "ITranslationService | None":
     """Get translation service instance"""
     try:
         from core.config.config import settings
@@ -120,7 +138,7 @@ def get_chunk_translation_service() -> IChunkTranslationService:
     return ChunkTranslationService()
 
 
-def get_chunk_utilities(db: Annotated[AsyncSession, Depends(get_db_session)]):
+def get_chunk_utilities(db: Annotated[AsyncSession, Depends(get_db_session)]) -> "ChunkUtilities":
     """Get chunk utilities service instance"""
     from services.processing.chunk_utilities import ChunkUtilities
 

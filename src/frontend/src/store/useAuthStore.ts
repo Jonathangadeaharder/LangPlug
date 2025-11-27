@@ -38,10 +38,44 @@ const mapUser = (user: UserRead | UserResponse): User =>
     is_verified: 'is_verified' in user ? user.is_verified : false,
   }) as User
 
+/**
+ * Strip Pydantic's "Value error, " prefix from validation messages
+ */
+const cleanValidationMessage = (msg: string): string => {
+  if (msg.startsWith('Value error, ')) {
+    return msg.slice('Value error, '.length)
+  }
+  return msg
+}
+
 const extractErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof ApiError) {
-    const detail = (error.body as { detail?: string })?.detail
-    if (detail) return detail
+    const body = error.body as {
+      detail?: string | Array<{ msg?: string }>
+      error?: { details?: Array<{ msg?: string }> }
+    }
+    
+    // Handle LangPlug custom error format: { error: { details: [...] } }
+    if (body?.error?.details && Array.isArray(body.error.details)) {
+      const messages = body.error.details
+        .map(item => item.msg ? cleanValidationMessage(item.msg) : null)
+        .filter(Boolean)
+      if (messages.length > 0) return messages.join('; ')
+    }
+    
+    // Handle standard FastAPI format: { detail: [...] } or { detail: "string" }
+    if (body?.detail) {
+      if (Array.isArray(body.detail)) {
+        const messages = body.detail
+          .map(item => item.msg ? cleanValidationMessage(item.msg) : null)
+          .filter(Boolean)
+        if (messages.length > 0) return messages.join('; ')
+      }
+      if (typeof body.detail === 'string') {
+        return cleanValidationMessage(body.detail)
+      }
+    }
+    
     if (error.statusText) return error.statusText
   }
 

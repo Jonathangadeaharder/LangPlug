@@ -92,7 +92,7 @@ class TestVocabularyModelValidation:
 
     def test_When_valid_mark_known_request_provided_Then_model_created_successfully(self):
         """Valid mark known request should create model without errors."""
-        from api.routes.vocabulary import MarkKnownRequest
+        from api.routes.vocabulary_progress_routes import MarkKnownRequest
 
         # Arrange & Act
         request = MarkKnownRequest(lemma="Hund", language="de", known=True)
@@ -211,7 +211,7 @@ class TestModelValidationIntegration:
         import uuid
 
         from api.models.vocabulary import VocabularyWord
-        from api.routes.vocabulary import MarkKnownRequest
+        from api.routes.vocabulary_progress_routes import MarkKnownRequest
 
         word = VocabularyWord(concept_id=uuid.uuid4(), word="sprechen", translation="to speak", difficulty_level="A2")
 

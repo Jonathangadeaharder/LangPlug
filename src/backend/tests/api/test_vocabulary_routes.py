@@ -233,9 +233,9 @@ async def test_When_test_data_endpoint_called_Then_returns_database_info(async_c
 async def test_When_blocking_words_called_Then_returns_structure(async_client, url_builder, monkeypatch, tmp_path):
     """Happy path: blocking words returns expected keys when SRT exists."""
     headers = await _auth(async_client)
-    from api.routes import vocabulary as vocab
+    from api.routes import vocabulary_test_routes
 
-    monkeypatch.setattr(type(vocab.settings), "get_videos_path", lambda self: tmp_path)
+    monkeypatch.setattr(type(vocabulary_test_routes.settings), "get_videos_path", lambda self: tmp_path)
     # Create video.mp4 and corresponding video.mp4.srt (route appends .srt to video_path)
     (tmp_path / "video.mp4").write_bytes(b"x")
     (tmp_path / "video.mp4.srt").write_text(

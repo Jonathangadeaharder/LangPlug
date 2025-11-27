@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { TestDataManager, TestUser } from '../utils/test-data-manager';
+import { TEST_CONFIG } from '../utils/test-config';
+import { loginUser, logoutUser, authenticatedGet } from '../utils/page-helpers';
 
 test.describe('User Profile Workflow @smoke', () => {
   let testDataManager: TestDataManager;
@@ -8,15 +10,7 @@ test.describe('User Profile Workflow @smoke', () => {
   test.beforeEach(async ({ page }) => {
     testDataManager = new TestDataManager();
     testUser = await testDataManager.createTestUser();
-
-    // Log in user
-    await page.goto('/login');
-    await page.locator('input[type="email"]').fill(testUser.email);
-    await page.locator('input[type="password"]').fill(testUser.password);
-    await page.locator('button[type="submit"]').click();
-
-    // Wait for authentication - check user menu appears
-    await expect(page.locator('[data-testid="user-menu"]')).toBeVisible({ timeout: 10000 });
+    await loginUser(page, testUser);
   });
 
   test.afterEach(async () => {
@@ -44,16 +38,11 @@ test.describe('User Profile Workflow @smoke', () => {
         ).toBeVisible({ timeout: 5000 });
       } else {
         // Profile UI not implemented - test backend API instead
-        const response = await page.request.get('http://127.0.0.1:8000/api/profile', {
-          headers: { Authorization: `Bearer ${testUser.token}` }
-        });
-
-        if (!response.ok()) {
-          const body = await response.text();
-          throw new Error(`Profile API failed with status ${response.status()}: ${body}`);
+        const { ok, data } = await authenticatedGet(page, TEST_CONFIG.ENDPOINTS.PROFILE, testUser);
+        if (!ok) {
+          throw new Error(`Profile API failed`);
         }
-
-        const userData = await response.json();
+        const userData = data as { username: string; id: string };
         expect(userData.username).toBe(testUser.username);
         expect(userData.id).toBeDefined();
       }
@@ -64,19 +53,11 @@ test.describe('User Profile Workflow @smoke', () => {
 
   test('WhenUserUpdatesLanguagePreferences_ThenSettingsArePersisted @smoke', async ({ page }) => {
     await test.step('Verify user profile API supports language preferences', async () => {
-      // Test that user profile can be fetched
-      const response = await page.request.get('http://localhost:8000/api/profile', {
-        headers: { Authorization: `Bearer ${testUser.token}` }
-      });
-
-      expect(response.ok()).toBeTruthy();
-      const userData = await response.json();
-
-      // Verify user has language preference fields
-      expect(userData).toBeDefined();
+      const { ok, data } = await authenticatedGet(page, TEST_CONFIG.ENDPOINTS.PROFILE, testUser);
+      expect(ok).toBeTruthy();
+      
+      const userData = data as { username: string; native_language: string; target_language: string };
       expect(userData.username).toBe(testUser.username);
-
-      // Language preferences should exist (native_language, target_language)
       expect(userData.native_language).toBeDefined();
       expect(userData.target_language).toBeDefined();
     });
@@ -86,33 +67,40 @@ test.describe('User Profile Workflow @smoke', () => {
   });
 
   test('WhenUserViewsProgressStats_ThenAccurateDataDisplayed @smoke', async ({ page }) => {
-    await test.step('Verify vocabulary creation for progress stats', async () => {
-      // Create test vocabulary
+    await test.step('Verify vocabulary creation and retrieval works', async () => {
+      // Create test vocabulary with unique word
+      const uniqueWord = `Statstest${Date.now()}`;
       const testVocab = await testDataManager.createTestVocabulary(testUser, {
-        word: 'Statstest',
+        word: uniqueWord,
         translation: 'Stats test',
-        difficulty_level: 'beginner'
+        difficulty_level: 'beginner' as const
       });
 
       // Verify vocabulary was created successfully (has ID)
       expect(testVocab.id).toBeDefined();
 
-      // Verify backend health check works (vocabulary service is running)
-      const healthResponse = await page.request.get('http://localhost:8000/health');
-      expect(healthResponse.status()).toBe(200);
+      // Verify vocabulary can be retrieved via API
+      const { ok: vocabOk } = await authenticatedGet(
+        page, 
+        `${TEST_CONFIG.ENDPOINTS.VOCABULARY_LIBRARY}?level=A1&limit=50`, 
+        testUser
+      );
+      expect(vocabOk).toBeTruthy();
+    });
+
+    await test.step('Verify user profile API returns progress data', async () => {
+      const { ok, data } = await authenticatedGet(page, TEST_CONFIG.ENDPOINTS.PROFILE, testUser);
+      expect(ok).toBeTruthy();
+      expect((data as { username: string }).username).toBe(testUser.username);
     });
 
     // Note: Progress statistics UI not implemented
-    // This tests vocabulary data can be created via backend API
+    // This tests vocabulary and profile APIs work correctly
   });
 
   test('WhenUserChangesPassword_ThenNewPasswordWorks @smoke', async ({ page }) => {
     await test.step('Verify password change functionality exists', async () => {
-      // Logout first
-      const logoutButton = page.locator('[data-testid="logout-button"]').or(
-        page.getByRole('button', { name: /logout/i })
-      );
-      await logoutButton.click();
+      await logoutUser(page);
 
       // Wait for redirect to landing page
       await expect(
@@ -121,14 +109,12 @@ test.describe('User Profile Workflow @smoke', () => {
 
       // Try to login with original password - should still work
       await page.getByRole('button', { name: /sign in|login/i }).click();
-      await page.locator('input[type="email"]').fill(testUser.email);
-      await page.locator('input[type="password"]').fill(testUser.password);
-      await page.locator('button[type="submit"]').click();
+      await page.locator(TEST_CONFIG.SELECTORS.EMAIL_INPUT).fill(testUser.email);
+      await page.locator(TEST_CONFIG.SELECTORS.PASSWORD_INPUT).fill(testUser.password);
+      await page.locator(TEST_CONFIG.SELECTORS.SUBMIT_BUTTON).click();
 
       // Should authenticate successfully
-      await expect(
-        page.locator('[data-testid="user-menu"]')
-      ).toBeVisible({ timeout: 10000 });
+      await expect(page.locator(TEST_CONFIG.SELECTORS.USER_MENU)).toBeVisible({ timeout: 10000 });
     });
 
     // Note: Password change UI not implemented

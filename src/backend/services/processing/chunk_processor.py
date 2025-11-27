@@ -116,16 +116,42 @@ class ChunkProcessingService(IChunkHandler):
         Delegated services handle their own database transactions.
     """
 
-    def __init__(self, db_session: AsyncSession):
+    def __init__(
+        self,
+        db_session: AsyncSession | None = None,
+        transcription_service: ChunkTranscriptionService | None = None,
+        translation_service: ChunkTranslationService | None = None,
+        utilities: ChunkUtilities | None = None,
+        vocabulary_filter=None,
+        subtitle_generator=None,
+        translation_manager=None,
+    ):
+        """Initialize with optional dependency injection.
+        
+        Args:
+            db_session: Database session (required for utilities if not provided)
+            transcription_service: Audio extraction and transcription service
+            translation_service: Translation segment building service
+            utilities: Path resolution and progress tracking helpers
+            vocabulary_filter: Service for filtering vocabulary from subtitles
+            subtitle_generator: Service for generating filtered subtitle files
+            translation_manager: Service for managing translations
+            
+        Note:
+            If services are not provided, defaults are created.
+            This allows for proper testing with mocked dependencies.
+        """
         self.db_session = db_session
-        self.transcription_service = ChunkTranscriptionService()
-        self.translation_service = ChunkTranslationService()
-        self.utilities = ChunkUtilities(db_session)
+        
+        # Use injected services or create defaults
+        self.transcription_service = transcription_service or ChunkTranscriptionService()
+        self.translation_service = translation_service or ChunkTranslationService()
+        self.utilities = utilities or (ChunkUtilities(db_session) if db_session else None)
 
-        # New focused services - create fresh instances
-        self.vocabulary_filter = get_vocabulary_filter_service()
-        self.subtitle_generator = get_subtitle_generation_service()
-        self.translation_manager = get_translation_management_service()
+        # Focused services - use injected or create fresh instances
+        self.vocabulary_filter = vocabulary_filter or get_vocabulary_filter_service()
+        self.subtitle_generator = subtitle_generator or get_subtitle_generation_service()
+        self.translation_manager = translation_manager or get_translation_management_service()
 
     async def process_chunk(
         self,
@@ -266,7 +292,12 @@ class ChunkProcessingService(IChunkHandler):
         # Delegate to vocabulary filter service with progress tracking
         # Service will update progress from 35% -> 65% internally
         vocabulary = await self.vocabulary_filter.filter_vocabulary_from_srt(
-            srt_file_path, user, language_preferences, task_id, task_progress
+            srt_file_path=srt_file_path,
+            user=user,
+            language_preferences=language_preferences,
+            db_session=self.db_session,
+            task_id=task_id,
+            task_progress=task_progress
         )
 
         logger.info(f"[CHUNK DEBUG] Filtered {len(vocabulary)} vocabulary words")

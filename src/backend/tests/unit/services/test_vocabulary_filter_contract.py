@@ -106,7 +106,7 @@ class TestFrontendBackendContract:
     """Test that backend responses match frontend type expectations"""
 
     @pytest.mark.asyncio
-    async def test_vocabulary_response_matches_frontend_type(self, german_vocabulary):
+    async def test_vocabulary_response_matches_frontend_type(self, german_vocabulary, test_db_session):
         """
         Test that vocabulary response has ALL required fields for frontend VocabularyWord type
         This test reproduces Bug #6: difficulty vs difficulty_level mismatch
@@ -129,7 +129,7 @@ class TestFrontendBackendContract:
 
         # Process subtitles
         result = await processor.process_subtitles(
-            subtitles=subtitles, user_id="test_user", user_level="A1", language="de"
+            subtitles=subtitles, user_id="test_user", user_level="A1", language="de", db=test_db_session
         )
 
         # Get blocking words (vocabulary for game)
@@ -323,7 +323,7 @@ class TestEndToEndContractValidation:
     """
 
     @pytest.mark.asyncio
-    async def test_chunk_processing_vocabulary_contract(self, test_user, german_vocabulary):
+    async def test_chunk_processing_vocabulary_contract(self, test_user, german_vocabulary, test_db_session):
         """
         Test the complete flow from subtitle processing to vocabulary extraction
         Validates that the data structure at each step matches expectations
@@ -343,7 +343,7 @@ class TestEndToEndContractValidation:
         ]
 
         result = await processor.process_subtitles(
-            subtitles=subtitles, user_id="test_user", user_level="A1", language="de"
+            subtitles=subtitles, user_id="test_user", user_level="A1", language="de", db=test_db_session
         )
 
         # Step 2: Extract vocabulary using filter service

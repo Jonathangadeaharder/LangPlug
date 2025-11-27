@@ -1,9 +1,14 @@
 /**
  * Vocabulary query hooks using React Query
- * Replaces server-side data fetching from useVocabularyStore
+ * Uses OpenAPI generated client for type-safe API calls
  */
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
-import { api } from '@/services/api-client'
+import {
+  getVocabularyLevelApiVocabularyLibraryLevelGet,
+  searchVocabularyApiVocabularySearchPost,
+  getVocabularyStatsApiVocabularyStatsGet,
+  getVocabularyLibraryApiVocabularyLibraryGet,
+} from '@/client/services.gen'
 import { queryKeys } from '@/config/queryClient'
 import type { VocabularyWord, UserVocabularyProgress, VocabularyStats } from '../types'
 
@@ -21,11 +26,14 @@ export const useWordsByLevel = (
 ) => {
   return useQuery({
     queryKey: queryKeys.vocabulary.list({ level, language }),
-    queryFn: async () => {
-      const response = await api.vocabulary.getByLevel(level, language)
-      return response.data as VocabularyWord[]
+    queryFn: async (): Promise<VocabularyWord[]> => {
+      const response: { words?: VocabularyWord[] } = await getVocabularyLevelApiVocabularyLibraryLevelGet({
+        level,
+        targetLanguage: language,
+      }) as { words?: VocabularyWord[] }
+      return response.words || []
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - same as Zustand cache
+    staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   })
 }
@@ -44,21 +52,28 @@ export const useSearchWords = (
 ) => {
   return useQuery({
     queryKey: queryKeys.vocabulary.search(query, language),
-    queryFn: async () => {
+    queryFn: async (): Promise<VocabularyWord[]> => {
       if (!query || query.trim().length === 0) {
         return []
       }
-      const response = await api.vocabulary.search(query, language, limit)
-      return response.data as VocabularyWord[]
+      const response: { results?: VocabularyWord[] } = await searchVocabularyApiVocabularySearchPost({
+        requestBody: {
+          search_term: query,
+          language,
+          limit,
+        },
+      }) as { results?: VocabularyWord[] }
+      return response.results || []
     },
-    enabled: query.trim().length > 0, // Only run query if there's a search term
-    staleTime: 2 * 60 * 1000, // 2 minutes - search results go stale faster
+    enabled: query.trim().length > 0,
+    staleTime: 2 * 60 * 1000,
     ...options,
   })
 }
 
 /**
  * Fetch random words for practice
+ * Uses vocabulary library with random selection
  * @param language - Language code (default: 'de')
  * @param levels - Array of CEFR levels to include
  * @param limit - Number of words to fetch (default: 10)
@@ -71,9 +86,17 @@ export const useRandomWords = (
 ) => {
   return useQuery({
     queryKey: queryKeys.vocabulary.random(language, levels, limit),
-    queryFn: async () => {
-      const response = await api.vocabulary.getRandom(language, levels, limit)
-      return response.data as VocabularyWord[]
+    queryFn: async (): Promise<VocabularyWord[]> => {
+      // Get vocabulary library and randomly select words
+      const level = levels?.[0] // Use first level if specified
+      const response: { words?: VocabularyWord[] } = await getVocabularyLibraryApiVocabularyLibraryGet({
+        language,
+        level,
+        limit: limit * 3, // Get more to enable random selection
+      }) as { words?: VocabularyWord[] }
+      const words = response.words || []
+      // Shuffle and take limit
+      return words.sort(() => Math.random() - 0.5).slice(0, limit)
     },
     staleTime: 0, // Random words should be refetched each time
     ...options,
@@ -82,6 +105,7 @@ export const useRandomWords = (
 
 /**
  * Fetch user's progress for all words
+ * Uses vocabulary library which includes progress info
  * @param language - Language code (default: 'de')
  */
 export const useUserProgress = (
@@ -90,11 +114,20 @@ export const useUserProgress = (
 ) => {
   return useQuery({
     queryKey: queryKeys.progress.list(language),
-    queryFn: async () => {
-      const response = await api.vocabulary.getProgress(language)
-      return response.data as UserVocabularyProgress[]
+    queryFn: async (): Promise<UserVocabularyProgress[]> => {
+      // Get vocabulary library which includes is_known status
+      const response: { words?: Array<{ id: number; is_known?: boolean }> } = await getVocabularyLibraryApiVocabularyLibraryGet({
+        language,
+        limit: 10000, // Get all words
+      }) as { words?: Array<{ id: number; is_known?: boolean }> }
+      // Convert to progress format
+      return (response.words || []).map((w) => ({
+        vocabulary_id: w.id,
+        is_known: w.is_known || false,
+        language,
+      }))
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     ...options,
   })
 }
@@ -110,11 +143,13 @@ export const useVocabularyStats = (
   return useQuery({
     queryKey: queryKeys.progress.stats(language),
     queryFn: async () => {
-      const response = await api.vocabulary.getStats(language)
-      return response.data as VocabularyStats
+      const response = await getVocabularyStatsApiVocabularyStatsGet({
+        targetLanguage: language,
+      })
+      return response as VocabularyStats
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes - stats change frequently
-    refetchOnWindowFocus: true, // Always refresh stats when user returns
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
     ...options,
   })
 }
@@ -130,13 +165,19 @@ export const useVocabularyStats = (
 export const useWordProgress = (vocabularyId: number, language = 'de') => {
   return useQuery({
     queryKey: queryKeys.progress.list(language),
-    queryFn: async () => {
-      const response = await api.vocabulary.getProgress(language)
-      return response.data as UserVocabularyProgress[]
+    queryFn: async (): Promise<UserVocabularyProgress[]> => {
+      const response: { words?: Array<{ id: number; is_known?: boolean }> } = await getVocabularyLibraryApiVocabularyLibraryGet({
+        language,
+        limit: 10000,
+      }) as { words?: Array<{ id: number; is_known?: boolean }> }
+      return (response.words || []).map((w) => ({
+        vocabulary_id: w.id,
+        is_known: w.is_known || false,
+        language,
+      }))
     },
-    // Use select to memoize - only re-render when this specific word's progress changes
     select: (allProgress) => allProgress.find(p => p.vocabulary_id === vocabularyId) || null,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   })
 }
 
@@ -149,15 +190,21 @@ export const useWordProgress = (vocabularyId: number, language = 'de') => {
 export const useIsWordKnown = (vocabularyId: number, language = 'de') => {
   return useQuery({
     queryKey: queryKeys.progress.list(language),
-    queryFn: async () => {
-      const response = await api.vocabulary.getProgress(language)
-      return response.data as UserVocabularyProgress[]
+    queryFn: async (): Promise<UserVocabularyProgress[]> => {
+      const response: { words?: Array<{ id: number; is_known?: boolean }> } = await getVocabularyLibraryApiVocabularyLibraryGet({
+        language,
+        limit: 10000,
+      }) as { words?: Array<{ id: number; is_known?: boolean }> }
+      return (response.words || []).map((w) => ({
+        vocabulary_id: w.id,
+        is_known: w.is_known || false,
+        language,
+      }))
     },
-    // Use select to memoize - only re-render when this specific word's known status changes
     select: (allProgress) => {
       const progress = allProgress.find(p => p.vocabulary_id === vocabularyId)
       return progress?.is_known || false
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   })
 }

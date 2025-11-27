@@ -15,6 +15,7 @@ vi.mock('@/client/services.gen', () => ({
   getTaskProgressApiProcessProgressTaskIdGet: vi.fn(),
   filterSubtitlesApiProcessFilterSubtitlesPost: vi.fn(),
   translateSubtitlesApiProcessTranslateSubtitlesPost: vi.fn(),
+  profileGetApiProfileGet: vi.fn()
 }))
 
 vi.mock('@/store/useAuthStore', () => ({
@@ -56,6 +57,13 @@ const renderComponent = () =>
 describe('EpisodeSelection', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // Add default mock for profileGetApiProfileGet
+    if (sdkMock.profileGetApiProfileGet) {
+      (sdkMock.profileGetApiProfileGet as any).mockResolvedValue({
+        native_language: { code: 'es', name: 'Spanish' },
+        target_language: { code: 'de', name: 'German' }
+      })
+    }
   })
 
   it('renders episodes for the current series', async () => {

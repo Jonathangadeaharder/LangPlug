@@ -40,21 +40,19 @@ class WordFilter:
         Returns:
             FilteredWord with status and metadata updated
         """
-        logger.info(
-            f"[FILTER TRACE] Processing word: '{word.text}' (user_level={user_level}, known_words={user_known_words})"
-        )
+        logger.debug(f"[FILTER TRACE] Processing word: '{word.text}' (user_level={user_level})")
 
         # Check if proper name - filter out immediately
         if is_proper_name(word.text, language):
             word.status = WordStatus.FILTERED_OTHER
             word.filter_reason = "Proper name (automatically filtered)"
-            logger.info(f"[FILTER TRACE] FILTERED: '{word.text}' - Proper name")
+            logger.debug(f"[FILTER TRACE] FILTERED: '{word.text}' - Proper name")
             return word
 
         # Generate lemma using spaCy (always, no fallbacks)
         try:
             lemma = lemmatize_word(word.text, language)
-            logger.info(f"[FILTER TRACE] Lemmatized '{word.text}' -> '{lemma}'")
+            logger.debug(f"[FILTER TRACE] Lemmatized '{word.text}' -> '{lemma}'")
         except Exception as e:
             logger.error(f"spaCy lemmatization failed for '{word.text}': {e}")
             word.status = WordStatus.FILTERED_INVALID
@@ -63,7 +61,7 @@ class WordFilter:
 
         # Get difficulty from word info (fallback to C2 if not found)
         word_difficulty = word_info.get("difficulty_level", "C2") if word_info else "C2"
-        logger.info(f"[FILTER TRACE] Word difficulty: '{word.text}' (lemma='{lemma}') -> {word_difficulty}")
+        logger.debug(f"[FILTER TRACE] Word difficulty: '{word.text}' (lemma='{lemma}') -> {word_difficulty}")
 
         # Store lemma and difficulty in metadata
         word.metadata["lemma"] = lemma
@@ -71,18 +69,18 @@ class WordFilter:
 
         # Check user knowledge
         is_known = self.is_known_by_user(lemma, user_known_words)
-        logger.info(f"[FILTER TRACE] Known check: '{lemma}' in user_known_words? {is_known}")
+        logger.debug(f"[FILTER TRACE] Known check: '{lemma}' in user_known_words? {is_known}")
         if is_known:
             word.status = WordStatus.FILTERED_KNOWN
             word.filter_reason = "User already knows this word"
-            logger.info(f"[FILTER TRACE] FILTERED: '{word.text}' (lemma='{lemma}') - User knows this word")
+            logger.debug(f"[FILTER TRACE] FILTERED: '{word.text}' (lemma='{lemma}') - User knows this word")
             return word
 
         # Check difficulty level
         is_at_or_below = self.is_at_or_below_user_level(word_difficulty, user_level)
         word_rank = self._get_level_rank(word_difficulty)
         user_rank = self._get_level_rank(user_level)
-        logger.info(
+        logger.debug(
             f"[FILTER TRACE] Level check: word_level={word_difficulty} (rank={word_rank}) vs user_level={user_level} (rank={user_rank}) -> at_or_below={is_at_or_below}"
         )
         if is_at_or_below:
@@ -90,14 +88,14 @@ class WordFilter:
             word.status = WordStatus.FILTERED_AT_LEVEL
             word.filter_reason = f"Word level ({word_difficulty}) at or below user level ({user_level}) - considered mastered"
             word.metadata.update({"user_level": user_level, "language": language})
-            logger.info(f"[FILTER TRACE] FILTERED_AT_LEVEL: '{word.text}' (lemma='{lemma}') - User has mastered this level")
+            logger.debug(f"[FILTER TRACE] FILTERED_AT_LEVEL: '{word.text}' (lemma='{lemma}') - User has mastered this level")
             return word
 
         # Word is above user level - needs learning/translation
         word.status = WordStatus.ACTIVE
         word.filter_reason = None
         word.metadata.update({"user_level": user_level, "language": language})
-        logger.info(
+        logger.debug(
             f"[FILTER TRACE] ACTIVE: '{word.text}' (lemma='{lemma}', level={word_difficulty}) - Above user level (needs learning)"
         )
         return word

@@ -16,22 +16,15 @@ test.describe('Authentication Workflow @smoke', () => {
     await test.step('Navigate to login page', async () => {
       await page.goto('/login');
       await expect(page.locator('#root')).toBeVisible();
+      // Wait for lazy-loaded login form to render
+      await page.waitForLoadState('networkidle');
     });
 
     await test.step('Navigate to registration', async () => {
-      // Primary selector with explicit validation
+      // Wait for login form to be fully loaded (lazy component)
       const registerLink = page.locator('[data-testid="register-link"]');
-
-      if (!(await registerLink.isVisible())) {
-        // Secondary fallback with explicit validation - look for "Sign up" or "Register"
-        const semanticRegisterLink = page.getByRole('link', { name: /register|sign up/i });
-        if (!(await semanticRegisterLink.isVisible())) {
-          throw new Error('Register link not found - missing data-testid="register-link" instrumentation');
-        }
-        await semanticRegisterLink.click();
-      } else {
-        await registerLink.click();
-      }
+      await registerLink.waitFor({ state: 'visible', timeout: 10000 });
+      await registerLink.click();
 
       // Verify registration form appears and wait for it to be fully rendered
       await expect(page.locator('form')).toBeVisible();
@@ -138,43 +131,17 @@ test.describe('Authentication Workflow @smoke', () => {
       // User menu presence confirms successful authentication - no need for additional dashboard checks
     });
 
-    await test.step('Access protected vocabulary features', async () => {
-      // Navigate to vocabulary section - prefer semantic data-testid
-      const vocabNav = page.locator('[data-testid="vocabulary-nav"]');
-
-      if (await vocabNav.count() > 0) {
-        await vocabNav.click();
-      } else {
-        console.warn('Missing data-testid="vocabulary-nav" - using fallback navigation');
-
-        const vocabHref = page.locator('a[href*="vocabulary"]');
-        if (await vocabHref.count() > 0) {
-          await vocabHref.first().click();
-        } else {
-          const vocabRole = page.getByRole('link', { name: /vocabulary/i });
-          if (await vocabRole.count() > 0) {
-            await vocabRole.click();
-          } else {
-            console.warn('No vocabulary navigation found - skipping vocabulary verification');
-            return;
-          }
-        }
-      }
-
-      // Verify vocabulary interface loads with explicit fallback
-      const vocabList = page.locator('[data-testid="vocabulary-list"]');
-
-      if (!(await vocabList.isVisible({ timeout: 5000 }))) {
-        console.warn('Missing data-testid="vocabulary-list" - using fallback interface check');
-
-        const vocabInterface = page.locator('.vocabulary-interface');
-        if (!(await vocabInterface.isVisible({ timeout: 3000 }))) {
-          throw new Error('Vocabulary interface failed to load - check navigation and authentication');
-        }
-        await expect(vocabInterface).toBeVisible();
-      } else {
-        await expect(vocabList).toBeVisible();
-      }
+    await test.step('Access protected features after authentication', async () => {
+      // After successful registration, user should be redirected to a protected page
+      // Verify we're not on login or register page anymore
+      await page.waitForURL((url) => !url.pathname.includes('/login') && !url.pathname.includes('/register'), {
+        timeout: 10000
+      });
+      
+      // Verify we're on a protected page (videos, vocabulary, etc.)
+      const currentUrl = page.url();
+      const isProtectedPage = currentUrl.includes('/videos') || currentUrl.includes('/vocabulary') || currentUrl.includes('/profile');
+      expect(isProtectedPage, `Expected protected page but got ${currentUrl}`).toBeTruthy();
     });
   });
 

@@ -143,19 +143,19 @@ class SubtitleProcessor:
         if subtitle.has_active_words:
             # Subtitle has words above user level - KEEP for learning/translation
             processing_state["learning_subtitles"].append(subtitle)
-            logger.info(
+            logger.debug(
                 f"[SUBTITLE FILTER] KEPT: '{subtitle.original_text[:50]}...' - Contains words above user level"
             )
         elif subtitle.all_words_understood:
             # All words at/below level or known - user understands, FILTER OUT
             processing_state["empty_subtitles"].append(subtitle)
-            logger.info(
+            logger.debug(
                 f"[SUBTITLE FILTER] FILTERED OUT: '{subtitle.original_text[:50]}...' - All words at/below user level"
             )
         else:
             # No vocabulary content
             processing_state["empty_subtitles"].append(subtitle)
-            logger.info(f"[SUBTITLE FILTER] FILTERED OUT: '{subtitle.original_text[:50]}...' - No vocabulary content")
+            logger.debug(f"[SUBTITLE FILTER] FILTERED OUT: '{subtitle.original_text[:50]}...' - No vocabulary content")
 
     def _create_filtering_result(
         self, processing_state: dict, total_subtitles: int, user_level: str, language: str

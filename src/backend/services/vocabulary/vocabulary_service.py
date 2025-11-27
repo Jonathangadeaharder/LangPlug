@@ -56,13 +56,18 @@ Architecture Note:
 """
 
 import logging
+import re
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config.language_config import MIN_WORD_LENGTH, filter_stopwords, get_stopwords
 from core.database import AsyncSessionLocal
 
 logger = logging.getLogger(__name__)
+
+# Default limit for extracted vocabulary words
+DEFAULT_VOCAB_EXTRACT_LIMIT = 20
 
 
 class VocabularyService:
@@ -167,69 +172,51 @@ class VocabularyService:
         return await self.stats_service.get_supported_languages()
 
     async def extract_blocking_words_from_srt(
-        self, db: AsyncSession, srt_content: str, user_id: int, video_path: str
+        self,
+        db: AsyncSession,
+        srt_content: str,
+        user_id: int,
+        video_path: str,
+        language: str = "de",
+        limit: int = DEFAULT_VOCAB_EXTRACT_LIMIT,
     ) -> list[dict[str, Any]]:
-        """Extract blocking words from SRT content for vocabulary learning"""
+        """Extract blocking words from SRT content for vocabulary learning.
+        
+        Args:
+            db: Database session
+            srt_content: Raw SRT subtitle content
+            user_id: User ID for filtering known words
+            video_path: Path to the video file
+            language: ISO 639-1 language code (default: 'de' for German)
+            limit: Maximum number of words to return
+            
+        Returns:
+            List of vocabulary word dictionaries with word info
+        """
         try:
-            import re
-
-            # Parse SRT content to extract text
-            blocks = re.split(r"\n\s*\n", srt_content.strip())
-            all_text = []
-
-            for block in blocks:
-                lines = block.split("\n")
-                if len(lines) >= 3:
-                    # Skip the sequence number and timestamp lines
-                    text_lines = lines[2:]
-                    if text_lines:
-                        all_text.append(" ".join(text_lines))
-
-            # Combine all subtitle text
-            full_text = " ".join(all_text)
-
+            # Extract text from SRT blocks
+            full_text = self._extract_text_from_srt(srt_content)
             if not full_text.strip():
                 return []
 
-            # Extract German words from the text
-            german_words = re.findall(r"\b[A-Za-zäöüÄÖÜß]+(?:-[A-Za-zäöüÄÖÜß]+)*\b", full_text)
+            # Extract words matching the target language pattern
+            raw_words = self._extract_words_from_text(full_text, language)
 
-            # Filter out common words and short words
+            # Filter out stopwords and short words using centralized config
             filtered_words = [
                 word.lower()
-                for word in german_words
-                if len(word) > 3
-                and word.lower()
-                not in {
-                    "und", "oder", "der", "die", "das", "ein", "eine", "einer", "eines",
-                    "den", "dem", "des", "sie", "wir", "ihr", "ich", "du", "er", "es",
-                    "ist", "sind", "war", "waren", "hat", "haben", "habe", "mit", "auf",
-                    "aus", "von", "zu", "für", "durch", "über", "unter", "vor", "nach",
-                    "bei", "als", "wie", "was", "wer", "wo", "wann", "warum", "viel",
-                    "viele", "wenig", "wenige", "mehr", "weniger", "am", "im", "um", "an",
-                    "in", "ab", "dann", "also", "aber", "sondern", "denn", "doch", "jedoch",
-                    "nur", "auch", "noch", "schon", "bereits", "immer", "nie", "oft",
-                    "selten", "manchmal", "vielleicht", "wahrscheinlich", "sicher", "bestimmt",
-                }
+                for word in raw_words
+                if len(word) >= MIN_WORD_LENGTH
             ]
+            filtered_words = filter_stopwords(filtered_words, language)
 
             # Get unique words and create vocabulary entries
-            unique_words = list(set(filtered_words))[:20]  # Limit to 20 words for testing
+            unique_words = list(set(filtered_words))[:limit]
 
-            blocking_words = []
-            for word in unique_words:
-                blocking_words.append(
-                    {
-                        "word": word,
-                        "translation": f"Translation for {word}",
-                        "difficulty_level": "B1",
-                        "lemma": word.lower(),
-                        "concept_id": None,
-                        "semantic_category": None,
-                        "domain": None,
-                        "known": False,
-                    }
-                )
+            blocking_words = [
+                self._create_vocabulary_entry(word, language)
+                for word in unique_words
+            ]
 
             logger.info(f"Extracted {len(blocking_words)} blocking words from SRT content")
             return blocking_words
@@ -237,6 +224,48 @@ class VocabularyService:
         except Exception as e:
             logger.error(f"Error extracting blocking words from SRT: {e}")
             return []
+
+    def _extract_text_from_srt(self, srt_content: str) -> str:
+        """Extract plain text from SRT subtitle content."""
+        blocks = re.split(r"\n\s*\n", srt_content.strip())
+        all_text = []
+
+        for block in blocks:
+            lines = block.split("\n")
+            if len(lines) >= 3:
+                # Skip the sequence number and timestamp lines
+                text_lines = lines[2:]
+                if text_lines:
+                    all_text.append(" ".join(text_lines))
+
+        return " ".join(all_text)
+
+    def _extract_words_from_text(self, text: str, language: str) -> list[str]:
+        """Extract words from text based on language-specific patterns."""
+        # Pattern includes German umlauts and compound words with hyphens
+        if language == "de":
+            pattern = r"\b[A-Za-zäöüÄÖÜß]+(?:-[A-Za-zäöüÄÖÜß]+)*\b"
+        elif language == "es":
+            pattern = r"\b[A-Za-záéíóúüñÁÉÍÓÚÜÑ]+(?:-[A-Za-záéíóúüñÁÉÍÓÚÜÑ]+)*\b"
+        else:
+            # Default pattern for English and other Latin-script languages
+            pattern = r"\b[A-Za-z]+(?:-[A-Za-z]+)*\b"
+
+        return re.findall(pattern, text)
+
+    def _create_vocabulary_entry(self, word: str, language: str) -> dict[str, Any]:
+        """Create a vocabulary entry dictionary for a word."""
+        return {
+            "word": word,
+            "translation": f"Translation for {word}",
+            "difficulty_level": "B1",
+            "lemma": word.lower(),
+            "language": language,
+            "concept_id": None,
+            "semantic_category": None,
+            "domain": None,
+            "known": False,
+        }
 
 
 def get_vocabulary_service(

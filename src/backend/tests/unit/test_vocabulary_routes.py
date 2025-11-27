@@ -635,7 +635,7 @@ class TestVocabularyRoutesCore:
 
         _user, _token, headers = await helper.create_authenticated_user()
 
-        with patch("api.routes.vocabulary.settings") as mock_settings:
+        with patch("api.routes.vocabulary_test_routes.settings") as mock_settings:
             from pathlib import Path
 
             mock_videos_path = Path("/fake/videos")
@@ -661,7 +661,7 @@ class TestVocabularyRoutesCore:
 
         _user, _token, headers = await helper.create_authenticated_user()
 
-        with patch("api.routes.vocabulary.settings") as mock_settings:
+        with patch("api.routes.vocabulary_test_routes.settings") as mock_settings:
             from pathlib import Path
 
             mock_videos_path = Path("/fake/videos")
@@ -806,7 +806,7 @@ class TestVocabularyRoutesValidation:
 
         _user, _token, headers = await helper.create_authenticated_user()
 
-        with patch("api.routes.vocabulary.get_async_session") as mock_get_session:
+        with patch("api.routes.vocabulary_query_routes.get_async_session") as mock_get_session:
             mock_session = AsyncMock()
             mock_get_session.return_value.__aenter__.return_value = mock_session
 

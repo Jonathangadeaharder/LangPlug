@@ -256,21 +256,20 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
 def setup_contract_validation(
     app: FastAPI, validate_requests: bool = True, validate_responses: bool = True, log_violations: bool = True
 ) -> None:
-    """Setup contract validation middleware for the FastAPI app"""
-
+    """Setup contract validation middleware for the FastAPI app.
+    
+    Args:
+        app: FastAPI application instance
+        validate_requests: Whether to validate incoming requests against OpenAPI schema
+        validate_responses: Whether to validate responses against OpenAPI schema  
+        log_violations: Whether to log contract violations
+    """
     # Enable strict mode in testing environment or if explicitly requested
     # TESTING=1: Unit tests (mocks, fast)
     # STRICT_CONTRACTS=1: Integration/E2E tests (real services, strict contracts)
     strict_mode = os.environ.get("TESTING") == "1" or os.environ.get("STRICT_CONTRACTS") == "1"
 
-    ContractValidationMiddleware(
-        app=app,
-        validate_requests=validate_requests,
-        validate_responses=validate_responses,
-        log_violations=log_violations,
-        strict_mode=strict_mode,
-    )
-
+    # Add middleware only once (previous code was creating unused instance)
     app.add_middleware(
         ContractValidationMiddleware,
         validate_requests=validate_requests,
@@ -281,5 +280,6 @@ def setup_contract_validation(
 
     logger.info(
         f"Contract validation middleware enabled: "
-        f"requests={validate_requests}, responses={validate_responses}, logging={log_violations}"
+        f"requests={validate_requests}, responses={validate_responses}, "
+        f"logging={log_violations}, strict={strict_mode}"
     )

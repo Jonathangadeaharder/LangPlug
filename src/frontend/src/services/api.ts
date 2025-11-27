@@ -1,3 +1,13 @@
+/**
+ * API Configuration and Utilities
+ * 
+ * Uses the OpenAPI-generated client for type-safe API calls.
+ * 
+ * Usage:
+ * - Import generated services from @/client/services.gen
+ * - Use handleApiError for consistent error handling
+ * - Use buildVideoStreamUrl for video streaming URLs
+ */
 import { toast } from 'react-hot-toast'
 import { logger } from './logger'
 import { OpenAPI } from '@/client/core/OpenAPI'
@@ -5,13 +15,14 @@ import { ApiError } from '@/client/core/ApiError'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
+// Configure OpenAPI client
 OpenAPI.BASE = API_BASE_URL
 OpenAPI.HEADERS = {
   'Content-Type': 'application/json',
 }
 OpenAPI.TOKEN = async () => localStorage.getItem('authToken') ?? ''
 
-export { OpenAPI }
+export { OpenAPI, ApiError }
 
 export const buildVideoStreamUrl = (series: string, episode: string): string => {
   const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'

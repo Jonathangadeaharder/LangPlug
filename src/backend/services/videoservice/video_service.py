@@ -66,6 +66,8 @@ from fastapi import UploadFile
 from api.models.video import VideoInfo
 from api.models.vocabulary import VocabularyWord
 from core.config import settings
+from core.config.media_config import VIDEO_EXTENSIONS
+from core.exceptions import EpisodeNotFoundError, SeriesNotFoundError, SubtitleNotFoundError, VideoNotFoundError
 from core.file_security import FileSecurityValidator
 
 logger = logging.getLogger(__name__)
@@ -89,8 +91,7 @@ class VideoService:
 
     async def validate_video_file_upload(self, video_file: UploadFile) -> Path:
         """Validate uploaded video file for security"""
-        allowed_extensions = {".mp4", ".avi", ".mkv", ".mov", ".webm"}
-        return await FileSecurityValidator.validate_file_upload(video_file, allowed_extensions)
+        return await FileSecurityValidator.validate_file_upload(video_file, set(VIDEO_EXTENSIONS))
 
     async def write_video_file(self, video_file: UploadFile, destination: Path) -> None:
         """Write uploaded video file in chunks for memory efficiency"""
@@ -464,12 +465,22 @@ class VideoService:
         return subtitle_file
 
     def get_video_file_path(self, series: str, episode: str) -> Path:
-        """Get video file path for a series and episode"""
-        from fastapi import HTTPException
-
+        """Get video file path for a series and episode.
+        
+        Args:
+            series: Name of the video series/folder
+            episode: Episode identifier (number or name)
+            
+        Returns:
+            Path to the video file
+            
+        Raises:
+            SeriesNotFoundError: If series directory doesn't exist
+            EpisodeNotFoundError: If episode not found in series
+        """
         videos_path = settings.get_videos_path() / series
         if not videos_path.exists():
-            raise HTTPException(status_code=404, detail=f"Series '{series}' not found")
+            raise SeriesNotFoundError(series)
 
         # Find matching video file
         for video_file in videos_path.glob("*.mp4"):
@@ -489,4 +500,4 @@ class VideoService:
             if matches:
                 return video_file
 
-        raise HTTPException(status_code=404, detail=f"Episode '{episode}' not found in series '{series}'")
+        raise EpisodeNotFoundError(episode, series)
