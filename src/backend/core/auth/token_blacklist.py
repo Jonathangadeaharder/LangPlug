@@ -1,12 +1,13 @@
 """Token blacklist service for JWT token revocation - In-memory implementation"""
 
-import logging
 from datetime import UTC, datetime, timedelta
+
+from core.config.logging_config import get_logger
 
 # Python 3.10 compatibility: Use timezone.utc instead of UTC constant
 UTC = UTC
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TokenBlacklist:
@@ -42,7 +43,7 @@ class TokenBlacklist:
             logger.warning("Attempted to add empty or None token to blacklist")
             return False
 
-        logger.debug(f"Adding token to blacklist: {token[:20]}...")
+        logger.debug("Adding token to blacklist")
 
         if expires_at is None:
             expires_at = datetime.now(UTC) + timedelta(hours=24)
@@ -54,7 +55,7 @@ class TokenBlacklist:
 
         # Store token with expiration time
         self._blacklist[token] = expires_at
-        logger.debug(f"Token added to blacklist, expires at: {expires_at}")
+        logger.debug("Token added to blacklist", expires_at=str(expires_at))
 
         # Cleanup expired tokens periodically
         await self.cleanup_expired()
@@ -75,7 +76,7 @@ class TokenBlacklist:
             logger.debug("Checking blacklist for empty/None token - returning False")
             return False
 
-        logger.debug(f"Checking if token is blacklisted: {token[:20]}...")
+        logger.debug("Checking token blacklist")
 
         # Cleanup expired tokens first
         await self.cleanup_expired()
@@ -105,7 +106,7 @@ class TokenBlacklist:
         Returns:
             bool: True if token was removed, False if not found
         """
-        logger.debug(f"Removing token from blacklist: {token[:20]}...")
+        logger.debug("Removing token from blacklist")
 
         if token in self._blacklist:
             del self._blacklist[token]
@@ -128,4 +129,4 @@ class TokenBlacklist:
             del self._blacklist[token]
 
         if expired_tokens:
-            logger.debug(f"Cleaned up {len(expired_tokens)} expired tokens from blacklist")
+            logger.debug("Cleaned up expired tokens", count=len(expired_tokens))

@@ -13,7 +13,6 @@ import type { AuthResponse, User } from '@/types'
 
 interface AuthState {
   user: User | null
-  token: string | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
@@ -25,7 +24,6 @@ interface AuthState {
   checkAuth: () => Promise<void>
   clearError: () => void
   setUser: (user: User | null) => void
-  setToken: (token: string | null) => void
   setAuthenticated: (val: boolean) => void
   setRedirectPath: (path: string | null) => void
   reset: () => void
@@ -96,29 +94,15 @@ const extractErrorMessage = (error: unknown, fallback: string) => {
   return fallback
 }
 
-const authenticate = async (email: string, password: string): Promise<AuthResponse> => {
-  try {
-    const bearer = (await authJwtLoginApiAuthLoginPost({
-      formData: { username: email, password },
-    })) as BearerResponse
+const authenticate = async (email: string, password: string): Promise<User> => {
+  // Login sets the HttpOnly cookie
+  await authJwtLoginApiAuthLoginPost({
+    formData: { username: email, password },
+  })
 
-    const token = bearer.access_token
-    if (!token) {
-      throw new Error('No access token received from server')
-    }
-
-    localStorage.setItem('authToken', token)
-
-    const userRead = await authGetCurrentUserApiAuthMeGet()
-    return {
-      token,
-      user: mapUser(userRead),
-      expires_at: '',
-    }
-  } catch (error) {
-    localStorage.removeItem('authToken')
-    throw error
-  }
+  // Fetch user details using the cookie
+  const userRead = await authGetCurrentUserApiAuthMeGet()
+  return mapUser(userRead)
 }
 
 // Export this reference so we can call it from outside React components
@@ -128,7 +112,6 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      token: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
@@ -137,10 +120,9 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null })
         try {
-          const response = await authenticate(email, password)
+          const user = await authenticate(email, password)
           set({
-            user: response.user,
-            token: response.token,
+            user,
             isAuthenticated: true,
             isLoading: false,
             error: null,
@@ -166,10 +148,9 @@ export const useAuthStore = create<AuthState>()(
             },
           })
 
-          const response = await authenticate(email, password)
+          const user = await authenticate(email, password)
           set({
-            user: response.user,
-            token: response.token,
+            user,
             isAuthenticated: true,
             isLoading: false,
             error: null,
@@ -185,15 +166,15 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async () => {
-        localStorage.removeItem('authToken')
+        // Client-side clear
         set({
           user: null,
-          token: null,
           isAuthenticated: false,
           isLoading: false,
           error: null,
           redirectPath: '/login',
         })
+        // Server-side clear (removes cookie)
         try {
           await authJwtLogoutApiAuthLogoutPost()
         } catch {
@@ -202,39 +183,23 @@ export const useAuthStore = create<AuthState>()(
       },
 
       initializeAuth: async () => {
-        const storedToken = localStorage.getItem('authToken')
-        if (!storedToken) {
-          // No token, ensure state is clean
-          set({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            isLoading: false,
-          })
-          return
-        }
-
         set({ isLoading: true })
         try {
+          // Try to get user. If cookie is valid, this will succeed.
           const userRead = await authGetCurrentUserApiAuthMeGet()
           set({
             user: mapUser(userRead),
-            token: storedToken,
             isAuthenticated: true,
             isLoading: false,
             error: null,
           })
         } catch (error) {
-          // Auth failed - clear all tokens and state
-          localStorage.removeItem('authToken')
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
+          // Auth failed - clear state
           set({
             user: null,
-            token: null,
             isAuthenticated: false,
             isLoading: false,
-            error: extractErrorMessage(error, 'Session expired'),
+            // Don't set error here as it might be just "not logged in"
           })
         }
       },
@@ -248,17 +213,12 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setUser: (user: User | null) => set({ user }),
-      setToken: (token: string | null) => set({ token }),
       setAuthenticated: (val: boolean) => set({ isAuthenticated: val }),
       setRedirectPath: (path: string | null) => set({ redirectPath: path }),
 
       reset: () => {
-        localStorage.removeItem('authToken')
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
         set({
           user: null,
-          token: null,
           isAuthenticated: false,
           isLoading: false,
           error: null,
@@ -271,7 +231,6 @@ export const useAuthStore = create<AuthState>()(
       partialize: state => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
-        token: state.token,
         redirectPath: state.redirectPath,
       }),
     }

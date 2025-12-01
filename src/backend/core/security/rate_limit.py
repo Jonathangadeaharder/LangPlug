@@ -32,9 +32,9 @@ Example endpoint protection:
         ...
 """
 
-import logging
+from core.config.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Try to import slowapi - it's optional
 try:
@@ -49,10 +49,7 @@ try:
     )
     RATE_LIMITING_AVAILABLE = True
 except ImportError:
-    logger.warning(
-        "slowapi not installed - rate limiting disabled. "
-        "Install with: pip install slowapi==0.1.9"
-    )
+    logger.warning("slowapi not installed - rate limiting disabled. Install with: pip install slowapi==0.1.9")
     # Provide stub limiter that does nothing
     limiter = None  # type: ignore[assignment]
     RATE_LIMITING_AVAILABLE = False

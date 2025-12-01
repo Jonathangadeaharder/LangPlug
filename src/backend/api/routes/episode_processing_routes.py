@@ -2,26 +2,28 @@
 Episode Processing API routes for chunk processing and episode preparation
 """
 
-import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
+from api.websocket_manager import manager as websocket_manager
 from core.config import settings
+from core.config.logging_config import get_logger
 from core.dependencies import (
     current_active_user,
     get_task_progress_registry,
 )
 from database.models import User
+from services.progress import ProgressTracker, WebSocketBroadcaster
 
 from ..models.processing import (
     ChunkProcessingRequest,
     ProcessingStatus,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(tags=["episode-processing"])
 
 
@@ -35,11 +37,28 @@ async def run_chunk_processing(
     session_token: str | None = None,
     is_reprocessing: bool = False,
 ) -> None:
-    """Process a specific chunk of video for vocabulary learning"""
+    """
+    Process a specific chunk of video for vocabulary learning.
+
+    Includes real-time WebSocket progress broadcasting for connected clients.
+    Falls back gracefully to polling if WebSocket is not connected.
+    """
     from core.database import get_async_session
     from services.processing.chunk_processor import (
         ChunkProcessingService,
     )
+
+    # Setup progress tracker with WebSocket broadcasting
+    progress_tracker = ProgressTracker(task_id, task_progress)
+
+    # Enable WebSocket real-time updates if manager has connections for this user
+    user_id_str = str(user_id)
+    if websocket_manager.get_user_connection_count(user_id_str) > 0:
+        broadcaster = WebSocketBroadcaster(websocket_manager)
+        progress_tracker.set_broadcaster(broadcaster, user_id_str)
+        logger.debug("WebSocket broadcasting enabled", user_id=user_id_str, task_id=task_id)
+    else:
+        logger.debug("No WebSocket connections, using polling", user_id=user_id_str)
 
     try:
         # Get database session and create service instance
@@ -58,18 +77,22 @@ async def run_chunk_processing(
             break  # Only use the first (and only) session
 
     except Exception as e:
-        logger.error(f"Chunk processing failed for task {task_id}: {e}", exc_info=True)
+        logger.error("Chunk processing failed", task_id=task_id, error=str(e), exc_info=True)
         # Truncate error message to fit within validation limits (2000 chars)
         error_msg = str(e)[:1900]  # Leave some buffer
         if len(str(e)) > 1900:
             error_msg += "... (truncated)"
 
+        # Update progress registry for polling
         task_progress[task_id] = ProcessingStatus(
             status="error",
             progress=0.0,
             current_step="Chunk processing failed",
             message=f"Error: {error_msg}",
         )
+
+        # Also broadcast error via WebSocket if available
+        await progress_tracker.fail(error_msg, "Chunk processing failed")
 
 
 @router.post("/chunk", name="process_chunk")
@@ -139,20 +162,30 @@ async def process_chunk(
             Path(normalized_path) if normalized_path.startswith("/") else settings.get_videos_path() / normalized_path
         )
 
-        logger.info(f"Processing chunk for video: {full_path}")
+        logger.info("Processing chunk", video_path=str(full_path))
 
         # Validate chunk timing first
         if request.start_time < 0 or request.end_time <= request.start_time:
             raise HTTPException(status_code=400, detail="Invalid chunk timing")
 
         if not full_path.exists():
-            logger.error(f"Video file not found: {full_path}")
+            logger.warning("Video file not found", path=str(full_path))
             raise HTTPException(status_code=404, detail="Video file not found")
 
         # Start chunk processing in background
         task_id = (
             f"chunk_{current_user.id}_{int(request.start_time)}_{int(request.end_time)}_{datetime.now().timestamp()}"
         )
+
+        # Initialize task in registry BEFORE returning to prevent race condition
+        # where frontend polls before background task starts
+        task_progress[task_id] = ProcessingStatus(
+            status="processing",
+            progress=0.0,
+            current_step="Initializing",
+            message="Starting chunk processing...",
+        )
+
         background_tasks.add_task(
             run_chunk_processing,
             str(full_path),
@@ -165,13 +198,13 @@ async def process_chunk(
             request.is_reprocessing,
         )
 
-        logger.info(f"Started chunk processing task: {task_id}")
+        logger.info("Chunk processing started", task_id=task_id)
         return {"task_id": task_id, "status": "started"}
 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to start chunk processing: {e!s}", exc_info=True)
+        logger.error("Chunk processing failed", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Chunk processing failed: {e!s}") from e
 
 

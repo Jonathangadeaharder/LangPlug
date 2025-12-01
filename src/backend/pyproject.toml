@@ -241,20 +241,21 @@ python_version = "3.11"
 explicit_package_bases = true
 mypy_path = "$MYPY_CONFIG_FILE_DIR"
 cache_dir = "../../.cache/mypy"
-warn_return_any = false  # Gradual typing - allow Any returns
-warn_unused_configs = false  # Disable warnings about unused configs
-disallow_untyped_defs = false  # Gradually enable
-disallow_incomplete_defs = false  # Gradually enable
-check_untyped_defs = false  # Gradual typing - check only typed functions
+# Gradual typing - enable warnings for better code quality
+warn_return_any = true  # Warn when returning Any from typed function
+warn_unused_configs = true
+disallow_untyped_defs = false  # Gradually enable per-module
+disallow_incomplete_defs = false  # Gradually enable per-module
+check_untyped_defs = true  # Check untyped function bodies
 disallow_untyped_decorators = false
-warn_redundant_casts = false
-warn_unused_ignores = false
-warn_no_return = false
-warn_unreachable = false
-strict_equality = false
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
 pretty = true
-follow_imports = "skip"  # Skip analyzing imported modules (faster)
-ignore_missing_imports = true  # Ignore all missing imports globally
+follow_imports = "normal"  # Analyze imported modules
+ignore_missing_imports = true  # Keep true for third-party libs without stubs
 
 # Exclude paths (only infrastructure, not application code)
 exclude = [

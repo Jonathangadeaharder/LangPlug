@@ -179,11 +179,41 @@ const ChunkDetails = styled.div`
   font-weight: 500;
 `
 
+const ConnectionIndicator = styled.div<{ $isRealtime: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: ${props => (props.$isRealtime ? '#4ade80' : '#b3b3b3')};
+  margin-top: 16px;
+  justify-content: center;
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: ${props => (props.$isRealtime ? '#4ade80' : '#b3b3b3')};
+    animation: ${props => (props.$isRealtime ? 'pulse 2s infinite' : 'none')};
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+`
+
 interface ProcessingScreenProps {
   status: ProcessingStatus
   chunkNumber?: number
   totalChunks?: number
   chunkDuration?: string // e.g., "0:00 - 5:00"
+  connectionMethod?: 'websocket' | 'polling' | 'disconnected' // Real-time connection indicator
 }
 
 export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({
@@ -191,6 +221,7 @@ export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({
   chunkNumber = 1,
   totalChunks = 1,
   chunkDuration = '0:00 - 5:00',
+  connectionMethod,
 }) => {
   const [estimatedTime, setEstimatedTime] = useState<string>('calculating...')
   const [startTime] = useState<number>(Date.now())
@@ -277,6 +308,16 @@ export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({
               {chunkNumber} of {totalChunks} • {chunkDuration}
             </ChunkDetails>
           </ChunkInfo>
+        )}
+
+        {connectionMethod && (
+          <ConnectionIndicator $isRealtime={connectionMethod === 'websocket'}>
+            {connectionMethod === 'websocket'
+              ? 'Real-time updates active'
+              : connectionMethod === 'polling'
+                ? 'Checking for updates...'
+                : 'Connecting...'}
+          </ConnectionIndicator>
         )}
       </ContentCard>
     </ProcessingContainer>

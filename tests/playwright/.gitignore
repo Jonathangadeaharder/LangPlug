@@ -1,0 +1,5 @@
+# Playwright auth state files (contain session tokens)
+.auth/*.json
+
+# Keep the directory structure
+!.auth/.gitkeep

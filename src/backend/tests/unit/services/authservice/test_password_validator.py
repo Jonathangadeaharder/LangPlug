@@ -23,18 +23,18 @@ class TestPasswordValidation:
         # Let's use a simple valid one: "password" (8 chars, lowercase)
         # But wait, common password check might block it.
         # Use "pass1234" (8 chars, lowercase + digits)
-        password = "pass1234" 
+        password = "pass1234"
         _is_valid, error = PasswordValidator.validate(password)
         # Will fail for other reasons if any, but not length
         assert "8 characters" not in error
 
-    def test_validate_requires_uppercase_is_optional(self):
-        """Password without uppercase should be accepted now"""
-        # "lowercase123!" -> lowercase + digits + special + 13 chars
-        # Should pass even without uppercase
+    def test_validate_requires_uppercase(self):
+        """Password without uppercase should be rejected when uppercase is required"""
+        # "lowercase123!" -> lowercase + digits + special but no uppercase
+        # Default settings require uppercase
         is_valid, error = PasswordValidator.validate("lowercase123!")
-        assert is_valid is True
-        assert error == ""
+        assert is_valid is False
+        assert "uppercase" in error.lower()
 
     def test_validate_requires_lowercase(self):
         """Password without lowercase should be rejected"""
@@ -50,12 +50,13 @@ class TestPasswordValidation:
         assert is_valid is False
         assert "digit" in error.lower()
 
-    def test_validate_requires_special_character_is_optional(self):
-        """Password without special character should be accepted now"""
-        # "NoSpecial123" -> Mixed case + digits + 12 chars
+    def test_validate_requires_special_character(self):
+        """Password without special character should be rejected when special is required"""
+        # "NoSpecial123" -> Mixed case + digits but no special character
+        # Default settings require special character
         is_valid, error = PasswordValidator.validate("NoSpecial123")
-        assert is_valid is True
-        assert error == ""
+        assert is_valid is False
+        assert "special" in error.lower()
 
     def test_validate_strong_password_success(self):
         """Strong password meeting all requirements should pass"""

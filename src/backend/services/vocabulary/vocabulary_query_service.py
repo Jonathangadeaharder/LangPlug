@@ -2,16 +2,16 @@
 Vocabulary Query Service - Handles vocabulary lookups and searches
 """
 
-import logging
 from typing import Any
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config.logging_config import get_logger
 from database.models import UnknownWord, UserVocabularyProgress, VocabularyWord
 from services.lemmatization_service import get_lemmatization_service
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class VocabularyQueryService:
@@ -89,9 +89,7 @@ class VocabularyQueryService:
         lemmas = [w.lemma for w in words]
         language = words[0].language if words else "de"
 
-        logger.debug(
-            f"[VOCAB QUERY] Fetching progress for user_id={user_id}, language={language}, {len(lemmas)} lemmas"
-        )
+        logger.debug("Fetching progress", user_id=user_id, language=language, lemma_count=len(lemmas))
 
         progress_stmt = select(UserVocabularyProgress).where(
             and_(
@@ -107,14 +105,12 @@ class VocabularyQueryService:
             p.lemma: {"is_known": p.is_known, "confidence_level": p.confidence_level} for p in progress_result.scalars()
         }
 
-        logger.debug(f"[VOCAB QUERY] Found progress for {len(lemma_to_progress)} lemmas")
-        if len(lemma_to_progress) > 0 and len(lemma_to_progress) <= 5:
-            logger.debug(f"[VOCAB QUERY] Sample progress: {list(lemma_to_progress.items())[:5]}")
+        logger.debug("Found progress", lemma_count=len(lemma_to_progress))
 
         # Map back to vocabulary_id using words list
         result_map = {word.id: lemma_to_progress[word.lemma] for word in words if word.lemma in lemma_to_progress}
 
-        logger.debug(f"[VOCAB QUERY] Mapped progress for {len(result_map)} vocabulary IDs")
+        logger.debug("Mapped progress", vocab_id_count=len(result_map))
 
         return result_map
 
@@ -173,7 +169,7 @@ class VocabularyQueryService:
             await db.flush()
         except Exception as e:
             # Log the error but don't rollback - let the decorator handle it
-            logger.warning(f"Failed to track unknown word '{word}': {e}")
+            logger.warning("Failed to track unknown word", word=word, error=str(e))
 
     async def get_word_info(self, word: str, language: str, db: AsyncSession) -> dict[str, Any] | None:
         """Get vocabulary information for a word"""

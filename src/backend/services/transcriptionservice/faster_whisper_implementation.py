@@ -6,20 +6,19 @@ with lower memory usage and INT8 quantization support.
 See: https://github.com/SYSTRAN/faster-whisper
 """
 
-import logging
-import os
-from pathlib import Path
 from typing import Any
 
-from .interface import ITranscriptionService, TranscriptionResult, TranscriptionSegment
+from core.config.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+from .interface import ITranscriptionService, ProgressCallback, TranscriptionResult, TranscriptionSegment
+
+logger = get_logger(__name__)
 
 
 class FasterWhisperTranscriptionService(ITranscriptionService):
     """
     Faster-Whisper implementation using CTranslate2.
-    
+
     Benefits over standard Whisper:
     - Up to 4x faster transcription
     - Lower memory usage
@@ -35,7 +34,7 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
         # Standard faster-whisper models (auto-downloaded)
         "tiny",
         "tiny.en",
-        "base", 
+        "base",
         "base.en",
         "small",
         "small.en",
@@ -56,7 +55,7 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
     COMPUTE_TYPES = [
         "float32",
         "float16",  # GPU only, fastest
-        "int8",     # CPU/GPU, good balance
+        "int8",  # CPU/GPU, good balance
         "int8_float16",  # GPU only, best for large models
     ]
 
@@ -83,7 +82,7 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
         # Map turbo alias
         if model_size == "turbo":
             model_size = "large-v3-turbo"
-            
+
         self.model_size = model_size
         self.device = device or "auto"
         self.download_root = download_root
@@ -91,7 +90,7 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
         self.cpu_threads = cpu_threads
         self._model = None
         self._batched_model = None
-        
+
         # Auto-select compute type based on device
         if compute_type:
             self.compute_type = compute_type
@@ -106,33 +105,25 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
             try:
                 from faster_whisper import WhisperModel
             except ImportError as e:
-                raise ImportError(
-                    "faster-whisper is not installed. Install it with: "
-                    "pip install faster-whisper"
-                ) from e
+                raise ImportError("faster-whisper is not installed. Install it with: pip install faster-whisper") from e
 
             from core.gpu_utils import check_cuda_availability
 
             # Check CUDA availability
             cuda_available = check_cuda_availability("Faster-Whisper")
-            
+
             # Determine device
             if self.device == "auto":
                 device = "cuda" if cuda_available else "cpu"
             else:
                 device = self.device
-                
+
             # Adjust compute type for CPU
             if device == "cpu" and self.compute_type in ("float16", "int8_float16"):
-                logger.warning(
-                    f"[FASTER-WHISPER] Compute type '{self.compute_type}' not supported on CPU, "
-                    "falling back to 'int8'"
-                )
+                logger.warning("Compute type not supported on CPU, using int8", requested=self.compute_type)
                 self.compute_type = "int8"
 
-            logger.info(f"[FASTER-WHISPER] Loading model '{self.model_size}' on {device}")
-            logger.info(f"[FASTER-WHISPER] Compute type: {self.compute_type}")
-            logger.info(f"[FASTER-WHISPER] CPU threads: {self.cpu_threads}")
+            logger.info("Loading Whisper model", model=self.model_size, device=device, compute_type=self.compute_type)
 
             try:
                 self._model = WhisperModel(
@@ -143,14 +134,14 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
                     num_workers=self.num_workers,
                     cpu_threads=self.cpu_threads,
                 )
-                logger.info(f"[FASTER-WHISPER] Model loaded successfully")
+                logger.info("Whisper model loaded")
             except Exception as e:
-                logger.error(f"[FASTER-WHISPER] Failed to load model: {e}")
+                logger.error("Failed to load model", error=str(e))
                 raise
 
     def transcribe(self, audio_path: str, language: str | None = None) -> TranscriptionResult:
         """
-        Transcribe an audio file using Faster-Whisper.
+        Transcribe an audio file using Faster-Whisper (synchronous, no progress).
 
         Args:
             audio_path: Path to audio file
@@ -161,8 +152,8 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
         """
         self.initialize()
 
-        logger.info(f"[FASTER-WHISPER] Transcribing: {audio_path}")
-        
+        logger.debug("Transcribing", audio_path=audio_path)
+
         # Transcribe with VAD filter for better results
         segments_generator, info = self._model.transcribe(
             audio_path,
@@ -178,24 +169,139 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
         # Collect segments (this triggers the actual transcription)
         segments = []
         full_text_parts = []
-        
+
         for seg in segments_generator:
             segments.append(
                 TranscriptionSegment(
                     start_time=seg.start,
                     end_time=seg.end,
                     text=seg.text.strip(),
-                    confidence=seg.avg_logprob if hasattr(seg, 'avg_logprob') else None,
+                    confidence=seg.avg_logprob if hasattr(seg, "avg_logprob") else None,
                     metadata={
-                        "id": seg.id if hasattr(seg, 'id') else None,
-                        "no_speech_prob": seg.no_speech_prob if hasattr(seg, 'no_speech_prob') else None,
+                        "id": seg.id if hasattr(seg, "id") else None,
+                        "no_speech_prob": seg.no_speech_prob if hasattr(seg, "no_speech_prob") else None,
                     },
                 )
             )
             full_text_parts.append(seg.text)
 
         full_text = "".join(full_text_parts).strip()
-        
+
+        logger.info("Transcription complete", segments=len(segments), chars=len(full_text), language=info.language)
+
+        return TranscriptionResult(
+            full_text=full_text,
+            segments=segments,
+            language=info.language,
+            duration=info.duration if hasattr(info, "duration") else (segments[-1].end_time if segments else 0),
+            metadata={
+                "model": self.model_size,
+                "compute_type": self.compute_type,
+                "language_probability": info.language_probability,
+            },
+        )
+
+    async def transcribe_with_progress(
+        self,
+        audio_path: str,
+        language: str | None = None,
+        progress_callback: ProgressCallback | None = None,
+    ) -> TranscriptionResult:
+        """
+        Transcribe an audio file with REAL progress tracking.
+
+        Unlike the synchronous transcribe(), this method:
+        - Reports actual progress based on transcribed audio duration
+        - Yields to the event loop between segments for responsive updates
+        - Provides detailed per-segment status messages
+
+        Args:
+            audio_path: Path to audio file
+            language: Optional language hint (e.g., 'en', 'de')
+            progress_callback: Async callback receiving (fraction: 0-1, message: str)
+
+        Returns:
+            TranscriptionResult with transcription
+        """
+        import asyncio
+
+        self.initialize()
+
+        logger.debug("Transcribing with progress", audio_path=audio_path)
+
+        # Report starting
+        if progress_callback:
+            await progress_callback(0.0, "Initializing transcription...")
+
+        # Transcribe with VAD filter for better results
+        segments_generator, info = self._model.transcribe(
+            audio_path,
+            language=language,
+            beam_size=5,
+            vad_filter=True,
+            vad_parameters=dict(
+                min_silence_duration_ms=500,
+                speech_pad_ms=200,
+            ),
+        )
+
+        # Get total duration for progress calculation
+        total_duration = info.duration if hasattr(info, "duration") else 0
+        if total_duration <= 0:
+            # Fallback: estimate from file size (rough approximation)
+            import os
+
+            file_size = os.path.getsize(audio_path)
+            # 16kHz mono 16-bit = 32000 bytes/second
+            total_duration = file_size / 32000
+            logger.warning("No duration in info, estimated", duration=total_duration)
+
+        logger.debug("Total audio duration", duration=total_duration)
+
+        # Collect segments with progress updates
+        segments = []
+        full_text_parts = []
+        segment_count = 0
+
+        for seg in segments_generator:
+            segment_count += 1
+
+            segments.append(
+                TranscriptionSegment(
+                    start_time=seg.start,
+                    end_time=seg.end,
+                    text=seg.text.strip(),
+                    confidence=seg.avg_logprob if hasattr(seg, "avg_logprob") else None,
+                    metadata={
+                        "id": seg.id if hasattr(seg, "id") else None,
+                        "no_speech_prob": seg.no_speech_prob if hasattr(seg, "no_speech_prob") else None,
+                    },
+                )
+            )
+            full_text_parts.append(seg.text)
+
+            # Calculate REAL progress based on transcribed duration
+            if total_duration > 0:
+                fraction = min(seg.end / total_duration, 1.0)
+            else:
+                # Fallback: count-based (less accurate but better than nothing)
+                fraction = min(segment_count / 100, 0.99)  # Assume ~100 segments max
+
+            # Report progress
+            if progress_callback:
+                message = f"Transcribed {seg.end:.1f}s / {total_duration:.1f}s"
+                await progress_callback(fraction, message)
+
+            # Yield to event loop to allow other async operations
+            # This is crucial for responsive WebSocket updates
+            await asyncio.sleep(0)  # Zero-sleep yields to event loop
+
+        full_text = "".join(full_text_parts).strip()
+
+        # Report completion
+        if progress_callback:
+            await progress_callback(1.0, f"Transcription complete: {segment_count} segments")
+
         logger.info(
             f"[FASTER-WHISPER] Transcription complete: {len(segments)} segments, "
             f"{len(full_text)} chars, language: {info.language}"
@@ -205,17 +311,18 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
             full_text=full_text,
             segments=segments,
             language=info.language,
-            duration=info.duration if hasattr(info, 'duration') else (segments[-1].end_time if segments else 0),
+            duration=total_duration,
             metadata={
                 "model": self.model_size,
                 "compute_type": self.compute_type,
                 "language_probability": info.language_probability,
+                "segment_count": segment_count,
             },
         )
 
     def transcribe_batched(
-        self, 
-        audio_path: str, 
+        self,
+        audio_path: str,
         language: str | None = None,
         batch_size: int = 16,
     ) -> TranscriptionResult:
@@ -242,7 +349,7 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
         if self._batched_model is None:
             self._batched_model = BatchedInferencePipeline(model=self._model)
 
-        logger.info(f"[FASTER-WHISPER] Batched transcription with batch_size={batch_size}")
+        logger.debug("Batched transcription", batch_size=batch_size)
 
         segments_generator, info = self._batched_model.transcribe(
             audio_path,
@@ -253,14 +360,14 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
         # Collect segments
         segments = []
         full_text_parts = []
-        
+
         for seg in segments_generator:
             segments.append(
                 TranscriptionSegment(
                     start_time=seg.start,
                     end_time=seg.end,
                     text=seg.text.strip(),
-                    metadata={"id": seg.id if hasattr(seg, 'id') else None},
+                    metadata={"id": seg.id if hasattr(seg, "id") else None},
                 )
             )
             full_text_parts.append(seg.text)
@@ -298,21 +405,111 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
     def extract_audio_from_video(self, video_path: str, output_path: str | None = None) -> str:
         """Extract audio from video file"""
         from services.media import extract_audio_from_video
+
         return extract_audio_from_video(video_path, output_path, sample_rate=16000)
 
     def get_supported_languages(self) -> list[str]:
         """Get list of supported language codes (same as Whisper - 99 languages)"""
         return [
-            "en", "zh", "de", "es", "ru", "ko", "fr", "ja", "pt", "tr",
-            "pl", "ca", "nl", "ar", "sv", "it", "id", "hi", "fi", "vi",
-            "he", "uk", "el", "ms", "cs", "ro", "da", "hu", "ta", "no",
-            "th", "ur", "hr", "bg", "lt", "la", "mi", "ml", "cy", "sk",
-            "te", "fa", "lv", "bn", "sr", "az", "sl", "kn", "et", "mk",
-            "br", "eu", "is", "hy", "ne", "mn", "bs", "kk", "sq", "sw",
-            "gl", "mr", "pa", "si", "km", "sn", "yo", "so", "af", "oc",
-            "ka", "be", "tg", "sd", "gu", "am", "yi", "lo", "uz", "fo",
-            "ht", "ps", "tk", "nn", "mt", "sa", "lb", "my", "bo", "tl",
-            "mg", "as", "tt", "haw", "ln", "ha", "ba", "jw", "su",
+            "en",
+            "zh",
+            "de",
+            "es",
+            "ru",
+            "ko",
+            "fr",
+            "ja",
+            "pt",
+            "tr",
+            "pl",
+            "ca",
+            "nl",
+            "ar",
+            "sv",
+            "it",
+            "id",
+            "hi",
+            "fi",
+            "vi",
+            "he",
+            "uk",
+            "el",
+            "ms",
+            "cs",
+            "ro",
+            "da",
+            "hu",
+            "ta",
+            "no",
+            "th",
+            "ur",
+            "hr",
+            "bg",
+            "lt",
+            "la",
+            "mi",
+            "ml",
+            "cy",
+            "sk",
+            "te",
+            "fa",
+            "lv",
+            "bn",
+            "sr",
+            "az",
+            "sl",
+            "kn",
+            "et",
+            "mk",
+            "br",
+            "eu",
+            "is",
+            "hy",
+            "ne",
+            "mn",
+            "bs",
+            "kk",
+            "sq",
+            "sw",
+            "gl",
+            "mr",
+            "pa",
+            "si",
+            "km",
+            "sn",
+            "yo",
+            "so",
+            "af",
+            "oc",
+            "ka",
+            "be",
+            "tg",
+            "sd",
+            "gu",
+            "am",
+            "yi",
+            "lo",
+            "uz",
+            "fo",
+            "ht",
+            "ps",
+            "tk",
+            "nn",
+            "mt",
+            "sa",
+            "lb",
+            "my",
+            "bo",
+            "tl",
+            "mg",
+            "as",
+            "tt",
+            "haw",
+            "ln",
+            "ha",
+            "ba",
+            "jw",
+            "su",
         ]
 
     @property
@@ -345,13 +542,14 @@ class FasterWhisperTranscriptionService(ITranscriptionService):
         if self._batched_model is not None:
             del self._batched_model
             self._batched_model = None
-            
+
         # Clear CUDA cache if available
         try:
             import torch
+
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
         except ImportError:
             pass
-        
+
         logger.info("[FASTER-WHISPER] Model cleaned up")

@@ -79,9 +79,10 @@ export class TestOrchestrator extends EventEmitter {
   private environments: Map<string, TestEnvironment> = new Map();
   private contractValidation: ContractValidation;
   private axiosInstance: AxiosInstance;
-  private readonly maxRetries = 60;
-  private readonly retryDelay = 1000;
-  private readonly portPool: Set<number> = new Set();
+  private readonly maxPortRetries = 5;
+  private readonly portRetryDelay = 1000; // 1 second
+  private readonly maxHealthRetries = 60;
+  private readonly healthRetryDelay = 1000;
 
   constructor() {
     super();
@@ -91,43 +92,81 @@ export class TestOrchestrator extends EventEmitter {
       violations: []
     };
     this.axiosInstance = axios.create();
-    this.initializePortPool();
+    this.initializePortPool().catch(err => console.error('Failed to initialize port pool:', err));
     this.setupAxiosInterceptors();
   }
 
   /**
    * Initialize pool of available ports for testing
    */
-  private initializePortPool(): void {
-    // Reserve port ranges for different services
-    for (let port = 9000; port <= 9100; port++) {
-      this.portPool.add(port);
-    }
-  }
-
-  /**
-   * Get an available port from the pool
-   */
-  private async getAvailablePort(): Promise<number> {
-    for (const port of this.portPool) {
-      if (await this.isPortAvailable(port)) {
-        this.portPool.delete(port);
-        return port;
+  private async initializePortPool(): Promise<void> {
+    console.log('Initializing port pool...');
+    const net = require('net');
+    for (let port = 9000; port <= 9500; port++) {
+      if (await this.isPortAvailable(port, net)) {
+        this.portPool.add(port);
       }
     }
-    throw new Error('No available ports in pool');
+    console.log(`Port pool initialized with ${this.portPool.size} available ports.`);
   }
 
   /**
-   * Check if a port is available
+   * Get an available port from the pool with retry mechanism
    */
-  private async isPortAvailable(port: number): Promise<boolean> {
-    try {
-      await axios.get(`http://localhost:${port}`, { timeout: 100 });
-      return false;
-    } catch {
-      return true;
+  private async getAvailablePort(): Promise<number> {
+    const net = require('net');
+    for (let attempt = 0; attempt < this.maxPortRetries; attempt++) {
+      for (const port of this.portPool) {
+        // Re-check availability in case state changed since initialization or last check
+        if (await this.isPortAvailable(port, net)) {
+          this.portPool.delete(port);
+          return port;
+        }
+      }
+      console.warn(`No available ports found on attempt ${attempt + 1}/${this.maxPortRetries}. Retrying in ${this.portRetryDelay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, this.portRetryDelay));
     }
+    throw new Error(`No available ports in pool after ${this.maxPortRetries} attempts`);
+  }
+
+  /**
+   * Check if a port is available using client connection
+   * Attempts to connect to the port. If successful, it's in use.
+   * If connection refused, it's likely free.
+   */
+  private async isPortAvailable(port: number, netModule: typeof import('net')): Promise<boolean> {
+    return new Promise((resolve) => {
+      const { createConnection } = require('net');
+      const socket = createConnection(port, '127.0.0.1');
+
+      socket.setTimeout(200); // Short timeout
+
+      socket.once('connect', () => {
+        // Port is in use
+        socket.destroy();
+        resolve(false);
+      });
+
+      socket.once('error', (err: any) => {
+        socket.destroy();
+        if (err.code === 'ECONNREFUSED') {
+          // Port is free. Add a small delay to ensure OS fully releases.
+          setTimeout(() => resolve(true), 50);
+        } else {
+          // Other error (e.g. timeout) -> assume used or unreachable
+          // Safest to assume NOT available if unsure
+          console.warn(`isPortAvailable: Error checking port ${port}: ${err.code || err.message}. Assuming not available.`);
+          resolve(false);
+        }
+      });
+
+      socket.once('timeout', () => {
+        socket.destroy();
+        // Timeout means it might be open but dropping packets (firewall)
+        // or just slow. Assume unavailable to be safe.
+        resolve(false);
+      });
+    });
   }
 
   /**
@@ -280,7 +319,7 @@ export class TestOrchestrator extends EventEmitter {
   /**
    * Create a new isolated test environment
    */
-  async createEnvironment(id?: string): Promise<TestEnvironment> {
+  async createEnvironment(id?: string, env: NodeJS.ProcessEnv = {}): Promise<TestEnvironment> {
     const envId = id || uuidv4();
     const tempDir = path.join(os.tmpdir(), 'langplug-tests', envId);
     const logDir = path.join(tempDir, 'logs');
@@ -291,7 +330,7 @@ export class TestOrchestrator extends EventEmitter {
     const environment: TestEnvironment = {
       id: envId,
       backend: {
-        config: await this.getBackendConfig(),
+        config: await this.getBackendConfig(env),
         ready: false,
         logs: [],
         errors: [],
@@ -314,26 +353,36 @@ export class TestOrchestrator extends EventEmitter {
 
   /**
    * Get backend server configuration
+   * Best practice: Use cmd.exe-compatible syntax since shell: true uses cmd.exe on Windows
    */
-  private async getBackendConfig(): Promise<ServerConfig> {
+  private async getBackendConfig(env: NodeJS.ProcessEnv = {}): Promise<ServerConfig> {
     const backendPort = await this.getAvailablePort();
     const projectRoot = path.resolve(__dirname, '..', '..');
-    const backendPath = path.resolve(projectRoot, 'Backend');
+    const backendPath = path.resolve(projectRoot, 'src', 'backend');
     const runBackendScript = path.resolve(backendPath, 'run_backend.py');
+
+    // Use Windows-native paths for cmd.exe (backslashes work better)
+    // api_venv is at project root
+    const pythonExe = path.join(projectRoot, 'api_venv', 'Scripts', 'python.exe');
 
     return {
       name: 'backend',
-      command: 'powershell.exe',
-      args: [
-        '-Command',
-        `$env:TESTING='1'; $env:LANGPLUG_RELOAD='false'; $env:PORT='${backendPort}'; python "${runBackendScript}"`
-      ],
+      // cmd.exe syntax: use the executable directly, shell: true will resolve it
+      command: pythonExe,
+      args: [runBackendScript],
       cwd: backendPath,
       env: {
         TESTING: '1',
         LANGPLUG_RELOAD: 'false',
-        PORT: backendPort.toString(),
-        DATABASE_URL: 'sqlite:///./test.db',
+        LANGPLUG_HOST: '127.0.0.1',
+        LANGPLUG_PORT: backendPort.toString(),
+        LANGPLUG_SECRET_KEY: 'test_secret_key_for_integration_tests_must_be_long',
+        // Use aiosqlite driver for async SQLAlchemy
+        LANGPLUG_DATABASE_URL: 'sqlite+aiosqlite:///./test.db',
+        LANGPLUG_TRANSCRIPTION_SERVICE: 'whisper-tiny',
+        // Allow all origins for testing since frontend port is dynamic
+        LANGPLUG_CORS_ORIGINS: '["*"]',
+        ...env,
       },
       healthEndpoint: '/health',
       ports: [backendPort],
@@ -349,22 +398,24 @@ export class TestOrchestrator extends EventEmitter {
 
   /**
    * Get frontend server configuration
+   * Best practice: Use npm with args separately for proper shell handling
    */
   private async getFrontendConfig(): Promise<ServerConfig> {
     const frontendPort = await this.getAvailablePort();
     const projectRoot = path.resolve(__dirname, '..', '..');
-    const frontendPath = path.resolve(projectRoot, 'Frontend');
+    const frontendPath = path.resolve(projectRoot, 'src', 'frontend');
 
     return {
       name: 'frontend',
+      // cmd.exe syntax: pass npm and args separately
       command: 'npm',
-      args: ['run', 'dev', '--', '--port', frontendPort.toString(), '--host', '0.0.0.0'],
+      args: ['run', 'dev', '--', '--port', frontendPort.toString(), '--strictPort', '--host', '0.0.0.0'],
       cwd: frontendPath,
       env: {
         PORT: frontendPort.toString(),
         VITE_API_URL: `http://localhost:${this.environments.values().next().value?.backend.config.ports[0] || 8000}`,
       },
-      healthEndpoint: '/',
+      healthEndpoint: '/index.html',
       ports: [frontendPort],
       readyPatterns: [
         /Local:\s*http/,
@@ -378,6 +429,7 @@ export class TestOrchestrator extends EventEmitter {
 
   /**
    * Start a server instance
+   * Best practice: Use shell: true on Windows for proper command resolution
    */
   async startServer(instance: ServerInstance): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -389,12 +441,19 @@ export class TestOrchestrator extends EventEmitter {
       const logStream = fs.createWriteStream(logFile, { flags: 'a' });
 
       instance.startTime = new Date();
+
+      // Best practice for Windows: Use shell: true and pass complete command
+      // This allows the shell to resolve executables properly
       instance.process = spawn(config.command, config.args, {
         cwd: config.cwd,
+        // CRITICAL: Always spread process.env to preserve PATH
         env: { ...process.env, ...config.env },
+        // shell: true is required on Windows for proper executable resolution
         shell: true,
-        // Create new process group for better process management
-        detached: process.platform !== 'win32',
+        // Don't detach on Windows - it causes issues with process cleanup
+        detached: false,
+        // Pipe stdio for capturing output
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
       instance.pid = instance.process.pid;
@@ -402,7 +461,9 @@ export class TestOrchestrator extends EventEmitter {
       // Handle stdout
       instance.process.stdout?.on('data', (data) => {
         const output = data.toString();
-        instance.logs.push(output);
+        // Prevent OOM by limiting logs
+        // if (instance.logs.length > 1000) instance.logs.shift();
+        // instance.logs.push(output);
         logStream.write(`[STDOUT] ${output}`);
         this.emit('server:log', { server: config.name, data: output });
 
@@ -410,7 +471,7 @@ export class TestOrchestrator extends EventEmitter {
         if (config.readyPatterns?.some(pattern => pattern.test(output))) {
           instance.ready = true;
           instance.port = config.ports[0];
-          instance.url = `http://localhost:${instance.port}`;
+          instance.url = `http://127.0.0.1:${instance.port}`;
           this.emit('server:ready', instance);
         }
       });
@@ -418,9 +479,19 @@ export class TestOrchestrator extends EventEmitter {
       // Handle stderr
       instance.process.stderr?.on('data', (data) => {
         const error = data.toString();
-        instance.errors.push(error);
+        // Prevent OOM by limiting logs
+        // if (instance.errors.length > 1000) instance.errors.shift();
+        // instance.errors.push(error);
         logStream.write(`[STDERR] ${error}`);
         this.emit('server:error', { server: config.name, data: error });
+
+        // Check for ready patterns in stderr too (Uvicorn logs to stderr)
+        if (!instance.ready && config.readyPatterns?.some(pattern => pattern.test(error))) {
+          instance.ready = true;
+          instance.port = config.ports[0];
+          instance.url = `http://127.0.0.1:${instance.port}`;
+          this.emit('server:ready', instance);
+        }
       });
 
       // Handle process exit
@@ -428,7 +499,8 @@ export class TestOrchestrator extends EventEmitter {
         logStream.end();
         this.emit('server:exit', { server: config.name, code });
         if (code !== 0 && code !== null) {
-          reject(new Error(`${config.name} exited with code ${code}`));
+          const lastLogs = [...instance.logs, ...instance.errors].slice(-20).join('\n');
+          reject(new Error(`${config.name} exited with code ${code}.\nLast logs:\n${lastLogs}`));
         }
       });
 
@@ -443,7 +515,8 @@ export class TestOrchestrator extends EventEmitter {
       const timeout = setTimeout(() => {
         if (!instance.ready) {
           this.stopServer(instance);
-          reject(new Error(`${config.name} failed to start within ${config.startupTimeout}ms`));
+          const lastLogs = [...instance.logs, ...instance.errors].slice(-20).join('\n');
+          reject(new Error(`${config.name} failed to start within ${config.startupTimeout}ms.\nLast logs:\n${lastLogs}`));
         }
       }, config.startupTimeout || 30000);
 
@@ -545,7 +618,7 @@ export class TestOrchestrator extends EventEmitter {
     const { config } = instance;
     if (!config.healthEndpoint) return;
 
-    for (let i = 0; i < this.maxRetries; i++) {
+    for (let i = 0; i < this.maxHealthRetries; i++) {
       try {
         const url = `${instance.url}${config.healthEndpoint}`;
         const response = await axios.get(url, { timeout: 1000 });
@@ -554,12 +627,14 @@ export class TestOrchestrator extends EventEmitter {
           return;
         }
       } catch (error) {
-        // Continue retrying
+        if (i > 10 && i % 10 === 0) {
+          console.log(`Health check failed for ${instance.url}: ${(error as Error).message}`);
+        }
       }
-      await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+      await new Promise(resolve => setTimeout(resolve, this.healthRetryDelay));
     }
 
-    throw new Error(`${config.name} health check failed after ${this.maxRetries} retries`);
+    throw new Error(`${config.name} health check failed after ${this.maxHealthRetries} retries`);
   }
 
   /**
@@ -574,9 +649,12 @@ export class TestOrchestrator extends EventEmitter {
     await this.waitForHealth(environment.backend);
 
     // Update frontend config with backend URL
+    const backendUrl = environment.backend.url || `http://localhost:${environment.backend.port}`;
     environment.frontend.config.env = {
       ...environment.frontend.config.env,
-      VITE_API_URL: environment.backend.url || `http://localhost:${environment.backend.port}`,
+      VITE_API_URL: backendUrl,
+      VITE_API_BASE_URL: backendUrl,
+      VITE_BACKEND_URL: backendUrl,
     };
 
     // Start frontend

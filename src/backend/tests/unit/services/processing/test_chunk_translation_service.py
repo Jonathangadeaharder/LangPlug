@@ -172,12 +172,10 @@ class TestBuildTranslationSegments:
 
         # Mock the translation service to avoid slow transformers import
         from services.translationservice.interface import TranslationResult
+
         mock_translation_service = Mock()
         mock_translation_service.translate.return_value = TranslationResult(
-            original_text="Other text",
-            translated_text="Translated text",
-            source_language="en",
-            target_language="de"
+            original_text="Other text", translated_text="Translated text", source_language="en", target_language="de"
         )
 
         with patch("services.processing.chunk_translation_service.SRTParser") as MockParser:

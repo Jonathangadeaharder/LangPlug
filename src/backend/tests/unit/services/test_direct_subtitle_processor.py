@@ -6,7 +6,7 @@ NOTE: Private methods moved to sub-services in services/filterservice/subtitle_p
 These should be tested in their respective sub-service test files.
 """
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -103,11 +103,12 @@ class TestDirectSubtitleProcessor:
             statistics={"total_subtitles": 3, "language": "de", "user_level": "A2", "user_id": "1"},
         )
 
+        mock_db = Mock()
         with patch.object(
             processor.processor, "process_subtitles", new_callable=AsyncMock, return_value=expected_result
         ):
             # Act
-            result = await processor.process_subtitles(sample_subtitles, user_id=1, user_level="A2", language="de")
+            result = await processor.process_subtitles(sample_subtitles, user_id=1, db=mock_db, user_level="A2", language="de")
 
             # Assert
             assert isinstance(result, FilteringResult)
@@ -130,6 +131,7 @@ class TestDirectSubtitleProcessor:
             "statistics": {"segments_parsed": 3, "language": "de", "user_level": "A1"},
         }
 
+        mock_db = Mock()
         with (
             patch.object(
                 processor.file_handler, "parse_srt_file", new_callable=AsyncMock, return_value=sample_subtitles
@@ -140,7 +142,7 @@ class TestDirectSubtitleProcessor:
             patch.object(processor.file_handler, "format_processing_result", return_value=expected_final_result),
         ):
             # Act
-            result = await processor.process_srt_file("/path/to/file.srt", user_id=1, user_level="A1", language="de")
+            result = await processor.process_srt_file("/path/to/file.srt", user_id=1, db=mock_db, user_level="A1", language="de")
 
             # Assert
             assert "blocking_words" in result

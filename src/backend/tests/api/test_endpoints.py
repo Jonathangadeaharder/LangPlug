@@ -38,7 +38,7 @@ async def test_Whenunknown_routeCalled_ThenReturnscontract_404(async_http_client
             "Endpoint not found in API contract",
             "Contract violation: Undefined endpoint GET /api/does-not-exist",
             "Contract violation: Undefined endpoint POST /health",
-            "Method Not Allowed"
+            "Method Not Allowed",
         ]
     else:
         # Accept both the standard FastAPI message and the contract middleware message
@@ -61,7 +61,7 @@ async def test_WhenHealthEndpoint_Thenread_only(async_http_client):
             assert payload["error"]["message"] in [
                 "Not Found",
                 "Endpoint not found in API contract",
-                "Contract violation: Undefined endpoint POST /health"
+                "Contract violation: Undefined endpoint POST /health",
             ]
         else:
             # Old format fallback

@@ -3,14 +3,14 @@ OPUS-MT Translation Service Implementation
 Helsinki-NLP's OPUS-MT models for fast, efficient translation
 """
 
-import logging
-
 import torch
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
 
+from core.config.logging_config import get_logger
+
 from .interface import ITranslationService, TranslationResult
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class OpusTranslationService(ITranslationService):
@@ -54,14 +54,12 @@ class OpusTranslationService(ITranslationService):
             cuda_available = check_cuda_availability("OPUS-MT")
 
             if cuda_available:
-                logger.info(f"[CUDA] GPU available: {torch.cuda.get_device_name(0)}")
-                logger.info(f"[CUDA] CUDA version: {torch.version.cuda}")
+                logger.info("GPU available for OPUS-MT", device=torch.cuda.get_device_name(0))
                 self.device = "cuda"
             else:
                 self.device = "cpu"
 
-            logger.info(f"Loading OPUS-MT model: {self.model_name}")
-            logger.info(f"Device set to use {self.device}")
+            logger.info("Loading OPUS-MT model", model=self.model_name, device=self.device)
 
             # Load tokenizer and model
             self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
@@ -83,7 +81,7 @@ class OpusTranslationService(ITranslationService):
                 max_length=self.max_length,
             )
 
-            logger.info(f"OPUS-MT model loaded: {self.model_name}")
+            logger.info("OPUS-MT model loaded", model=self.model_name)
 
     def translate(self, text: str, source_lang: str, target_lang: str) -> TranslationResult:
         """Translate a single text"""

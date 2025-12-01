@@ -2,13 +2,12 @@
 WebSocket routes for real-time communication
 """
 
-import logging
-
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 from api.websocket_manager import manager
+from core.config.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(tags=["websocket"])
 
 
@@ -97,14 +96,14 @@ async def websocket_endpoint(websocket: WebSocket, token: str | None = Query(Non
 
         except WebSocketDisconnect:
             manager.disconnect(websocket)
-            logger.info(f"WebSocket disconnected for user {user_id}")
+            logger.debug("WebSocket disconnected", user_id=user_id)
 
         except Exception as e:
-            logger.error(f"WebSocket error for user {user_id}: {e}")
+            logger.error("WebSocket error", user_id=user_id, error=str(e))
             manager.disconnect(websocket)
 
     except Exception as e:
-        logger.error(f"WebSocket connection error: {e}")
+        logger.error("WebSocket connection error", error=str(e))
         await websocket.close(code=1011, reason="Server error")
 
 
@@ -140,4 +139,4 @@ async def websocket_status(websocket: WebSocket):
     except WebSocketDisconnect:
         logger.info("Status WebSocket disconnected")
     except Exception as e:
-        logger.error(f"Status WebSocket error: {e}")
+        logger.error("Status WebSocket error", error=str(e))

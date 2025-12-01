@@ -2,7 +2,6 @@
 Transcription API routes for video transcription functionality
 """
 
-import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -10,6 +9,7 @@ from typing import Any
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from core.config import settings
+from core.config.logging_config import get_logger
 from core.dependencies import (
     current_active_user,
     get_task_progress_registry,
@@ -21,7 +21,7 @@ from utils.media_validator import is_valid_video_file
 
 from ..models.processing import TaskResponse, TranscribeRequest
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(tags=["transcription"])
 
 
@@ -30,7 +30,7 @@ async def run_transcription(
 ) -> None:
     """Run transcription in background"""
     try:
-        logger.info(f"Starting transcription task: {task_id}")
+        logger.info("Starting transcription", task_id=task_id)
 
         task_progress[task_id] = {
             "status": "running",
@@ -43,7 +43,7 @@ async def run_transcription(
 
         video_file = Path(video_path)
         if not video_file.exists():
-            logger.error(f"Video file not found: {video_path}")
+            logger.error("Video not found", path=video_path)
             task_progress[task_id] = {
                 "status": "failed",
                 "progress": 0,
@@ -53,7 +53,7 @@ async def run_transcription(
             return
 
         if not is_valid_video_file(str(video_file)):
-            logger.error(f"Invalid video file: {video_path}")
+            logger.error("Invalid video file", path=video_path)
             task_progress[task_id] = {
                 "status": "failed",
                 "progress": 0,
@@ -67,7 +67,7 @@ async def run_transcription(
 
         srt_path = video_file.with_suffix(".srt")
 
-        logger.info(f"Transcribing video: {video_file} -> {srt_path}")
+        logger.info("Transcribing video", video=str(video_file))
         result = await transcription_service.transcribe_video(video_path=str(video_file), output_path=str(srt_path))
 
         if result.get("success", False):
@@ -83,7 +83,7 @@ async def run_transcription(
                 },
                 "completed_at": datetime.now().isoformat(),
             }
-            logger.info(f"Transcription completed successfully: {task_id}")
+            logger.info("Transcription completed", task_id=task_id)
         else:
             task_progress[task_id] = {
                 "status": "failed",
@@ -91,10 +91,10 @@ async def run_transcription(
                 "message": "Transcription failed",
                 "error": result.get("error", "Unknown transcription error"),
             }
-            logger.error(f"Transcription failed: {task_id} - {result.get('error')}")
+            logger.error("Transcription failed", task_id=task_id, error=result.get("error"))
 
     except Exception as e:
-        logger.error(f"Transcription task failed: {task_id} - {e!s}", exc_info=True)
+        logger.error("Transcription task failed", task_id=task_id, error=str(e), exc_info=True)
         task_progress[task_id] = {
             "status": "failed",
             "progress": 0,
@@ -136,12 +136,12 @@ async def transcribe_video(
         HTTPException: 500 if task initialization fails
     """
     try:
-        logger.info(f"Transcribe request received: {request.video_path}")
+        logger.info("Transcribe request", video_path=request.video_path)
 
         # Service availability check handled by dependency injection (would raise 500 if fails instantiation)
         # But we can check if it's None (though Depends usually implies success or error)
         if transcription_service is None:
-             # This shouldn't happen with proper DI unless factory returns None
+            # This shouldn't happen with proper DI unless factory returns None
             logger.warning("Transcription service not available")
             raise HTTPException(
                 status_code=422, detail="Transcription service is not available. Please check server configuration."
@@ -151,23 +151,23 @@ async def transcribe_video(
 
         try:
             videos_path = settings.get_videos_path()
-            logger.info(f"Videos path: {videos_path}")
+            logger.debug("Videos path", path=str(videos_path))
         except Exception as e:
-            logger.error(f"Error getting videos path: {e}")
+            logger.error("Error getting videos path", error=str(e))
             raise HTTPException(status_code=500, detail="Configuration error") from e
 
         # Normalize Windows backslashes to forward slashes for WSL compatibility
         normalized_path = request.video_path.replace("\\", "/")
         full_path = Path(normalized_path) if normalized_path.startswith("/") else videos_path / normalized_path
 
-        logger.info(f"Full video path: {full_path}")
+        logger.debug("Full video path", path=str(full_path))
 
         if not full_path.exists():
-            logger.error(f"Video file not found: {full_path}")
+            logger.error("Video not found", path=str(full_path))
             raise HTTPException(status_code=404, detail="Video file not found")
 
         if not is_valid_video_file(str(full_path)):
-            logger.error(f"Invalid video format: {full_path}")
+            logger.error("Invalid video format", path=str(full_path))
             raise HTTPException(status_code=422, detail="Unsupported video format")
 
         task_id = f"transcribe_{current_user.id}_{datetime.now().timestamp()}"
@@ -179,11 +179,11 @@ async def transcribe_video(
             transcription_service,
         )
 
-        logger.info(f"Started transcription task: {task_id}")
+        logger.info("Transcription started", task_id=task_id)
         return TaskResponse(task_id=task_id, status="started")
 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to start transcription: {e!s}", exc_info=True)
+        logger.error("Failed to start transcription", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Transcription failed: {e!s}") from e

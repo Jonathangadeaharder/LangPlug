@@ -35,6 +35,16 @@ export interface UserVocabularyProgress {
   vocabulary?: VocabularyWord
 }
 
+/**
+ * Simplified progress record for vocabulary list queries
+ * Contains only the fields returned by the vocabulary library API
+ */
+export interface UserProgressRecord {
+  vocabulary_id: number
+  is_known: boolean
+  language: string
+}
+
 export interface VocabularyStats {
   total_reviewed: number
   known_words: number
@@ -56,13 +66,13 @@ export interface UseSearchWordsOptions {
 }
 
 export interface MarkWordParams {
-  vocabularyId: number
+  lemma: string
   isKnown: boolean
-  language?: string
+  language: string
 }
 
 export interface BulkMarkWordsParams {
-  vocabularyIds: number[]
+  lemmas: string[]
   isKnown: boolean
-  language?: string
+  language: string
 }

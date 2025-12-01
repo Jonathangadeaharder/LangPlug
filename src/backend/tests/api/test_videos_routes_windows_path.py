@@ -11,6 +11,7 @@ from tests.helpers import AsyncAuthHelper
 
 def _set_videos_path(monkeypatch, module, tmp_path: Path):
     from core.config import settings
+
     monkeypatch.setattr(type(settings), "get_videos_path", lambda self: tmp_path)
 
 

@@ -2,7 +2,6 @@
 Video management API routes
 """
 
-import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, File, UploadFile
@@ -10,16 +9,18 @@ from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.error_handlers import handle_api_errors, raise_bad_request, raise_conflict, raise_not_found
-from core.exceptions import EpisodeNotFoundError, SeriesNotFoundError, VideoNotFoundError
 from api.models.processing import ProcessingStatus
 from api.models.video import VideoInfo
 from api.models.vocabulary import VocabularyWord
+from core.config import settings
+from core.config.logging_config import get_logger
 from core.database import get_async_session
-from core.dependencies import current_active_user, get_task_progress_registry, get_user_from_query_token
+from core.dependencies import current_active_user, get_task_progress_registry
+from core.exceptions import EpisodeNotFoundError, SeriesNotFoundError
 from database.models import User
 from services.videoservice.video_service import VideoService
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(tags=["videos"])
 
 
@@ -48,20 +49,20 @@ async def get_subtitles(
     """
     Serve subtitle files (SRT format) for video playback.
     """
-    logger.info(f"Serving subtitles: {subtitle_path}")
+    logger.debug("Serving subtitles", path=subtitle_path)
 
     subtitle_file = video_service.get_subtitle_file_path(subtitle_path)
 
     # Verify file exists and is readable
     if not subtitle_file.exists():
-        logger.warning(f"Subtitle file not found: {subtitle_file}")
+        logger.warning("Subtitle not found", path=str(subtitle_file))
         raise_not_found("Subtitle file", subtitle_path)
 
     if not subtitle_file.is_file():
-        logger.warning(f"Subtitle path is not a file: {subtitle_file}")
+        logger.warning("Subtitle path not a file", path=str(subtitle_file))
         raise_not_found("Subtitle file", subtitle_path)
 
-    logger.info(f"Successfully serving subtitle file: {subtitle_file}")
+    logger.debug("Serving subtitle file", path=str(subtitle_file))
     return FileResponse(
         path=str(subtitle_file), media_type="text/plain", headers={"Content-Type": "text/plain; charset=utf-8"}
     )
@@ -81,10 +82,10 @@ async def get_subtitles(
 async def stream_video(
     series: str,
     episode: str,
-    current_user: User = Depends(get_user_from_query_token),
+    current_user: User = Depends(current_active_user),
     video_service: VideoService = Depends(get_video_service),
 ):
-    """Stream video file - Requires authentication"""
+    """Stream video file - Requires authentication (Cookie or Bearer)"""
     try:
         video_file = video_service.get_video_file_path(series, episode)
     except SeriesNotFoundError:
@@ -93,21 +94,26 @@ async def stream_video(
         raise_not_found("Episode", f"{episode} in series {series}")
     except Exception as e:
         # Map unexpected errors if any
-        logger.error(f"Error finding video: {e}")
+        logger.error("Error finding video", error=str(e))
         raise_not_found("Video file", f"{series}/{episode}")
 
     if not video_file.exists():
-        logger.error(f"Video file exists check failed: {video_file}")
+        logger.error("Video file check failed", path=str(video_file))
         raise_not_found("Video file", f"{series}/{episode}")
 
+    # Use configured CORS origins for video streaming
+    # Note: Video streaming requires CORS headers for Range requests to work
+    cors_origin = settings.cors_origins[0] if settings.cors_origins else "*"
+    
     response = FileResponse(
         video_file,
         media_type="video/mp4",
         headers={
             "Accept-Ranges": "bytes",
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": cors_origin,
             "Access-Control-Allow-Methods": "GET, OPTIONS",
-            "Access-Control-Allow-Headers": "Range",
+            "Access-Control-Allow-Headers": "Range, Authorization",
+            "Access-Control-Allow-Credentials": "true",
         },
     )
     return response
@@ -116,48 +122,27 @@ async def stream_video(
 @router.post("/subtitle/upload", name="upload_subtitle")
 @handle_api_errors("uploading subtitle file")
 async def upload_subtitle(
-    video_path: str, subtitle_file: UploadFile = File(...), current_user: User = Depends(current_active_user)
+    video_path: str,
+    subtitle_file: UploadFile = File(...),
+    current_user: User = Depends(current_active_user),
+    video_service: VideoService = Depends(get_video_service),
 ):
     """
     Upload subtitle file for a video - Requires authentication
     Uses FileSecurityValidator for secure file handling
     """
-    # Logic for subtitle upload is still partly in route due to direct file handling requirements
-    # TODO: Move to SubtitleService in future refactoring
-    from core.config import settings
-    from core.file_security import FileSecurityValidator
-
-    allowed_extensions = {".srt", ".vtt", ".sub"}
     try:
-        await FileSecurityValidator.validate_file_upload(subtitle_file, allowed_extensions)
+        subtitle_path = await video_service.upload_subtitle(video_path, subtitle_file)
+
+        return {
+            "success": True,
+            "message": f"Subtitle uploaded for {video_path}",
+            "subtitle_path": str(subtitle_path.relative_to(settings.get_videos_path())),
+        }
     except ValueError as e:
         raise_bad_request(str(e))
-
-    content = await subtitle_file.read()
-
-    videos_path = settings.get_videos_path()
-    try:
-        video_file_path = str(videos_path / video_path)
-        FileSecurityValidator.validate_file_path(video_file_path)
-        video_file = videos_path / video_path
-    except ValueError as e:
-        raise_bad_request(f"Invalid video path: {e}")
-
-    if not video_file.exists():
+    except FileNotFoundError:
         raise_not_found("Video file", video_path)
-
-    subtitle_path = video_file.with_suffix(".srt")
-
-    with open(subtitle_path, "wb") as buffer:
-        buffer.write(content)
-
-    logger.info(f"[SECURITY] Uploaded subtitle: {subtitle_path}")
-
-    return {
-        "success": True,
-        "message": f"Subtitle uploaded for {video_path}",
-        "subtitle_path": str(subtitle_path.relative_to(videos_path)),
-    }
 
 
 @router.post("/scan", name="scan_videos")
@@ -221,12 +206,18 @@ async def upload_video_generic(
         raise_conflict("Video file", str(e))
 
 
-@router.post("/upload/{series}", name="upload_video_to_series", response_model=VideoInfo, status_code=200, responses={
-    200: {"description": "Video uploaded successfully", "model": VideoInfo},
-    400: {"description": "Bad request - invalid video file or parameters"},
-    401: {"description": "Unauthorized - authentication required"},
-    409: {"description": "Conflict - video file already exists"},
-})
+@router.post(
+    "/upload/{series}",
+    name="upload_video_to_series",
+    response_model=VideoInfo,
+    status_code=200,
+    responses={
+        200: {"description": "Video uploaded successfully", "model": VideoInfo},
+        400: {"description": "Bad request - invalid video file or parameters"},
+        401: {"description": "Unauthorized - authentication required"},
+        409: {"description": "Conflict - video file already exists"},
+    },
+)
 @handle_api_errors("uploading video file")
 async def upload_video(
     series: str,

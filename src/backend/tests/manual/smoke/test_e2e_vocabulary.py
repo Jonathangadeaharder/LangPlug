@@ -30,6 +30,7 @@ try:
 except ImportError:
     import sys
     from pathlib import Path
+
     sys.path.insert(0, str(Path(__file__).parent))
     from e2e_config import (
         FRONTEND_URL,
@@ -41,6 +42,7 @@ except ImportError:
 
 # Mark as manual smoke test
 pytestmark = pytest.mark.manual
+
 
 @pytest.mark.asyncio
 async def test_e2e_vocabulary_workflow():
@@ -84,7 +86,7 @@ async def test_e2e_vocabulary_workflow():
 
             # Verify page title or content
             # Assuming there's a header "Vocabulary" or similar
-            header = page.locator('h1, h2, h3').filter(has_text="Vocabulary").first
+            header = page.locator("h1, h2, h3").filter(has_text="Vocabulary").first
             if await header.count() > 0:
                 await header.wait_for()
 
@@ -118,7 +120,7 @@ async def test_e2e_vocabulary_workflow():
                 print(f"[E2E] Searching for: {first_word_text}")
 
                 await search_input.fill(first_word_text)
-                await page.wait_for_timeout(1000) # Wait for debounce
+                await page.wait_for_timeout(1000)  # Wait for debounce
 
                 # Verify filtered
                 filtered_count = await word_elements.count()
@@ -146,6 +148,8 @@ async def test_e2e_vocabulary_workflow():
             await context.close()
             await browser.close()
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(test_e2e_vocabulary_workflow())

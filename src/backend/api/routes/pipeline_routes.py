@@ -2,12 +2,12 @@
 Pipeline API routes for full processing pipeline and task progress monitoring
 """
 
-import logging
 from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
+from core.config.logging_config import get_logger
 from core.dependencies import (
     current_active_user,
     get_task_progress_registry,
@@ -16,7 +16,7 @@ from database.models import User
 
 from ..models.processing import FullPipelineRequest, ProcessingStatus
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(tags=["pipeline"])
 
 
@@ -36,11 +36,11 @@ async def full_pipeline(
         task_id = f"pipeline_{current_user.id}_{datetime.now().timestamp()}"
         background_tasks.add_task(run_processing_pipeline, request.video_path, task_id, task_progress, current_user.id)
 
-        logger.info(f"Started full processing pipeline task: {task_id}")
+        logger.info("Pipeline started", task_id=task_id)
         return {"task_id": task_id, "status": "started"}
 
     except Exception as e:
-        logger.error(f"Failed to start processing pipeline: {e!s}", exc_info=True)
+        logger.error("Pipeline start failed", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Processing pipeline failed: {e!s}") from e
 
 
@@ -108,11 +108,8 @@ async def get_task_progress(
         until status becomes "completed" or "error". Missing tasks return
         completed status to prevent infinite polling.
     """
-    logger.debug(f"[PROGRESS CHECK] Task ID: {task_id}")
-    logger.debug(f"[PROGRESS CHECK] Available tasks: {list(task_progress.keys())}")
-
     if task_id not in task_progress:
-        logger.warning(f"[PROGRESS CHECK] Task {task_id} NOT FOUND in registry")
+        logger.debug("Task not found, returning completed", task_id=task_id)
         # Return completed status for missing tasks (likely already completed and cleaned up)
         # This prevents infinite polling in the frontend
         return ProcessingStatus(
@@ -131,14 +128,6 @@ async def get_task_progress(
         )
 
     if progress_data.status == "completed":
-        logger.info(f"[PROGRESS CHECK] Task {task_id} is COMPLETED!")
-        if hasattr(progress_data, "vocabulary"):
-            logger.debug(
-                f"[PROGRESS CHECK] Vocabulary items: {len(progress_data.vocabulary) if progress_data.vocabulary else 0}"
-            )
-        if hasattr(progress_data, "subtitle_path"):
-            logger.debug(f"[PROGRESS CHECK] Subtitle path: {progress_data.subtitle_path}")
-        if hasattr(progress_data, "translation_path"):
-            logger.debug(f"[PROGRESS CHECK] Translation path: {getattr(progress_data, 'translation_path', None)}")
+        logger.debug("Task completed", task_id=task_id)
 
     return progress_data

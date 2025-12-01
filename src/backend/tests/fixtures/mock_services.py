@@ -2,6 +2,7 @@
 Mock services to prevent slow initialization during tests.
 """
 
+import time
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -32,15 +33,21 @@ def mock_heavy_services(request):
         "confidence": 0.95,
     }
 
+    # Mock Redis rate limiting to prevent 429 errors in tests
+    mock_redis = Mock()
+    mock_redis.is_connected.return_value = True
+    mock_redis.rate_limit.return_value = (True, 299, time.time() + 60)  # allowed, remaining, reset_at
+
     with (
         patch("core.dependencies.get_transcription_service") as mock_get_transcription,
         patch("core.dependencies.get_translation_service") as mock_get_translation,
+        patch("core.dependencies.cache_dependencies.get_redis_client", return_value=mock_redis),
     ):
         # Configure mocks to return our fast services
         mock_get_transcription.return_value = mock_transcription
         mock_get_translation.return_value = mock_translation
 
-        yield {"transcription": mock_transcription, "translation": mock_translation}
+        yield {"transcription": mock_transcription, "translation": mock_translation, "redis": mock_redis}
 
 
 @pytest.fixture

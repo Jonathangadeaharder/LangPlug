@@ -225,12 +225,7 @@ class TestPhase2AIntegration:
             pytest.skip("Redis not available")
 
         # Simulate vocabulary lookup caching
-        word_data = {
-            "word": "hallo",
-            "translation": "hello",
-            "level": "A1",
-            "lemma": "hallo"
-        }
+        word_data = {"word": "hallo", "translation": "hello", "level": "A1", "lemma": "hallo"}
 
         # Cache key
         cache_key = "vocab:de:hallo"

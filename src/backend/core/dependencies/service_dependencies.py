@@ -1,12 +1,12 @@
 """Service dependencies for FastAPI using direct singleton pattern"""
 
-import logging
 from typing import TYPE_CHECKING, Annotated
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.auth.auth_dependencies import current_active_user
+from core.config.logging_config import get_logger
 from core.database.database import get_async_session as get_db_session
 from database.models import User
 from services.interfaces import (
@@ -23,13 +23,11 @@ if TYPE_CHECKING:
     from services.translationservice.interface import ITranslationService
     from services.vocabulary.vocabulary_service import VocabularyService
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # Core service dependencies using direct imports
-def get_vocabulary_service(
-    db: Annotated[AsyncSession, Depends(get_db_session)]
-) -> "VocabularyService":
+def get_vocabulary_service(db: Annotated[AsyncSession, Depends(get_db_session)]) -> "VocabularyService":
     """Get vocabulary service instance with proper dependency injection"""
     from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
     from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
@@ -68,10 +66,10 @@ def get_processing_service(
     db: Annotated[AsyncSession, Depends(get_db_session)] | None = None,
 ) -> "ChunkProcessingService":
     """Get processing pipeline service instance.
-    
+
     Args:
         db: Optional database session for utilities that need DB access
-        
+
     Returns:
         Configured ChunkProcessingService instance
     """
@@ -86,19 +84,19 @@ def get_transcription_service() -> "ITranscriptionService | None":
         from core.config.config import settings
         from services.transcriptionservice.factory import get_transcription_service as _get_transcription_service
 
-        logger.info(f"Initializing transcription service: {settings.transcription_service}")
+        logger.info("Initializing transcription service", service=settings.transcription_service)
         service = _get_transcription_service(settings.transcription_service)
         logger.info("Transcription service initialized successfully")
         return service
     except ImportError as e:
         if "whisper" in str(e).lower() or "torch" in str(e).lower():
-            logger.warning(f"ML dependencies not available for transcription service: {e}")
+            logger.warning("ML dependencies not available for transcription", error=str(e))
             logger.info("Install ML dependencies with: pip install -r requirements-ml.txt")
         else:
-            logger.error(f"Failed to create transcription service: {e}")
+            logger.error("Failed to create transcription service", error=str(e))
         return None
     except Exception as e:
-        logger.error(f"Failed to create transcription service: {e}")
+        logger.error("Failed to create transcription service", error=str(e))
         return None
 
 
@@ -108,19 +106,19 @@ def get_translation_service() -> "ITranslationService | None":
         from core.config.config import settings
         from services.translationservice.factory import get_translation_service as _get_translation_service
 
-        logger.info(f"Initializing translation service: {settings.translation_service}")
+        logger.info("Initializing translation service", service=settings.translation_service)
         service = _get_translation_service(settings.translation_service)
         logger.info("Translation service initialized successfully")
         return service
     except ImportError as e:
         if "torch" in str(e).lower() or "transformers" in str(e).lower():
-            logger.warning(f"ML dependencies not available for translation service: {e}")
+            logger.warning("ML dependencies not available for translation", error=str(e))
             logger.info("Install ML dependencies with: pip install -r requirements-ml.txt")
         else:
-            logger.error(f"Failed to create translation service: {e}")
+            logger.error("Failed to create translation service", error=str(e))
         return None
     except Exception as e:
-        logger.error(f"Failed to create translation service: {e}")
+        logger.error("Failed to create translation service", error=str(e))
         return None
 
 

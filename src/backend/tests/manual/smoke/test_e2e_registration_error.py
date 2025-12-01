@@ -24,6 +24,7 @@ try:
 except ImportError:
     import sys
     from pathlib import Path
+
     sys.path.insert(0, str(Path(__file__).parent))
     from e2e_config import (
         FRONTEND_URL,
@@ -33,6 +34,7 @@ except ImportError:
 
 # Mark as manual smoke test
 pytestmark = pytest.mark.manual
+
 
 @pytest.mark.asyncio
 async def test_e2e_registration_error_workflow():
@@ -68,7 +70,7 @@ async def test_e2e_registration_error_workflow():
             print("[E2E] Filling invalid data (short password)...")
             await email_input.fill(f"test_invalid_{os.urandom(4).hex()}@example.com")
             await username_input.fill("validuser")
-            await password_input.fill("short") # Too short
+            await password_input.fill("short")  # Too short
             await confirm_input.fill("short")
 
             # Step 3: Submit
@@ -89,7 +91,7 @@ async def test_e2e_registration_error_workflow():
             print("[E2E] Waiting for error message...")
             # We expect "at least 12 characters"
             try:
-                await page.wait_for_selector('text=at least 12 characters', timeout=5000)
+                await page.wait_for_selector("text=at least 12 characters", timeout=5000)
                 print("[E2E] Success: Found specific error message")
             except PlaywrightTimeout:
                 # Dump page content to see what we got
@@ -108,6 +110,8 @@ async def test_e2e_registration_error_workflow():
             await context.close()
             await browser.close()
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(test_e2e_registration_error_workflow())

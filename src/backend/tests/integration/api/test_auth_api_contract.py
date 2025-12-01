@@ -3,7 +3,6 @@ API Contract Tests for Authentication Endpoints
 Tests focus on verifying API responses match OpenAPI specification
 """
 
-
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
@@ -169,10 +168,12 @@ class TestAuthApiContractCompliance:
         # Manually verify the user in the DB using direct sqlite3 connection
         # This avoids asyncio loop conflicts between TestClient and separate async engine
         import sqlite3
+
         db_path = client.app.state.test_db_path
 
         # Retry logic for database locking
         import time
+
         max_retries = 5
         for i in range(max_retries):
             try:

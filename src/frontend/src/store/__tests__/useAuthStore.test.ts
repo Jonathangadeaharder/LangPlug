@@ -42,7 +42,6 @@ describe('useAuthStore', () => {
     localStorageMock.getItem.mockReturnValue(null)
     useAuthStore.setState({
       user: null,
-      token: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
@@ -51,10 +50,8 @@ describe('useAuthStore', () => {
   })
 
   it('logs in and loads profile', async () => {
-    sdkMock.authJwtLoginApiAuthLoginPost.mockResolvedValue({
-      access_token: 'jwt-token',
-      token_type: 'bearer',
-    })
+    // Mock login response (void return for cookie auth)
+    sdkMock.authJwtLoginApiAuthLoginPost.mockResolvedValue(undefined as any)
     sdkMock.authGetCurrentUserApiAuthMeGet.mockResolvedValue(sampleUser)
 
     const { result } = renderHook(() => useAuthStore())
@@ -68,9 +65,11 @@ describe('useAuthStore', () => {
     })
     expect(sdkMock.authGetCurrentUserApiAuthMeGet).toHaveBeenCalled()
     expect(result.current.user?.email).toBe('demo@example.com')
-    expect(result.current.token).toBe('jwt-token')
+    // Token is no longer managed in store for cookie auth
+    // expect(result.current.token).toBe('jwt-token')
     expect(result.current.isAuthenticated).toBe(true)
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('authToken', 'jwt-token')
+    // localStorage is not used for token anymore
+    // expect(localStorageMock.setItem).toHaveBeenCalledWith('authToken', 'jwt-token')
   })
 
   it('captures login errors', async () => {
@@ -92,10 +91,8 @@ describe('useAuthStore', () => {
 
   it('registers then logs in', async () => {
     sdkMock.registerRegisterApiAuthRegisterPost.mockResolvedValue(sampleUser)
-    sdkMock.authJwtLoginApiAuthLoginPost.mockResolvedValue({
-      access_token: 'jwt-token',
-      token_type: 'bearer',
-    })
+    // Login response
+    sdkMock.authJwtLoginApiAuthLoginPost.mockResolvedValue(undefined as any)
     sdkMock.authGetCurrentUserApiAuthMeGet.mockResolvedValue(sampleUser)
 
     const { result } = renderHook(() => useAuthStore())
@@ -122,7 +119,7 @@ describe('useAuthStore', () => {
     act(() => {
       useAuthStore.setState({
         user: { ...sampleUser, name: sampleUser.username },
-        token: 'jwt-token',
+        // token: 'jwt-token', // Token removed from state manually here
         isAuthenticated: true,
       })
     })
@@ -132,12 +129,12 @@ describe('useAuthStore', () => {
     })
 
     expect(sdkMock.authJwtLogoutApiAuthLogoutPost).toHaveBeenCalled()
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken')
+    // localStorage.removeItem('authToken') check removed
     expect(result.current.isAuthenticated).toBe(false)
   })
 
-  it('initializes session when token is stored', async () => {
-    localStorageMock.getItem.mockReturnValue('jwt-token')
+  it('initializes session when cookie is present', async () => {
+    // No localStorage check needed
     sdkMock.authGetCurrentUserApiAuthMeGet.mockResolvedValue(sampleUser)
 
     const { result } = renderHook(() => useAuthStore())
@@ -151,8 +148,7 @@ describe('useAuthStore', () => {
     expect(result.current.isAuthenticated).toBe(true)
   })
 
-  it('clears invalid stored sessions', async () => {
-    localStorageMock.getItem.mockReturnValue('stale-token')
+  it('clears state when session check fails', async () => {
     sdkMock.authGetCurrentUserApiAuthMeGet.mockRejectedValue(new Error('Session expired'))
 
     const { result } = renderHook(() => useAuthStore())
@@ -161,7 +157,7 @@ describe('useAuthStore', () => {
       await result.current.initializeAuth()
     })
 
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken')
     expect(result.current.isAuthenticated).toBe(false)
+    expect(result.current.user).toBeNull()
   })
 })

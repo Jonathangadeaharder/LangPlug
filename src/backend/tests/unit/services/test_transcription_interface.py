@@ -74,6 +74,29 @@ class MockTranscriptionService(ITranscriptionService):
             )
         return results
 
+    async def transcribe_with_progress(
+        self,
+        audio_path: str,
+        language: str | None = None,
+        progress_callback: Any | None = None,
+    ) -> TranscriptionResult:
+        """Mock implementation of transcribe_with_progress"""
+        if not self._initialized:
+            raise RuntimeError("Service not initialized")
+
+        if progress_callback:
+            await progress_callback(0.5, "Processing...")
+            await progress_callback(1.0, "Complete")
+
+        return TranscriptionResult(
+            full_text="This is a test transcription with progress",
+            segments=[
+                TranscriptionSegment(start_time=0.0, end_time=5.0, text="This is a test transcription with progress", confidence=0.95)
+            ],
+            language=language or "en",
+            duration=5.0,
+        )
+
     def supports_video(self) -> bool:
         """Mock implementation of supports_video"""
         return True

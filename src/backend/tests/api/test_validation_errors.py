@@ -34,11 +34,11 @@ class TestPasswordValidationErrorMessages:
         data = response.json()
         errors = _extract_validation_errors(data)
         assert len(errors) > 0, f"Expected validation errors, got: {data}"
-        
+
         # Find the password error
         password_errors = [e for e in errors if "password" in e.get("loc", [])]
         assert len(password_errors) > 0
-        
+
         # Verify the message is helpful (contains actual requirement, not just 'Value error')
         # The msg may have "Value error, " prefix, or ctx.error has clean message
         msg = password_errors[0].get("msg", "")
@@ -59,10 +59,10 @@ class TestPasswordValidationErrorMessages:
         data = response.json()
         errors = _extract_validation_errors(data)
         assert len(errors) > 0
-        
+
         password_errors = [e for e in errors if "password" in e.get("loc", [])]
         assert len(password_errors) > 0
-        
+
         msg = password_errors[0].get("msg", "")
         assert "uppercase" in msg.lower(), f"Password error should mention uppercase requirement, got: {msg}"
 
@@ -77,10 +77,10 @@ class TestPasswordValidationErrorMessages:
         data = response.json()
         errors = _extract_validation_errors(data)
         assert len(errors) > 0
-        
+
         password_errors = [e for e in errors if "password" in e.get("loc", [])]
         assert len(password_errors) > 0
-        
+
         msg = password_errors[0].get("msg", "")
         assert "special" in msg.lower(), f"Password error should mention special char requirement, got: {msg}"
 

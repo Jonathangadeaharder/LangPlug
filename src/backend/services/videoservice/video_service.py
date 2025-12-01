@@ -49,7 +49,7 @@ Thread Safety:
 Performance Notes:
     - Video scanning: O(n) where n = total video files
     - Uses glob patterns for efficient file discovery
-    - Caches not implemented - rescans on each call
+    - Video file lookup cached with 60s TTL to optimize repeated lookups
 
 Filename Parsing Patterns:
     - Episode: "episode 1", "ep1", "e1", "episode_01"
@@ -57,20 +57,21 @@ Filename Parsing Patterns:
     - Case-insensitive matching
 """
 
-import logging
+import time
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from fastapi import UploadFile
 
 from api.models.video import VideoInfo
 from api.models.vocabulary import VocabularyWord
 from core.config import settings
+from core.config.logging_config import get_logger
 from core.config.media_config import VIDEO_EXTENSIONS
-from core.exceptions import EpisodeNotFoundError, SeriesNotFoundError, SubtitleNotFoundError, VideoNotFoundError
+from core.exceptions import EpisodeNotFoundError, SeriesNotFoundError
 from core.file_security import FileSecurityValidator
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class VideoService:
@@ -78,9 +79,51 @@ class VideoService:
     Service for video library management and metadata extraction.
     """
 
+    # Class-level cache for video file lookups (shared across instances)
+    _video_cache: ClassVar[dict[str, tuple[dict[str, Path], float]]] = {}
+    _scan_cache: ClassVar[tuple[list, float] | None] = None  # Cache for get_available_videos
+    _cache_ttl: ClassVar[int] = 60  # Cache TTL in seconds
+
     def __init__(self, db_manager, auth_service):
         self.db = db_manager
         self.auth_service = auth_service
+
+    @classmethod
+    def _get_series_video_index(cls, series_path: Path) -> dict[str, Path]:
+        """Get or create a cached index of videos in a series directory.
+        
+        Returns a dict mapping normalized episode names to file paths.
+        Uses class-level caching with TTL to avoid repeated directory scans.
+        """
+        cache_key = str(series_path)
+        now = time.time()
+        
+        # Check if we have a valid cached entry
+        if cache_key in cls._video_cache:
+            cached_index, cached_time = cls._video_cache[cache_key]
+            if now - cached_time < cls._cache_ttl:
+                return cached_index
+        
+        # Build index of video files
+        video_index: dict[str, Path] = {}
+        if series_path.exists():
+            for video_file in series_path.glob("*.mp4"):
+                filename_lower = video_file.name.lower()
+                # Index by multiple keys for flexible lookup
+                video_index[filename_lower] = video_file
+                video_index[video_file.stem.lower()] = video_file
+        
+        cls._video_cache[cache_key] = (video_index, now)
+        return video_index
+
+    @classmethod
+    def clear_cache(cls, series_path: Path | None = None) -> None:
+        """Clear the video cache. If series_path provided, only clear that entry."""
+        if series_path:
+            cls._video_cache.pop(str(series_path), None)
+        else:
+            cls._video_cache.clear()
+            cls._scan_cache = None
 
     def validate_series_name(self, series: str) -> str:
         """Validate and sanitize series name to prevent path traversal"""
@@ -123,7 +166,7 @@ class VideoService:
         if safe_path.exists() and safe_path != final_destination:
             safe_path.unlink(missing_ok=True)
 
-        logger.info(f"[SECURITY] Uploaded video: {final_destination}")
+        logger.info("Uploaded video", path=str(final_destination))
 
         # Build VideoInfo response
         episode_info = self._parse_episode_filename(final_destination.stem)
@@ -136,6 +179,48 @@ class VideoService:
             has_subtitles=False,
             duration=0,
         )
+
+    async def upload_subtitle(self, video_path: str, subtitle_file: UploadFile) -> Path:
+        """
+        Upload a subtitle file for a video.
+
+        Args:
+            video_path: Relative path to the video file
+            subtitle_file: Uploaded subtitle file object
+
+        Returns:
+            Path to the saved subtitle file
+
+        Raises:
+            ValueError: If file type or path is invalid
+            FileNotFoundError: If video file does not exist
+        """
+        # Validate file extension
+        allowed_extensions = {".srt", ".vtt", ".sub"}
+        await FileSecurityValidator.validate_file_upload(subtitle_file, allowed_extensions)
+
+        # Resolve video path
+        videos_path = settings.get_videos_path()
+        try:
+            video_full_path = videos_path / video_path
+            # Validate path security
+            FileSecurityValidator.validate_file_path(str(video_full_path))
+        except ValueError as e:
+            raise ValueError(f"Invalid video path: {e}") from e
+
+        if not video_full_path.exists():
+            raise FileNotFoundError(f"Video file not found: {video_path}")
+
+        # Determine subtitle path (same name as video, but .srt)
+        subtitle_path = video_full_path.with_suffix(".srt")
+
+        # Write file content
+        content = await subtitle_file.read()
+        with open(subtitle_path, "wb") as buffer:
+            buffer.write(content)
+
+        logger.info("Subtitle uploaded", path=str(subtitle_path))
+        return subtitle_path
 
     def get_video_status(self, video_id: str, task_progress: dict[str, Any]) -> dict[str, Any]:
         """Get processing status for a video"""
@@ -151,7 +236,7 @@ class VideoService:
             video_path = videos_path / video_id
 
             if not video_path.exists():
-                return None # Not found
+                return None  # Not found
 
             srt_path = video_path.with_suffix(".srt")
             if srt_path.exists():
@@ -174,7 +259,22 @@ class VideoService:
         return latest_progress
 
     def get_video_vocabulary(self, video_id: str) -> list[VocabularyWord]:
-        """Get vocabulary words extracted from a video"""
+        """Get vocabulary words extracted from a video's subtitles.
+        
+        Note: This endpoint returns vocabulary that was extracted during
+        video processing. If no vocabulary exists, an empty list is returned.
+        Full vocabulary extraction happens during chunk processing via
+        ChunkTranscriptionService.
+        
+        Args:
+            video_id: Video identifier (path relative to videos directory)
+            
+        Returns:
+            List of VocabularyWord objects extracted from video subtitles
+            
+        Raises:
+            FileNotFoundError: If video or subtitle file not found
+        """
         videos_path = settings.get_videos_path()
         video_path = videos_path / video_id
 
@@ -183,31 +283,34 @@ class VideoService:
 
         srt_path = video_path.with_suffix(".srt")
         if not srt_path.exists():
-            raise FileNotFoundError(f"Subtitles not found for video: {video_id}")
+            # No subtitles = no vocabulary to extract
+            logger.debug("No subtitles found for video", video_id=video_id)
+            return []
 
-        # Placeholder for extraction logic
-        logger.warning(f"Vocabulary extraction not implemented for video {video_id}")
+        # Vocabulary is extracted during chunk processing and stored in the database.
+        # This method returns empty until database integration is complete.
+        # See: services/processing/chunk_transcription_service.py for extraction logic
+        logger.debug("Vocabulary lookup for video", video_id=video_id)
         return []
 
     def _validate_videos_path(self, videos_path: Path) -> bool:
         """Validate videos path exists and is accessible"""
         if not videos_path.exists():
-            logger.error(f"Videos path does not exist: {videos_path}")
-            logger.error(f"Attempted absolute path: {videos_path.resolve()}")
+            logger.error("Videos path does not exist", path=str(videos_path))
             return False
 
         if not videos_path.is_dir():
-            logger.error(f"Videos path exists but is not a directory: {videos_path}")
+            logger.error("Videos path not a directory", path=str(videos_path))
             return False
 
         try:
             list(videos_path.iterdir())
             return True
         except PermissionError:
-            logger.error(f"Permission denied accessing videos directory: {videos_path}")
+            logger.error("Permission denied accessing videos", path=str(videos_path))
             return False
         except Exception as e:
-            logger.error(f"Error accessing videos directory {videos_path}: {e}")
+            logger.error("Error accessing videos directory", path=str(videos_path), error=str(e))
             return False
 
     def _create_video_info(self, video_file: Path, videos_path: Path, series_name: str) -> VideoInfo | None:
@@ -232,20 +335,20 @@ class VideoService:
                 has_subtitles=has_subtitles,
             )
         except Exception as e:
-            logger.error(f"Error creating VideoInfo for {video_file}: {e}")
+            logger.error("Error creating VideoInfo", file=str(video_file), error=str(e))
             return None
 
     def _scan_direct_videos(self, videos_path: Path) -> list[VideoInfo]:
         """Scan for video files directly in videos_path root"""
         videos = []
         direct_videos = list(videos_path.glob("*.mp4"))
-        logger.info(f"Found {len(direct_videos)} direct video files in {videos_path}")
+        logger.debug("Found direct video files", count=len(direct_videos))
 
         for video_file in direct_videos:
             video_info = self._create_video_info(video_file, videos_path, "Default")
             if video_info:
                 videos.append(video_info)
-                logger.info(f"Added direct video: {video_info.title}")
+                logger.debug("Added direct video", title=video_info.title)
 
         return videos
 
@@ -253,32 +356,42 @@ class VideoService:
         """Scan for video files in series directories"""
         videos = []
         series_dirs = [d for d in videos_path.iterdir() if d.is_dir()]
-        logger.info(f"Found {len(series_dirs)} series directories: {[d.name for d in series_dirs]}")
+        logger.debug("Found series directories", count=len(series_dirs))
 
         for series_dir in series_dirs:
             try:
                 series_name = series_dir.name
-                logger.info(f"Scanning series directory: {series_name}")
+                logger.debug("Scanning series directory", series=series_name)
 
                 series_videos = list(series_dir.glob("*.mp4"))
-                logger.info(f"Found {len(series_videos)} videos in series '{series_name}'")
+                logger.debug("Found videos in series", count=len(series_videos), series=series_name)
 
                 for video_file in series_videos:
                     video_info = self._create_video_info(video_file, videos_path, series_name)
                     if video_info:
                         videos.append(video_info)
-                        logger.info(f"Added series video: {video_info.title} (series: {series_name})")
+                        logger.debug("Added series video", title=video_info.title, series=series_name)
             except Exception as e:
-                logger.error(f"Error processing series directory {series_dir}: {e}")
+                logger.error("Error processing series directory", dir=str(series_dir), error=str(e))
 
         return videos
 
     def get_available_videos(self) -> list[VideoInfo]:
-        """Get list of available videos/series (Refactored for lower complexity)"""
+        """Get list of available videos/series (Refactored for lower complexity)
+        
+        Uses class-level caching with TTL to reduce disk I/O.
+        """
+        # Check cache first
+        now = time.time()
+        if VideoService._scan_cache is not None:
+            cached_videos, cached_time = VideoService._scan_cache
+            if now - cached_time < self._cache_ttl:
+                logger.debug("Returning cached video list", count=len(cached_videos))
+                return cached_videos
+        
         try:
             videos_path = settings.get_videos_path()
-            logger.info(f"Scanning for videos in: {videos_path}")
-            logger.info(f"Videos path absolute: {videos_path.resolve()}")
+            logger.debug("Scanning for videos", path=str(videos_path))
 
             if not self._validate_videos_path(videos_path):
                 return []
@@ -287,7 +400,10 @@ class VideoService:
             videos.extend(self._scan_direct_videos(videos_path))
             videos.extend(self._scan_series_directories(videos_path))
 
-            logger.info(f"Total videos found: {len(videos)}")
+            # Cache the results
+            VideoService._scan_cache = (videos, now)
+            
+            logger.info("Videos scan complete", count=len(videos))
             if len(videos) == 0:
                 logger.warning("No videos were found! Check directory structure and file permissions.")
                 logger.info("Expected structure: videos/[SeriesName]/episode.mp4 or videos/episode.mp4")
@@ -295,7 +411,7 @@ class VideoService:
             return videos
 
         except Exception as e:
-            logger.error(f"Error scanning videos: {e!s}", exc_info=True)
+            logger.error("Error scanning videos", error=str(e), exc_info=True)
             raise Exception(f"Error scanning videos: {e!s}") from e
 
     def _search_pattern_in_filename(self, patterns: list[str], filename: str) -> str | None:
@@ -385,7 +501,7 @@ class VideoService:
             direct_videos = list(videos_path.glob("*.mp4"))
             result["direct_videos"] = [str(v.name) for v in direct_videos]
             result["total_videos"] += len(direct_videos)
-            logger.info(f"Found {len(direct_videos)} direct videos")
+            logger.debug("Found direct videos", count=len(direct_videos))
         except Exception as e:
             error_msg = f"Error scanning direct videos: {e}"
             logger.error(error_msg)
@@ -404,7 +520,7 @@ class VideoService:
                     series_videos = list(item.glob("*.mp4"))
                     series_info["videos"] = [v.name for v in series_videos]
                     result["total_videos"] += len(series_videos)
-                    logger.info(f"Found {len(series_videos)} videos in series '{item.name}'")
+                    logger.debug("Found videos in series", count=len(series_videos), series=item.name)
                 except Exception as e:
                     error_msg = f"Error scanning series {item.name}: {e}"
                     logger.error(error_msg)
@@ -422,7 +538,7 @@ class VideoService:
             videos_path = settings.get_videos_path()
             result = self._initialize_scan_result(videos_path)
 
-            logger.info(f"Detailed scan of videos directory: {videos_path}")
+            logger.debug("Scanning videos directory", path=str(videos_path))
 
             if not self._validate_videos_directory(videos_path, result):
                 return result
@@ -430,11 +546,11 @@ class VideoService:
             self._scan_direct_video_files(videos_path, result)
             self._scan_series_directory_videos(videos_path, result)
 
-            logger.info(f"Scan complete. Total videos: {result['total_videos']}")
+            logger.info("Video scan complete", total=result["total_videos"])
             return result
 
         except Exception as e:
-            logger.error(f"Fatal error during video scan: {e}", exc_info=True)
+            logger.error("Fatal error during video scan", error=str(e), exc_info=True)
             return {
                 "error": f"Fatal error during scan: {e}",
                 "videos_path": str(settings.get_videos_path()) if settings else "Unknown",
@@ -454,9 +570,9 @@ class VideoService:
                 videos_index = next(i for i, part in enumerate(path_parts) if part.lower() == "videos")
                 relative_path = Path(*path_parts[videos_index + 1 :])
                 subtitle_file = videos_root / relative_path
-                logger.info(f"Converted absolute path {subtitle_path} to relative: {relative_path}")
+                logger.debug("Converted absolute path to relative")
             except (StopIteration, IndexError):
-                logger.warning(f"Could not find 'videos' directory in path: {subtitle_path}")
+                logger.warning("Could not find videos directory in path")
                 subtitle_file = videos_root / Path(subtitle_path).name
         else:
             # Regular relative path handling
@@ -466,14 +582,14 @@ class VideoService:
 
     def get_video_file_path(self, series: str, episode: str) -> Path:
         """Get video file path for a series and episode.
-        
+
         Args:
             series: Name of the video series/folder
             episode: Episode identifier (number or name)
-            
+
         Returns:
             Path to the video file
-            
+
         Raises:
             SeriesNotFoundError: If series directory doesn't exist
             EpisodeNotFoundError: If episode not found in series
@@ -482,21 +598,33 @@ class VideoService:
         if not videos_path.exists():
             raise SeriesNotFoundError(series)
 
-        # Find matching video file
-        for video_file in videos_path.glob("*.mp4"):
-            # More flexible matching - check if episode number is in filename
-            # This handles both "1" matching "Episode 1" and full episode names
-            filename_lower = video_file.name.lower()
-            episode_lower = episode.lower()
+        # Optimization: Try direct file match first (O(1))
+        potential_paths = [
+            videos_path / episode,
+            videos_path / f"{episode}.mp4",
+        ]
+        for p in potential_paths:
+            if p.exists() and p.is_file() and p.suffix.lower() == ".mp4":
+                return p
 
-            # Try different matching patterns
+        # Use cached index for flexible matching (O(1) lookup after initial scan)
+        video_index = self._get_series_video_index(videos_path)
+        episode_lower = episode.lower()
+
+        # Try direct index lookups first
+        if episode_lower in video_index:
+            return video_index[episode_lower]
+        if f"{episode_lower}.mp4" in video_index:
+            return video_index[f"{episode_lower}.mp4"]
+
+        # Search through index with pattern matching
+        for key, video_file in video_index.items():
             matches = (
-                f"episode {episode_lower}" in filename_lower  # "episode 1"
-                or f"episode_{episode_lower}" in filename_lower  # "episode_1"
-                or f"e{episode_lower}" in filename_lower  # "e1"
-                or episode_lower in filename_lower  # direct match
+                f"episode {episode_lower}" in key  # "episode 1"
+                or f"episode_{episode_lower}" in key  # "episode_1"
+                or f"e{episode_lower}" in key  # "e1"
+                or episode_lower in key  # direct match
             )
-
             if matches:
                 return video_file
 

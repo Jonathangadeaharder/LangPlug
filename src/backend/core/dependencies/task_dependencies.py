@@ -31,54 +31,56 @@ async def init_services():
     """Initialize all services on startup"""
     global _services_ready
 
-    logger.info("[STARTUP] Initializing services...")
-    logger.info("[STARTUP] This may take 5-10 minutes on first run to download AI models")
+    logger.info("Initializing services - may take 5-10 minutes on first run")
 
     try:
         # Initialize authentication services
-        logger.info("[STARTUP] Step 1/5: Initializing authentication services...")
+        logger.info("Step 1/5: Initializing authentication services")
         from core.auth.auth_dependencies import init_auth_services
 
         init_auth_services()
-        logger.info("[STARTUP] Authentication services initialized")
+        logger.info("Authentication services initialized")
 
         # Initialize database tables
-        logger.info("[STARTUP] Step 2/5: Initializing database...")
+        logger.info("Step 2/5: Initializing database")
         from core.database.database import init_db
 
         await init_db()
-        logger.info("[STARTUP] Database initialized successfully")
+        logger.info("Database initialized")
 
         # Initialize transcription service
-        logger.info("[STARTUP] Step 3/5: Initializing transcription service...")
-        from core.config.config import settings
+        import os
+        if os.getenv("TESTING") != "1":
+            logger.info("Step 3/5: Initializing transcription service")
+            from core.config.config import settings
 
-        from .service_dependencies import get_transcription_service
+            from .service_dependencies import get_transcription_service
 
-        logger.info(f"[STARTUP] Using transcription model: {settings.transcription_service}")
-        get_transcription_service()
-        logger.info("[STARTUP] Transcription service ready")
+            logger.info("Using transcription model", model=settings.transcription_service)
+            get_transcription_service()
+            logger.info("Transcription service ready")
 
-        # Initialize translation service
-        logger.info("[STARTUP] Step 4/5: Initializing translation service...")
-        from .service_dependencies import get_translation_service
+            # Initialize translation service
+            logger.info("Step 4/5: Initializing translation service")
+            from .service_dependencies import get_translation_service
 
-        logger.info(f"[STARTUP] Using translation model: {settings.translation_service}")
-        get_translation_service()
-        logger.info("[STARTUP] Translation service ready")
+            logger.info("Using translation model", model=settings.translation_service)
+            get_translation_service()
+            logger.info("Translation service ready")
+        else:
+            logger.info("Skipping model initialization in test mode")
 
         # Initialize task progress registry
-        logger.info("[STARTUP] Step 5/5: Initializing task registry...")
+        logger.info("Step 5/5: Initializing task registry")
         get_task_progress_registry()
 
         # Mark services as ready
         _services_ready = True
-        logger.info("[STARTUP] All services initialized successfully!")
-        logger.info("[STARTUP] Server is ready to handle requests")
+        logger.info("All services initialized, server ready")
 
     except Exception as e:
         _services_ready = False
-        logger.error(f"[STARTUP] Failed to initialize services: {e}", exc_info=True)
+        logger.error("Failed to initialize services", error=str(e), exc_info=True)
         raise
 
 

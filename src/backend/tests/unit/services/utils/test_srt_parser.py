@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from services.srt_parser import SRTParser, SRTSegment
+from utils.srt_parser import SRTParser, SRTSegment
 
 
 class TestSRTSegmentDataclass:

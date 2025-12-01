@@ -3,7 +3,6 @@ Integration layer between domain events and caching system.
 Provides automatic cache invalidation based on domain events.
 """
 
-import logging
 from collections.abc import Callable
 from datetime import datetime
 
@@ -14,8 +13,9 @@ from services.vocabulary.events import (
 )
 
 from .caching import cache_manager
+from .config.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CacheInvalidationHandler:
@@ -62,9 +62,9 @@ class CacheInvalidationHandler:
             for handler in handlers:
                 await handler(event)
 
-            logger.debug(f"Cache invalidated for event {event.event_type}")
+            logger.debug("Cache invalidated", event_type=event.event_type)
         except Exception as e:
-            logger.error(f"Error handling cache invalidation for {event.event_type}: {e}")
+            logger.error("Cache invalidation error", event_type=event.event_type, error=str(e))
 
     async def _invalidate_user_progress(self, event: DomainEvent):
         """Invalidate user progress cache"""

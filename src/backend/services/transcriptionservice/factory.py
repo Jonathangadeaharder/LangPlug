@@ -138,13 +138,14 @@ class TranscriptionServiceFactory:
 
         # Force faster-whisper-tiny in test/debug environment for speed
         if os.environ.get("TESTING") == "1" or os.environ.get("DEBUG") == "1":
-            import logging
-            logger = logging.getLogger(__name__)
-            
+            from core.config.logging_config import get_logger
+
+            logger = get_logger(__name__)
+
             if service_name != "faster-whisper-tiny":
-                logger.info(f"[TEST/DEBUG MODE] Overriding '{service_name}' with 'faster-whisper-tiny'")
+                logger.info("Test/debug mode override", original=service_name, override="faster-whisper-tiny")
             service_name = "faster-whisper-tiny"
-            
+
             # Ensure model_size matches
             if "model_size" in kwargs:
                 kwargs["model_size"] = "tiny"

@@ -31,6 +31,7 @@ LANGUAGES = {
     "French (fr)": "fr",
 }
 
+
 class TranscriptionApp:
     def __init__(self) -> None:
         self.root = tk.Tk()
@@ -79,7 +80,7 @@ class TranscriptionApp:
         if not model_options:
             model_options = list(available_services.keys())
 
-        self.model_var = tk.StringVar(value="whisper-base") # Default to base for balance
+        self.model_var = tk.StringVar(value="whisper-base")  # Default to base for balance
         model_menu = tk.OptionMenu(config_frame, self.model_var, *model_options)
         model_menu.grid(row=0, column=3, padx=5, pady=5)
 
@@ -110,7 +111,7 @@ class TranscriptionApp:
                 ("Media files", "*.mp4 *.mkv *.avi *.mov *.mp3 *.wav *.m4a"),
                 ("Video files", "*.mp4 *.mkv *.avi *.mov"),
                 ("Audio files", "*.mp3 *.wav *.m4a"),
-                ("All files", "*.*")
+                ("All files", "*.*"),
             ],
         )
         if path:
@@ -168,11 +169,11 @@ class TranscriptionApp:
             audio_path = input_path
             temp_audio = None
 
-            if service.supports_video() and input_path.suffix.lower() in ['.mp4', '.mkv', '.avi', '.mov']:
+            if service.supports_video() and input_path.suffix.lower() in [".mp4", ".mkv", ".avi", ".mov"]:
                 self._update_status("Extracting audio from video...")
                 try:
                     # Create temp audio path
-                    temp_audio = input_path.with_suffix('.wav')
+                    temp_audio = input_path.with_suffix(".wav")
                     extracted_path = service.extract_audio_from_video(str(input_path), str(temp_audio))
                     audio_path = Path(extracted_path)
                 except Exception as e:
@@ -194,15 +195,12 @@ class TranscriptionApp:
             srt_segments = []
             for i, seg in enumerate(result.segments, start=1):
                 srt_segment = SRTSegment(
-                    index=i,
-                    start_time=seg.start_time,
-                    end_time=seg.end_time,
-                    text=seg.text.strip()
+                    index=i, start_time=seg.start_time, end_time=seg.end_time, text=seg.text.strip()
                 )
                 srt_segments.append(srt_segment)
 
             # Save SRT
-            output_path = input_path.with_suffix('.srt')
+            output_path = input_path.with_suffix(".srt")
             self._update_status(f"Saving SRT to {output_path}...")
 
             SRTParser.save_segments(srt_segments, str(output_path))
@@ -217,16 +215,17 @@ class TranscriptionApp:
             self._update_status("Done!")
 
             # Show success message (must be on main thread)
-            self.root.after(0, lambda: messagebox.showinfo(
-                "Success",
-                f"Transcription complete!\n\n"
-                f"Segments: {len(srt_segments)}\n"
-                f"Saved to:\n{output_path}"
-            ))
+            self.root.after(
+                0,
+                lambda: messagebox.showinfo(
+                    "Success", f"Transcription complete!\n\nSegments: {len(srt_segments)}\nSaved to:\n{output_path}"
+                ),
+            )
 
         except Exception as e:
             self._update_status(f"Error: {e!s}")
-            self.root.after(0, lambda: messagebox.showerror("Transcription Failed", f"Error:\n{e!s}"))
+            error_msg = str(e)  # Capture error message before exception cleanup
+            self.root.after(0, lambda msg=error_msg: messagebox.showerror("Transcription Failed", f"Error:\n{msg}"))
 
         finally:
             self.is_processing = False

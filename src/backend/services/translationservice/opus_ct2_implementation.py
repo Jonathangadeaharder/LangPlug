@@ -10,21 +10,21 @@ Uses CTranslate2 for significantly faster inference:
 See: https://github.com/OpenNMT/CTranslate2
 """
 
-import logging
-import os
 import tempfile
 from pathlib import Path
 from typing import Any
 
+from core.config.logging_config import get_logger
+
 from .interface import ITranslationService, TranslationResult
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class OpusCT2TranslationService(ITranslationService):
     """
     CTranslate2-optimized OPUS-MT implementation.
-    
+
     Benefits over standard Transformers:
     - Up to 9x faster translation on GPU
     - Up to 4.7x faster translation on CPU
@@ -60,7 +60,7 @@ class OpusCT2TranslationService(ITranslationService):
         self._compute_type = compute_type
         self.inter_threads = inter_threads
         self.intra_threads = intra_threads
-        
+
         self._translator = None
         self._tokenizer = None
         self._model_path = None
@@ -78,23 +78,21 @@ class OpusCT2TranslationService(ITranslationService):
     def _get_or_convert_model(self) -> str:
         """Get converted CTranslate2 model path, converting if needed."""
         import ctranslate2
-        
+
         # Cache directory for converted models
         cache_dir = Path(tempfile.gettempdir()) / "ctranslate2_models"
         cache_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Model-specific cache path
         model_safe_name = self.model_name.replace("/", "_").replace("-", "_")
         model_dir = cache_dir / f"{model_safe_name}_ct2"
-        
+
         if model_dir.exists() and (model_dir / "model.bin").exists():
-            logger.info(f"[OPUS-CT2] Using cached model: {model_dir}")
+            logger.debug("Using cached CT2 model", path=str(model_dir))
             return str(model_dir)
-        
-        logger.info(f"[OPUS-CT2] Converting model to CTranslate2 format...")
-        logger.info(f"[OPUS-CT2] Source: {self.model_name}")
-        logger.info(f"[OPUS-CT2] Target: {model_dir}")
-        
+
+        logger.info("Converting model to CTranslate2 format", source=self.model_name)
+
         # Convert the model
         try:
             ct2_converter = ctranslate2.converters.TransformersConverter(self.model_name)
@@ -103,32 +101,31 @@ class OpusCT2TranslationService(ITranslationService):
                 quantization="float16",  # Convert with FP16 for smaller size
                 force=True,
             )
-            logger.info(f"[OPUS-CT2] Model converted successfully")
+            logger.info("Model converted to CT2 format")
         except Exception as e:
-            logger.error(f"[OPUS-CT2] Conversion failed: {e}")
+            logger.error("CT2 conversion failed", error=str(e))
             raise
-        
+
         return str(model_dir)
 
     def initialize(self) -> None:
         """Initialize the CTranslate2 translator"""
         if self._translator is not None:
             return
-            
+
         try:
             import ctranslate2
             from transformers import AutoTokenizer
         except ImportError as e:
             raise ImportError(
-                "ctranslate2 or transformers not installed. Install with: "
-                "pip install ctranslate2 transformers"
+                "ctranslate2 or transformers not installed. Install with: pip install ctranslate2 transformers"
             ) from e
 
         from core.gpu_utils import check_cuda_availability
 
         # Check CUDA availability
         cuda_available = check_cuda_availability("OPUS-CT2")
-        
+
         # Determine device
         if self.device == "auto":
             self.device = "cuda" if cuda_available else "cpu"
@@ -139,23 +136,22 @@ class OpusCT2TranslationService(ITranslationService):
         # Adjust compute type for device
         compute_type = self.compute_type
         if self.device == "cpu" and compute_type in ("float16", "int8_float16"):
-            logger.warning(f"[OPUS-CT2] {compute_type} not supported on CPU, using int8")
+            logger.warning("Compute type not supported on CPU, using int8", requested=compute_type)
             compute_type = "int8"
 
-        logger.info(f"[OPUS-CT2] Loading model: {self.model_name}")
-        logger.info(f"[OPUS-CT2] Device: {self.device}, Compute type: {compute_type}")
+        logger.info("Loading OPUS-CT2 model", model=self.model_name, device=self.device)
 
         # Get or convert the model
         model_path = self._get_or_convert_model()
         self._model_path = model_path
 
         # Load tokenizer from original model
-        logger.info(f"[OPUS-CT2] Loading tokenizer from {self.model_name}")
+        logger.debug("Loading tokenizer", model=self.model_name)
         self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
 
         # Create CTranslate2 translator
         device_index = 0 if self.device == "cuda" else -1
-        
+
         self._translator = ctranslate2.Translator(
             model_path,
             device=self.device,
@@ -165,10 +161,11 @@ class OpusCT2TranslationService(ITranslationService):
             intra_threads=self.intra_threads,
         )
 
-        logger.info(f"[OPUS-CT2] Model loaded successfully")
+        logger.info("OPUS-CT2 model loaded")
         if self.device == "cuda":
             import torch
-            logger.info(f"[OPUS-CT2] GPU: {torch.cuda.get_device_name(0)}")
+
+            logger.debug("Using GPU", device=torch.cuda.get_device_name(0))
 
     def translate(self, text: str, source_lang: str, target_lang: str) -> TranslationResult:
         """Translate a single text"""
@@ -176,16 +173,16 @@ class OpusCT2TranslationService(ITranslationService):
         return results[0]
 
     def translate_batch(
-        self, 
-        texts: list[str], 
-        source_lang: str, 
+        self,
+        texts: list[str],
+        source_lang: str,
         target_lang: str,
         beam_size: int = 2,
         max_batch_size: int = 64,
     ) -> list[TranslationResult]:
         """
         Translate multiple texts in batch.
-        
+
         Args:
             texts: List of texts to translate
             source_lang: Source language code
@@ -221,7 +218,7 @@ class OpusCT2TranslationService(ITranslationService):
             # Convert tokens to IDs then decode
             token_ids = self._tokenizer.convert_tokens_to_ids(translated_tokens)
             translated_text = self._tokenizer.decode(token_ids, skip_special_tokens=True)
-            
+
             translation_results.append(
                 TranslationResult(
                     original_text=text,
@@ -266,6 +263,7 @@ class OpusCT2TranslationService(ITranslationService):
         # Clear CUDA cache
         try:
             import torch
+
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
         except ImportError:

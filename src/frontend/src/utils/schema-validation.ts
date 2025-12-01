@@ -27,11 +27,13 @@ export const AuthResponseSchema = z
   .passthrough()
 
 // Create register/login request schemas with frontend-specific validation messages
-export const registerSchema = z.object({
+export const RegisterRequestSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 })
+
+export const registerSchema = RegisterRequestSchema
 
 export const LoginRequestSchema = z.object({
   username: z.string().min(1, 'Email is required'),

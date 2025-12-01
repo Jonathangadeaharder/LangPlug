@@ -4,11 +4,11 @@ SRT file handler using pysrt library
 Handles reading, writing, and manipulating SRT (SubRip) subtitle files.
 """
 
-import logging
-
 import pysrt
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class SRTFileHandler:
@@ -35,10 +35,10 @@ class SRTFileHandler:
         """
         try:
             subs = pysrt.open(filepath)
-            logger.info(f"[INFO] Loaded {len(subs)} subtitles from {filepath}")
+            logger.debug("Loaded subtitles", count=len(subs))
             return subs
         except Exception as e:
-            logger.error(f"[ERROR] Error reading SRT file {filepath}: {e}")
+            logger.error("Error reading SRT file", error=str(e))
             return None
 
     @staticmethod
@@ -55,19 +55,14 @@ class SRTFileHandler:
         """
         try:
             subtitles.save(filepath)
-            logger.info(f"[INFO] Saved {len(subtitles)} subtitles to {filepath}")
+            logger.debug("Saved subtitles", count=len(subtitles))
             return True
         except Exception as e:
-            logger.error(f"[ERROR] Error writing SRT file {filepath}: {e}")
+            logger.error("Error writing SRT file", error=str(e))
             return False
 
     @staticmethod
-    def create_subtitle(
-        index: int,
-        start_ms: int,
-        end_ms: int,
-        text: str
-    ) -> pysrt.SubRipItem:
+    def create_subtitle(index: int, start_ms: int, end_ms: int, text: str) -> pysrt.SubRipItem:
         """
         Create a subtitle item.
 
@@ -84,7 +79,7 @@ class SRTFileHandler:
             index=index,
             start=pysrt.SubRipTime(milliseconds=start_ms),
             end=pysrt.SubRipTime(milliseconds=end_ms),
-            text=text
+            text=text,
         )
 
     @staticmethod
@@ -103,15 +98,11 @@ class SRTFileHandler:
             subtitles.shift(milliseconds=milliseconds)
             return subtitles
         except Exception as e:
-            logger.error(f"Error shifting subtitles: {e}")
+            logger.error("Error shifting subtitles", error=str(e))
             return subtitles
 
     @staticmethod
-    def filter_subtitles(
-        subtitles: pysrt.SubRipFile,
-        start_ms: int,
-        end_ms: int
-    ) -> pysrt.SubRipFile:
+    def filter_subtitles(subtitles: pysrt.SubRipFile, start_ms: int, end_ms: int) -> pysrt.SubRipFile:
         """
         Filter subtitles to time range.
 
@@ -154,10 +145,7 @@ class SRTFileHandler:
         return " ".join(texts)
 
     @staticmethod
-    def merge_subtitles(
-        subs1: pysrt.SubRipFile,
-        subs2: pysrt.SubRipFile
-    ) -> pysrt.SubRipFile:
+    def merge_subtitles(subs1: pysrt.SubRipFile, subs2: pysrt.SubRipFile) -> pysrt.SubRipFile:
         """
         Merge two subtitle files.
 
@@ -197,10 +185,7 @@ class SRTFileHandler:
             return 0
         end_time = subtitles[-1].end
         # Convert time to total milliseconds: hours*3600000 + minutes*60000 + seconds*1000 + milliseconds
-        total_ms = (end_time.hours * 3600000 + 
-                   end_time.minutes * 60000 + 
-                   end_time.seconds * 1000 + 
-                   end_time.milliseconds)
+        total_ms = end_time.hours * 3600000 + end_time.minutes * 60000 + end_time.seconds * 1000 + end_time.milliseconds
         return total_ms
 
 
@@ -211,19 +196,9 @@ if __name__ == "__main__":
     # Create sample subtitles
     subs = pysrt.SubRipFile()
 
-    subs.append(handler.create_subtitle(
-        1,
-        0,
-        5000,
-        "First subtitle"
-    ))
+    subs.append(handler.create_subtitle(1, 0, 5000, "First subtitle"))
 
-    subs.append(handler.create_subtitle(
-        2,
-        5000,
-        10000,
-        "Second subtitle"
-    ))
+    subs.append(handler.create_subtitle(2, 5000, 10000, "Second subtitle"))
 
     # Save to file
     handler.write_srt("test_subtitles.srt", subs)

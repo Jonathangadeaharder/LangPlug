@@ -59,7 +59,7 @@ echo [BACKEND] Starting Backend on port %BACKEND_PORT%...
 REM Start Backend in new window with small/fast models
 REM Using /k to keep terminal open for long-running server
 REM LANGPLUG_RELOAD=0 to avoid Windows reload mode issues (0=False, 1=True)
-start "Backend Server (DEBUG)" cmd /k "cd /d "%REPO_ROOT%\src\backend" && api_venv\Scripts\activate && set LANGPLUG_PORT=%BACKEND_PORT%&& set LANGPLUG_RELOAD=0&& set LANGPLUG_TRANSCRIPTION_SERVICE=%LANGPLUG_TRANSCRIPTION_SERVICE%&& set LANGPLUG_TRANSLATION_SERVICE=%LANGPLUG_TRANSLATION_SERVICE%&& set LANGPLUG_DEFAULT_LANGUAGE=%LANGPLUG_DEFAULT_LANGUAGE%&& echo [INFO] Starting Backend in DEBUG mode with small models on port %BACKEND_PORT%... && python run_backend.py"
+start "Backend Server (DEBUG)" cmd /k "cd /d "%REPO_ROOT%\src\backend" && "%REPO_ROOT%\api_venv\Scripts\activate" && set LANGPLUG_PORT=%BACKEND_PORT%&& set LANGPLUG_RELOAD=0&& set LANGPLUG_TRANSCRIPTION_SERVICE=%LANGPLUG_TRANSCRIPTION_SERVICE%&& set LANGPLUG_TRANSLATION_SERVICE=%LANGPLUG_TRANSLATION_SERVICE%&& set LANGPLUG_DEFAULT_LANGUAGE=%LANGPLUG_DEFAULT_LANGUAGE%&& echo [INFO] Starting Backend in DEBUG mode with small models on port %BACKEND_PORT%... && python run_backend.py"
 echo Started Backend with DEBUG models (whisper-tiny, opus-de-es)
 echo Waiting for Backend to initialize...
 timeout /t 10 /nobreak >nul

@@ -2,7 +2,6 @@
 Authentication API routes
 """
 
-import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
@@ -10,6 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.auth import current_active_user
+from core.config.logging_config import get_logger
 from core.database import get_async_session
 from core.exceptions import AuthenticationError
 from database.models import User
@@ -18,11 +18,17 @@ from services.authservice.token_service import TokenService
 
 from ..models.auth import UserResponse
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(tags=["authentication"])
 
 
 # Note: Core authentication endpoints (register, login, logout) are handled by FastAPI-Users
+
+
+class TokenRefreshRequest(BaseModel):
+    """Request model for token refresh (for non-browser clients)"""
+
+    refresh_token: str | None = None
 
 
 class TokenRefreshResponse(BaseModel):
@@ -89,7 +95,8 @@ async def get_current_user_info(current_user: Annotated[User, Depends(current_ac
 @router.post("/token/refresh", response_model=TokenRefreshResponse, name="auth_refresh_token")
 async def refresh_access_token(
     response: Response,
-    refresh_token: str = Cookie(None, alias="refresh_token"),
+    body: TokenRefreshRequest | None = None,
+    refresh_token_cookie: str = Cookie(None, alias="refresh_token"),
     db: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -99,12 +106,14 @@ async def refresh_access_token(
     1. A new access token (for API calls)
     2. A new refresh token (rotated from old one)
 
+    Token Sources (in order of priority):
+    1. HTTP-only cookie (recommended for browsers)
+    2. Request body (for non-browser clients like mobile apps)
+
     Token Rotation Security:
     - Each refresh token can only be used once
     - If an old token is reused, it indicates theft and all tokens are revoked
     - Rotation creates a "family" of tokens that are tracked together
-
-    The refresh token should be stored in an HTTP-only cookie for security.
 
     Returns:
         TokenRefreshResponse: New access token and rotated refresh token
@@ -116,6 +125,9 @@ async def refresh_access_token(
         If you receive a 401 error mentioning "token reuse", all tokens have been
         revoked for security. The user must login again.
     """
+    # Accept token from cookie (preferred) or body (for non-browser clients)
+    refresh_token = refresh_token_cookie or (body.refresh_token if body else None)
+    
     if not refresh_token:
         logger.warning("Token refresh attempted without refresh token")
         raise HTTPException(status_code=401, detail="Refresh token required")
@@ -140,7 +152,7 @@ async def refresh_access_token(
             max_age=30 * 24 * 60 * 60,  # 30 days
         )
 
-        logger.info(f"Token rotated successfully for user {user_id}")
+        logger.info("Token rotated", user_id=user_id)
 
         return TokenRefreshResponse(
             access_token=new_access_token,
@@ -150,7 +162,7 @@ async def refresh_access_token(
         )
 
     except AuthenticationError as e:
-        logger.error(f"Token refresh failed: {e}")
+        logger.error("Token refresh failed", error=str(e))
 
         # Check if this was a theft detection
         if "reuse" in str(e).lower():

@@ -4,11 +4,10 @@ Game session management API routes
 Thin API layer delegating to GameSessionService, GameQuestionService, and GameScoringService.
 """
 
-import logging
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config.logging_config import get_logger
 from core.database import get_async_session
 from core.dependencies import current_active_user
 from database.models import User
@@ -25,7 +24,7 @@ from services.gameservice.game_session_service import (
     StartGameRequest,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter(tags=["game"])
 
@@ -108,7 +107,7 @@ async def start_game_session(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"Error starting game session: {exc}", exc_info=True)
+        logger.error("Error starting game session", error=str(exc), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error starting game session: {exc!s}") from exc
 
 
@@ -142,7 +141,7 @@ async def get_game_session(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"Error getting game session: {exc}", exc_info=True)
+        logger.error("Error getting game session", error=str(exc), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error retrieving game session: {exc!s}") from exc
 
 
@@ -222,7 +221,7 @@ async def submit_answer(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"Error submitting answer: {exc}", exc_info=True)
+        logger.error("Error submitting answer", error=str(exc), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error submitting answer: {exc!s}") from exc
 
 
@@ -251,5 +250,5 @@ async def get_user_game_sessions(
         return sessions
 
     except Exception as exc:
-        logger.error(f"Error getting user game sessions: {exc}", exc_info=True)
+        logger.error("Error getting user game sessions", error=str(exc), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error retrieving game sessions: {exc!s}") from exc

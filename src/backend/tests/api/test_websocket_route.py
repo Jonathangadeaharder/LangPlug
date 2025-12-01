@@ -97,7 +97,7 @@ async def test_Whenws_success_connect_and_disconnectCalled_ThenSucceeds(monkeypa
     class ImprovedFakeWS(FakeWS):
         async def receive_json(self):
             # Simulate one message then disconnect
-            if not hasattr(self, '_msg_sent'):
+            if not hasattr(self, "_msg_sent"):
                 self._msg_sent = True
                 return {"type": "ping"}
             raise WebSocketDisconnect()
@@ -108,7 +108,7 @@ async def test_Whenws_success_connect_and_disconnectCalled_ThenSucceeds(monkeypa
         events["connected"] = True
 
     async def fake_handle_message(ws, data):
-        pass # Just handle the message
+        pass  # Just handle the message
 
     def fake_disconnect(ws):
         events["disconnected"] = True
@@ -134,12 +134,11 @@ async def test_Whenws_success_connect_and_disconnectCalled_ThenSucceeds(monkeypa
     class MockDbSession:
         async def __aenter__(self):
             return None
+
         async def __aexit__(self, exc_type, exc_val, exc_tb):
             pass
 
     monkeypatch.setattr("core.database.AsyncSessionLocal", MockDbSession)
-
-
 
     # Use the imported wsmod to patch manager
     monkeypatch.setattr(wsmod.manager, "connect", fake_connect)

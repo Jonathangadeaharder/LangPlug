@@ -1,7 +1,6 @@
 """Progress tracking API routes"""
 
 import json
-import logging
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -9,10 +8,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from core.config import settings
+from core.config.logging_config import get_logger
 from core.dependencies import current_active_user
 from database.models import User
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter(tags=["progress"])
 
@@ -124,18 +124,18 @@ async def get_user_progress(current_user: User = Depends(current_active_user)):
                             setattr(default_progress, key, value)
 
             except Exception as e:
-                logger.warning(f"Error loading user progress: {e!s}")
+                logger.warning("Error loading user progress", error=str(e))
 
         if default_progress.last_activity:
             days_since_activity = (datetime.now() - default_progress.last_activity).days
             if days_since_activity > 1:
                 default_progress.current_streak = 0
 
-        logger.info(f"Retrieved progress for user {current_user.id}")
+        logger.debug("Retrieved progress", user_id=current_user.id)
         return default_progress
 
     except Exception as e:
-        logger.error(f"Error getting user progress: {e!s}", exc_info=True)
+        logger.error("Error getting user progress", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error retrieving user progress: {e!s}") from e
 
 
@@ -161,11 +161,11 @@ async def update_user_progress(progress_update: dict[str, Any], current_user: Us
         with open(user_progress_path, "w", encoding="utf-8") as f:
             json.dump(progress_dict, f, indent=2, ensure_ascii=False)
 
-        logger.info(f"Updated progress for user {current_user.id}")
+        logger.debug("Updated progress", user_id=current_user.id)
         return {"message": "Progress updated successfully"}
 
     except Exception as e:
-        logger.error(f"Error updating user progress: {e!s}", exc_info=True)
+        logger.error("Error updating user progress", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error updating user progress: {e!s}") from e
 
 
@@ -188,7 +188,7 @@ async def get_daily_progress(days: int = 7, current_user: User = Depends(current
                         daily_progress.append(DailyProgress(date=date, **day_data))
 
             except Exception as e:
-                logger.warning(f"Error loading daily progress: {e!s}")
+                logger.warning("Error loading daily progress", error=str(e))
 
         if len(daily_progress) < days:
             for i in range(len(daily_progress), days):
@@ -197,9 +197,9 @@ async def get_daily_progress(days: int = 7, current_user: User = Depends(current
 
         daily_progress.sort(key=lambda x: x.date, reverse=True)
 
-        logger.info(f"Retrieved {len(daily_progress)} days of progress for user {current_user.id}")
+        logger.debug("Retrieved daily progress", days=len(daily_progress), user_id=current_user.id)
         return daily_progress
 
     except Exception as e:
-        logger.error(f"Error getting daily progress: {e!s}", exc_info=True)
+        logger.error("Error getting daily progress", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error retrieving daily progress: {e!s}") from e

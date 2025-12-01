@@ -9,6 +9,7 @@ pydantic>=2.12.0,<3.0.0
 pydantic-settings>=2.11.0,<3.0.0
 python-multipart>=0.0.20,<1.0.0
 uvicorn[standard]>=0.37.0,<1.0.0
+slowapi>=0.1.9,<1.0.0  # Rate limiting middleware
 
 # ============================================================================
 # Authentication & Security
@@ -24,6 +25,7 @@ python-jose[cryptography]>=3.5.0,<4.0.0
 sqlalchemy>=2.0.44,<3.0.0
 aiosqlite>=0.21.0,<1.0.0
 alembic>=1.16.5,<2.0.0
+redis>=5.0.0,<6.0.0
 
 # ============================================================================
 # AI/ML - Core Models
@@ -37,9 +39,9 @@ spacy>=3.8.0,<4.0.0
 sentencepiece>=0.2.0,<1.0.0
 protobuf>=3.20.0,<7.0.0
 
-# Spacy language models (pip-installable)
-https://github.com/explosion/spacy-models/releases/download/de_core_news_lg-3.8.0/de_core_news_lg-3.8.0-py3-none-any.whl
-https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+# Spacy language models - install via script after pip install:
+#   python scripts/install_spacy_models.py
+# Or manually: python -m spacy download de_core_news_lg en_core_web_sm
 
 # ============================================================================
 # Audio/Video Processing
@@ -99,7 +101,7 @@ ruff>=0.8.0,<1.0.0
 mypy>=1.13.0,<2.0.0
 bandit[toml]>=1.8.0,<2.0.0
 detect-secrets>=1.5.0,<2.0.0
-radon>=6.0.0,<7.0.0
+# radon>=6.0.0,<7.0.0
 wily>=1.25.0,<2.0.0
 lizard>=1.17.0,<2.0.0
 

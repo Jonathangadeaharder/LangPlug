@@ -2,16 +2,15 @@
 Vocabulary Stats Service - Handles vocabulary statistics and analytics
 """
 
-import logging
-
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config.logging_config import get_logger
 from core.database import AsyncSessionLocal
 from core.enums import CEFRLevel
 from database.models import UserVocabularyProgress, VocabularyWord
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class VocabularyStatsService:

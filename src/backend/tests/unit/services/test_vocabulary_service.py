@@ -222,8 +222,8 @@ class TestVocabularyServiceGetUserStats:
             "levels": [
                 {"level": "A1", "total": 300, "known": 100},
                 {"level": "A2", "total": 400, "known": 50},
-                {"level": "B1", "total": 300, "known": 0}
-            ]
+                {"level": "B1", "total": 300, "known": 0},
+            ],
         }
 
         # Act - Mock facade delegation to progress_service
@@ -247,11 +247,7 @@ class TestVocabularyServiceGetUserStats:
         user_id = 999
         language = "de"
 
-        expected_result = {
-            "total_words": 1000,
-            "total_known": 0,
-            "levels": []
-        }
+        expected_result = {"total_words": 1000, "total_known": 0, "levels": []}
 
         # Act - Mock facade delegation to progress_service
         with patch.object(
@@ -317,17 +313,10 @@ class TestVocabularyServiceGetVocabularyLevel:
         # Act
         with patch.object(service.query_service, "get_vocabulary_library", new_callable=AsyncMock) as mock_get_lib:
             # Setup mock return
-            mock_get_lib.return_value = {
-                "words": mock_vocab_words,
-                "total_count": 2,
-                "limit": 50,
-                "offset": 0
-            }
+            mock_get_lib.return_value = {"words": mock_vocab_words, "total_count": 2, "limit": 50, "offset": 0}
 
             mock_db = AsyncMock(spec=AsyncSession)
-            result = await service.get_vocabulary_library(
-                mock_db, target_language, level, user_id, limit=50, offset=0
-            )
+            result = await service.get_vocabulary_library(mock_db, target_language, level, user_id, limit=50, offset=0)
 
         # Assert
         assert result is not None
@@ -346,14 +335,10 @@ class TestVocabularyServiceGetVocabularyLevel:
             mock_get_lib.return_value = {"words": [], "total_count": 0}
 
             mock_db = AsyncMock(spec=AsyncSession)
-            result = await service.get_vocabulary_library(
-                mock_db, "de", level, None, limit=limit, offset=0
-            )
+            result = await service.get_vocabulary_library(mock_db, "de", level, None, limit=limit, offset=0)
 
             # Verify call args
-            mock_get_lib.assert_called_with(
-                mock_db, "de", level, None, limit, 0
-            )
+            mock_get_lib.assert_called_with(mock_db, "de", level, None, limit, 0)
 
         # Assert
         assert result is not None

@@ -3,16 +3,16 @@ Translation handling service
 Extracted from api/routes/processing.py for better separation of concerns
 """
 
-import logging
 import time
 from pathlib import Path
 from typing import Any
 
 from api.models.processing import ProcessingStatus
+from core.config.logging_config import get_logger
 from services.translationservice.interface import ITranslationService
 from utils.srt_parser import SRTParser, SRTSegment
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TranslationHandler:
@@ -45,7 +45,7 @@ class TranslationHandler:
             Path to translated SRT file
         """
         try:
-            logger.info(f"Starting translation task: {task_id}")
+            logger.info("Starting translation task", task_id=task_id)
 
             # Initialize progress tracking
             task_progress[task_id] = ProcessingStatus(
@@ -79,11 +79,11 @@ class TranslationHandler:
             task_progress[task_id].result_path = output_path
             task_progress[task_id].completed_at = int(time.time())
 
-            logger.info(f"Translation task {task_id} completed successfully")
+            logger.info("Translation task completed", task_id=task_id)
             return output_path
 
         except Exception as e:
-            logger.error(f"Translation task {task_id} failed: {e}")
+            logger.error("Translation task failed", task_id=task_id, error=str(e))
             task_progress[task_id].status = "failed"
             task_progress[task_id].error = str(e)
             task_progress[task_id].message = f"Translation failed: {e!s}"
@@ -104,7 +104,7 @@ class TranslationHandler:
         if not segments:
             raise ValueError("No subtitle segments found in file")
 
-        logger.info(f"Loaded {len(segments)} subtitle segments")
+        logger.debug("Loaded subtitle segments", count=len(segments))
         return segments
 
     async def _prepare_translation(
@@ -179,7 +179,7 @@ class TranslationHandler:
         srt_content = SRTParser.segments_to_srt(segments)
         output_file.write_text(srt_content, encoding="utf-8")
 
-        logger.info(f"Saved translated subtitles to {output_file}")
+        logger.debug("Saved translated subtitles", path=str(output_file))
         return str(output_file)
 
     async def batch_translate(

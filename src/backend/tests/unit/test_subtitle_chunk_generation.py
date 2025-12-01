@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from services.srt_parser import SRTParser
+from utils.srt_parser import SRTParser
 
 SAMPLE_SRT = """1
 00:00:00,000 --> 00:00:02,000

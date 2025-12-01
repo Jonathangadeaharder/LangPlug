@@ -13,28 +13,37 @@ import { logger } from './logger'
 import { OpenAPI } from '@/client/core/OpenAPI'
 import { ApiError } from '@/client/core/ApiError'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+// In development, use empty string so requests go through Vite proxy (/api/... -> localhost:8000)
+// This ensures same-origin requests, avoiding SameSite cookie issues
+// 
+// CRITICAL: When running on localhost, we MUST use empty base URL so:
+// 1. Requests go through Vite dev server proxy (same-origin)
+// 2. SameSite=lax cookies are sent (because same-origin)
+// 3. Authentication works correctly
+
+// Detect if running on localhost (dev server via Vite)
+const isLocalDev = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+
+// In local dev, ALWAYS use empty string to go through Vite proxy
+// Only use env vars for non-local deployments (staging, production)
+const API_BASE_URL = isLocalDev ? '' : (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '')
+console.log('[Frontend] API_BASE_URL:', API_BASE_URL || '(empty - using Vite proxy)', '| isLocalDev:', isLocalDev);
 
 // Configure OpenAPI client
 OpenAPI.BASE = API_BASE_URL
 OpenAPI.HEADERS = {
   'Content-Type': 'application/json',
 }
-OpenAPI.TOKEN = async () => localStorage.getItem('authToken') ?? ''
+// Cookie auth handles token implicitly
+OpenAPI.TOKEN = undefined
 
 export { OpenAPI, ApiError }
 
 export const buildVideoStreamUrl = (series: string, episode: string): string => {
-  const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-  const token = localStorage.getItem('authToken')
-  const url = `${base}/api/videos/${encodeURIComponent(series)}/${encodeURIComponent(episode)}`
-
-  // Add token as query parameter for video streaming (ReactPlayer can't send headers)
-  if (token) {
-    return `${url}?token=${encodeURIComponent(token)}`
-  }
-
-  return url
+  // Use OpenAPI.BASE which is already configured for dev/prod
+  // Cookie-based auth handles authentication automatically for same-origin/CORS requests
+  return `${OpenAPI.BASE}/api/videos/${encodeURIComponent(series)}/${encodeURIComponent(episode)}`
 }
 
 export const handleApiError = (error: unknown, context: string) => {

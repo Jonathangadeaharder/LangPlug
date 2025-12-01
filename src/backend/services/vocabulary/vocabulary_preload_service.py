@@ -3,7 +3,6 @@ Vocabulary Preload Service
 Loads vocabulary data from text files into the database
 """
 
-import logging
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -13,10 +12,11 @@ UTC = UTC
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config.logging_config import get_logger
 from core.database import AsyncSessionLocal
 from database.models import VocabularyWord
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class VocabularyPreloadService:
@@ -46,9 +46,9 @@ class VocabularyPreloadService:
                 if file_path.exists():
                     count = await self._load_level_vocabulary(session, level, file_path)
                     result[level] = count
-                    logger.info(f"Loaded {count} {level} words from {file_path}")
+                    logger.info("Loaded vocabulary", count=count, level=level)
                 else:
-                    logger.warning(f"Vocabulary file not found: {file_path}")
+                    logger.warning("Vocabulary file not found", path=str(file_path))
                     result[level] = 0
 
         return result
@@ -90,10 +90,10 @@ class VocabularyPreloadService:
                             loaded_count += 1
 
                     await session.commit()
-                    logger.info(f"Batch inserted {loaded_count} words for level {level}")
+                    logger.debug("Batch inserted words", count=loaded_count, level=level)
                 except Exception as e:
                     await session.rollback()
-                    logger.error(f"Failed to batch insert words for level {level}: {e}")
+                    logger.error("Failed to batch insert words", level=level, error=str(e))
                     loaded_count = 0
             else:
                 loaded_count = 0
@@ -101,7 +101,7 @@ class VocabularyPreloadService:
             return loaded_count
 
         except Exception as e:
-            logger.error(f"Error loading vocabulary from {file_path}: {e}")
+            logger.error("Error loading vocabulary", path=str(file_path), error=str(e))
             raise Exception(f"Failed to load vocabulary from {file_path}: {e}") from e
 
     async def get_level_words(self, level: str, session: AsyncSession = None) -> list[dict[str, str]]:
@@ -119,7 +119,7 @@ class VocabularyPreloadService:
             else:
                 return await self._execute_get_level_words(session, level)
         except Exception as e:
-            logger.error(f"Error getting {level} words: {e}")
+            logger.error("Error getting level words", level=level, error=str(e))
             raise Exception(f"Failed to get {level} words: {e}") from e
 
     async def _execute_get_level_words(self, session: AsyncSession, level: str) -> list[dict[str, str]]:
@@ -168,7 +168,7 @@ class VocabularyPreloadService:
             else:
                 return await self._execute_get_user_known_words(session, user_id, level)
         except Exception as e:
-            logger.error(f"Error getting user known words: {e}")
+            logger.error("Error getting user known words", error=str(e))
             raise Exception(f"Failed to get user known words: {e}") from e
 
     async def _execute_get_user_known_words(
@@ -216,7 +216,7 @@ class VocabularyPreloadService:
                 vocab_word = vocab_result.scalar_one_or_none()
 
                 if not vocab_word:
-                    logger.warning(f"Word '{word}' not found in vocabulary")
+                    logger.warning("Word not found in vocabulary", word=word)
                     return False
 
                 # Get the vocabulary ID
@@ -262,7 +262,7 @@ class VocabularyPreloadService:
                 await session.commit()
                 return True
         except Exception as e:
-            logger.error(f"Error marking word '{word}' as {'known' if known else 'unknown'}: {e}")
+            logger.error("Error marking word", word=word, error=str(e))
             return False
 
     async def bulk_mark_level_known(
@@ -282,7 +282,7 @@ class VocabularyPreloadService:
             )
             return success_count
         except Exception as e:
-            logger.error(f"Error bulk marking {level} words: {e}")
+            logger.error("Error bulk marking words", level=level, error=str(e))
             raise Exception(f"Failed to bulk mark {level} words: {e}") from e
 
     async def get_vocabulary_stats(self, session: AsyncSession = None) -> dict[str, dict[str, int]]:
@@ -345,7 +345,7 @@ class VocabularyPreloadService:
                         }
                 return stats
         except Exception as e:
-            logger.error(f"Error getting vocabulary stats: {e}")
+            logger.error("Error getting vocabulary stats", error=str(e))
             raise Exception(f"Failed to get vocabulary stats: {e}") from e
 
 

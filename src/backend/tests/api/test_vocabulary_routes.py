@@ -266,9 +266,7 @@ async def test_When_stats_called_without_auth_Then_returns_unauthorized(async_cl
 @pytest.mark.timeout(30)
 async def test_When_mark_known_called_without_auth_Then_returns_unauthorized(async_client, url_builder):
     """Security: mark-known endpoint requires authentication."""
-    response = await async_client.post(
-        url_builder.url_for("mark_word_known"), json={"lemma": "test", "known": True}
-    )
+    response = await async_client.post(url_builder.url_for("mark_word_known"), json={"lemma": "test", "known": True})
     assert response.status_code == 401, f"Expected 401 (not authenticated), got {response.status_code}: {response.text}"
 
 

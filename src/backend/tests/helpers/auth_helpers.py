@@ -41,7 +41,8 @@ class AuthHelper:
             "password": user.password,
         }
 
-        response = self.client.post("/api/auth/login", data=login_data)
+        # Use the token endpoint for bearer auth
+        response = self.client.post("/api/auth/token/login", data=login_data)
         data = assert_json_response(response, 200)
         assert_auth_response_structure(data)
 
@@ -82,7 +83,7 @@ class AuthHelper:
         JWT tokens are stateless and cannot be invalidated without a blacklist.
         """
         headers = {"Authorization": f"Bearer {token}"}
-        response = self.client.post("/api/auth/logout", headers=headers)
+        response = self.client.post("/api/auth/token/logout", headers=headers)
         # Logout returns 204 No Content (no body)
         assert response.status_code == 204, f"Expected 204, got {response.status_code}"
         return {"success": True, "message": "Logged out"}
@@ -119,7 +120,8 @@ class AsyncAuthHelper:
             "password": user.password,
         }
 
-        response = await self.client.post("/api/auth/login", data=login_data)
+        # Use the token endpoint for bearer auth
+        response = await self.client.post("/api/auth/token/login", data=login_data)
         data = assert_json_response(response, 200)
         assert_auth_response_structure(data)
 
@@ -160,7 +162,7 @@ class AsyncAuthHelper:
         JWT tokens are stateless and cannot be invalidated without a blacklist.
         """
         headers = {"Authorization": f"Bearer {token}"}
-        response = await self.client.post("/api/auth/logout", headers=headers)
+        response = await self.client.post("/api/auth/token/logout", headers=headers)
         # Logout returns 204 No Content (no body)
         assert response.status_code == 204, f"Expected 204, got {response.status_code}"
         return {"success": True, "message": "Logged out"}

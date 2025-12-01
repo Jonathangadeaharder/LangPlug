@@ -9,9 +9,9 @@ This module aggregates all processing-related routes from specialized modules:
 - pipeline_routes: Full processing pipeline and task progress monitoring
 """
 
-import logging
-
 from fastapi import APIRouter
+
+from core.config.logging_config import get_logger
 
 # Import all focused route modules
 from . import (
@@ -21,7 +21,7 @@ from . import (
     transcription_routes,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Create main processing router
 router = APIRouter(tags=["processing"])

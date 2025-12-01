@@ -3,7 +3,6 @@ Security middleware for FastAPI application
 """
 
 import hashlib
-import logging
 import time
 from collections import defaultdict
 from collections.abc import Callable
@@ -14,7 +13,9 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
@@ -22,7 +23,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         start_time = time.time()
-        api_logger = logging.getLogger("api")
+        api_logger = get_logger("api")
 
         api_logger.info(
             f"API Request: {request.method} {request.url.path}",
@@ -90,9 +91,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Add security headers to all responses"""
 
-    def __init__(self, app, enforce_https: bool = True):
+    def __init__(self, app, enforce_https: bool = True, development_mode: bool = False):
         super().__init__(app)
         self.enforce_https = enforce_https
+        self.development_mode = development_mode
 
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
@@ -106,26 +108,43 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         if self.enforce_https:
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
 
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
-            "style-src 'self' 'unsafe-inline'; "
-            "font-src 'self' data:; "
-            "img-src 'self' data: blob:; "
-            "connect-src 'self' http://localhost:* http://127.0.0.1:*;"
-        )
+        # CSP configuration:
+        # - Production: Strict CSP without unsafe-inline/unsafe-eval
+        # - Development: Relaxed for React hot reload and styled-components
+        if self.development_mode:
+            # Development CSP - allows inline scripts for React dev tools
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
+                "style-src 'self' 'unsafe-inline'; "
+                "font-src 'self' data:; "
+                "img-src 'self' data: blob:; "
+                "connect-src 'self' ws://localhost:* http://localhost:* http://127.0.0.1:*;"
+            )
+        else:
+            # Production CSP - no unsafe-inline/unsafe-eval
+            # Note: React apps in production use build-time compiled scripts
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; "
+                "script-src 'self' https://cdn.jsdelivr.net; "
+                "style-src 'self'; "
+                "font-src 'self'; "
+                "img-src 'self' data: blob:; "
+                "connect-src 'self';"
+            )
 
         return response
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Rate limiting middleware with sliding window algorithm"""
+    """Rate limiting middleware with Redis support and in-memory fallback"""
 
     def __init__(self, app, requests_per_minute: int = 60, burst_size: int = 10, exclude_paths: list | None = None):
         super().__init__(app)
         self.requests_per_minute = requests_per_minute
         self.burst_size = burst_size
         self.exclude_paths = exclude_paths or ["/health", "/readiness", "/metrics", "/docs", "/openapi.json"]
+        # In-memory fallback
         self.request_counts: dict[str, list] = defaultdict(list)
         self.window_size = 60  # 60 seconds
 
@@ -154,15 +173,60 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         )
         return response
 
+    async def _check_redis_rate_limit(self, client_id: str) -> tuple[bool, int, int] | None:
+        """Check rate limit using Redis. Returns None if Redis is unavailable."""
+        try:
+            from core.dependencies.cache_dependencies import get_redis_client
+
+            redis_client = get_redis_client()
+
+            if not await redis_client.is_connected():
+                return None
+
+            key = f"rate_limit:{client_id}"
+            return await redis_client.rate_limit(key, self.requests_per_minute, self.window_size)
+        except Exception as e:
+            logger.warning("Redis rate limit check failed, falling back to in-memory", error=str(e))
+            return None
+
     async def dispatch(self, request: Request, call_next):
         if self._is_excluded(request.url.path):
             return await call_next(request)
 
         origin = request.headers.get("origin")
-
         client_id = self._get_client_id(request)
         current_time = time.time()
 
+        # Try Redis first
+        redis_result = await self._check_redis_rate_limit(client_id)
+
+        if redis_result is not None:
+            # Redis available
+            allowed, remaining, reset_at = redis_result
+
+            if not allowed:
+                retry_after = max(1, int(reset_at - current_time))
+                logger.warning("Rate limit exceeded (Redis)", client_id=client_id)
+                response = JSONResponse(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    content={"detail": "Rate limit exceeded", "retry_after": retry_after},
+                    headers={
+                        "Retry-After": str(retry_after),
+                        "X-RateLimit-Limit": str(self.requests_per_minute),
+                        "X-RateLimit-Remaining": "0",
+                        "X-RateLimit-Reset": str(reset_at),
+                    },
+                )
+                return self._add_cors_headers(response, origin)
+
+            # Add headers to successful response
+            response = await call_next(request)
+            response.headers["X-RateLimit-Limit"] = str(self.requests_per_minute)
+            response.headers["X-RateLimit-Remaining"] = str(remaining)
+            response.headers["X-RateLimit-Reset"] = str(reset_at)
+            return response
+
+        # Fallback to In-Memory (original logic)
         self.request_counts[client_id] = [
             timestamp for timestamp in self.request_counts[client_id] if timestamp > current_time - self.window_size
         ]
@@ -173,7 +237,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             oldest_request = min(self.request_counts[client_id])
             retry_after = int(self.window_size - (current_time - oldest_request))
 
-            logger.warning(f"Rate limit exceeded for {client_id}")
+            logger.warning("Rate limit exceeded (Memory)", client_id=client_id)
             response = JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 content={"detail": "Rate limit exceeded", "retry_after": retry_after},
@@ -189,7 +253,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         recent_requests = sum(1 for timestamp in self.request_counts[client_id] if timestamp > current_time - 5)
 
         if recent_requests >= self.burst_size:
-            logger.warning(f"Burst limit exceeded for {client_id}")
+            logger.warning("Burst limit exceeded (Memory)", client_id=client_id)
             response = JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 content={"detail": "Burst limit exceeded. Please slow down."},
@@ -217,7 +281,7 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         content_length = request.headers.get("content-length")
         if content_length and int(content_length) > self.max_body_size:
-            logger.warning(f"Request body too large: {content_length} bytes")
+            logger.warning("Request body too large", bytes=content_length)
             return JSONResponse(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, content={"detail": "Request body too large"}
             )
@@ -246,7 +310,11 @@ def setup_security_middleware(app: FastAPI, settings):
         expose_headers=["X-Request-ID", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
     )
 
-    app.add_middleware(SecurityHeadersMiddleware, enforce_https=settings.environment == "production")
+    app.add_middleware(
+        SecurityHeadersMiddleware,
+        enforce_https=settings.environment == "production",
+        development_mode=settings.environment == "development",
+    )
 
     app.add_middleware(
         RateLimitMiddleware,

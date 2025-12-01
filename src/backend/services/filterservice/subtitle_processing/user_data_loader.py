@@ -3,14 +3,14 @@ User Data Loader Service
 Handles loading user-related data for subtitle filtering
 """
 
-import logging
 from inspect import isawaitable
 
 from sqlalchemy import text
 
+from core.config.logging_config import get_logger
 from core.database import AsyncSessionLocal
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class UserDataLoader:
@@ -52,10 +52,10 @@ class UserDataLoader:
                 if isawaitable(rows):
                     rows = await rows
                 lemmas = {lemma.lower() for (lemma,) in rows}
-                logger.info(f"Loaded {len(lemmas)} known lemmas for user {user_id_str}: {lemmas}")
+                logger.debug("Loaded known lemmas", count=len(lemmas), user_id=user_id_str)
                 return lemmas
         except Exception as exc:
-            logger.error(f"Error loading user known words from database: {exc}")
+            logger.error("Error loading user known words", error=str(exc))
             return set()
 
     async def load_word_difficulties(self, language: str) -> dict[str, str]:
@@ -69,7 +69,7 @@ class UserDataLoader:
             Dictionary mapping word lemmas to difficulty levels
         """
         if self._word_difficulty_cache:
-            logger.debug(f"Using cached word difficulties ({len(self._word_difficulty_cache)} entries)")
+            logger.debug("Using cached word difficulties", count=len(self._word_difficulty_cache))
             return self._word_difficulty_cache
 
         try:
@@ -92,10 +92,10 @@ class UserDataLoader:
                 for lemma, difficulty in rows:
                     self._word_difficulty_cache[lemma.lower()] = difficulty
 
-                logger.debug(f"Loaded {len(self._word_difficulty_cache)} word difficulties from database")
+                logger.debug("Loaded word difficulties", count=len(self._word_difficulty_cache))
 
         except Exception as e:
-            logger.error(f"Error loading word difficulties from database: {e}")
+            logger.error("Error loading word difficulties", error=str(e))
 
         return self._word_difficulty_cache
 

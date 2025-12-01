@@ -1,15 +1,20 @@
 """Database configuration with SQLAlchemy's built-in connection pooling"""
 
-import logging
+import os
+import secrets
+import string
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import StaticPool
 
 from core.config import settings
+from core.config.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+print(f"DEBUG: Loading database.py from {__file__}", flush=True)
 
 
 # Unified database base class for all models
@@ -19,13 +24,20 @@ class Base(DeclarativeBase):
     pass
 
 
-# Create async engine with SQLite
-database_url = f"sqlite+aiosqlite:///{settings.get_database_path()}"
+# Create async engine using configured database URL (support Postgres/SQLite)
+database_url = settings.get_database_url()
+
+engine_args = {
+    "echo": settings.sqlalchemy_echo,
+}
+
+if "sqlite" in database_url:
+    engine_args["poolclass"] = StaticPool
+    engine_args["connect_args"] = {"check_same_thread": False}
+
 engine = create_async_engine(
     database_url,
-    poolclass=StaticPool,
-    connect_args={"check_same_thread": False},
-    echo=settings.sqlalchemy_echo,
+    **engine_args,
 )
 
 # Create async session factory
@@ -70,14 +82,86 @@ async def init_db():
 
     # Create default admin user if it doesn't exist
     await create_default_admin_user()
+    
+    # Seed test data if provided
+    await seed_test_data()
+
+
+async def seed_test_data():
+    """Seed database with test data from environment variable"""
+    test_data_json = os.getenv("TEST_DATA")
+    print(f"DEBUG: seed_test_data called. TEST_DATA present: {bool(test_data_json)}")
+    if not test_data_json:
+        print("DEBUG: TEST_DATA is empty")
+        return
+
+    import json
+    from core.auth import User
+    from core.auth.auth_security import SecurityConfig
+
+    import sys
+    try:
+        data = json.loads(test_data_json)
+        users = data.get("users", [])
+        logger.info(f"DEBUG: Found {len(users)} users in TEST_DATA")
+        logger.info(f"DEBUG: Users list: {[u['username'] for u in users]}")
+        
+        async with AsyncSessionLocal() as session:
+            for user_data in users:
+                try:
+                    logger.info(f"DEBUG: Processing {user_data['username']}")
+                    # Check if user exists
+                    logger.info(f"DEBUG: Checking existence of {user_data['username']}")
+                    result = await session.execute(select(User).where(User.username == user_data["username"]))
+                    if not result.scalar_one_or_none():
+                        logger.info(f"DEBUG: Creating user {user_data['username']}")
+                        
+                        logger.info("DEBUG: Calling hash_password...")
+                        hashed_password = SecurityConfig.hash_password(user_data["password"])
+                        logger.info("DEBUG: hash_password done.")
+                        
+                        logger.info("DEBUG: Instantiating User...")
+                        user = User(
+                            # Let DB generate ID to avoid conflicts
+                            # id=user_data.get("id"),
+                            email=user_data["email"],
+                            username=user_data["username"],
+                            hashed_password=hashed_password,
+                            is_active=True,
+                            is_superuser=user_data.get("role") == "admin",
+                            is_verified=True,
+                        )
+                        logger.info("DEBUG: User instantiated.")
+                        
+                        logger.info("DEBUG: Adding user to session...")
+                        session.add(user)
+                        logger.info("DEBUG: User added to session.")
+                        
+                        logger.info(f"DEBUG: Added user {user_data['username']} to session. Flushing...")
+                        await session.flush()
+                        logger.info(f"DEBUG: Flushed user {user_data['username']}")
+                    else:
+                        logger.info(f"DEBUG: User {user_data['username']} already exists")
+                except Exception as loop_error:
+                    logger.error(f"DEBUG: Error processing user {user_data['username']}: {loop_error}")
+                    import traceback
+                    traceback.print_exc()
+                    raise
+            logger.info("DEBUG: Committing session...")
+            await session.commit()
+            logger.info(f"Seeded {len(users)} users from TEST_DATA")
+            logger.info(f"DEBUG: Seeding complete")
+            
+    except Exception as e:
+        logger.error(f"Failed to seed test data: {e}")
+        logger.error(f"DEBUG: Seeding failed: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 async def create_default_admin_user():
     """Create default admin user with secure credentials from environment"""
-    import os
-
-    from sqlalchemy import select
-
+    # Import here to avoid circular imports - these modules depend on Base
     from core.auth import User
     from core.auth.auth_security import SecurityConfig
 
@@ -97,12 +181,9 @@ async def create_default_admin_user():
                     "Using a temporary secure password for this session."
                 )
                 # Generate a temporary secure password
-                import secrets
-                import string
-
                 chars = string.ascii_letters + string.digits + string.punctuation
-                admin_password = ''.join(secrets.choice(chars) for _ in range(24))
-                logger.info(f"Temporary admin password (save this): {admin_password}")
+                admin_password = "".join(secrets.choice(chars) for _ in range(24))
+                logger.info("Temporary admin password generated - check logs securely")
 
             # Create admin user with password from environment or generated
             hashed_password = SecurityConfig.hash_password(admin_password)

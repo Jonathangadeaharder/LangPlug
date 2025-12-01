@@ -50,17 +50,16 @@ class Colors:
 class SetupManager:
     def __init__(self):
         self.repo_root = Path(__file__).parent
-        self.backend_dir = self.repo_root / "Backend"
-        self.frontend_dir = self.repo_root / "Frontend"
+        self.backend_dir = self.repo_root / "src" / "backend"
+        self.frontend_dir = self.repo_root / "src" / "frontend"
         self.is_windows = platform.system() == "Windows"
 
-        # Virtual environment paths
+        # Virtual environment paths (in repo root)
+        self.venv_dir = self.repo_root / "api_venv"
         if self.is_windows:
-            self.venv_dir = self.backend_dir / ".venv-win"
             self.python_exe = self.venv_dir / "Scripts" / "python.exe"
             self.activate_script = self.venv_dir / "Scripts" / "Activate.ps1"
         else:
-            self.venv_dir = self.backend_dir / ".venv-unix"
             self.python_exe = self.venv_dir / "bin" / "python"
             self.activate_script = self.venv_dir / "bin" / "activate"
 
@@ -84,8 +83,8 @@ class SetupManager:
         """Create and setup Python virtual environment for backend."""
         if not self.venv_dir.exists():
             Colors.info(f"Creating virtual environment at {self.venv_dir}")
-            python_cmd = "py -3" if self.is_windows else "python3"
-            self.run_command([python_cmd, "-m", "venv", str(self.venv_dir)])
+            # Use the current python executable to create the venv
+            self.run_command([sys.executable, "-m", "venv", str(self.venv_dir)])
         else:
             Colors.info(f"Using existing virtual environment: {self.venv_dir}")
 

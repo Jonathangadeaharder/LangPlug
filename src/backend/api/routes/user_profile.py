@@ -2,7 +2,6 @@
 User profile management API routes
 """
 
-import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -11,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.constants import DEFAULT_CHUNK_DURATION_MINUTES
 from core.config import settings
+from core.config.logging_config import get_logger
 from core.database import get_async_session
 from core.dependencies import current_active_user
 from core.language_preferences import (
@@ -21,7 +21,7 @@ from core.language_preferences import (
 )
 from database.models import User
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(tags=["profile"])
 
 
@@ -147,7 +147,7 @@ async def get_profile(current_user: User = Depends(current_active_user)):
             language_runtime=runtime,
         )
     except Exception as e:
-        logger.error(f"Error getting profile: {e!s}", exc_info=True)
+        logger.error("Error getting profile", error=str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error getting profile: {e!s}"
         ) from e
@@ -245,7 +245,7 @@ async def update_language_preferences(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
-        logger.error(f"Error updating language preferences: {e!s}", exc_info=True)
+        logger.error("Error updating language preferences", error=str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error updating preferences: {e!s}"
         ) from e
@@ -298,13 +298,13 @@ async def get_user_settings(current_user: User = Depends(current_active_user)):
                         if hasattr(default_settings, key):
                             setattr(default_settings, key, value)
             except Exception as e:
-                logger.warning(f"Error loading user settings: {e!s}")
+                logger.warning("Error loading user settings", error=str(e))
 
-        logger.info(f"Retrieved settings for user {current_user.id}")
+        logger.debug("Retrieved settings", user_id=current_user.id)
         return default_settings
 
     except Exception as e:
-        logger.error(f"Error getting user settings: {e!s}", exc_info=True)
+        logger.error("Error getting user settings", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error retrieving user settings: {e!s}") from e
 
 
@@ -340,9 +340,9 @@ async def update_user_settings(
         with open(user_settings_path, "w", encoding="utf-8") as f:
             json.dump(settings_dict, f, indent=2, ensure_ascii=False)
 
-        logger.info(f"Updated settings for user {current_user.id}")
+        logger.debug("Updated settings", user_id=current_user.id)
         return settings_update
 
     except Exception as e:
-        logger.error(f"Error updating user settings: {e!s}", exc_info=True)
+        logger.error("Error updating user settings", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error updating user settings: {e!s}") from e

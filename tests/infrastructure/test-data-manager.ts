@@ -126,7 +126,7 @@ export class TestDataManager {
   generateUser(overrides: Partial<TestUser> = {}): TestUser {
     const user: TestUser = {
       id: overrides.id || uuidv4(),
-      username: overrides.username || faker.internet.userName().toLowerCase(),
+      username: overrides.username || faker.internet.username().toLowerCase(),
       email: overrides.email || faker.internet.email().toLowerCase(),
       password: overrides.password || this.generatePassword(),
       firstName: overrides.firstName || faker.person.firstName(),
@@ -289,6 +289,7 @@ export class TestDataManager {
       case 'basic':
         // Create basic scenario with minimal data
         scenario.users = [
+          this.getFixture('testUser'),
           this.generateUser({ username: 'student1' }),
           this.generateUser({ username: 'teacher1', role: 'moderator' }),
         ];

@@ -40,8 +40,9 @@ class TestChunkTranscriptionServiceResourceCleanup:
 
             with patch("asyncio.create_subprocess_exec", return_value=mock_process):
                 with patch("asyncio.wait_for", side_effect=mock_wait_for):
-                    # Create the audio file to simulate successful extraction
-                    audio_output.touch()
+                    # Create a non-empty audio file to simulate successful extraction
+                    # Service rejects 0-byte files as invalid
+                    audio_output.write_bytes(b"RIFF" + b"\x00" * 100)
 
                     # Act
                     audio_file = await service.extract_audio_chunk("task123", task_progress, video_file, 0.0, 10.0)
@@ -269,8 +270,9 @@ class TestChunkTranscriptionServiceTimeoutConfiguration:
 
             async def mock_wait_for(coro, timeout):
                 timeout_used.append(timeout)
-                # Create audio file to simulate successful extraction
-                audio_output.touch()
+                # Create non-empty audio file to simulate successful extraction
+                # Service rejects 0-byte files as invalid
+                audio_output.write_bytes(b"RIFF" + b"\x00" * 100)
                 return await coro
 
             with patch("asyncio.create_subprocess_exec", return_value=mock_process):
@@ -406,7 +408,8 @@ class TestChunkTranscriptionServiceProgressTracking:
             mock_process.returncode = 0
 
             async def mock_wait_for(coro, timeout):
-                audio_output.touch()  # Create audio file
+                # Create non-empty audio file - service rejects 0-byte files
+                audio_output.write_bytes(b"RIFF" + b"\x00" * 100)
                 return await coro
 
             with patch("asyncio.create_subprocess_exec", return_value=mock_process):
@@ -429,14 +432,15 @@ class TestChunkTranscriptionServiceProgressTracking:
             video_file = Path(tmpdir) / "test_video.mp4"
             video_file.touch()
             audio_file = Path(tmpdir) / "audio.wav"
-            audio_file.touch()
+            # Create non-empty audio file
+            audio_file.write_bytes(b"RIFF" + b"\x00" * 100)
 
-            # Mock transcription service
-            mock_transcription_service = Mock()
+            # Mock transcription service - must be AsyncMock for transcribe_with_progress
+            mock_transcription_service = AsyncMock()
             mock_result = Mock()
             mock_result.full_text = "Transcribed text"
             mock_result.segments = None  # Trigger full_text fallback path
-            mock_transcription_service.transcribe = Mock(return_value=mock_result)
+            mock_transcription_service.transcribe_with_progress = AsyncMock(return_value=mock_result)
 
             with patch("core.dependencies.get_transcription_service", return_value=mock_transcription_service):
                 # Act

@@ -4,13 +4,14 @@ WebSocket connection manager for real-time updates
 
 import asyncio
 import contextlib
-import logging
 from datetime import datetime
 
 from fastapi import WebSocket
 from websockets.exceptions import ConnectionClosed
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class ConnectionManager:
@@ -35,7 +36,7 @@ class ConnectionManager:
             "last_ping": datetime.now(),
         }
 
-        logger.info(f"WebSocket connected for user {user_id}")
+        logger.debug("WebSocket connected", user_id=user_id)
 
         await self.send_personal_message(
             websocket, {"type": "connection", "status": "connected", "timestamp": datetime.now().isoformat()}
@@ -56,14 +57,14 @@ class ConnectionManager:
 
             del self.connection_info[websocket]
 
-            logger.info(f"WebSocket disconnected for user {user_id}")
+            logger.debug("WebSocket disconnected", user_id=user_id)
 
     async def send_personal_message(self, websocket: WebSocket, message: dict):
         """Send a message to a specific WebSocket connection"""
         try:
             await websocket.send_json(message)
         except Exception as e:
-            logger.error(f"Error sending message to WebSocket: {e}")
+            logger.warning("WebSocket send failed", error=str(e))
             self.disconnect(websocket)
 
     async def send_user_message(self, user_id: str, message: dict):
@@ -75,7 +76,7 @@ class ConnectionManager:
                 try:
                     await connection.send_json(message)
                 except Exception as e:
-                    logger.error(f"Error sending message to user {user_id}: {e}")
+                    logger.warning("Failed to send to user", user_id=user_id, error=str(e))
                     disconnected.append(connection)
 
             for conn in disconnected:
@@ -95,7 +96,7 @@ class ConnectionManager:
             try:
                 await connection.send_json(message)
             except Exception as e:
-                logger.error(f"Error broadcasting message: {e}")
+                logger.error("Error broadcasting message", error=str(e))
                 disconnected.append(connection)
 
         for conn in disconnected:
@@ -131,10 +132,10 @@ class ConnectionManager:
 
         elif message_type == "subscribe":
             event_type = data.get("event_type")
-            logger.info(f"User {info['user_id']} subscribed to {event_type}")
+            logger.debug("User subscribed", user_id=info["user_id"], event_type=event_type)
 
         else:
-            logger.warning(f"Unknown message type: {message_type}")
+            logger.warning("Unknown message type", type=message_type)
 
     async def start_health_checks(self):
         """Start background task to check connection health"""
@@ -151,20 +152,20 @@ class ConnectionManager:
                         last_ping = info.get("last_ping")
 
                         if (current_time - last_ping).seconds > 60:
-                            logger.warning(f"Connection timeout for user {info['user_id']}")
+                            logger.warning("Connection timeout", user_id=info["user_id"])
                             disconnected.append(websocket)
                         else:
                             try:
                                 await websocket.send_json({"type": "heartbeat", "timestamp": current_time.isoformat()})
                             except (ConnectionClosed, RuntimeError, Exception) as e:
-                                logger.warning(f"Failed to send heartbeat to websocket: {e}")
+                                logger.warning("Failed to send heartbeat", error=str(e))
                                 disconnected.append(websocket)
 
                     for conn in disconnected:
                         self.disconnect(conn)
 
                 except Exception as e:
-                    logger.error(f"Error in health check: {e}")
+                    logger.error("Error in health check", error=str(e))
 
         self.health_check_task = asyncio.create_task(check_connections())
 

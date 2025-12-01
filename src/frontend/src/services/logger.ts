@@ -197,19 +197,22 @@ class Logger {
   }
 
   private async sendBatchToBackend(batch: LogEntry[]) {
+    // Use dynamic import for axios to avoid circular dependency issues during initialization
+    // if axios tries to log something
+    const axios = (await import('axios')).default
+    
     const API_BASE_URL =
       import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-    await fetch(`${API_BASE_URL}/api/debug/frontend-logs`, {
-      method: 'POST',
+    await axios.post(`${API_BASE_URL}/api/debug/frontend-logs`, { logs: batch }, {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ logs: batch }),
       signal: controller.signal,
+      withCredentials: true
     })
 
     clearTimeout(timeoutId)

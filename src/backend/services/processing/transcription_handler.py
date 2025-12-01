@@ -4,16 +4,16 @@ Extracted from api/routes/processing.py for better separation of concerns
 """
 
 import asyncio
-import logging
 import time
 from pathlib import Path
 from typing import Any
 
 from api.models.processing import ProcessingStatus
+from core.config.logging_config import get_logger
 from services.transcriptionservice.interface import ITranscriptionService
 from utils.media_validator import is_valid_video_file
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TranscriptionHandler:
@@ -35,7 +35,7 @@ class TranscriptionHandler:
             language: Target language for transcription
         """
         try:
-            logger.info(f"Starting transcription task: {task_id}")
+            logger.info("Starting transcription task", task_id=task_id)
 
             # Initialize progress tracking
             task_progress[task_id] = ProcessingStatus(
@@ -67,10 +67,10 @@ class TranscriptionHandler:
             task_progress[task_id].message = "Transcription completed successfully"
             task_progress[task_id].completed_at = int(time.time())
 
-            logger.info(f"Transcription task {task_id} completed successfully")
+            logger.info("Transcription task completed", task_id=task_id)
 
         except Exception as e:
-            logger.error(f"Transcription task {task_id} failed: {e}")
+            logger.error("Transcription task failed", task_id=task_id, error=str(e))
             task_progress[task_id].status = "failed"
             task_progress[task_id].error = str(e)
             task_progress[task_id].message = f"Transcription failed: {e!s}"

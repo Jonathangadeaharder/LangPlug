@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: env.VITE_BACKEND_URL || 'http://localhost:8000',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ''),
+          // Don't rewrite - backend expects /api prefix
           configure: (proxy, _options) => {
             proxy.on('error', (err, _req, _res) => {
               console.log('proxy error', err);
@@ -51,6 +51,15 @@ export default defineConfig(({ mode }) => {
               console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
             });
           },
+        },
+        // Also proxy health/readiness checks (same-origin for cookie support)
+        '/readiness': {
+          target: env.VITE_BACKEND_URL || 'http://localhost:8000',
+          changeOrigin: true,
+        },
+        '/health': {
+          target: env.VITE_BACKEND_URL || 'http://localhost:8000',
+          changeOrigin: true,
         }
       }
     },

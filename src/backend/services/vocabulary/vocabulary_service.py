@@ -55,16 +55,16 @@ Architecture Note:
     Maintains separation of concerns while offering convenience methods.
 """
 
-import logging
 import re
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config.language_config import MIN_WORD_LENGTH, filter_stopwords, get_stopwords
+from core.config.language_config import MIN_WORD_LENGTH, filter_stopwords
+from core.config.logging_config import get_logger
 from core.database import AsyncSessionLocal
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Default limit for extracted vocabulary words
 DEFAULT_VOCAB_EXTRACT_LIMIT = 20
@@ -181,7 +181,7 @@ class VocabularyService:
         limit: int = DEFAULT_VOCAB_EXTRACT_LIMIT,
     ) -> list[dict[str, Any]]:
         """Extract blocking words from SRT content for vocabulary learning.
-        
+
         Args:
             db: Database session
             srt_content: Raw SRT subtitle content
@@ -189,7 +189,7 @@ class VocabularyService:
             video_path: Path to the video file
             language: ISO 639-1 language code (default: 'de' for German)
             limit: Maximum number of words to return
-            
+
         Returns:
             List of vocabulary word dictionaries with word info
         """
@@ -203,26 +203,19 @@ class VocabularyService:
             raw_words = self._extract_words_from_text(full_text, language)
 
             # Filter out stopwords and short words using centralized config
-            filtered_words = [
-                word.lower()
-                for word in raw_words
-                if len(word) >= MIN_WORD_LENGTH
-            ]
+            filtered_words = [word.lower() for word in raw_words if len(word) >= MIN_WORD_LENGTH]
             filtered_words = filter_stopwords(filtered_words, language)
 
             # Get unique words and create vocabulary entries
             unique_words = list(set(filtered_words))[:limit]
 
-            blocking_words = [
-                self._create_vocabulary_entry(word, language)
-                for word in unique_words
-            ]
+            blocking_words = [self._create_vocabulary_entry(word, language) for word in unique_words]
 
-            logger.info(f"Extracted {len(blocking_words)} blocking words from SRT content")
+            logger.debug("Extracted blocking words from SRT", count=len(blocking_words))
             return blocking_words
 
         except Exception as e:
-            logger.error(f"Error extracting blocking words from SRT: {e}")
+            logger.error("Error extracting blocking words from SRT", error=str(e))
             return []
 
     def _extract_text_from_srt(self, srt_content: str) -> str:
@@ -268,8 +261,6 @@ class VocabularyService:
         }
 
 
-def get_vocabulary_service(
-    query_service, progress_service, stats_service
-) -> VocabularyService:
+def get_vocabulary_service(query_service, progress_service, stats_service) -> VocabularyService:
     """Factory function with dependency injection"""
     return VocabularyService(query_service, progress_service, stats_service)

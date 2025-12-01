@@ -5,10 +5,11 @@ Handles answer evaluation and scoring logic.
 Isolated from session management and question generation.
 """
 
-import logging
 from datetime import datetime
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class AnswerEvaluation:
@@ -45,8 +46,7 @@ class GameScoringService:
         user_answer_normalized = user_answer.strip().lower()
         is_correct = expected_answer and user_answer_normalized == expected_answer
 
-        logger.debug(f"Evaluating answer - Expected: '{expected_answer}', User: '{user_answer_normalized}'")
-        logger.info(f"Answer evaluation: {is_correct}")
+        logger.debug("Answer evaluation", correct=is_correct)
 
         points_available = int(question.get("points", 10))
         points_awarded = points_available if is_correct else 0

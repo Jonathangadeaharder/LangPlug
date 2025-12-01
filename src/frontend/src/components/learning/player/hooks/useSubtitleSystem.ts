@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
+import axios from 'axios'
 import { SubtitleEntry, SubtitleState } from '../types'
 import { useSubtitlePreferences } from '@/hooks/useSubtitlePreferences'
 import { logger } from '@/services/logger'
+import { OpenAPI } from '@/client/core/OpenAPI'
 
 // Helper to parse SRT content
 const parseSRT = (srtContent: string): SubtitleEntry[] => {
@@ -118,18 +120,16 @@ export const useSubtitleSystem = ({
 
     const fetchSubtitles = async () => {
       try {
-        const headers = { Authorization: `Bearer ${localStorage.getItem('authToken') || ''}` }
-        
         if (subtitlePath) {
-          const res = await fetch(`${buildSubtitleUrl(subtitlePath)}?_ts=${Date.now()}`, { headers })
-          const text = await res.text()
-          setSubtitles(normalizeEntries(parseSRT(text)))
+          const url = `${buildSubtitleUrl(subtitlePath)}?_ts=${Date.now()}`
+          const res = await axios.get(url, { withCredentials: true })
+          setSubtitles(normalizeEntries(parseSRT(res.data)))
         }
 
         if (translationPath) {
-          const res = await fetch(`${buildSubtitleUrl(translationPath)}?_ts=${Date.now()}`, { headers })
-          const text = await res.text()
-          setTranslations(normalizeEntries(parseSRT(text)))
+          const url = `${buildSubtitleUrl(translationPath)}?_ts=${Date.now()}`
+          const res = await axios.get(url, { withCredentials: true })
+          setTranslations(normalizeEntries(parseSRT(res.data)))
         }
       } catch (error) {
         logger.error('useSubtitleSystem', 'Failed to load subtitles', error)

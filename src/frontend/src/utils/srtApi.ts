@@ -6,6 +6,7 @@
  * backend is the single source of truth for SRT processing.
  */
 
+import axios from 'axios'
 import { SRT_ENDPOINTS } from '../config/api-endpoints'
 
 export interface SRTSegment {
@@ -47,20 +48,12 @@ export class SRTApiClient {
    * @returns Promise with parsed SRT data
    */
   async parseSRTContent(content: string): Promise<ParseSRTResponse> {
-    const response = await fetch(`${this.baseUrl}/parse`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ content }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || 'Failed to parse SRT content')
+    try {
+      const response = await axios.post<ParseSRTResponse>(`${this.baseUrl}/parse`, { content }, { withCredentials: true })
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to parse SRT content')
     }
-
-    return response.json()
   }
 
   /**
@@ -73,17 +66,17 @@ export class SRTApiClient {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch(`${this.baseUrl}/parse-file`, {
-      method: 'POST',
-      body: formData,
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || 'Failed to parse SRT file')
+    try {
+      const response = await axios.post<ParseSRTResponse>(`${this.baseUrl}/parse-file`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        withCredentials: true
+      })
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to parse SRT file')
     }
-
-    return response.json()
   }
 
   /**
@@ -93,20 +86,12 @@ export class SRTApiClient {
    * @returns Promise with SRT content as string
    */
   async convertToSRT(segments: SRTSegment[]): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/convert-to-srt`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ segments }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || 'Failed to convert to SRT format')
+    try {
+      const response = await axios.post<string>(`${this.baseUrl}/convert-to-srt`, { segments }, { withCredentials: true })
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to convert to SRT format')
     }
-
-    return response.text()
   }
 
   /**
@@ -116,14 +101,15 @@ export class SRTApiClient {
    * @returns Promise with validation results
    */
   async validateSRT(content: string): Promise<ValidationResult> {
-    const params = new URLSearchParams({ content })
-    const response = await fetch(`${this.baseUrl}/validate?${params}`)
-
-    if (!response.ok) {
-      throw new Error('Failed to validate SRT content')
+    try {
+      const response = await axios.get<ValidationResult>(`${this.baseUrl}/validate`, {
+        params: { content },
+        withCredentials: true
+      })
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to validate SRT content')
     }
-
-    return response.json()
   }
 
   /**

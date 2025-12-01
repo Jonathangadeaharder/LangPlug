@@ -57,10 +57,10 @@ class ContractValidator {
   }
 
   private validateOpenAPISpec(): void {
-    const specPath = join(this.projectRoot, 'openapi_spec.json')
+    const specPath = join(this.projectRoot, 'openapi.json')
 
     if (!existsSync(specPath)) {
-      this.errors.push('OpenAPI specification not found. Run: cd Backend && python export_openapi.py')
+      this.errors.push('OpenAPI specification not found. Run: cd src/backend && python -m core.export_openapi')
       return
     }
 
@@ -92,21 +92,21 @@ class ContractValidator {
   }
 
   private validateClientGeneration(): void {
-    const clientPath = join(this.projectRoot, 'Frontend/src/client')
+    const clientPath = join(this.projectRoot, 'src/frontend/src/client')
     const requiredFiles = [
-      'sdk.gen.ts',
+      'schemas.gen.ts',
       'types.gen.ts',
       'services.gen.ts'
     ]
 
     for (const file of requiredFiles) {
       if (!existsSync(join(clientPath, file))) {
-        this.errors.push(`Missing generated client file: ${file}. Run: cd Frontend && npm run generate-client`)
+        this.errors.push(`Missing generated client file: ${file}. Run: cd src/frontend && npm run generate-client`)
       }
     }
 
     // Check if generated files are newer than OpenAPI spec
-    const specPath = join(this.projectRoot, 'openapi_spec.json')
+    const specPath = join(this.projectRoot, 'openapi.json')
     if (existsSync(specPath)) {
       const specStats = require('fs').statSync(specPath)
 
@@ -125,7 +125,7 @@ class ContractValidator {
   }
 
   private validateContractSchemas(): void {
-    const schemaPath = join(this.projectRoot, 'Frontend/src/utils/contract-validation.ts')
+    const schemaPath = join(this.projectRoot, 'src/frontend/src/utils/contract-validation.ts')
 
     if (!existsSync(schemaPath)) {
       this.errors.push('Contract validation schemas not found')
@@ -153,14 +153,14 @@ class ContractValidator {
   }
 
   private validateServerMiddleware(): void {
-    const middlewarePath = join(this.projectRoot, 'Backend/core/contract_middleware.py')
+    const middlewarePath = join(this.projectRoot, 'src/backend/core/middleware/contract_middleware.py')
 
     if (!existsSync(middlewarePath)) {
       this.warnings.push('Server contract middleware not found')
       return
     }
 
-    const appPath = join(this.projectRoot, 'Backend/core/app.py')
+    const appPath = join(this.projectRoot, 'src/backend/core/app.py')
     if (existsSync(appPath)) {
       const appContent = readFileSync(appPath, 'utf8')
       if (!appContent.includes('setup_contract_validation')) {

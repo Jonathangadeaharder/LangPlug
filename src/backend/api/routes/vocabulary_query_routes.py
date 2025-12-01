@@ -7,8 +7,6 @@ This module handles:
 - Supported languages listing
 """
 
-import logging
-
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,12 +18,13 @@ from api.constants import (
     MIN_SEARCH_LENGTH,
 )
 from api.error_handlers import handle_api_errors, raise_not_found, raise_validation_error
+from core.config.logging_config import get_logger
 from core.database import get_async_session
 from core.dependencies import current_active_user, get_vocabulary_service
 from core.enums import CEFRLevel
 from database.models import User
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(tags=["vocabulary"])
 
 

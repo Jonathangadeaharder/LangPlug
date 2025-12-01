@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     # Database settings (SQLite only)
     database_url: str | None = Field(default=None, alias="LANGPLUG_DATABASE_URL")
 
+    # Redis settings
+    redis_url: str = Field(default="redis://localhost:6379/0", alias="LANGPLUG_REDIS_URL")
+
     # CORS settings
     cors_origins: list[str] = Field(
         default=[
@@ -69,10 +72,10 @@ class Settings(BaseSettings):
 
     # Password policy
     password_min_length: int = Field(default=8, alias="LANGPLUG_PASSWORD_MIN_LENGTH")
-    password_require_uppercase: bool = Field(default=False, alias="LANGPLUG_PASSWORD_REQUIRE_UPPERCASE")
+    password_require_uppercase: bool = Field(default=True, alias="LANGPLUG_PASSWORD_REQUIRE_UPPERCASE")
     password_require_lowercase: bool = Field(default=True, alias="LANGPLUG_PASSWORD_REQUIRE_LOWERCASE")
     password_require_digits: bool = Field(default=True, alias="LANGPLUG_PASSWORD_REQUIRE_DIGITS")
-    password_require_special: bool = Field(default=False, alias="LANGPLUG_PASSWORD_REQUIRE_SPECIAL")
+    password_require_special: bool = Field(default=True, alias="LANGPLUG_PASSWORD_REQUIRE_SPECIAL")
 
     # Rate limiting
     rate_limit_requests_per_minute: int = Field(default=300, alias="LANGPLUG_RATE_LIMIT_REQUESTS_PER_MINUTE")
@@ -118,6 +121,20 @@ class Settings(BaseSettings):
         db_path = base_path / "langplug.db"
         return f"sqlite+aiosqlite:///{db_path}"
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _read_env_database_url(cls, v):
+        """Allow fallback to standard DATABASE_URL env var if LANGPLUG_DATABASE_URL is not set."""
+        if v:
+            return v
+        # Try the generic DATABASE_URL environment variable
+        import os
+
+        fallback = os.getenv("DATABASE_URL")
+        if fallback:
+            return fallback
+        return v
+
     def get_database_path(self) -> Path:
         """Get the database file path (for SQLite only)"""
         if self.database_url and self.database_url.startswith("sqlite+aiosqlite:///"):
@@ -133,61 +150,21 @@ class Settings(BaseSettings):
 
     def get_videos_path(self) -> Path:
         """Get the videos directory path with WSL/Windows compatibility"""
-        import logging
+        from core.config.logging_config import get_logger
+        from core.config.path_utils import ensure_accessible_path, get_project_root
 
-        logger = logging.getLogger(__name__)
-
-        logger.debug(f"get_videos_path called, self.videos_path = {self.videos_path}")
+        logger = get_logger(__name__)
+        logger.debug("get_videos_path called", videos_path=self.videos_path)
 
         if self.videos_path:
-            logger.debug(f"Using configured videos_path: {self.videos_path}")
+            logger.debug("Using configured videos_path")
             path = Path(self.videos_path)
-            # Handle WSL path conversion if needed
-            return self._ensure_accessible_path(path)
+            return ensure_accessible_path(path, logger)
 
-        # Default videos path (Project root/videos)
-        # Use absolute path calculation to avoid working directory issues
-        config_file = Path(__file__).resolve()
-        logger.debug(f"Config file: {config_file}")
-        default_path = config_file.parent.parent.parent.parent.parent / "videos"
-        logger.debug(f"Calculated default path: {default_path}")
-        return self._ensure_accessible_path(default_path)
-
-    def _ensure_accessible_path(self, path: Path) -> Path:
-        """Ensure path is accessible, converting WSL/Windows paths if needed"""
-        import logging
-
-        logger = logging.getLogger(__name__)
-
-        # Resolve relative paths first
-        if not path.is_absolute():
-            path = path.resolve()
-            logger.info(f"Resolved relative path to: {path}")
-
-        # If path exists and is accessible, return as-is
-        if path.exists() and path.is_dir():
-            logger.info(f"Videos path exists and is accessible: {path}")
-            return path
-
-        # Try WSL to Windows conversion
-        if str(path).startswith("/mnt/c/"):
-            windows_path_str = str(path).replace("/mnt/c/", "C:/").replace("/", "\\")
-            windows_path = Path(windows_path_str)
-            if windows_path.exists() and windows_path.is_dir():
-                logger.info(f"Converted WSL path {path} to accessible Windows path: {windows_path}")
-                return windows_path
-
-        # Try Windows to WSL conversion
-        if str(path).startswith("C:"):
-            wsl_path_str = str(path).replace("C:", "/mnt/c").replace("\\", "/")
-            wsl_path = Path(wsl_path_str)
-            if wsl_path.exists() and wsl_path.is_dir():
-                logger.info(f"Converted Windows path {path} to accessible WSL path: {wsl_path}")
-                return wsl_path
-
-        # Log warning if path is not accessible
-        logger.warning(f"Videos path is not accessible: {path}")
-        return path
+        # Default: Project root/videos
+        default_path = get_project_root() / "videos"
+        logger.debug("Calculated default path", path=str(default_path))
+        return ensure_accessible_path(default_path, logger)
 
     def get_data_path(self) -> Path:
         """Get the data directory path"""

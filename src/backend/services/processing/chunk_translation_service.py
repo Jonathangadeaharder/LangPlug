@@ -49,17 +49,17 @@ Translation Models:
 """
 
 import asyncio
-import logging
 from typing import Any
 
 from tqdm import tqdm
 
+from core.config.logging_config import get_logger
 from services.interfaces.translation_interface import IChunkTranslationService
 from services.translationservice.factory import TranslationServiceFactory
 from services.translationservice.interface import ITranslationService
 from utils.srt_parser import SRTParser, SRTSegment
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ChunkTranslationError(Exception):
@@ -122,7 +122,7 @@ class ChunkTranslationService(IChunkTranslationService):
             # OPUS models follow pattern: Helsinki-NLP/opus-mt-{source}-{target}
             model_name = f"Helsinki-NLP/opus-mt-{source_lang}-{target_lang}"
 
-            logger.info(f"Creating translation service: {source_lang} -> {target_lang} (model: {model_name})")
+            logger.info("Creating translation service", source=source_lang, target=target_lang, model=model_name)
 
             self._translation_services[service_key] = TranslationServiceFactory.create_service(
                 service_name="opus",  # Use OPUS service type
@@ -157,7 +157,7 @@ class ChunkTranslationService(IChunkTranslationService):
         task_progress[task_id].message = "Creating translated subtitle segments"
 
         if not vocabulary:
-            logger.info("[CHUNK DEBUG] No vocabulary to translate, returning empty segments")
+            logger.debug("No vocabulary to translate")
             return []
 
         # Parse the SRT file
@@ -165,7 +165,7 @@ class ChunkTranslationService(IChunkTranslationService):
         subtitle_segments = srt_parser.parse_file(srt_file_path)
 
         if not subtitle_segments:
-            logger.warning(f"[CHUNK DEBUG] No subtitle segments found in {srt_file_path}")
+            logger.warning("No subtitle segments found", path=srt_file_path)
             return []
 
         # Translate ALL segments (not just vocabulary segments)
@@ -174,7 +174,7 @@ class ChunkTranslationService(IChunkTranslationService):
             task_id, task_progress, subtitle_segments, language_preferences
         )
 
-        logger.info(f"[CHUNK DEBUG] Built {len(translation_segments)} translation segments")
+        logger.debug("Built translation segments", count=len(translation_segments))
         return translation_segments
 
     def _map_active_words_to_segments(
@@ -206,7 +206,7 @@ class ChunkTranslationService(IChunkTranslationService):
                     active_word_segments.append((word_info, segment))
                     break
 
-        logger.info(f"[CHUNK DEBUG] Found {len(active_word_segments)} active words in segments")
+        logger.debug("Found active words in segments", count=len(active_word_segments))
         return active_word_segments
 
     async def _build_translation_texts(
@@ -271,7 +271,7 @@ class ChunkTranslationService(IChunkTranslationService):
                         await asyncio.sleep(0.01)  # 10ms yield to event loop
 
                 except Exception as e:
-                    logger.error(f"Translation failed for segment {segment.index}: {e}")
+                    logger.error("Translation failed for segment", index=segment.index, error=str(e))
                     continue
 
             # Update progress one final time before returning

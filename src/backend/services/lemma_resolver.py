@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
-import logging
-
 try:
     import spacy  # type: ignore
 except ImportError as exc:
     raise RuntimeError("spaCy is required for lemmatization. Install it with: pip install spacy") from exc
 
 from core.config import settings
+from core.config.logging_config import get_logger
 from core.language_preferences import SPACY_MODEL_MAP
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 _LANGUAGE_MODEL_OVERRIDES: dict[str, str] = {

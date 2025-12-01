@@ -3,10 +3,10 @@ Vocabulary Filter Service
 Handles vocabulary filtering from subtitles for chunk processing
 """
 
-import logging
 import uuid
 from typing import Any
 
+from core.config.logging_config import get_logger
 from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 from services.vocabulary import (
     get_vocabulary_progress_service,
@@ -15,7 +15,7 @@ from services.vocabulary import (
     get_vocabulary_stats_service,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # UUID namespace for vocabulary words (deterministic UUIDs)
 VOCABULARY_NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
@@ -59,7 +59,7 @@ class VocabularyFilterService:
         if db_session is None:
             raise ValueError("Database session is required for filter_vocabulary_from_srt")
 
-        logger.info(f"Filtering vocabulary from {srt_file_path}")
+        logger.debug("Filtering vocabulary", path=srt_file_path)
 
         # Update progress: Start processing (35% -> 40%)
         if task_id and task_progress:
@@ -91,7 +91,7 @@ class VocabularyFilterService:
             task_progress[task_id].progress = 65
             task_progress[task_id].message = f"Found {len(vocabulary)} learning words"
 
-        logger.info(f"Filtered {len(vocabulary)} vocabulary words")
+        logger.debug("Filtered vocabulary", count=len(vocabulary))
         return vocabulary
 
     def extract_vocabulary_from_result(self, filter_result: dict[str, Any]) -> list[dict[str, Any]]:
@@ -181,13 +181,10 @@ class VocabularyFilterService:
             filter_result: Result from subtitle processor
             srt_file_path: Path to SRT file
         """
-        logger.warning(f"No vocabulary found in {srt_file_path}")
-        logger.debug(f"Filter result keys: {filter_result.keys() if filter_result else 'None'}")
+        logger.warning("No vocabulary found", path=srt_file_path)
 
         if filter_result:
-            logger.debug(f"Learning subtitles: {len(filter_result.get('learning_subtitles', []))}")
-            logger.debug(f"Empty subtitles: {len(filter_result.get('empty_subtitles', []))}")
-            logger.debug(f"Statistics: {filter_result.get('statistics', {})}")
+            logger.debug("Filter result", learning=len(filter_result.get("learning_subtitles", [])))
 
 
 def get_vocabulary_filter_service() -> VocabularyFilterService:

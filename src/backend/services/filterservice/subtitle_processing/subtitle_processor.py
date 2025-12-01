@@ -3,15 +3,19 @@ Subtitle Processor Service
 Handles processing of subtitles through filtering pipeline
 """
 
-import logging
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+from core.config.logging_config import get_logger
 
 from ..interface import FilteredSubtitle, FilteredWord, FilteringResult, WordStatus
 from .word_filter import WordFilter
 from .word_validator import WordValidator
 
-logger = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = get_logger(__name__)
 
 
 class SubtitleProcessor:
@@ -44,7 +48,7 @@ class SubtitleProcessor:
         Returns:
             FilteringResult with categorized content
         """
-        logger.info(f"Processing {len(subtitles)} subtitles")
+        logger.debug("Processing subtitles", count=len(subtitles))
 
         # Initialize processing state
         processing_state = self._initialize_processing_state()
@@ -104,7 +108,13 @@ class SubtitleProcessor:
         self._categorize_subtitle(subtitle, subtitle_active_words, processing_state)
 
     async def _process_and_filter_word(
-        self, word: FilteredWord, user_known_words: set[str], user_level: str, language: str, vocab_service: Any, db: "AsyncSession"
+        self,
+        word: FilteredWord,
+        user_known_words: set[str],
+        user_level: str,
+        language: str,
+        vocab_service: Any,
+        db: "AsyncSession",
     ) -> FilteredWord:
         """Process and filter a single word"""
         word_text = word.text.lower().strip()
@@ -120,7 +130,7 @@ class SubtitleProcessor:
         try:
             word_info = await vocab_service.get_word_info(word_text, language, db)
         except Exception as exc:
-            logger.error(f"Failed to load word info for '{word_text}': {exc}")
+            logger.error("Failed to load word info", word=word_text, error=str(exc))
             word_info = None
 
         # Step 3: Apply filtering logic
@@ -155,7 +165,7 @@ class SubtitleProcessor:
         else:
             # No vocabulary content
             processing_state["empty_subtitles"].append(subtitle)
-            logger.debug(f"[SUBTITLE FILTER] FILTERED OUT: '{subtitle.original_text[:50]}...' - No vocabulary content")
+            logger.debug("Filtered out subtitle - no vocabulary content")
 
     def _create_filtering_result(
         self, processing_state: dict, total_subtitles: int, user_level: str, language: str

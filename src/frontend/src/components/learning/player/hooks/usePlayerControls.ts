@@ -30,6 +30,14 @@ export const usePlayerControls = ({
   const chunkDuration = endTime - startTime
   const progress = Math.max(0, Math.min(100, ((currentTime - startTime) / chunkDuration) * 100))
 
+  // Check for chunk completion
+  useEffect(() => {
+    if (currentTime >= endTime && playing) {
+      setPlaying(false)
+      onComplete()
+    }
+  }, [currentTime, endTime, playing, onComplete])
+
   // Fullscreen toggler
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -110,7 +118,8 @@ export const usePlayerControls = ({
       handleSeek: (time: number) => {
         playerRef.current?.seekTo(time)
         setCurrentTime(time)
-      }
+      },
+      handleSkip: onSkip
     }
   }
 }

@@ -53,9 +53,7 @@ class TestVocabularyCacheService:
         cache_service.cache.get = AsyncMock(return_value={"word": "hallo", "level": "A1"})
 
         # Execute
-        result = await cache_service.get_word_info(
-            "hallo", "de", mock_db, mock_vocab_service
-        )
+        result = await cache_service.get_word_info("hallo", "de", mock_db, mock_vocab_service)
 
         # Verify
         assert result == {"word": "hallo", "level": "A1"}
@@ -73,9 +71,7 @@ class TestVocabularyCacheService:
         mock_vocab_service.get_word_info = AsyncMock(return_value=word_data)
 
         # Execute
-        result = await cache_service.get_word_info(
-            "hallo", "de", mock_db, mock_vocab_service
-        )
+        result = await cache_service.get_word_info("hallo", "de", mock_db, mock_vocab_service)
 
         # Verify
         assert result == word_data
@@ -92,9 +88,7 @@ class TestVocabularyCacheService:
         mock_vocab_service.get_word_info = AsyncMock(return_value=None)
 
         # Execute
-        result = await cache_service.get_word_info(
-            "nonexistent", "de", mock_db, mock_vocab_service
-        )
+        result = await cache_service.get_word_info("nonexistent", "de", mock_db, mock_vocab_service)
 
         # Verify
         assert result is None
@@ -110,9 +104,7 @@ class TestVocabularyCacheService:
         mock_vocab_service.get_word_info = AsyncMock(return_value=word_data)
 
         # Execute
-        result = await cache_service.get_word_info(
-            "hallo", "de", mock_db, mock_vocab_service
-        )
+        result = await cache_service.get_word_info("hallo", "de", mock_db, mock_vocab_service)
 
         # Verify
         assert result == word_data
@@ -155,9 +147,7 @@ class TestVocabularyCacheService:
         words = ["hallo", "welt", "haus"]
         cache_service.cache.get = AsyncMock(return_value=words)
 
-        result = await cache_service.get_words_by_level(
-            "de", "A1", mock_db, mock_vocab_service
-        )
+        result = await cache_service.get_words_by_level("de", "A1", mock_db, mock_vocab_service)
 
         assert result == words
         assert cache_service.stats["hits"] == 1
@@ -170,9 +160,7 @@ class TestVocabularyCacheService:
         cache_service.cache.set = AsyncMock(return_value=True)
         mock_vocab_service.get_words_by_level = AsyncMock(return_value=words)
 
-        result = await cache_service.get_words_by_level(
-            "de", "A1", mock_db, mock_vocab_service
-        )
+        result = await cache_service.get_words_by_level("de", "A1", mock_db, mock_vocab_service)
 
         assert result == words
         assert cache_service.stats["misses"] == 1
@@ -185,13 +173,9 @@ class TestVocabularyCacheService:
         words_a2 = ["glauben", "verstehen"]
 
         cache_service.cache.set = AsyncMock(return_value=True)
-        mock_vocab_service.get_words_by_level = AsyncMock(
-            side_effect=[words_a1, words_a2]
-        )
+        mock_vocab_service.get_words_by_level = AsyncMock(side_effect=[words_a1, words_a2])
 
-        cached = await cache_service.warm_cache(
-            "de", ["A1", "A2"], mock_db, mock_vocab_service
-        )
+        cached = await cache_service.warm_cache("de", ["A1", "A2"], mock_db, mock_vocab_service)
 
         assert cached == 2
         assert cache_service.cache.set.call_count == 2
@@ -236,10 +220,7 @@ class TestVocabularyCacheService:
         mock_vocab_service.get_word_info = AsyncMock(return_value=word_data)
 
         # Simulate concurrent requests
-        tasks = [
-            cache_service.get_word_info("test", "de", mock_db, mock_vocab_service)
-            for _ in range(5)
-        ]
+        tasks = [cache_service.get_word_info("test", "de", mock_db, mock_vocab_service) for _ in range(5)]
 
         results = await asyncio.gather(*tasks)
 

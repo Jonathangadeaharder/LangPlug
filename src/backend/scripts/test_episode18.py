@@ -44,17 +44,14 @@ async def main():
     try:
         print("[INFO] Starting SRT file processing...")
         result = await processor.process_srt_file(
-            srt_file_path=srt_file_path,
-            user_id=user_id,
-            user_level=user_level,
-            language=language
+            srt_file_path=srt_file_path, user_id=user_id, user_level=user_level, language=language
         )
 
         print("\n[SUCCESS] Processing completed!")
         print(f"\n[RESULT] Keys in result: {list(result.keys())}")
 
         # Show statistics
-        stats = result.get('statistics', {})
+        stats = result.get("statistics", {})
         print("\n[STATISTICS]")
         print(f"  - Total words processed: {stats.get('total_words_processed', 0):,}")
         print(f"  - Unique words: {stats.get('unique_words', 0):,}")
@@ -69,24 +66,24 @@ async def main():
         print(f"  - Empty subtitles: {len(result.get('empty_subtitles', [])):,}")
 
         # Show blocking words (first 20)
-        blocking_words = result.get('blocking_words', [])
+        blocking_words = result.get("blocking_words", [])
         if blocking_words:
             print(f"\n[BLOCKING WORDS] First 20 of {len(blocking_words)}:")
             for i, word in enumerate(blocking_words[:20], 1):
                 # Handle both dict and Pydantic model
-                if hasattr(word, 'word'):
+                if hasattr(word, "word"):
                     word_text = word.word
-                    level = getattr(word, 'difficulty_level', 'N/A')
-                elif hasattr(word, 'lemma'):
+                    level = getattr(word, "difficulty_level", "N/A")
+                elif hasattr(word, "lemma"):
                     word_text = word.lemma
-                    level = getattr(word, 'difficulty_level', 'N/A')
+                    level = getattr(word, "difficulty_level", "N/A")
                 else:
                     word_text = str(word)
-                    level = 'N/A'
+                    level = "N/A"
                 print(f"  {i}. {word_text} (level: {level})")
 
         # Show sample of filtered subtitles
-        filtered_subs = result.get('filtered_subtitles', [])
+        filtered_subs = result.get("filtered_subtitles", [])
         if filtered_subs:
             print("\n[FILTERED SUBTITLES] First 10:")
             for i, sub in enumerate(filtered_subs[:10], 1):
@@ -108,6 +105,7 @@ async def main():
         print(f"[ERROR] Message: {e}")
         print("\n[TRACEBACK]")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

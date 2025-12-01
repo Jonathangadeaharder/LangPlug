@@ -136,7 +136,7 @@ const TestWrapper: React.FC<TestWrapperProps> = ({ children, initialAuth, initia
       const authStore = useAuthStore.getState()
       if (initialAuth.isAuthenticated) {
         authStore.setUser(initialAuth.user || mockApiResponses.auth.getCurrentUser)
-        authStore.setToken(initialAuth.token || 'mock_token_123')
+        // Token is now managed via HttpOnly cookies, not in store
         authStore.setAuthenticated(true)
       }
     }

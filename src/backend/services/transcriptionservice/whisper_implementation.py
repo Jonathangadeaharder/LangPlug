@@ -3,16 +3,17 @@ OpenAI Whisper Transcription Service Implementation
 State-of-the-art speech recognition
 """
 
-import logging
 import os
 from pathlib import Path
 from typing import Any
 
 import whisper
 
-from .interface import ITranscriptionService, TranscriptionResult, TranscriptionSegment
+from core.config.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+from .interface import ITranscriptionService, ProgressCallback, TranscriptionResult, TranscriptionSegment
+
+logger = get_logger(__name__)
 
 
 class WhisperTranscriptionService(ITranscriptionService):
@@ -63,8 +64,7 @@ class WhisperTranscriptionService(ITranscriptionService):
             cuda_available = check_cuda_availability("Whisper")
 
             if cuda_available:
-                logger.info(f"[CUDA] GPU available: {torch.cuda.get_device_name(0)}")
-                logger.info(f"[CUDA] CUDA version: {torch.version.cuda}")
+                logger.info("GPU available for Whisper", device=torch.cuda.get_device_name(0))
 
             # Check if model is already downloaded
             model_cache_dir = self.download_root or os.path.expanduser("~/.cache/whisper")
@@ -94,18 +94,13 @@ class WhisperTranscriptionService(ITranscriptionService):
                     "large-v3-turbo": 809,
                 }.get(self.model_size, 1000)
 
-                logger.info(f"[MODEL DOWNLOAD] Downloading Whisper model '{self.model_size}' (~{model_size_mb}MB)")
-                logger.info("[MODEL DOWNLOAD] First-time download in progress...")
-                logger.info(f"[MODEL DOWNLOAD] Model will be cached at: {model_path}")
-                logger.info("[MODEL DOWNLOAD] Please wait, this is a one-time download...")
+                logger.info("Downloading Whisper model", model=self.model_size, size_mb=model_size_mb)
             else:
-                logger.info(f"[MODEL LOAD] Loading cached Whisper model: {self.model_size}")
-                logger.info(f"[MODEL LOAD] Model location: {model_path}")
+                logger.info("Loading cached Whisper model", model=self.model_size)
 
-            logger.info(f"[MODEL INIT] Initializing Whisper {self.model_size}...")
+            logger.info("Initializing Whisper", model=self.model_size)
             self._model = whisper.load_model(self.model_size, device=self.device, download_root=self.download_root)
-            logger.info(f"[MODEL READY] Whisper model '{self.model_size}' loaded successfully!")
-            logger.info("[MODEL READY] Transcription service is now operational")
+            logger.info("Whisper model loaded", model=self.model_size)
 
     def transcribe(self, audio_path: str, language: str | None = None) -> TranscriptionResult:
         """Transcribe an audio file"""
@@ -150,6 +145,44 @@ class WhisperTranscriptionService(ITranscriptionService):
         """Transcribe with detailed timestamps"""
         # Whisper always provides timestamps, so this is the same as transcribe
         return self.transcribe(audio_path, language)
+
+    async def transcribe_with_progress(
+        self,
+        audio_path: str,
+        language: str | None = None,
+        progress_callback: ProgressCallback | None = None,
+    ) -> TranscriptionResult:
+        """
+        Transcribe an audio file with progress updates.
+
+        Note: OpenAI Whisper does not support true progress tracking.
+        This method provides post-hoc progress updates based on the result.
+        For real progress tracking, use FasterWhisperTranscriptionService.
+
+        Args:
+            audio_path: Path to the audio file
+            language: Optional language hint (e.g., 'en', 'de')
+            progress_callback: Async callback receiving (fraction: 0-1, message: str)
+
+        Returns:
+            TranscriptionResult with transcription details
+        """
+        import asyncio
+
+        # Report starting
+        if progress_callback:
+            await progress_callback(0.0, "Starting transcription (OpenAI Whisper)...")
+
+        # OpenAI Whisper's transcribe is synchronous and doesn't provide progress
+        # Run in executor to avoid blocking the event loop
+        result = await asyncio.to_thread(self.transcribe, audio_path, language)
+
+        # Report completion
+        if progress_callback:
+            segment_count = len(result.segments) if result.segments else 0
+            await progress_callback(1.0, f"Transcription complete: {segment_count} segments")
+
+        return result
 
     def transcribe_batch(self, audio_paths: list[str], language: str | None = None) -> list[TranscriptionResult]:
         """Transcribe multiple audio files in batch"""

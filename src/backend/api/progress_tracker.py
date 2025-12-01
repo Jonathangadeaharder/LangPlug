@@ -5,13 +5,13 @@ Wraps ProcessingStatus to automatically send WebSocket updates when progress cha
 """
 
 import asyncio
-import logging
 from typing import Any
 
 from api.models.processing import ProcessingStatus
 from api.websocket_manager import manager
+from core.config.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Global set to hold task references and prevent garbage collection
 _background_tasks: set[asyncio.Task] = set()
@@ -85,7 +85,7 @@ class ProgressTracker:
                 pass
             except Exception as e:
                 # Don't fail the task if WebSocket update fails
-                logger.debug(f"Could not send WebSocket update for task {task_id}: {e}")
+                logger.debug("Could not send WebSocket update", task_id=task_id, error=str(e))
 
     def __repr__(self) -> str:
         """String representation"""

@@ -163,6 +163,13 @@ export const ChunkedLearningPlayer: React.FC<ChunkedLearningPlayerProps> = (prop
             }
           }}
           progressInterval={100}
+          config={{
+            file: {
+              attributes: {
+                crossOrigin: 'use-credentials'
+              }
+            }
+          }}
         />
 
         {props.onBack && (

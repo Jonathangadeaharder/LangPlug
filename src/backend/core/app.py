@@ -59,7 +59,7 @@ async def lifespan(app: FastAPI):
         # Log startup information including port
         port = int(os.environ.get("LANGPLUG_PORT", settings.port))
         host = settings.host
-        logger.info(f"Starting LangPlug API server on http://{host}:{port}...")
+        logger.info("Starting LangPlug API server", host=host, port=port)
 
         # Initialize all services (skip in test mode)
         if os.environ.get("TESTING") != "1":
@@ -67,15 +67,15 @@ async def lifespan(app: FastAPI):
         else:
             logger.info("Skipping service initialization in test mode")
             # Mark services as ready in test mode so frontend readiness checks pass
-            from core.dependencies.task_dependencies import _services_ready
             import core.dependencies.task_dependencies as task_deps
+
             task_deps._services_ready = True
 
-        logger.info(f"LangPlug API server started successfully on port {port}")
+        logger.info("LangPlug API server started", port=port)
         yield
 
     except Exception as e:
-        logger.error(f"Failed to start application: {e}", exc_info=True)
+        logger.error("Failed to start application", error=str(e), exc_info=True)
         raise
     finally:
         logger.info("Shutting down LangPlug API server...")
@@ -165,9 +165,16 @@ def create_app() -> FastAPI:
         return {"message": "Test endpoint is working!", "timestamp": datetime.now().isoformat()}
 
     # Include FastAPI-Users authentication routes
-    from .auth import UserCreate, UserRead, auth_backend, fastapi_users
+    from .auth import UserCreate, UserRead, auth_backend, cookie_auth_backend, fastapi_users
 
-    app.include_router(fastapi_users.get_auth_router(auth_backend), prefix="/api/auth", tags=["auth"])
+    # Primary Auth: Cookie-based (for Web Frontend)
+    # This makes /api/auth/login set the HttpOnly cookie
+    app.include_router(fastapi_users.get_auth_router(cookie_auth_backend), prefix="/api/auth", tags=["auth"])
+
+    # Secondary Auth: Bearer Token (for Mobile/API clients)
+    # This makes /api/auth/token/login return the Bearer token
+    app.include_router(fastapi_users.get_auth_router(auth_backend), prefix="/api/auth/token", tags=["auth"])
+
     app.include_router(
         fastapi_users.get_register_router(UserRead, UserCreate),
         prefix="/api/auth",

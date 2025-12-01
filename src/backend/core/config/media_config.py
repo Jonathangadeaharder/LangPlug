@@ -11,35 +11,41 @@ Provides single source of truth for:
 from typing import Final
 
 # Video file extensions - used by VideoService, filtering_routes, file validators
-VIDEO_EXTENSIONS: Final[frozenset[str]] = frozenset({
-    ".mp4",
-    ".mkv",
-    ".avi",
-    ".webm",
-    ".mov",
-    ".m4v",
-    ".wmv",
-    ".flv",
-})
+VIDEO_EXTENSIONS: Final[frozenset[str]] = frozenset(
+    {
+        ".mp4",
+        ".mkv",
+        ".avi",
+        ".webm",
+        ".mov",
+        ".m4v",
+        ".wmv",
+        ".flv",
+    }
+)
 
 # Subtitle file extensions
-SUBTITLE_EXTENSIONS: Final[frozenset[str]] = frozenset({
-    ".srt",
-    ".vtt",
-    ".sub",
-    ".ass",
-    ".ssa",
-})
+SUBTITLE_EXTENSIONS: Final[frozenset[str]] = frozenset(
+    {
+        ".srt",
+        ".vtt",
+        ".sub",
+        ".ass",
+        ".ssa",
+    }
+)
 
 # Audio file extensions for transcription
-AUDIO_EXTENSIONS: Final[frozenset[str]] = frozenset({
-    ".mp3",
-    ".wav",
-    ".flac",
-    ".m4a",
-    ".ogg",
-    ".aac",
-})
+AUDIO_EXTENSIONS: Final[frozenset[str]] = frozenset(
+    {
+        ".mp3",
+        ".wav",
+        ".flac",
+        ".m4a",
+        ".ogg",
+        ".aac",
+    }
+)
 
 # MIME type mappings
 VIDEO_MIME_TYPES: Final[dict[str, str]] = {

@@ -7,11 +7,12 @@ to eliminate code duplication across transcription services.
 
 from __future__ import annotations
 
-import logging
 import tempfile
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def extract_audio_from_video(
@@ -52,7 +53,7 @@ def extract_audio_from_video(
         output_path = str(output_path)
 
     video_path_str = str(video_path)
-    logger.info(f"Extracting audio from {video_path_str} to {output_path}")
+    logger.debug("Extracting audio", video=video_path_str)
 
     # Load video and extract audio
     video = VideoFileClip(video_path_str)
@@ -69,5 +70,5 @@ def extract_audio_from_video(
     # Clean up resources
     video.close()
 
-    logger.info(f"Audio extracted successfully: {output_path}")
+    logger.debug("Audio extracted", output=output_path)
     return output_path

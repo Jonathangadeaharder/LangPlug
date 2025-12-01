@@ -7,18 +7,17 @@ This module handles:
 - Get vocabulary statistics
 """
 
-import logging
-
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.error_handlers import handle_api_errors, raise_not_found
+from core.config.logging_config import get_logger
 from core.database import get_async_session
 from core.dependencies import current_active_user, get_vocabulary_service
 from database.models import User
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(tags=["vocabulary"])
 
 
@@ -94,9 +93,7 @@ async def get_vocabulary_stats(
     Returns:
         VocabularyStats: Statistics including total_words, known_words, by_level, mastery_percentage
     """
-    stats = await vocabulary_service.get_vocabulary_stats(
-        db, current_user.id, target_language, translation_language
-    )
+    stats = await vocabulary_service.get_vocabulary_stats(db, current_user.id, target_language, translation_language)
     return stats
 
 
@@ -177,7 +174,7 @@ async def delete_vocabulary_progress(
     await db.execute(delete_stmt)
     await db.commit()
 
-    logger.info(f"Deleted vocabulary progress for user {current_user.id}, lemma '{lemma}'")
+    logger.info("Deleted vocabulary progress", user_id=current_user.id, lemma=lemma)
 
     return {
         "success": True,

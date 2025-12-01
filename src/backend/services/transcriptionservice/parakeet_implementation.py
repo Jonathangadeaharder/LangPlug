@@ -3,14 +3,15 @@ NVIDIA Parakeet Transcription Service Implementation
 High-performance ASR using NVIDIA NeMo
 """
 
-import logging
 import os
 from pathlib import Path
 from typing import Any
 
+from core.config.logging_config import get_logger
+
 from .interface import ITranscriptionService, TranscriptionResult, TranscriptionSegment
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ParakeetTranscriptionService(ITranscriptionService):
@@ -60,11 +61,10 @@ class ParakeetTranscriptionService(ITranscriptionService):
                 if cuda_available:
                     import torch
 
-                    logger.info(f"[CUDA] GPU available: {torch.cuda.get_device_name(0)}")
-                    logger.info(f"[CUDA] CUDA version: {torch.version.cuda}")
+                    logger.info("GPU available for Parakeet", device=torch.cuda.get_device_name(0))
                     self.device = "cuda"
 
-                logger.info(f"Loading Parakeet model: {self.model_name}")
+                logger.info("Loading Parakeet model", model=self.model_name)
                 self._model = nemo_asr.models.ASRModel.from_pretrained(model_name=self.model_path)
 
                 # Move model to device
@@ -72,7 +72,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
                     self._model = self._model.cuda()
 
                 self._model.eval()
-                logger.info(f"Parakeet model loaded: {self.model_name}")
+                logger.info("Parakeet model loaded", model=self.model_name)
 
             except ImportError as e:
                 raise ImportError("NeMo toolkit not installed. Install with: pip install nemo_toolkit[asr]") from e
@@ -226,7 +226,7 @@ class ParakeetTranscriptionService(ITranscriptionService):
             with AudioFileClip(audio_path) as audio:
                 return audio.duration
         except (ImportError, OSError, Exception) as e:
-            logger.warning(f"Could not get audio duration from {audio_path}: {e}")
+            logger.warning("Could not get audio duration", error=str(e))
             return 0.0
 
     def _extract_segments(self, transcription) -> list[TranscriptionSegment]:

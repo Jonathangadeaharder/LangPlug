@@ -20,7 +20,6 @@ export {
 // Vocabulary mutations
 export {
   useMarkWord,
-  useBulkMarkWords,
   useRefreshVocabulary,
 } from './mutations/useVocabularyMutations'
 
@@ -29,3 +28,8 @@ export { useCurrentUser } from './queries/useAuth'
 
 // Game queries
 export { useBlockingWords } from './queries/useGame'
+
+// Progress tracking
+export { useTaskProgress } from './useTaskProgress'
+export { useRealtimeProgress } from './useRealtimeProgress'
+export type { RealtimeProgressState, RealtimeProgressActions, UseRealtimeProgressReturn } from './useRealtimeProgress'

@@ -3,7 +3,6 @@ ChunkUtilities - File management and user utilities for chunk processing
 Extracted from chunk_processor.py for better separation of concerns
 """
 
-import logging
 from pathlib import Path
 from typing import Any
 from uuid import UUID
@@ -13,13 +12,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.models.processing import ProcessingStatus
 from core.config import settings
+from core.config.logging_config import get_logger
 from core.language_preferences import (
     load_language_preferences,
     resolve_language_runtime_settings,
 )
 from database.models import User
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ChunkUtilitiesError(Exception):
@@ -81,13 +81,13 @@ class ChunkUtilities:
             if session_token:
                 # For now, just log that a session token was provided
                 # In the future, this could validate the token against active sessions
-                logger.debug(f"Session token provided: {session_token[:8]}...")
+                logger.debug("Session token provided")
 
-            logger.debug(f"[CHUNK DEBUG] Authenticated user: {user.id} ({user.username})")
+            logger.debug("Authenticated user", user_id=user.id)
             return user
 
         except Exception as e:
-            logger.error(f"Failed to authenticate user {normalized_id}: {e}")
+            logger.error("Failed to authenticate user", user_id=normalized_id, error=str(e))
             raise ChunkUtilitiesError(f"Authentication failed: {e}") from e
 
     @staticmethod
@@ -127,7 +127,7 @@ class ChunkUtilities:
         native, target = load_language_preferences(str(user.id))
         resolved_preferences = resolve_language_runtime_settings(native, target)
 
-        logger.debug(f"[CHUNK DEBUG] User {user.id} language preferences: {resolved_preferences}")
+        logger.debug("User language preferences", user_id=user.id)
         return resolved_preferences
 
     def cleanup_old_chunk_files(self, video_file: Path, start_time: float, end_time: float) -> None:
@@ -155,13 +155,13 @@ class ChunkUtilities:
                             old_file.unlink()
                             cleanup_count += 1
                         except OSError as e:
-                            logger.warning(f"Could not delete {old_file}: {e}")
+                            logger.warning("Could not delete file", error=str(e))
 
             if cleanup_count > 0:
-                logger.info(f"[CHUNK DEBUG] Cleaned up {cleanup_count} old chunk files")
+                logger.debug("Cleaned up old chunk files", count=cleanup_count)
 
         except Exception as e:
-            logger.warning(f"Chunk cleanup failed: {e}")
+            logger.warning("Chunk cleanup failed", error=str(e))
 
     def initialize_progress(
         self,
@@ -191,7 +191,7 @@ class ChunkUtilities:
             message=f"Processing {video_file.name} ({start_time:.1f}s - {end_time:.1f}s)",
         )
 
-        logger.info(f"[CHUNK DEBUG] Initialized processing for task {task_id}")
+        logger.debug("Initialized processing", task_id=task_id)
 
     def complete_processing(
         self,
@@ -221,13 +221,13 @@ class ChunkUtilities:
 
         if subtitle_path:
             task_progress[task_id].subtitle_path = subtitle_path
-            logger.info(f"[CHUNK DEBUG] Set subtitle_path: {subtitle_path}")
+            logger.debug("Set subtitle_path")
 
         if translation_path:
             task_progress[task_id].translation_path = translation_path
-            logger.info(f"[CHUNK DEBUG] Set translation_path: {translation_path}")
+            logger.debug("Set translation_path")
 
-        logger.info(f"[CHUNK DEBUG] Completed processing for task {task_id}")
+        logger.debug("Completed processing", task_id=task_id)
 
     def handle_error(self, task_id: str, task_progress: dict[str, Any], error: Exception) -> None:
         """
@@ -250,7 +250,7 @@ class ChunkUtilities:
             message=f"Error: {error_msg}",
         )
 
-        logger.error(f"[CHUNK DEBUG] Error in task {task_id}: {error}")
+        logger.error("Error in task", task_id=task_id, error=str(error))
 
     def debug_empty_vocabulary(self, filter_result: dict[str, Any], srt_file_path: str) -> None:
         """
@@ -260,15 +260,4 @@ class ChunkUtilities:
             filter_result: Filtering result dictionary
             srt_file_path: Path to SRT file that was processed
         """
-        logger.warning("[CHUNK DEBUG] Empty vocabulary returned from filtering")
-        logger.warning(f"[CHUNK DEBUG] SRT file: {srt_file_path}")
-        logger.warning(f"[CHUNK DEBUG] Filter result keys: {list(filter_result.keys()) if filter_result else 'None'}")
-
-        if filter_result:
-            for key, value in filter_result.items():
-                if isinstance(value, list):
-                    logger.warning(f"[CHUNK DEBUG] {key}: {len(value)} items")
-                else:
-                    logger.warning(f"[CHUNK DEBUG] {key}: {value}")
-        else:
-            logger.warning("[CHUNK DEBUG] Filter result is None or empty")
+        logger.warning("Empty vocabulary returned from filtering", srt_path=srt_file_path)

@@ -51,15 +51,15 @@ Performance Notes:
     - Uses transactional boundaries to ensure data consistency
 """
 
-import logging
 from typing import Any
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config.logging_config import get_logger
 from database.models import UserVocabularyProgress, VocabularyWord
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class VocabularyProgressService:
@@ -137,7 +137,7 @@ class VocabularyProgressService:
             lemma = self.lemmatization_service.lemmatize(word)
             difficulty_level = "unknown"  # No CEFR level for unknown words
 
-            logger.info(f"Marking unknown word as known: word='{word}', lemma='{lemma}', language='{language}'")
+            logger.info("Marking unknown word", word=word, lemma=lemma, language=language)
 
         # Check existing progress by lemma (works for both known and unknown words)
         stmt = select(UserVocabularyProgress).where(

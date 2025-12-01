@@ -181,7 +181,7 @@ async def get_user_from_query_token(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Token authentication failed: {e}", exc_info=True)
+        logger.error("Token authentication failed", error=str(e), exc_info=True)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed") from e
 
 

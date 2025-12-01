@@ -2,7 +2,6 @@
 
 from datetime import datetime
 
-import structlog
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -10,10 +9,11 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from api.models.common import ErrorDetail, ErrorResponse
+from core.config.logging_config import get_logger
 from core.config.sentry_config import capture_exception, set_context
 from core.exceptions import LangPlugException
 
-logger = structlog.get_logger(__name__)
+logger = get_logger(__name__)
 
 
 def setup_exception_handlers(app: FastAPI):

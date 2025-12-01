@@ -6,7 +6,6 @@ Coordinates with GameQuestionService and GameScoringService.
 """
 
 import json
-import logging
 import uuid
 from datetime import datetime
 
@@ -14,13 +13,14 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config.logging_config import get_logger
 from core.enums import GameDifficulty, GameSessionStatus, GameType
 from database.models import GameSession as GameSessionRecord
 
 from .game_question_service import GameQuestionService
 from .game_scoring_service import GameScoringService
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class GameSession(BaseModel):
@@ -171,7 +171,7 @@ class GameSessionService:
         await self.db_session.commit()
         await self.db_session.refresh(record)
 
-        logger.info(f"Created game session {session_id} for user {user_id}")
+        logger.info("Created game session", session_id=session_id, user_id=user_id)
         return self._record_to_model(record)
 
     async def get_session(self, session_id: str, user_id: str) -> GameSession:
@@ -219,7 +219,7 @@ class GameSessionService:
         )
         records = result.scalars().all()
 
-        logger.info(f"Retrieved {len(records)} game sessions for user {user_id}")
+        logger.debug("Retrieved game sessions", count=len(records), user_id=user_id)
         return [self._record_to_model(record) for record in records]
 
     async def submit_answer(self, user_id: str, answer_request: AnswerRequest) -> AnswerResult:
@@ -264,7 +264,7 @@ class GameSessionService:
         await self.db_session.commit()
         await self.db_session.refresh(record)
 
-        logger.info(f"Answer submitted for session {answer_request.session_id} (correct={evaluation.is_correct})")
+        logger.debug("Answer submitted", session_id=answer_request.session_id, correct=evaluation.is_correct)
 
         return AnswerResult(
             is_correct=evaluation.is_correct,

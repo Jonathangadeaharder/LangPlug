@@ -66,15 +66,15 @@ Error Handling:
 """
 
 import asyncio
-import logging
 from pathlib import Path
 from typing import Any
 
 # Lazy import to avoid circular dependencies
 from core.config import settings
+from core.config.logging_config import get_logger
 from services.interfaces.transcription_interface import IChunkTranscriptionService
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ChunkTranscriptionError(Exception):
@@ -130,8 +130,7 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
         duration = end_time - start_time
         audio_output = video_file.parent / f"{video_file.stem}_chunk_{start_time}s_{end_time}s.wav"
 
-        logger.info(f"Extracting audio from video: {video_file}")
-        logger.info(f"Output audio file: {audio_output}")
+        logger.debug("Extracting audio", video=str(video_file), output=str(audio_output))
 
         try:
             # Build ffmpeg command for audio extraction
@@ -162,7 +161,7 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
                 loop = asyncio.get_running_loop()
                 if not isinstance(loop, asyncio.ProactorEventLoop):
                     # SelectorEventLoop doesn't support subprocesses - use sync fallback
-                    logger.info("[WINDOWS FIX] Using sync subprocess fallback (SelectorEventLoop detected)")
+                    logger.debug("Using sync subprocess fallback for Windows")
                     import concurrent.futures
                     import subprocess
 
@@ -194,25 +193,23 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
 
             if process.returncode != 0:
                 error_msg = stderr.decode("utf-8", errors="replace") if stderr else "Unknown ffmpeg error"
-                logger.error(f"FFmpeg failed for video: {video_file}")
-                logger.error(f"FFmpeg error output: {error_msg}")
+                logger.error("FFmpeg failed", video=str(video_file), error=error_msg)
                 # Clean up partial output file if it exists
                 if audio_output.exists():
                     try:
                         audio_output.unlink()
-                        logger.debug(f"Cleaned up partial audio file: {audio_output}")
+                        logger.debug("Cleaned up partial audio file")
                     except Exception as cleanup_error:
-                        logger.warning(f"Failed to cleanup partial file: {cleanup_error}")
+                        logger.warning("Failed to cleanup partial file", error=str(cleanup_error))
                 raise ChunkTranscriptionError(
                     f"FFmpeg audio extraction failed for {video_file.name}. "
                     f"Video path: {video_file}. Error: {error_msg}"
                 )
 
             if not audio_output.exists():
-                logger.error("FFmpeg completed but output file not created")
-                logger.error(f"Expected output: {audio_output}")
-                logger.error(f"Input video: {video_file}")
-                logger.error(f"Video exists: {video_file.exists()}")
+                logger.error(
+                    "FFmpeg completed but output file not created", expected=str(audio_output), video=str(video_file)
+                )
                 raise ChunkTranscriptionError(
                     f"Audio extraction failed: FFmpeg completed but output file not created. "
                     f"Video: {video_file}, Expected output: {audio_output}"
@@ -221,23 +218,20 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
             # Check if audio file is empty (0 bytes) - this causes Whisper to crash
             audio_size = audio_output.stat().st_size
             if audio_size == 0:
-                logger.error(f"FFmpeg created empty audio file: {audio_output}")
+                logger.error("FFmpeg created empty audio file", path=str(audio_output))
                 audio_output.unlink()  # Clean up empty file
                 raise ChunkTranscriptionError(
                     f"Audio extraction failed: FFmpeg created empty audio file (0 bytes). "
                     f"The video segment {start_time}-{end_time}s may not contain audio. "
                     f"Video: {video_file.name}"
                 )
-            
+
             # Also check for suspiciously small files (< 1KB for any chunk > 1s)
             min_expected_size = int(duration * 16000 * 2 * 0.01)  # ~1% of expected PCM size
             if audio_size < min_expected_size and duration > 1:
-                logger.warning(
-                    f"Audio file suspiciously small: {audio_size} bytes for {duration}s chunk "
-                    f"(expected at least {min_expected_size} bytes). File: {audio_output}"
-                )
+                logger.warning("Audio file suspiciously small", size=audio_size, duration=duration)
 
-            logger.info(f"Audio extracted for {video_file.name} ({start_time}-{end_time}s) -> {audio_output} ({audio_size} bytes)")
+            logger.debug("Audio extracted", video=video_file.name, size=audio_size)
             return audio_output
 
         except FileNotFoundError as e:
@@ -249,7 +243,7 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
             ) from e
 
         except TimeoutError as e:
-            logger.error(f"FFmpeg process timed out for video: {video_file}")
+            logger.error("FFmpeg timed out", video=str(video_file))
             # Kill the process if it exists and has a kill method
             if process is not None and hasattr(process, "kill"):
                 try:
@@ -258,14 +252,14 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
                         await process.wait()
                     logger.debug("Killed timed-out FFmpeg process")
                 except Exception as kill_error:
-                    logger.warning(f"Failed to kill timed-out process: {kill_error}")
+                    logger.warning("Failed to kill process", error=str(kill_error))
             # Clean up partial output file
             if audio_output.exists():
                 try:
                     audio_output.unlink()
-                    logger.debug(f"Cleaned up partial audio file after timeout: {audio_output}")
+                    logger.debug("Cleaned up after timeout")
                 except Exception as cleanup_error:
-                    logger.warning(f"Failed to cleanup after timeout: {cleanup_error}")
+                    logger.warning("Failed to cleanup after timeout", error=str(cleanup_error))
             raise ChunkTranscriptionError(f"Audio extraction timed out for {video_file.name}") from e
 
         except ChunkTranscriptionError:
@@ -277,57 +271,11 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
             if audio_output.exists():
                 try:
                     audio_output.unlink()
-                    logger.debug(f"Cleaned up audio file after error: {audio_output}")
+                    logger.debug("Cleaned up audio file after error")
                 except Exception as cleanup_error:
-                    logger.warning(f"Failed to cleanup after error: {cleanup_error}")
-            logger.error(f"Audio extraction error: {e}", exc_info=True)
+                    logger.warning("Failed to cleanup", error=str(cleanup_error))
+            logger.error("Audio extraction error", error=str(e), exc_info=True)
             raise ChunkTranscriptionError(f"Audio extraction failed: {e}") from e
-
-    async def _simulate_transcription_progress(
-        self,
-        task_id: str,
-        task_progress: dict[str, Any],
-        audio_duration_seconds: float,
-        stop_event: asyncio.Event,
-    ) -> None:
-        """
-        Simulate progress updates during transcription.
-        
-        Whisper doesn't provide progress callbacks, so we estimate progress based on
-        audio duration. Typical transcription speed is ~10-30x realtime for whisper-tiny,
-        ~2-5x for larger models.
-        """
-        # Estimate transcription time: assume ~5x realtime for whisper-tiny (conservative)
-        # A 20-min (1200s) chunk might take ~240s = 4 min to transcribe
-        estimated_time_seconds = audio_duration_seconds / 5.0
-        
-        # Progress goes from 5% to 35% during transcription (30% range)
-        start_progress = 5
-        end_progress = 35
-        progress_range = end_progress - start_progress
-        
-        # Update every 2 seconds
-        update_interval = 2.0
-        elapsed = 0.0
-        
-        while not stop_event.is_set():
-            await asyncio.sleep(update_interval)
-            elapsed += update_interval
-            
-            # Calculate progress based on elapsed time vs estimated time
-            # Cap at 95% of target to leave room for actual completion
-            progress_fraction = min(elapsed / estimated_time_seconds, 0.95)
-            new_progress = start_progress + (progress_range * progress_fraction)
-            
-            task_progress[task_id].progress = new_progress
-            
-            # Update message with elapsed time
-            elapsed_min = int(elapsed // 60)
-            elapsed_sec = int(elapsed % 60)
-            if elapsed_min > 0:
-                task_progress[task_id].message = f"Transcribing... ({elapsed_min}m {elapsed_sec}s elapsed)"
-            else:
-                task_progress[task_id].message = f"Transcribing... ({elapsed_sec}s elapsed)"
 
     async def transcribe_chunk(
         self,
@@ -339,7 +287,12 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
         start_time: float = 0,
         end_time: float = 30,
     ) -> str:
-        """Transcribe the audio chunk to text"""
+        """
+        Transcribe the audio chunk to text with REAL progress tracking.
+
+        Uses transcribe_with_progress() for actual progress updates based on
+        transcribed audio duration, not time-based estimates.
+        """
         task_progress[task_id].progress = 5
         target_language = language_preferences.get("target") if language_preferences else settings.default_language
         task_progress[task_id].current_step = "Transcribing audio..."
@@ -355,32 +308,23 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
         try:
             # Transcribe the audio chunk
             if audio_file != video_file:  # We have an actual audio file
-                logger.info(f"Transcribing audio chunk: {audio_file}")
-                
-                # Calculate audio duration for progress estimation
-                audio_duration = end_time - start_time
-                
-                # Start progress simulation in background
-                stop_progress = asyncio.Event()
-                progress_task = asyncio.create_task(
-                    self._simulate_transcription_progress(
-                        task_id, task_progress, audio_duration, stop_progress
-                    )
+                logger.info("Transcribing audio chunk", path=str(audio_file))
+
+                # Create progress callback that maps 0-1 fraction to 5-35% range
+                # This provides REAL progress based on actual transcription, not estimates
+                async def transcription_progress_callback(fraction: float, message: str) -> None:
+                    """Map transcription progress (0-1) to overall progress (5-35%)"""
+                    # Progress range: 5% (start) to 35% (end) = 30% span
+                    progress = 5 + (fraction * 30)
+                    task_progress[task_id].progress = progress
+                    task_progress[task_id].message = message
+                    logger.debug("Transcription progress", percent=progress, message=message)
+
+                # Use transcribe_with_progress for REAL progress tracking
+                # This yields actual progress as audio is transcribed, not estimates
+                transcription_result = await transcription_service.transcribe_with_progress(
+                    str(audio_file), language=target_language, progress_callback=transcription_progress_callback
                 )
-                
-                try:
-                    # Run synchronous transcribe in executor to avoid blocking
-                    transcription_result = await asyncio.to_thread(
-                        transcription_service.transcribe, str(audio_file), language=target_language
-                    )
-                finally:
-                    # Stop progress simulation
-                    stop_progress.set()
-                    progress_task.cancel()
-                    try:
-                        await progress_task
-                    except asyncio.CancelledError:
-                        pass
 
                 # Extract transcribed segments from result
                 srt_output = video_file.with_suffix(".srt")
@@ -389,14 +333,15 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
                     # Create SRT from Whisper segments with proper timestamps
                     self._create_srt_from_segments(transcription_result.segments, srt_output)
                     logger.info(
-                        f"Created SRT with {len(transcription_result.segments)} segments "
-                        f"from {len(transcription_result.full_text)} chars"
+                        "Created SRT",
+                        segments=len(transcription_result.segments),
+                        chars=len(transcription_result.full_text),
                     )
                 elif hasattr(transcription_result, "full_text"):
                     # Fallback: single segment SRT
                     transcribed_text = transcription_result.full_text
                     self._create_chunk_srt(transcribed_text, srt_output, 0, 30)
-                    logger.info(f"Created single-segment SRT from {len(transcribed_text)} chars")
+                    logger.info("Created single-segment SRT", chars=len(transcribed_text))
                 else:
                     raise ChunkTranscriptionError("Transcription result has no usable text or segments")
 
@@ -404,7 +349,7 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
                 task_progress[task_id].progress = 35
                 task_progress[task_id].message = "Transcription complete"
 
-                logger.info(f"Transcription completed for {video_file.name} -> {srt_output}")
+                logger.info("Transcription completed", video=video_file.name)
                 return str(srt_output)
 
             else:
@@ -419,7 +364,7 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
             # Re-raise our custom exceptions
             raise
         except Exception as e:
-            logger.error(f"Transcription error: {e}", exc_info=True)
+            logger.error("Transcription error", error=str(e), exc_info=True)
             raise ChunkTranscriptionError(f"Chunk transcription failed: {e}") from e
 
     def _create_srt_from_segments(self, segments: list, output_path: Path) -> None:
@@ -448,10 +393,10 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
             # Write to file
             output_path.write_text(srt_content, encoding="utf-8")
 
-            logger.info(f"Created SRT file with {len(srt_segments)} segments: {output_path}")
+            logger.info("Created SRT file", segments=len(srt_segments))
 
         except Exception as e:
-            logger.error(f"Failed to create SRT from segments: {e}")
+            logger.error("Failed to create SRT from segments", error=str(e))
             raise ChunkTranscriptionError(f"SRT creation from segments failed: {e}") from e
 
     def _create_chunk_srt(self, text: str, output_path: Path, start_time: float, duration: float) -> None:
@@ -471,10 +416,10 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write(srt_content)
 
-            logger.info(f"Created SRT file: {output_path}")
+            logger.debug("Created SRT file", path=str(output_path))
 
         except Exception as e:
-            logger.error(f"Failed to create SRT file: {e}")
+            logger.error("Failed to create SRT file", error=str(e))
             raise ChunkTranscriptionError(f"SRT creation failed: {e}") from e
 
     def _format_srt_timestamp(self, seconds: float) -> str:
@@ -505,12 +450,12 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
 
         for srt_path in srt_candidates:
             if srt_path.exists():
-                logger.info(f"Found existing SRT file: {srt_path}")
+                logger.debug("Found existing SRT file", path=str(srt_path))
                 return str(srt_path)
 
         # Default to simple .srt extension
         default_srt = video_file.with_suffix(".srt")
-        logger.info(f"No existing SRT found, will use: {default_srt}")
+        logger.debug("No existing SRT found", default=str(default_srt))
         return str(default_srt)
 
     def cleanup_temp_audio_file(self, audio_file: Path, video_file: Path) -> None:
@@ -525,6 +470,6 @@ class ChunkTranscriptionService(IChunkTranscriptionService):
         if audio_file != video_file and audio_file.exists():
             try:
                 audio_file.unlink()
-                logger.info(f"Cleaned up temporary audio file: {audio_file}")
+                logger.debug("Cleaned up temporary audio file")
             except Exception as e:
-                logger.warning(f"Failed to cleanup temporary audio file {audio_file}: {e}")
+                logger.warning("Failed to cleanup temp audio", error=str(e))

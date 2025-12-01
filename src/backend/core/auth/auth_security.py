@@ -2,7 +2,6 @@
 Enhanced security configuration for authentication
 """
 
-import logging
 import secrets
 import string
 from datetime import timedelta
@@ -10,7 +9,9 @@ from datetime import timedelta
 from fastapi import Request
 from jose import jwt
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class SecurityConfig:
@@ -137,7 +138,7 @@ class SecurityConfig:
             password_hash = PasswordHash.recommended()
             return password_hash.verify(plain_password, hashed_password)
         except Exception as e:
-            logger.error(f"Password verification error: {e}")
+            logger.error("Password verification error", error=str(e))
             return False
 
     @staticmethod
@@ -226,7 +227,7 @@ class LoginAttemptTracker:
         recent_failures = sum(1 for t, s in self._attempts[email] if not s)
         if recent_failures >= SecurityConfig.MAX_LOGIN_ATTEMPTS:
             self._locked_until[email] = datetime.utcnow() + timedelta(minutes=SecurityConfig.LOCKOUT_DURATION_MINUTES)
-            logger.warning(f"Account {email} locked due to {recent_failures} failed login attempts")
+            logger.warning("Account locked due to failed attempts", email=email, failures=recent_failures)
 
     def get_remaining_attempts(self, email: str) -> int:
         """Get number of remaining attempts before lockout"""

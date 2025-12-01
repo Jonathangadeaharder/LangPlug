@@ -21,11 +21,20 @@ export default defineConfig({
   ],
   use: {
     baseURL: process.env.FRONTEND_URL || 'http://localhost:3000',
-    trace: 'retain-on-failure',
+    trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    video: 'on-first-retry',
     actionTimeout: 30000,
     navigationTimeout: 30000,
+    launchOptions: {
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+      ],
+    },
   },
   projects: [
     {

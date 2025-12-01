@@ -3,7 +3,6 @@ Contract validation middleware for FastAPI
 Provides server-side validation of requests and responses against OpenAPI schema
 """
 
-import logging
 import os
 from typing import Any
 
@@ -13,7 +12,9 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class ContractValidationError(Exception):
@@ -209,7 +210,7 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
 
         except RequestValidationError as e:
             if self.log_violations:
-                logger.error(f"Request validation error for {method} {path}: {e}")
+                logger.error("Request validation error", method=method, path=path, error=str(e))
 
             return JSONResponse(
                 status_code=422,
@@ -219,37 +220,39 @@ class ContractValidationMiddleware(BaseHTTPMiddleware):
         except ContractValidationError as e:
             # Handle contract validation errors by returning proper HTTP responses
             if self.log_violations:
-                logger.error(f"Contract validation error for {method} {path}: {e}")
+                logger.error("Contract validation error", method=method, path=path, error=str(e))
 
             # Return a 404 for undefined endpoints, 500 for other contract violations
             if "Undefined endpoint" in str(e):
                 from api.models.common import ErrorDetail, ErrorResponse
+
                 return JSONResponse(
                     status_code=404,
                     content=ErrorResponse(
                         error=ErrorDetail(
                             code="ENDPOINT_NOT_FOUND",
                             message=str(e),
-                            details=e.details if hasattr(e, 'details') else {},
+                            details=e.details if hasattr(e, "details") else {},
                         )
                     ).model_dump(),
                 )
             else:
                 from api.models.common import ErrorDetail, ErrorResponse
+
                 return JSONResponse(
                     status_code=500,
                     content=ErrorResponse(
                         error=ErrorDetail(
                             code="CONTRACT_VIOLATION",
                             message=str(e),
-                            details=e.details if hasattr(e, 'details') else {},
+                            details=e.details if hasattr(e, "details") else {},
                         )
                     ).model_dump(),
                 )
 
         except Exception as e:
             if self.log_violations:
-                logger.error(f"Contract validation error for {method} {path}: {e}", exc_info=True)
+                logger.error("Contract validation error", method=method, path=path, error=str(e), exc_info=True)
             raise
 
 
@@ -257,11 +260,11 @@ def setup_contract_validation(
     app: FastAPI, validate_requests: bool = True, validate_responses: bool = True, log_violations: bool = True
 ) -> None:
     """Setup contract validation middleware for the FastAPI app.
-    
+
     Args:
         app: FastAPI application instance
         validate_requests: Whether to validate incoming requests against OpenAPI schema
-        validate_responses: Whether to validate responses against OpenAPI schema  
+        validate_responses: Whether to validate responses against OpenAPI schema
         log_violations: Whether to log contract violations
     """
     # Enable strict mode in testing environment or if explicitly requested

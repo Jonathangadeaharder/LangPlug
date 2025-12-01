@@ -23,10 +23,10 @@ class TestVocabularyServiceDatabaseIntegration:
     @pytest.fixture
     async def vocabulary_service(self):
         """Create vocabulary service instance"""
-        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
+        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
-        
+
         query_service = get_vocabulary_query_service()
         progress_service = get_vocabulary_progress_service()
         stats_service = get_vocabulary_stats_service()
@@ -135,10 +135,7 @@ class TestVocabularyServiceDatabaseIntegration:
 
         # Verify database state - word should be marked with vocabulary_id=NULL
         stmt = select(UserVocabularyProgress).where(
-            and_(
-                UserVocabularyProgress.user_id == test_user.id,
-                UserVocabularyProgress.lemma == result["lemma"]
-            )
+            and_(UserVocabularyProgress.user_id == test_user.id, UserVocabularyProgress.lemma == result["lemma"])
         )
         db_result = await db_session.execute(stmt)
         progress = db_result.scalar_one()

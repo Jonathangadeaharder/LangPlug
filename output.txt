@@ -1,0 +1,19 @@
+npm warn Unknown project config "PUPPETEER_SKIP_DOWNLOAD". This will stop working in the next major version of npm.
+
+≡ƒÜÇ LangPlug Test Runner
+
+≡ƒôü Discovering test files...
+
+≡ƒôï Test Plan:
+  ΓÇó e2e: 12 files
+
+≡ƒÅâ Running tests...
+
+backend exited with code null, signal SIGTERM
+backend exited with code null, signal SIGTERM
+
+≡ƒÆÑ Test execution failed:
+
+backend failed to start within 30000ms.
+Last logs:
+

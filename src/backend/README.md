@@ -35,7 +35,7 @@ Backend/
 │   ├── security/        # Security tests
 │   └── unit/            # Unit tests
 ├── videos/              # Video storage (symlink)
-├── main.py             # Application entry point
+├── run_backend.py      # Application entry point
 ├── requirements.txt    # Python dependencies
 ├── CHANGELOG.md        # Version history
 └── README.md          # This file
@@ -76,7 +76,7 @@ pip install -r requirements.txt
 5. Run the development server:
 
 ```bash
-uvicorn main:app --reload
+python run_backend.py
 ```
 
 ### Configuration
@@ -111,7 +111,7 @@ The backend automatically generates an OpenAPI specification that serves as the 
 
 ```bash
 cd Backend
-python export_openapi.py
+python -c "from core.app import create_app; import json; app = create_app(); print(json.dumps(app.openapi(), indent=2))" > openapi.json
 ```
 
 **Frontend Integration**:
@@ -139,7 +139,7 @@ This command:
 
 ```bash
 # Export OpenAPI spec only
-cd Backend && python export_openapi.py
+cd Backend && python -c "from core.app import create_app; import json; app = create_app(); print(json.dumps(app.openapi(), indent=2))" > openapi.json
 
 # Generate TypeScript client only
 cd Frontend && npm run generate:client

@@ -170,8 +170,9 @@ export const RegisterForm: React.FC = () => {
     try {
       await register(email, password, username)
       setSuccess(true)
-      toast.success('Account created successfully! Redirecting to dashboard...')
-      setTimeout(() => navigate('/'), 2000)
+      toast.success('Account created successfully!')
+      // Navigate immediately - no artificial delay
+      navigate('/videos')
     } catch (error: unknown) {
       // Handle validation errors from backend using standardized formatter
       // This correctly handles both Pydantic/FastAPI validation errors (422)

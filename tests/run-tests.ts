@@ -104,9 +104,9 @@ const testSuites: TestSuite[] = [
     name: 'e2e',
     type: 'e2e',
     environment: 'isolated',
-    parallel: false,
-    timeout: 120000,
-    retries: 2,
+    parallel: true,
+    timeout: 300000,
+    retries: 1,
     files: [],  // Will be populated dynamically
   },
 ];
@@ -118,14 +118,14 @@ async function discoverTestFiles(): Promise<void> {
   const projectRoot = path.resolve(__dirname, '..');
 
   // Backend unit tests
-  const backendTestsPath = path.resolve(projectRoot, 'Backend', 'tests');
+  const backendTestsPath = path.resolve(projectRoot, 'src', 'backend', 'tests');
   const backendUnitFiles = await fs.readdir(backendTestsPath);
   testSuites.find(s => s.name === 'backend-unit')!.files = backendUnitFiles
     .filter(f => f.startsWith('test_') && f.endsWith('.py'))
     .map(f => path.resolve(backendTestsPath, f));
 
   // Frontend unit tests
-  const frontendSrcPath = path.resolve(projectRoot, 'Frontend', 'src');
+  const frontendSrcPath = path.resolve(projectRoot, 'src', 'frontend', 'src');
   if (await fs.pathExists(frontendSrcPath)) {
     const frontendUnitFiles = await findTestFiles(frontendSrcPath, '.test.ts', '.test.tsx');
     testSuites.find(s => s.name === 'frontend-unit')!.files = frontendUnitFiles;
@@ -142,10 +142,8 @@ async function discoverTestFiles(): Promise<void> {
 
   // E2E tests
   const e2eTestsPath = path.resolve(projectRoot, 'tests', 'e2e');
-  const e2eFiles = await fs.readdir(e2eTestsPath);
-  testSuites.find(s => s.name === 'e2e')!.files = e2eFiles
-    .filter(f => f.endsWith('.test.ts'))
-    .map(f => path.resolve(e2eTestsPath, f));
+  const e2eFiles = await findTestFiles(e2eTestsPath, '.test.ts', '.spec.ts', '.setup.ts');
+  testSuites.find(s => s.name === 'e2e')!.files = e2eFiles;
 }
 
 /**
@@ -326,11 +324,11 @@ async function watchTests(): Promise<void> {
 
   // Set up file watchers
   const watchers = [
-    chokidar.watch(path.resolve(projectRoot, 'Backend', '**', '*.py'), {
+    chokidar.watch(path.resolve(projectRoot, 'src', 'backend', '**', '*.py'), {
       ignored: /(^|[\/\\])\../,
       persistent: true
     }),
-    chokidar.watch(path.resolve(projectRoot, 'Frontend', 'src', '**', '*.{ts,tsx}'), {
+    chokidar.watch(path.resolve(projectRoot, 'src', 'frontend', 'src', '**', '*.{ts,tsx}'), {
       ignored: /(^|[\/\\])\../,
       persistent: true
     }),

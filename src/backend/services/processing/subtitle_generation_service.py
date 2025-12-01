@@ -3,12 +3,13 @@ Subtitle Generation Service
 Handles generation and processing of filtered subtitle files
 """
 
-import logging
 import re
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class SubtitleGenerationService:
@@ -32,11 +33,11 @@ class SubtitleGenerationService:
         Returns:
             Path to the generated filtered subtitle file
         """
-        logger.info(f"Generating filtered subtitles for {len(vocabulary)} words (suffix={suffix})")
+        logger.debug("Generating filtered subtitles", word_count=len(vocabulary))
 
         # Verify source SRT exists
         if not Path(source_srt).exists():
-            logger.warning(f"No source SRT file found: {source_srt}")
+            logger.warning("No source SRT file found", path=source_srt)
             return source_srt
 
         # Create filtered subtitle file path with optional suffix
@@ -57,7 +58,7 @@ class SubtitleGenerationService:
         # Write filtered SRT file
         await self.write_srt_file(filtered_srt, filtered_content)
 
-        logger.info(f"Generated filtered subtitles -> {filtered_srt}")
+        logger.debug("Generated filtered subtitles", path=str(filtered_srt))
         return str(filtered_srt)
 
     async def read_srt_file(self, file_path: str) -> str:

@@ -160,7 +160,7 @@ export const LoginForm: React.FC = () => {
             value={email}
             onChange={e => setEmail(e.target.value)}
             disabled={isLoading}
-            data-testid="login-email-input"
+            data-testid="email-input"
           />
 
           <Input
@@ -169,12 +169,12 @@ export const LoginForm: React.FC = () => {
             value={password}
             onChange={e => setPassword(e.target.value)}
             disabled={isLoading}
-            data-testid="login-password-input"
+            data-testid="password-input"
           />
 
-          {error && <ErrorMessage data-testid="login-error">{error}</ErrorMessage>}
+          {error && <ErrorMessage data-testid="error-message">{error}</ErrorMessage>}
 
-          <LoginButton type="submit" disabled={isLoading} data-testid="login-submit-button">
+          <LoginButton type="submit" disabled={isLoading} data-testid="submit-button">
             {isLoading ? 'Signing In...' : 'Sign In'}
           </LoginButton>
 

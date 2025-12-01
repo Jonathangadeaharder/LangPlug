@@ -148,7 +148,7 @@ const CardBadge = styled.span<{ color?: string }>`
   z-index: 1;
 `
 
-interface CardComponent
+interface CardComponentType
   extends React.ForwardRefExoticComponent<CardProps & React.RefAttributes<HTMLDivElement>> {
   Header: React.FC<{ children: React.ReactNode }>
   Content: React.FC<{ children: React.ReactNode }>
@@ -202,7 +202,7 @@ const CardComponent = React.forwardRef<HTMLDivElement, CardProps>(
       </StyledCard>
     )
   }
-) as CardComponent
+) as CardComponentType
 
 CardComponent.displayName = 'Card'
 

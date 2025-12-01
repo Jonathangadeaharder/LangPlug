@@ -25,6 +25,18 @@ BACKEND_ROOT = Path(__file__).resolve().parent.parent
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
+# Set environment variables BEFORE importing app code to ensure Settings load correctly
+# Ensure testing mode
+os.environ["TESTING"] = "1"
+# Force debug mode for tests to enable debug endpoints
+os.environ["LANGPLUG_DEBUG"] = "true"
+# Use fastest transcription model for tests (prevents timeouts)
+os.environ["LANGPLUG_TRANSCRIPTION_SERVICE"] = "whisper-tiny"
+# Use fastest translation model for tests (prevents timeouts)
+os.environ["LANGPLUG_TRANSLATION_SERVICE"] = "opus-de-es"
+# Set a dummy secret key for tests (must be at least 32 chars)
+os.environ["LANGPLUG_SECRET_KEY"] = "test_secret_key_must_be_at_least_32_chars_long_for_security"
+
 from core.app import create_app
 
 # Import fast fixtures (autouse fixtures will be applied automatically)
@@ -111,16 +123,6 @@ def clear_service_caches():
 
     # Clear all caches after test
     clear_all_lru_caches()
-
-
-# Ensure testing mode
-os.environ["TESTING"] = "1"
-# Force debug mode for tests to enable debug endpoints
-os.environ["LANGPLUG_DEBUG"] = "true"
-# Use fastest transcription model for tests (prevents timeouts)
-os.environ["LANGPLUG_TRANSCRIPTION_SERVICE"] = "whisper-tiny"
-# Use fastest translation model for tests (prevents timeouts)
-os.environ["LANGPLUG_TRANSLATION_SERVICE"] = "opus-de-es"
 
 
 # --- URL Builder using FastAPI's url_path_for (Type-Safe) ----------------
@@ -412,8 +414,6 @@ def vocabulary_level_response() -> dict:
         "total_count": 100,
         "known_count": 25,
     }
-
-
 
 
 # --- Service Fixtures ---

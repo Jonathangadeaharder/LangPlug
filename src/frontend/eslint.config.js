@@ -71,8 +71,6 @@ export default [
       // React Hooks - make them warnings instead of errors
       'react-hooks/exhaustive-deps': 'warn',
       'react-hooks/rules-of-hooks': 'warn',
-      'react-hooks/set-state-in-effect': 'warn',
-      'react-hooks/purity': 'warn',
 
       // TypeScript
       '@typescript-eslint/no-unused-vars': [

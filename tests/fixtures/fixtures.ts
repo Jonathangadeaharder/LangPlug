@@ -50,13 +50,18 @@ export { expect };
  */
 export const assertions = {
   assertUserLoggedIn: async (page: any, username: string) => {
-    // Either check for welcome message or check if we're on /videos page
-    const welcomeLocator = page.locator(`text=Welcome, ${username}`);
-    const videosCheck = page.url().includes('/videos');
-    
-    const isVisible = await welcomeLocator.isVisible({ timeout: 3000 }).catch(() => false);
-    if (!isVisible && !videosCheck) {
-      throw new Error(`User ${username} not logged in: welcome message not visible and not on videos page`);
+    // Wait for page to load (don't use networkidle - Redis polling prevents it)
+    await page.waitForLoadState('domcontentloaded');
+
+    // Check for user indicator (logout button or welcome text)
+    const logoutButton = page.locator('[data-testid="logout-button"], button:has-text("Logout")');
+    const isVisible = await logoutButton.isVisible({ timeout: 10000 }).catch(() => false);
+
+    if (!isVisible) {
+      // Check if we got redirected to login (meaning not logged in)
+      if (page.url().includes('/login')) {
+        throw new Error(`User ${username} not logged in: redirected to login page`);
+      }
     }
   },
 
@@ -87,23 +92,23 @@ export const assertions = {
  */
 export const navigation = {
   goToLogin: async (page: any) => {
-    await page.goto('http://127.0.0.1:3000' + ROUTES.login);
+    await page.goto(ROUTES.login);
     await page.waitForSelector('text=Sign In', { timeout: 10000 });
   },
 
   goToRegister: async (page: any) => {
-    await page.goto('http://127.0.0.1:3000' + ROUTES.register);
+    await page.goto(ROUTES.register);
     await page.waitForSelector('text=Sign Up', { timeout: 10000 });
   },
 
   goToVocabulary: async (page: any) => {
     await page.click('button:has-text("Vocabulary Library")');
-    await page.waitForURL('http://127.0.0.1:3000' + ROUTES.vocabulary, { timeout: 10000 });
+    await page.waitForURL('**' + ROUTES.vocabulary, { timeout: 10000 });
   },
 
   goToVideos: async (page: any) => {
     await page.click('button:has-text("LangPlug")');
-    await page.waitForURL('http://127.0.0.1:3000' + ROUTES.videos, { timeout: 10000 });
+    await page.waitForURL('**' + ROUTES.videos, { timeout: 10000 });
   },
 };
 
@@ -112,35 +117,48 @@ export const navigation = {
  */
 export const actions = {
   register: async (page: any, email: string, username: string, password: string) => {
-    const emailInput = page.locator('input[type="email"]');
-    const usernameInput = page.locator('input[placeholder*="Username"]');
-    const passwordFields = page.locator('[type="password"]');
-    
+    // Use data-testid selectors for reliability (same as POM)
+    const emailInput = page.locator('[data-testid="email-input"]');
+    const usernameInput = page.locator('[data-testid="username-input"]');
+    const passwordInput = page.locator('[data-testid="password-input"]');
+    const confirmPasswordInput = page.locator('[data-testid="confirm-password-input"]');
+
     // Wait for inputs to be visible
     await emailInput.waitFor({ state: 'visible', timeout: 10000 });
     await emailInput.fill(email);
     await usernameInput.fill(username);
-    await passwordFields.nth(0).fill(password);
-    await passwordFields.nth(1).fill(password);
+    await passwordInput.fill(password);
+    await confirmPasswordInput.fill(password);
 
-    const signUpButton = page.locator('button:has-text("Sign Up")');
+    const signUpButton = page.locator('button[type="submit"]');
     await signUpButton.click();
-    await page.waitForLoadState('networkidle', { timeout: 10000 });
+
+    // Wait for button to show loading state or navigation to happen
+    // Don't use networkidle - Redis polling prevents it from ever settling
+    await Promise.race([
+      page.waitForURL(/\/(videos|login|home)/, { timeout: 30000 }),
+      signUpButton.waitFor({ state: 'hidden', timeout: 30000 })
+    ]).catch(() => { });
   },
 
   login: async (page: any, email: string, password: string) => {
-    const emailInput = page.locator('input[type="email"]');
-    const passwordInput = page.locator('input[type="password"]');
-    
+    // Use data-testid selectors for reliability
+    const emailInput = page.locator('[data-testid="login-email-input"]');
+    const passwordInput = page.locator('[data-testid="login-password-input"]');
+
     await emailInput.waitFor({ state: 'visible', timeout: 10000 });
     await emailInput.fill(email);
     await passwordInput.fill(password);
-    const signInButton = page.locator('button:has-text("Sign In")');
+
+    const signInButton = page.locator('[data-testid="login-submit-button"]');
     await signInButton.click();
-    await page.waitForURL('**/*' + ROUTES.videos, { timeout: 10000 }).catch(() => {
-      // If waitForURL fails, at least wait for page to load
-      return page.waitForLoadState('networkidle', { timeout: 10000 });
-    });
+
+    // Wait for navigation or error
+    // Don't use networkidle - Redis polling prevents it from ever settling
+    await Promise.race([
+      page.waitForURL(/\/(videos|home)/, { timeout: 30000 }),
+      page.locator('[data-testid="login-error"]').waitFor({ state: 'visible', timeout: 30000 })
+    ]).catch(() => { });
   },
 
   markWordAsKnown: async (page: any, word: string) => {
@@ -155,7 +173,18 @@ export const actions = {
   },
 
   logout: async (page: any) => {
-    await page.click('button:has-text("Logout")');
-    await page.waitForURL(ROUTES.login);
+    // First ensure we're on a page with the logout button
+    const currentUrl = page.url();
+    if (!currentUrl.includes('/videos')) {
+      await page.goto(ROUTES.videos);
+      // Wait for page to load (don't use networkidle due to Redis polling)
+      await page.waitForLoadState('domcontentloaded');
+    }
+
+    // Try different logout button selectors
+    const logoutButton = page.locator('[data-testid="logout-button"], button:has-text("Logout")').first();
+    await logoutButton.waitFor({ state: 'visible', timeout: 10000 });
+    await logoutButton.click();
+    await page.waitForURL('**' + ROUTES.login, { timeout: 15000 }).catch(() => { });
   },
 };

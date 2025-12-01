@@ -7,10 +7,11 @@ to eliminate code duplication across services.
 
 from __future__ import annotations
 
-import logging
 import os
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def check_cuda_availability(service_name: str = "Service") -> bool:
@@ -31,7 +32,7 @@ def check_cuda_availability(service_name: str = "Service") -> bool:
 
         cuda_available = torch.cuda.is_available()
     except ImportError:
-        logger.warning(f"[{service_name}] PyTorch not available - cannot check CUDA")
+        logger.warning("PyTorch not available - cannot check CUDA", service=service_name)
         cuda_available = False
 
     require_cuda = os.environ.get("LANGPLUG_REQUIRE_CUDA", "false").lower() == "true"
@@ -47,11 +48,10 @@ def check_cuda_availability(service_name: str = "Service") -> bool:
         )
 
         if require_cuda:
-            logger.error(f"[{service_name}] {warning_msg}")
+            logger.error("CUDA required but not available", service=service_name)
             raise RuntimeError(f"[{service_name}] CUDA required but not available")
         else:
-            logger.warning(f"[{service_name}] {warning_msg}")
-            logger.info(f"[{service_name}] CPU MODE - Expect slower performance")
+            logger.warning("CUDA not available, using CPU mode", service=service_name)
 
     return cuda_available
 

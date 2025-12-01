@@ -2,16 +2,15 @@
 Test utility API routes for e2e testing
 """
 
-import logging
-
 from fastapi import APIRouter, Depends
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config.logging_config import get_logger
 from core.database import get_async_session
 from database.models import User, UserVocabularyProgress
 
-logger = logging.getLogger("api.test")
+logger = get_logger(__name__)
 router = APIRouter(tags=["test"])
 
 
@@ -52,7 +51,7 @@ async def cleanup_test_data(db: AsyncSession = Depends(get_async_session)):
 
         await db.commit()
 
-        logger.info(f"Test cleanup completed: {deleted_users} users, {deleted_vocabulary} vocabulary items deleted")
+        logger.info("Test cleanup completed", users=deleted_users, vocabulary=deleted_vocabulary)
 
         return {
             "success": True,
@@ -63,5 +62,5 @@ async def cleanup_test_data(db: AsyncSession = Depends(get_async_session)):
 
     except Exception as e:
         await db.rollback()
-        logger.error(f"Test cleanup failed: {e}", exc_info=True)
+        logger.error("Test cleanup failed", error=str(e), exc_info=True)
         return {"success": False, "error": str(e), "message": "Test cleanup failed"}

@@ -16,7 +16,7 @@ describe('Authentication API Contract', () => {
   beforeAll(async () => {
     // Initialize contract validator with OpenAPI spec
     contractValidator = new ContractValidator();
-    await contractValidator.loadSpec('../../openapi_spec.json');
+    await contractValidator.loadSpec('../../src/backend/openapi.json');
 
     // Initialize test data manager
     testDataManager = new TestDataManager();

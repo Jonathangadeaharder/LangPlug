@@ -27,6 +27,7 @@ TEST_EMAIL = "e2etest@example.com"
 TEST_PASSWORD = "TestPassword123!"
 MOCK_VIDEO_FILENAME = "Mock_Video_Episode_1.mp4"
 
+
 async def seed_data():
     print("[*] Seeding test data...")
 
@@ -58,10 +59,10 @@ async def seed_data():
             is_active=True,
             is_verified=True,
             native_language="en",
-            target_language="de"
+            target_language="de",
         )
         session.add(user)
-        await session.flush() # Get ID
+        await session.flush()  # Get ID
 
         # 2. Create Vocabulary
         print("[*] Creating vocabulary words...")
@@ -81,12 +82,7 @@ async def seed_data():
         vocab_objects = []
         for word, lemma, level, pos, trans in words:
             vw = VocabularyWord(
-                word=word,
-                lemma=lemma,
-                language="de",
-                difficulty_level=level,
-                part_of_speech=pos,
-                translation_en=trans
+                word=word, lemma=lemma, language="de", difficulty_level=level, part_of_speech=pos, translation_en=trans
             )
             session.add(vw)
             vocab_objects.append(vw)
@@ -104,7 +100,7 @@ async def seed_data():
                 language="de",
                 is_known=True,
                 confidence_level=5,
-                review_count=1
+                review_count=1,
             )
             session.add(prog)
 
@@ -141,12 +137,13 @@ async def seed_data():
             status="completed",
             processing_time_seconds=1.5,
             created_at=datetime.now(),
-            completed_at=datetime.now()
+            completed_at=datetime.now(),
         )
         session.add(ps)
 
         await session.commit()
         print("[*] Seeding complete!")
+
 
 if __name__ == "__main__":
     asyncio.run(seed_data())

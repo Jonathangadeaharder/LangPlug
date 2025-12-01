@@ -1,55 +1,77 @@
-import { Page, expect } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
+import { BasePage } from './BasePage';
+import { ROUTES } from '../config/urls';
+import { TIMEOUTS } from '../config/timeouts';
 
-export class LoginPage {
-  constructor(private page: Page) {}
+export class LoginPage extends BasePage {
+  readonly emailInput: Locator;
+  readonly passwordInput: Locator;
+  readonly submitButton: Locator;
+  readonly errorMessage: Locator;
+  readonly registerLink: Locator;
+
+  constructor(page: Page) {
+    super(page);
+    // Best Practice: Initialize locators in constructor using getByTestId
+    this.emailInput = page.getByTestId('email-input');
+    this.passwordInput = page.getByTestId('password-input');
+    this.submitButton = page.getByTestId('submit-button');
+    this.errorMessage = page.getByTestId('error-message');
+    this.registerLink = page.getByTestId('register-link');
+  }
 
   async goto() {
-    await this.page.goto('http://127.0.0.1:3000/login');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.goto(ROUTES.LOGIN);
+    await this.waitForLoad();
+  }
+
+  async isLoaded(): Promise<boolean> {
+    try {
+      await expect(this.emailInput).toBeVisible({ timeout: TIMEOUTS.ELEMENT_VISIBLE });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async fillEmail(email: string) {
-    await this.page.locator('[data-testid="login-email-input"]').fill(email);
+    await this.emailInput.fill(email);
   }
 
   async fillPassword(password: string) {
-    await this.page.locator('[data-testid="login-password-input"]').fill(password);
+    await this.passwordInput.fill(password);
   }
 
   async clickSubmit() {
-    await this.page.locator('[data-testid="login-submit-button"]').click();
+    await this.submitButton.click();
   }
 
   async login(email: string, password: string) {
     await this.fillEmail(email);
     await this.fillPassword(password);
     await this.clickSubmit();
-    await this.page.waitForLoadState('networkidle');
+    // Note: We don't wait here because the next step might be success or failure.
+    // The test should decide what to wait for next (e.g. waitForURL or errorMessage).
   }
 
-  async getErrorMessage(): Promise<string | null> {
-    const errorElement = this.page.locator('[data-testid="login-error"]');
-    const isVisible = await errorElement.isVisible({ timeout: 3000 }).catch(() => false);
-    if (isVisible) {
-      return await errorElement.textContent();
-    }
-    return null;
+  async clickRegister() {
+    await this.registerLink.click();
+  }
+
+  async waitForError() {
+    await expect(this.errorMessage).toBeVisible({ timeout: TIMEOUTS.FORM_RESPONSE });
   }
 
   async isErrorVisible(): Promise<boolean> {
-    return await this.page.locator('[data-testid="login-error"]').isVisible({ timeout: 3000 }).catch(() => false);
+    try {
+      await expect(this.errorMessage).toBeVisible({ timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
-  async clickRegisterLink() {
-    await this.page.locator('[data-testid="register-link"]').click();
-    await this.page.waitForLoadState('networkidle');
-  }
-
-  async isLoaded(): Promise<boolean> {
-    return await this.page.locator('[data-testid="login-email-input"]').isVisible({ timeout: 5000 }).catch(() => false);
-  }
-
-  async getCurrentUrl(): Promise<string> {
-    return this.page.url();
+  async getErrorText(): Promise<string> {
+    return await this.errorMessage.textContent() || '';
   }
 }

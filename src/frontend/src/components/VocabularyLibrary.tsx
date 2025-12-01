@@ -1,3 +1,4 @@
+import axios from 'axios'
 import React, { useState, useEffect, memo, useCallback, useMemo } from 'react'
 import { toast } from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
@@ -1139,16 +1140,12 @@ export const VocabularyLibrary: React.FC = () => {
 
     try {
       const lemma = word.lemma || word.word
-      const response = await fetch(`/api/vocabulary/progress/${lemma}?language=de`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      // Using axios directly since generated client might not have DELETE endpoint mapped yet
+      // or to ensure consistent behavior with other manual calls
+      await axios.delete(`/api/vocabulary/progress/${encodeURIComponent(lemma)}`, {
+        params: { language: 'de' },
+        withCredentials: true
       })
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete word progress: ${response.statusText}`)
-      }
 
       toast.success(`Removed progress for "${word.word}"`)
       logger.info('VocabularyLibrary', 'Word progress deleted', {
@@ -1254,7 +1251,7 @@ export const VocabularyLibrary: React.FC = () => {
 
   return (
     <Container>
-      <BackButton onClick={() => navigate('/')}>Back to Videos</BackButton>
+      <BackButton onClick={() => navigate('/')} data-testid="back-to-videos">Back to Videos</BackButton>
 
       <Header>
         <h1>📚 Vocabulary Library</h1>
@@ -1326,6 +1323,7 @@ export const VocabularyLibrary: React.FC = () => {
               type="text"
               placeholder={`Search ${levelData.level} vocabulary...`}
               value={searchTerm}
+              data-testid="vocabulary-search"
               onChange={e => {
                 const newSearchTerm = e.target.value
                 logger.userAction('search', 'VocabularyLibrary', {
@@ -1341,7 +1339,7 @@ export const VocabularyLibrary: React.FC = () => {
       )}
 
       {loading ? (
-        <LoadingSpinner>
+        <LoadingSpinner data-testid="vocabulary-loading">
           <div className="spinner" />
         </LoadingSpinner>
       ) : levelData && levelData.words && levelData.words.length > 0 ? (

@@ -6,12 +6,13 @@ are atomic and properly handle rollback on errors.
 """
 
 import functools
-import logging
 from collections.abc import Callable
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def transactional(func: Callable):
@@ -53,7 +54,7 @@ def transactional(func: Callable):
                     break
 
         if session is None:
-            logger.warning(f"No AsyncSession found in {func.__name__}, skipping transaction management")
+            logger.warning("No AsyncSession found, skipping transaction", func=func.__name__)
             return await func(*args, **kwargs)
 
         try:
@@ -61,7 +62,7 @@ def transactional(func: Callable):
                 result = await func(*args, **kwargs)
                 return result
         except Exception as e:
-            logger.error(f"Transaction rolled back in {func.__name__}: {e}")
+            logger.error("Transaction rolled back", func=func.__name__, error=str(e))
             raise
 
     return wrapper
@@ -93,7 +94,7 @@ class TransactionContext:
             await self.transaction.commit()
         else:
             await self.transaction.rollback()
-            logger.error(f"Transaction rolled back: {exc_val}")
+            logger.error("Transaction rolled back", error=str(exc_val))
         return False
 
 

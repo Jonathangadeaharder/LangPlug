@@ -204,7 +204,7 @@ class SRTParser:
         logger = logging.getLogger(__name__)
 
         srt_content = SRTParser.segments_to_srt(segments)
-        logger.debug(f"[SRT SAVE] Writing {len(srt_content)} chars to {file_path}")
+        logger.debug("Writing SRT file with %d chars", len(srt_content))
 
         # Ensure parent directory exists
         from pathlib import Path
@@ -218,13 +218,13 @@ class SRTParser:
         # Verify file was written
         if Path(file_path).exists():
             actual_size = Path(file_path).stat().st_size
-            logger.debug(f"[SRT SAVE] File written successfully, size: {actual_size} bytes")
+            logger.debug("SRT file written with %d bytes", actual_size)
             if actual_size == 0 and len(srt_content) > 0:
-                logger.error(f"[SRT SAVE] ERROR: File is empty but content was {len(srt_content)} chars!")
+                logger.error("SRT file is empty but content was not empty (%d chars)", len(srt_content))
                 # Try writing again with explicit UTF-8 BOM
                 with open(file_path, "w", encoding="utf-8-sig") as f:
                     f.write(srt_content)
                     f.flush()
-                logger.debug("[SRT SAVE] Retried with UTF-8 BOM")
+                logger.debug("Retried SRT save with UTF-8 BOM")
         else:
-            logger.error(f"[SRT SAVE] ERROR: File was not created at {file_path}")
+            logger.error("SRT file was not created: %s", file_path)

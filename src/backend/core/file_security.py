@@ -150,9 +150,7 @@ class FileSecurityValidator:
             raise ValueError("Path traversal attempt detected: backslash not allowed")
 
     @staticmethod
-    async def validate_file_upload(
-        file: UploadFile, allowed_extensions: set[str] | None = None
-    ) -> Path:
+    async def validate_file_upload(file: UploadFile, allowed_extensions: set[str] | None = None) -> Path:
         """
         Validate uploaded file for security and constraints
 

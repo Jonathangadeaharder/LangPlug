@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import styled from 'styled-components'
 import { OpenAPI } from '@/services/api'
 
@@ -143,75 +144,63 @@ export const BackendReadinessCheck: React.FC<BackendReadinessCheckProps> = ({ ch
   const [errorDetails, setErrorDetails] = useState('')
   const [progress, setProgress] = useState(0)
 
-  const checkReadiness = async () => {
-    try {
-      const response = await fetch(`${OpenAPI.BASE}/readiness`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setMessage(data.message || 'Server is ready!')
-        setProgress(100)
-        setIsReady(true)
-        setHasError(false)
-        return true
-      } else if (response.status === 503) {
-        const data = await response.json()
-        setMessage(data.message || 'Services are still initializing. Please wait...')
-        setAttemptCount(prev => prev + 1)
-        // Gradual progress up to 90%
-        setProgress(prev => Math.min(prev + 5, 90))
-        setHasError(false)
-        return false
-      } else {
-        setMessage('Unexpected server response. Retrying...')
-        setAttemptCount(prev => prev + 1)
-        setProgress(prev => Math.min(prev + 2, 80))
-        return false
-      }
-    } catch (error) {
-      // Backend might not be running yet or network error
-      setMessage('Waiting for backend server to start...')
-      setAttemptCount(prev => prev + 1)
-      setProgress(prev => Math.min(prev + 3, 70))
-
-      // After 30 attempts (1 minute), show error
-      if (attemptCount > 30) {
-        setHasError(true)
-        setErrorDetails('Cannot connect to backend server. Please ensure the server is running.')
-      }
-      return false
-    }
-  }
-
   useEffect(() => {
     let mounted = true
-    let pollInterval: NodeJS.Timeout | null = null
+    let timeoutId: NodeJS.Timeout
 
-    const poll = async () => {
+    const check = async () => {
       if (!mounted) return
-      const success = await checkReadiness()
-      if (success && pollInterval) {
-        clearInterval(pollInterval)
+
+      try {
+        const response = await axios.get(`${OpenAPI.BASE}/readiness`, {
+          validateStatus: () => true
+        })
+
+        if (!mounted) return
+
+        if (response.status === 200) {
+          const data = response.data
+          setMessage(data.message || 'Server is ready!')
+          setProgress(100)
+          setIsReady(true)
+          setHasError(false)
+          return
+        } else if (response.status === 503) {
+          const data = response.data
+          setMessage(data.message || 'Services are still initializing. Please wait...')
+          setAttemptCount(prev => prev + 1)
+          setProgress(prev => Math.min(prev + 5, 90))
+          setHasError(false)
+        } else {
+          setMessage('Unexpected server response. Retrying...')
+          setAttemptCount(prev => prev + 1)
+          setProgress(prev => Math.min(prev + 2, 80))
+        }
+      } catch (error) {
+        if (!mounted) return
+        setMessage('Waiting for backend server to start...')
+        setAttemptCount(prev => {
+          const newCount = prev + 1
+          if (newCount > 30) {
+            setHasError(true)
+            setErrorDetails('Cannot connect to backend server. Please ensure the server is running.')
+          }
+          return newCount
+        })
+        setProgress(prev => Math.min(prev + 3, 70))
       }
+
+      // Schedule next check
+      timeoutId = setTimeout(check, 2000)
     }
 
-    // Initial check
-    poll()
-
-    // Poll every 2 seconds
-    pollInterval = setInterval(poll, 2000)
+    check()
 
     return () => {
       mounted = false
-      if (pollInterval) clearInterval(pollInterval)
+      if (timeoutId) clearTimeout(timeoutId)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attemptCount]) // checkReadiness changes on every render due to attemptCount, causing infinite loop
+  }, [])
 
   const handleRetry = () => {
     setAttemptCount(0)
@@ -219,7 +208,7 @@ export const BackendReadinessCheck: React.FC<BackendReadinessCheckProps> = ({ ch
     setErrorDetails('')
     setProgress(0)
     setMessage('Retrying connection...')
-    checkReadiness()
+    // Polling loop is already running or will pick up the state change
   }
 
   if (!isReady) {

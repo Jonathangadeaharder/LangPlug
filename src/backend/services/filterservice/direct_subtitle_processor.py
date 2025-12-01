@@ -46,13 +46,14 @@ Performance Notes:
     - Uses vocabulary service for efficient database queries
 """
 
-import logging
 from typing import Any
+
+from core.config.logging_config import get_logger
 
 from .interface import FilteredSubtitle, FilteringResult
 from .subtitle_processing import srt_file_handler, subtitle_processor, user_data_loader, word_filter, word_validator
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DirectSubtitleProcessor:
@@ -108,7 +109,12 @@ class DirectSubtitleProcessor:
         self.file_handler = srt_file_handler
 
     async def process_subtitles(
-        self, subtitles: list[FilteredSubtitle], user_id: int | str, db: Any, user_level: str = "A1", language: str = "de"
+        self,
+        subtitles: list[FilteredSubtitle],
+        user_id: int | str,
+        db: Any,
+        user_level: str = "A1",
+        language: str = "de",
     ) -> FilteringResult:
         """
         Process subtitles - delegates to SubtitleProcessor service
@@ -127,7 +133,7 @@ class DirectSubtitleProcessor:
             raise ValueError("Database session is required for process_subtitles")
 
         user_id_str = str(user_id)
-        logger.info(f"Processing {len(subtitles)} subtitles for user {user_id_str}")
+        logger.debug("Processing subtitles", count=len(subtitles), user_id=user_id_str)
 
         # Pre-load user data
         user_known_words = await self.data_loader.get_user_known_words(user_id_str, language)
@@ -160,18 +166,14 @@ class DirectSubtitleProcessor:
             Dictionary with processing results
         """
         try:
-            logger.info(f"Processing SRT file: {srt_file_path}")
+            logger.debug("Processing SRT file", path=srt_file_path)
 
             # Parse SRT file using file handler
             filtered_subtitles = await self.file_handler.parse_srt_file(srt_file_path)
 
             # Process through filtering pipeline
             filtering_result = await self.process_subtitles(
-                subtitles=filtered_subtitles,
-                user_id=str(user_id),
-                db=db,
-                user_level=user_level,
-                language=language
+                subtitles=filtered_subtitles, user_id=str(user_id), db=db, user_level=user_level, language=language
             )
 
             # Format result using file handler
@@ -183,7 +185,7 @@ class DirectSubtitleProcessor:
             return result
 
         except Exception as e:
-            logger.error(f"Error processing file {srt_file_path}: {e}", exc_info=True)
+            logger.error("Error processing SRT file", path=srt_file_path, error=str(e), exc_info=True)
             return {
                 "blocking_words": [],
                 "learning_subtitles": [],

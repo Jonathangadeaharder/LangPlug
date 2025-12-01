@@ -3,15 +3,15 @@ SRT File Handler Service
 Handles SRT file I/O, parsing, and conversion operations
 """
 
-import logging
 import re
 from typing import Any
 
+from core.config.logging_config import get_logger
 from utils.srt_parser import SRTParser
 
 from ..interface import FilteredSubtitle, FilteredWord, FilteringResult, WordStatus
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SRTFileHandler:
@@ -30,11 +30,11 @@ class SRTFileHandler:
         Returns:
             List of FilteredSubtitle objects
         """
-        logger.info(f"Parsing SRT file: {srt_file_path}")
+        logger.debug("Parsing SRT file", path=srt_file_path)
 
         # Parse SRT file
         srt_segments = SRTParser.parse_file(srt_file_path)
-        logger.info(f"Parsed {len(srt_segments)} subtitle segments")
+        logger.debug("Parsed subtitle segments", count=len(srt_segments))
 
         # Convert to FilteredSubtitle objects
         filtered_subtitles = []

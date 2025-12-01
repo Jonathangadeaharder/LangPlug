@@ -19,11 +19,11 @@ async def main():
 
     # Test common German words
     test_words = [
-        "ist",      # is (very common)
-        "und",      # and (very common)
-        "haben",    # to have (common verb)
-        "gehen",    # to go (common verb)
-        "schwierig", # difficult (B1-B2)
+        "ist",  # is (very common)
+        "und",  # and (very common)
+        "haben",  # to have (common verb)
+        "gehen",  # to go (common verb)
+        "schwierig",  # difficult (B1-B2)
     ]
 
     async with AsyncSessionLocal() as db:
@@ -52,14 +52,11 @@ async def main():
 
         # Count German words in database
         from sqlalchemy import text
-        result = await db.execute(
-            text("SELECT COUNT(*) FROM vocabulary_words WHERE language = 'de'")
-        )
+
+        result = await db.execute(text("SELECT COUNT(*) FROM vocabulary_words WHERE language = 'de'"))
         de_count = result.scalar()
 
-        result = await db.execute(
-            text("SELECT COUNT(*) FROM vocabulary_words")
-        )
+        result = await db.execute(text("SELECT COUNT(*) FROM vocabulary_words"))
         total_count = result.scalar()
 
         print(f"  German words in DB: {de_count}")

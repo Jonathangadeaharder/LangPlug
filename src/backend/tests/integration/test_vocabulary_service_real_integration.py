@@ -8,11 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from database.models import Base, VocabularyWord
-from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
 from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
-from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
-
+from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
 from services.vocabulary.vocabulary_service import VocabularyService
+from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
 
 
 @pytest.fixture
@@ -92,10 +91,10 @@ class TestVocabularyServiceRealIntegration:
     async def test_get_word_info_with_real_db(self, test_db_session, sample_vocabulary):
         """VocabularyService.get_word_info should query real database"""
         service = VocabularyService(
-        query_service=get_vocabulary_query_service(),
-        progress_service=get_vocabulary_progress_service(),
-        stats_service=get_vocabulary_stats_service()
-    )
+            query_service=get_vocabulary_query_service(),
+            progress_service=get_vocabulary_progress_service(),
+            stats_service=get_vocabulary_stats_service(),
+        )
 
         # Test with existing word
         result = await service.get_word_info("Haus", "de", test_db_session)
@@ -110,10 +109,10 @@ class TestVocabularyServiceRealIntegration:
     async def test_get_word_info_not_found(self, test_db_session, sample_vocabulary):
         """VocabularyService.get_word_info should return not found for missing words"""
         service = VocabularyService(
-        query_service=get_vocabulary_query_service(),
-        progress_service=get_vocabulary_progress_service(),
-        stats_service=get_vocabulary_stats_service()
-    )
+            query_service=get_vocabulary_query_service(),
+            progress_service=get_vocabulary_progress_service(),
+            stats_service=get_vocabulary_stats_service(),
+        )
 
         result = await service.get_word_info("nonexistent", "de", test_db_session)
 
@@ -127,10 +126,10 @@ class TestVocabularyServiceRealIntegration:
         This reproduces the bug we just fixed
         """
         service = VocabularyService(
-        query_service=get_vocabulary_query_service(),
-        progress_service=get_vocabulary_progress_service(),
-        stats_service=get_vocabulary_stats_service()
-    )
+            query_service=get_vocabulary_query_service(),
+            progress_service=get_vocabulary_progress_service(),
+            stats_service=get_vocabulary_stats_service(),
+        )
 
         # This was failing before: missing 'db' parameter
         # Correct call signature: word, language, db
@@ -144,10 +143,10 @@ class TestVocabularyServiceRealIntegration:
     async def test_get_vocabulary_library_with_real_db(self, test_db_session, sample_vocabulary):
         """VocabularyService.get_vocabulary_library should query real database"""
         service = VocabularyService(
-        query_service=get_vocabulary_query_service(),
-        progress_service=get_vocabulary_progress_service(),
-        stats_service=get_vocabulary_stats_service()
-    )
+            query_service=get_vocabulary_query_service(),
+            progress_service=get_vocabulary_progress_service(),
+            stats_service=get_vocabulary_stats_service(),
+        )
 
         result = await service.get_vocabulary_library(db=test_db_session, language="de", level="A1", limit=10)
 
@@ -161,10 +160,10 @@ class TestVocabularyServiceRealIntegration:
         """VocabularyService should be instantiated as object, not used as class"""
         # This was the bug: passing VocabularyService instead of VocabularyService()
         service = VocabularyService(
-        query_service=get_vocabulary_query_service(),
-        progress_service=get_vocabulary_progress_service(),
-        stats_service=get_vocabulary_stats_service()
-    )
+            query_service=get_vocabulary_query_service(),
+            progress_service=get_vocabulary_progress_service(),
+            stats_service=get_vocabulary_stats_service(),
+        )
 
         # Should be an instance, not a class
         assert not isinstance(service, type)
@@ -183,10 +182,10 @@ class TestVocabularyServiceSubtitleProcessorScenario:
         """
         # Create service (was incorrectly stored as class)
         vocab_service = VocabularyService(
-        query_service=get_vocabulary_query_service(),
-        progress_service=get_vocabulary_progress_service(),
-        stats_service=get_vocabulary_stats_service()
-    )  # Fixed: instantiate it
+            query_service=get_vocabulary_query_service(),
+            progress_service=get_vocabulary_progress_service(),
+            stats_service=get_vocabulary_stats_service(),
+        )  # Fixed: instantiate it
 
         # Simulate processing a word from subtitle
         word_text = "haus"
@@ -202,10 +201,10 @@ class TestVocabularyServiceSubtitleProcessorScenario:
     async def test_multiple_word_lookups_same_session(self, test_db_session, sample_vocabulary):
         """Service should handle multiple lookups in same session efficiently"""
         vocab_service = VocabularyService(
-        query_service=get_vocabulary_query_service(),
-        progress_service=get_vocabulary_progress_service(),
-        stats_service=get_vocabulary_stats_service()
-    )
+            query_service=get_vocabulary_query_service(),
+            progress_service=get_vocabulary_progress_service(),
+            stats_service=get_vocabulary_stats_service(),
+        )
         words_to_lookup = ["haus", "gehen", "schwierig"]
 
         results = []
@@ -225,10 +224,10 @@ class TestVocabularyServiceIntegrationBoundaries:
     async def test_service_query_delegation(self, test_db_session, sample_vocabulary):
         """VocabularyService should properly delegate to query_service"""
         service = VocabularyService(
-        query_service=get_vocabulary_query_service(),
-        progress_service=get_vocabulary_progress_service(),
-        stats_service=get_vocabulary_stats_service()
-    )
+            query_service=get_vocabulary_query_service(),
+            progress_service=get_vocabulary_progress_service(),
+            stats_service=get_vocabulary_stats_service(),
+        )
 
         # Service should have query_service
         assert hasattr(service, "query_service")
@@ -242,10 +241,10 @@ class TestVocabularyServiceIntegrationBoundaries:
     async def test_service_handles_different_languages(self, test_db_session):
         """Service should handle queries for different languages"""
         service = VocabularyService(
-        query_service=get_vocabulary_query_service(),
-        progress_service=get_vocabulary_progress_service(),
-        stats_service=get_vocabulary_stats_service()
-    )
+            query_service=get_vocabulary_query_service(),
+            progress_service=get_vocabulary_progress_service(),
+            stats_service=get_vocabulary_stats_service(),
+        )
 
         # Add words in different languages
         words = [

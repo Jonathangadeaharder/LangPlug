@@ -4,10 +4,14 @@ Defines the contract that all transcription services must implement
 """
 
 from abc import abstractmethod
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
 
 from services.base_service import IAIService
+
+# Type alias for progress callback: (fraction: float, message: str) -> None
+ProgressCallback = Callable[[float, str], Awaitable[None]]
 
 
 @dataclass
@@ -64,6 +68,41 @@ class ITranscriptionService(IAIService):
 
         Returns:
             TranscriptionResult with timed segments
+        """
+        pass
+
+    @abstractmethod
+    async def transcribe_with_progress(
+        self,
+        audio_path: str,
+        language: str | None = None,
+        progress_callback: ProgressCallback | None = None,
+    ) -> TranscriptionResult:
+        """
+        Transcribe an audio file with real-time progress updates.
+
+        This is the preferred method for long-running transcriptions as it
+        provides actual progress based on transcription completion, not estimates.
+
+        Args:
+            audio_path: Path to the audio file
+            language: Optional language hint (e.g., 'en', 'de')
+            progress_callback: Async callback receiving (fraction: 0-1, message: str)
+
+        Returns:
+            TranscriptionResult with transcription details
+
+        Example:
+            ```python
+            async def on_progress(fraction: float, message: str):
+                print(f"Progress: {fraction*100:.1f}% - {message}")
+
+            result = await service.transcribe_with_progress(
+                "audio.wav",
+                language="de",
+                progress_callback=on_progress
+            )
+            ```
         """
         pass
 

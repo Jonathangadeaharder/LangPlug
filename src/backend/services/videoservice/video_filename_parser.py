@@ -9,12 +9,13 @@ Handles parsing of video filenames to extract:
 - Codec information
 """
 
-import logging
 from typing import Any
 
 from guessit import guessit
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class VideoFilenameParser:
@@ -49,8 +50,8 @@ class VideoFilenameParser:
             }
         """
         # Remove extension if present
-        if filename.endswith(('.mp4', '.mkv', '.avi', '.mov', '.m4v')):
-            filename_clean = filename.rsplit('.', 1)[0]
+        if filename.endswith((".mp4", ".mkv", ".avi", ".mov", ".m4v")):
+            filename_clean = filename.rsplit(".", 1)[0]
         else:
             filename_clean = filename
 
@@ -59,28 +60,28 @@ class VideoFilenameParser:
             result = guessit(filename_clean)
 
             return {
-                'title': result.get('title', ''),
-                'series': result.get('series', result.get('title', '')),
-                'season': result.get('season'),
-                'episode': result.get('episode'),
-                'quality': result.get('screen_size'),  # e.g., '720p', '1080p'
-                'codec': result.get('video_codec'),
-                'audio_codec': result.get('audio_codec'),
-                'format': result.get('source'),  # e.g., 'Web-DL', 'HDTV'
-                'raw': dict(result)
+                "title": result.get("title", ""),
+                "series": result.get("series", result.get("title", "")),
+                "season": result.get("season"),
+                "episode": result.get("episode"),
+                "quality": result.get("screen_size"),  # e.g., '720p', '1080p'
+                "codec": result.get("video_codec"),
+                "audio_codec": result.get("audio_codec"),
+                "format": result.get("source"),  # e.g., 'Web-DL', 'HDTV'
+                "raw": dict(result),
             }
         except Exception as e:
-            logger.error(f"Error parsing filename '{filename}': {e}")
+            logger.error("Error parsing filename", filename=filename, error=str(e))
             return {
-                'title': filename,
-                'series': filename,
-                'season': None,
-                'episode': None,
-                'quality': None,
-                'codec': None,
-                'audio_codec': None,
-                'format': None,
-                'raw': {}
+                "title": filename,
+                "series": filename,
+                "season": None,
+                "episode": None,
+                "quality": None,
+                "codec": None,
+                "audio_codec": None,
+                "format": None,
+                "raw": {},
             }
 
     @staticmethod
@@ -95,7 +96,7 @@ class VideoFilenameParser:
             Episode number or None
         """
         result = VideoFilenameParser.parse(filename)
-        return result.get('episode')
+        return result.get("episode")
 
     @staticmethod
     def get_season_number(filename: str) -> int | None:
@@ -109,7 +110,7 @@ class VideoFilenameParser:
             Season number or None
         """
         result = VideoFilenameParser.parse(filename)
-        return result.get('season')
+        return result.get("season")
 
     @staticmethod
     def get_series_name(filename: str) -> str:
@@ -123,7 +124,7 @@ class VideoFilenameParser:
             Series name
         """
         result = VideoFilenameParser.parse(filename)
-        return result.get('series', '')
+        return result.get("series", "")
 
     @staticmethod
     def is_valid_video(filename: str) -> bool:
@@ -137,7 +138,7 @@ class VideoFilenameParser:
             True if has episode/season info
         """
         result = VideoFilenameParser.parse(filename)
-        return result.get('episode') is not None or result.get('season') is not None
+        return result.get("episode") is not None or result.get("season") is not None
 
 
 # Example usage and testing

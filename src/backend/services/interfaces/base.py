@@ -3,11 +3,12 @@ Base service interfaces for the LangPlug application.
 Provides common patterns and base classes for all services.
 """
 
-import logging
 from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar
 
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.config.logging_config import get_logger
 
 T = TypeVar("T")
 
@@ -16,7 +17,7 @@ class IService(ABC):
     """Base interface for all services with standard patterns"""
 
     def __init__(self):
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger = get_logger(self.__class__.__name__)
 
     @abstractmethod
     async def health_check(self) -> dict[str, Any]:
@@ -59,7 +60,7 @@ class IAsyncService(IService):
         if not self._initialized:
             await self.initialize()
             self._initialized = True
-            self.logger.info(f"{self.get_service_name()} initialized")
+            self.logger.info("Service initialized", service=self.get_service_name())
 
     def add_dependency(self, service: "IService") -> None:
         """Add a service dependency for lifecycle management"""
@@ -79,7 +80,9 @@ class IAsyncService(IService):
                 try:
                     await dependency.cleanup()
                 except Exception as e:
-                    self.logger.error(f"Error cleaning up dependency {dependency.get_service_name()}: {e}")
+                    self.logger.error(
+                        "Error cleaning up dependency", service=dependency.get_service_name(), error=str(e)
+                    )
 
     async def health_check(self) -> dict[str, Any]:
         """Enhanced health check with dependency status"""

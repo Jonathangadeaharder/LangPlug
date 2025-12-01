@@ -5,20 +5,19 @@ This module provides decorators and helpers to eliminate repetitive error handli
 """
 
 import inspect
-import logging
 from collections.abc import Callable
 from functools import wraps
 from typing import Any
 
 from fastapi import HTTPException, status
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def handle_api_errors(
-    operation_name: str,
-    status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR,
-    log_traceback: bool = True
+    operation_name: str, status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR, log_traceback: bool = True
 ):
     """
     Decorator to standardize error handling in API route handlers.
@@ -41,7 +40,7 @@ def handle_api_errors(
             try:
                 return await fetch_stats()
             except Exception as e:
-                logger.error(f"Error retrieving stats: {e!s}", exc_info=True)
+                logger.error("Error retrieving stats", error=str(e), exc_info=True)
                 raise HTTPException(
                     status_code=500,
                     detail=f"Error retrieving stats: {e!s}"
@@ -52,6 +51,7 @@ def handle_api_errors(
         async def get_stats():
             return await fetch_stats()
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -63,10 +63,7 @@ def handle_api_errors(
             except Exception as e:
                 error_msg = f"Error {operation_name}: {e!s}"
                 logger.error(error_msg, exc_info=log_traceback)
-                raise HTTPException(
-                    status_code=status_code,
-                    detail=error_msg
-                ) from e
+                raise HTTPException(status_code=status_code, detail=error_msg) from e
 
         @wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -78,10 +75,7 @@ def handle_api_errors(
             except Exception as e:
                 error_msg = f"Error {operation_name}: {e!s}"
                 logger.error(error_msg, exc_info=log_traceback)
-                raise HTTPException(
-                    status_code=status_code,
-                    detail=error_msg
-                ) from e
+                raise HTTPException(status_code=status_code, detail=error_msg) from e
 
         # Return appropriate wrapper based on whether function is async
         return async_wrapper if inspect.iscoroutinefunction(func) else sync_wrapper
@@ -105,7 +99,7 @@ def raise_not_found(resource: str, identifier: str | None = None) -> None:
     if identifier:
         detail = f"{resource} not found: {identifier}"
 
-    logger.warning(f"404 - {detail}")
+    logger.warning("Not found", detail=detail)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
 
 
@@ -125,7 +119,7 @@ def raise_validation_error(message: str, field: str | None = None) -> None:
     if field:
         detail = f"Validation error for '{field}': {message}"
 
-    logger.warning(f"422 - {detail}")
+    logger.warning("Validation error", detail=detail)
     raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail)
 
 
@@ -140,7 +134,7 @@ def raise_bad_request(message: str) -> None:
         if not concept_id and not word:
             raise_bad_request("Either concept_id or word must be provided")
     """
-    logger.warning(f"400 - {message}")
+    logger.warning("Bad request", message=message)
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
 
 
@@ -151,7 +145,7 @@ def raise_unauthorized(message: str = "Authentication required") -> None:
     Args:
         message: Error message (default: "Authentication required")
     """
-    logger.warning(f"401 - {message}")
+    logger.warning("Unauthorized", message=message)
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message)
 
 
@@ -162,7 +156,7 @@ def raise_forbidden(message: str = "Insufficient permissions") -> None:
     Args:
         message: Error message (default: "Insufficient permissions")
     """
-    logger.warning(f"403 - {message}")
+    logger.warning("Forbidden", message=message)
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=message)
 
 
@@ -183,5 +177,5 @@ def raise_conflict(resource: str, identifier: str, message: str | None = None) -
     if message:
         detail = f"{detail}. {message}"
 
-    logger.warning(f"409 - {detail}")
+    logger.warning("Conflict", detail=detail)
     raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)

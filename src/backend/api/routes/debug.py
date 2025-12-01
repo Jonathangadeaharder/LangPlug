@@ -1,5 +1,7 @@
 """
 Debug and logging API routes
+
+Provides endpoints for frontend log aggregation and debugging utilities.
 """
 
 import logging
@@ -8,8 +10,14 @@ from typing import Any
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-logger = logging.getLogger("api.debug")
+from core.config.logging_config import get_logger
+
+# Use structlog for this module's logs
+logger = get_logger(__name__)
+
+# Standard logging for frontend logs (these get written to file as-is)
 frontend_logger = logging.getLogger("frontend")
+
 router = APIRouter(tags=["debug"])
 
 

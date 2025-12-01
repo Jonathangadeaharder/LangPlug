@@ -56,13 +56,34 @@ export default defineConfig({
     },
   ],
 
-  /* Run start-all.bat script to launch both backend and frontend */
-  webServer: {
-    command: path.resolve(__dirname, '..', 'scripts', 'start-all.bat'),
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  },
+  /* Start backend server directly using venv Python */
+  webServer: [
+    {
+      command: `"${path.resolve(__dirname, '..', 'backend', 'api_venv', 'Scripts', 'python.exe')}" "${path.resolve(__dirname, '..', 'backend', 'run_backend.py')}"`,
+      url: 'http://localhost:8000/health',
+      cwd: path.resolve(__dirname, '..', 'backend'),
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+      env: {
+        ...process.env,
+        TESTING: '1',
+        LANGPLUG_PORT: '8000',
+        LANGPLUG_DATABASE_URL: 'sqlite+aiosqlite:///./test.db',
+        LANGPLUG_TRANSCRIPTION_SERVICE: 'whisper-tiny',
+        LANGPLUG_TRANSLATION_SERVICE: 'opus-de-es',
+        LANGPLUG_RELOAD: 'false',
+      },
+    },
+    {
+      command: 'npm run dev',
+      url: 'http://localhost:3000',
+      cwd: path.resolve(__dirname),
+      reuseExistingServer: !process.env.CI,
+      timeout: 60000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+  ],
 });

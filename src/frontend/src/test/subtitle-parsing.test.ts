@@ -3,7 +3,12 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import axios from 'axios'
 import { SRTApiClient, srtUtils } from '../utils/srtApi'
+
+// Mock axios
+vi.mock('axios')
+const mockedAxios = vi.mocked(axios, true)
 
 const testSRT = `1
 00:00:01,000 --> 00:00:04,000
@@ -51,27 +56,24 @@ const mockApiResponse = {
 
 describe('SRT API Integration', () => {
   let srtClient: SRTApiClient
-  let mockFetch: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
-    mockFetch = vi.fn()
-    global.fetch = mockFetch
+    vi.clearAllMocks()
     srtClient = new SRTApiClient('/api/srt')
   })
 
   it('parses SRT content via backend API', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockApiResponse,
+    mockedAxios.post.mockResolvedValueOnce({
+      data: mockApiResponse,
     })
 
     const result = await srtClient.parseSRTContent(testSRT)
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/srt/parse', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: testSRT }),
-    })
+    expect(mockedAxios.post).toHaveBeenCalledWith(
+      '/api/srt/parse',
+      { content: testSRT },
+      expect.objectContaining({ withCredentials: true })
+    )
 
     expect(result.total_segments).toBe(3)
     expect(result.segments).toHaveLength(3)
@@ -79,9 +81,8 @@ describe('SRT API Integration', () => {
   })
 
   it('handles API parsing errors', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ detail: 'Invalid SRT format' }),
+    mockedAxios.post.mockRejectedValueOnce({
+      response: { data: { detail: 'Invalid SRT format' } },
     })
 
     await expect(srtClient.parseSRTContent('invalid content')).rejects.toThrow('Invalid SRT format')
@@ -94,9 +95,8 @@ describe('SRT API Integration', () => {
       issues: [],
     }
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => validationResult,
+    mockedAxios.get.mockResolvedValueOnce({
+      data: validationResult,
     })
 
     const result = await srtClient.validateSRT(testSRT)
@@ -109,9 +109,8 @@ describe('SRT API Integration', () => {
   it('converts segments to SRT format', async () => {
     const expectedSRT = '1\n00:00:01,000 --> 00:00:04,000\nThis is a test subtitle\n\n'
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      text: async () => expectedSRT,
+    mockedAxios.post.mockResolvedValueOnce({
+      data: expectedSRT,
     })
 
     const result = await srtClient.convertToSRT(mockApiResponse.segments)

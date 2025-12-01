@@ -421,27 +421,24 @@ export const LearningPlayer: React.FC = () => {
   }
 
   const handleWordAnswered = async (word: string, known: boolean) => {
-    // Find the word in segmentWords to get its concept_id
+    // Find the word in segmentWords to get its lemma
     const targetWord = segmentWords.find(w => w.word === word)
-    if (!targetWord || !targetWord.concept_id) {
-      toast.error('Cannot mark word: missing word ID')
+    if (!targetWord) {
+      toast.error('Cannot mark word: word not found')
       return
     }
 
-    // Ensure concept_id is a number
-    const vocabularyId =
-      typeof targetWord.concept_id === 'number'
-        ? targetWord.concept_id
-        : parseInt(String(targetWord.concept_id), 10)
+    // Use the word itself as the lemma (or targetWord.lemma if available)
+    const lemma = targetWord.lemma || targetWord.word
 
-    if (isNaN(vocabularyId)) {
-      toast.error('Invalid word ID')
+    if (!lemma) {
+      toast.error('Invalid word')
       return
     }
 
     // Use React Query mutation to mark the word
     await markWordMutation.mutateAsync({
-      vocabularyId,
+      lemma,
       isKnown: known,
       language: 'de',
     })
@@ -589,6 +586,13 @@ export const LearningPlayer: React.FC = () => {
           onBuffer={() => setLoading(true)}
           onBufferEnd={() => setLoading(false)}
           progressInterval={1000}
+          config={{
+            file: {
+              attributes: {
+                crossOrigin: 'use-credentials'
+              }
+            }
+          }}
         />
 
         {loading && (

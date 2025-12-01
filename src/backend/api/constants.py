@@ -140,5 +140,3 @@ WEBSOCKET_HEARTBEAT_INTERVAL = 30
 
 # WebSocket ping timeout (seconds)
 WEBSOCKET_PING_TIMEOUT = 60
-
-

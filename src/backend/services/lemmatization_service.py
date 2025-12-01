@@ -2,7 +2,7 @@
 German Lemmatization Service using spaCy
 """
 
-import logging
+from core.config.logging_config import get_logger
 
 try:
     import spacy
@@ -11,7 +11,7 @@ try:
 except ImportError:
     SPACY_AVAILABLE = False
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class LemmatizationService:
@@ -28,17 +28,17 @@ class LemmatizationService:
             return True
 
         if not SPACY_AVAILABLE:
-            logger.info("[LEMMA] spaCy not available, using simple rules")
+            logger.info("spaCy not available, using simple rules")
             return False
 
         try:
             # Try to load the German model
             self._nlp = spacy.load("de_core_news_sm")
             self._model_loaded = True
-            logger.info("[LEMMA] German spaCy model loaded successfully")
+            logger.info("German spaCy model loaded")
             return True
         except Exception as e:
-            logger.warning(f"[LEMMA] Could not load spaCy German model: {e}")
+            logger.warning("Could not load spaCy German model", error=str(e))
             return False
 
     def lemmatize(self, word: str, pos: str | None = None) -> str:
@@ -78,7 +78,7 @@ class LemmatizationService:
                 self._cache[cache_key] = lemma
                 return lemma
         except Exception as e:
-            logger.error(f"[LEMMA] Error lemmatizing '{word}': {e}")
+            logger.error("Error lemmatizing word", word=word, error=str(e))
 
         # Fallback to simple rules
         lemma = self._simple_lemmatize(word)

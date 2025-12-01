@@ -124,7 +124,16 @@ async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db
 
 # Setup transports and strategy
 bearer_transport = BearerTransport(tokenUrl="auth/login")
-cookie_transport = CookieTransport(cookie_max_age=3600)
+
+# Configure secure cookie transport
+# HttpOnly is True by default in CookieTransport
+# Secure should be True in production (HTTPS)
+cookie_transport = CookieTransport(
+    cookie_max_age=settings.jwt_access_token_expire_minutes * 60,
+    cookie_name="fastapiusersauth",
+    cookie_secure=settings.environment == "production",
+    cookie_samesite="lax",
+)
 
 
 def get_jwt_strategy() -> JWTStrategy:
@@ -133,17 +142,24 @@ def get_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(secret=SECRET, lifetime_seconds=3600)
 
 
-# Authentication backend
+# Authentication backend (Legacy Bearer)
 auth_backend = AuthenticationBackend(
     name="jwt",
     transport=bearer_transport,
     get_strategy=get_jwt_strategy,
 )
 
+# Authentication backend (Secure Cookie)
+cookie_auth_backend = AuthenticationBackend(
+    name="cookie",
+    transport=cookie_transport,
+    get_strategy=get_jwt_strategy,
+)
+
 # FastAPI Users instance
 fastapi_users = FastAPIUsers[User, int](  # Changed UUID to int
     get_user_manager,
-    [auth_backend],
+    [auth_backend, cookie_auth_backend],
 )
 
 # Dependency shortcuts

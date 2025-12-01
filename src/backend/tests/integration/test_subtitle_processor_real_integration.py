@@ -135,17 +135,17 @@ class TestDirectSubtitleProcessorRealIntegration:
         DirectSubtitleProcessor should instantiate VocabularyService as object
         This reproduces the bug we just fixed
         """
-        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
-        from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
+        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_service import VocabularyService
-        
+        from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
+
         # Create real vocabulary service
         query_service = get_vocabulary_query_service()
         progress_service = get_vocabulary_progress_service()
         stats_service = get_vocabulary_stats_service()
         vocab_service = VocabularyService(query_service, progress_service, stats_service)
-        
+
         processor = DirectSubtitleProcessor(vocab_service=vocab_service)
 
         # Should be an instance, not a class
@@ -294,17 +294,17 @@ class TestSubtitleProcessorServiceBoundaries:
     @pytest.mark.asyncio
     async def test_processor_integrates_all_services(self, sample_subtitles, german_vocabulary, test_db_session):
         """Processor should integrate all required services"""
-        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
-        from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
+        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_service import VocabularyService
-        
+        from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
+
         # Create real vocabulary service
         query_service = get_vocabulary_query_service()
         progress_service = get_vocabulary_progress_service()
         stats_service = get_vocabulary_stats_service()
         vocab_service = VocabularyService(query_service, progress_service, stats_service)
-        
+
         processor = DirectSubtitleProcessor(vocab_service=vocab_service)
 
         # Check all service dependencies

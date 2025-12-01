@@ -343,6 +343,7 @@ class TestGetVocabularyService:
         """Test that factory function returns VocabularyService instance"""
         # Act
         from unittest.mock import AsyncMock
+
         mock_query_service = AsyncMock()
         mock_progress_service = AsyncMock()
         mock_stats_service = AsyncMock()
@@ -358,6 +359,7 @@ class TestGetVocabularyService:
         """Test that each call returns a new instance"""
         # Act
         from unittest.mock import AsyncMock
+
         mock_query_service1 = AsyncMock()
         mock_progress_service1 = AsyncMock()
         mock_stats_service1 = AsyncMock()

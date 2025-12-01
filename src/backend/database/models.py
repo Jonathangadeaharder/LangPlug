@@ -330,5 +330,3 @@ class UnknownWord(Base):
         Index("idx_unknown_words_added", "added_to_vocabulary"),
         {"extend_existing": True},
     )
-
-

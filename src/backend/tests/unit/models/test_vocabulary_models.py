@@ -129,7 +129,7 @@ class TestMarkKnownRequestValidation:
         """Test request validation with valid mark known requests"""
         valid_requests = [
             {"lemma": "test", "language": "de", "known": True},
-            {"lemma": "hello", "language": "en", "known": False}
+            {"lemma": "hello", "language": "en", "known": False},
         ]
 
         for request_data in valid_requests:

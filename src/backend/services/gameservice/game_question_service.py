@@ -5,16 +5,15 @@ Handles generation of game questions for different game types and difficulty lev
 Isolated from session management and scoring logic.
 """
 
-import logging
-
 from pydantic import BaseModel, field_validator
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config.logging_config import get_logger
 from core.enums import GameDifficulty, GameType
 from database.models import UserVocabularyProgress, VocabularyWord
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class GameQuestion(BaseModel):
@@ -152,7 +151,7 @@ class GameQuestionService:
             vocabulary_words = list(result.scalars().all())
 
             if not vocabulary_words:
-                logger.warning(f"No unknown words found for difficulty={difficulty}, using sample vocabulary")
+                logger.warning("No unknown words found, using sample", difficulty=difficulty)
                 return self._generate_sample_vocabulary_questions(difficulty, total_questions)
 
             # Generate questions from database words
@@ -175,7 +174,7 @@ class GameQuestionService:
             return questions
 
         except Exception as e:
-            logger.error(f"Error generating vocabulary questions from database: {e}", exc_info=True)
+            logger.error("Error generating vocabulary questions", error=str(e), exc_info=True)
             logger.warning("Falling back to sample vocabulary")
             return self._generate_sample_vocabulary_questions(difficulty, total_questions)
 
@@ -197,7 +196,7 @@ class GameQuestionService:
             )
             questions.append(question)
 
-        logger.info(f"Generated {len(questions)} vocabulary questions from sample data (difficulty={difficulty})")
+        logger.debug("Generated vocabulary questions from sample", count=len(questions), difficulty=difficulty)
         return questions
 
     def _generate_listening_questions(self, total_questions: int) -> list[GameQuestion]:
@@ -214,7 +213,7 @@ class GameQuestionService:
             )
             questions.append(question)
 
-        logger.info(f"Generated {len(questions)} listening questions")
+        logger.debug("Generated listening questions", count=len(questions))
         return questions
 
     def _generate_comprehension_questions(self, total_questions: int) -> list[GameQuestion]:
@@ -231,5 +230,5 @@ class GameQuestionService:
             )
             questions.append(question)
 
-        logger.info(f"Generated {len(questions)} comprehension questions")
+        logger.debug("Generated comprehension questions", count=len(questions))
         return questions

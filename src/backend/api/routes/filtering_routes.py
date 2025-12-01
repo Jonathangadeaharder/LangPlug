@@ -3,7 +3,6 @@ Filtering API routes for subtitle filtering and vocabulary processing
 """
 
 import asyncio
-import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -11,6 +10,7 @@ from typing import Any
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from core.config import settings
+from core.config.logging_config import get_logger
 from core.dependencies import (
     current_active_user,
     get_subtitle_processor,
@@ -27,7 +27,7 @@ from utils.srt_parser import SRTParser
 
 from ..models.processing import FilterRequest, ProcessingStatus, SelectiveTranslationRequest
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(tags=["filtering"])
 
 
@@ -40,7 +40,7 @@ async def run_subtitle_filtering(
 ) -> None:
     """Run subtitle filtering in background"""
     try:
-        logger.info(f"Starting filtering task: {task_id}")
+        logger.info("Starting filtering", task_id=task_id)
 
         # Initialize progress tracking
         task_progress[task_id] = ProcessingStatus(
@@ -93,7 +93,7 @@ async def run_subtitle_filtering(
             raise ValueError("No filtered subtitles generated")
 
         await _save_filtered_subtitles_to_file(filter_result["filtered_subtitles"], output_path)
-        logger.info(f"Saved filtered subtitles to: {output_path}")
+        logger.debug("Saved filtered subtitles", path=output_path)
 
         # Complete (100% progress)
         task_progress[task_id].status = "completed"
@@ -101,10 +101,10 @@ async def run_subtitle_filtering(
         task_progress[task_id].current_step = "Filtering completed"
         task_progress[task_id].message = "Subtitles filtered successfully"
 
-        logger.info(f"Filtering completed for task {task_id}")
+        logger.info("Filtering completed", task_id=task_id)
 
     except Exception as e:
-        logger.error(f"Filtering failed for task {task_id}: {e}", exc_info=True)
+        logger.error("Filtering failed", task_id=task_id, error=str(e), exc_info=True)
         task_progress[task_id] = ProcessingStatus(
             status="error",
             progress=0.0,
@@ -193,13 +193,13 @@ async def filter_subtitles(
             current_user,
         )
 
-        logger.info(f"Started filtering task: {task_id}")
+        logger.info("Filtering task started", task_id=task_id)
         return {"task_id": task_id, "status": "started"}
 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to start filtering: {e!s}", exc_info=True)
+        logger.error("Failed to start filtering", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Filtering failed: {e!s}") from e
 
 
@@ -214,7 +214,7 @@ async def apply_selective_translations(
     Re-filters subtitles to show only unknown words that need translation.
     """
     try:
-        logger.info(f"Applying selective translations for {len(request.known_words)} known words")
+        logger.debug("Applying selective translations", known_word_count=len(request.known_words))
 
         # Get user's target language and level from profile
         target_language = getattr(current_user, "target_language", "de")
@@ -229,7 +229,7 @@ async def apply_selective_translations(
             user_id=str(current_user.id),
         )
 
-        logger.info(f"Selective translations applied: {result.get('translation_count', 0)} segments need translation")
+        logger.debug("Selective translations applied", segment_count=result.get("translation_count", 0))
 
         return {
             "success": True,
@@ -239,7 +239,7 @@ async def apply_selective_translations(
         }
 
     except Exception as e:
-        logger.error(f"Failed to apply selective translations: {e}", exc_info=True)
+        logger.error("Selective translation failed", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Selective translation failed: {e!s}") from e
 
 
@@ -268,8 +268,8 @@ async def _save_filtered_subtitles_to_file(filtered_subtitles: list[FilteredSubt
         with open(output_path, "w", encoding="utf-8") as f:
             f.writelines(srt_content)
 
-        logger.info(f"Successfully saved {len(filtered_subtitles)} filtered subtitles to {output_path}")
+        logger.debug("Saved filtered subtitles", count=len(filtered_subtitles), path=output_path)
 
     except Exception as e:
-        logger.error(f"Failed to save filtered subtitles to {output_path}: {e}")
+        logger.error("Failed to save filtered subtitles", path=output_path, error=str(e))
         raise

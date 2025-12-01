@@ -28,7 +28,7 @@ from fastapi import status
 
 class LangPlugException(Exception):  # noqa: N818
     """Base exception for LangPlug.
-    
+
     All domain exceptions should inherit from this class.
     The status_code is used by exception handlers to generate HTTP responses.
     """

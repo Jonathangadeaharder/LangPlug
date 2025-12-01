@@ -11,14 +11,14 @@ Provides:
 - Performance metrics
 """
 
-import logging
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.cache.redis_client import redis_cache
+from core.config.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class VocabularyCacheService:
@@ -44,11 +44,7 @@ class VocabularyCacheService:
         """
         self.cache = redis_client
         self.ttl = default_ttl
-        self.stats = {
-            "hits": 0,
-            "misses": 0,
-            "errors": 0
-        }
+        self.stats = {"hits": 0, "misses": 0, "errors": 0}
 
     def _make_key(self, word: str, language: str) -> str:
         """Create cache key for vocabulary lookup."""
@@ -63,11 +59,7 @@ class VocabularyCacheService:
         return f"user:progress:{user_id}"
 
     async def get_word_info(
-        self,
-        word: str,
-        language: str,
-        db: AsyncSession,
-        vocab_service: Any
+        self, word: str, language: str, db: AsyncSession, vocab_service: Any
     ) -> dict[str, Any] | None:
         """
         Get word information with caching.
@@ -88,7 +80,7 @@ class VocabularyCacheService:
             cached = await self.cache.get(cache_key)
             if cached:
                 self.stats["hits"] += 1
-                logger.debug(f"Cache hit for {cache_key}")
+                logger.debug("Cache hit", key=cache_key)
                 return cached
 
             self.stats["misses"] += 1
@@ -99,23 +91,17 @@ class VocabularyCacheService:
             # Cache result if found
             if word_info:
                 await self.cache.set(cache_key, word_info, self.ttl)
-                logger.debug(f"Cached {cache_key}")
+                logger.debug("Cached", key=cache_key)
 
             return word_info
 
         except Exception as e:
             self.stats["errors"] += 1
-            logger.warning(f"Cache error for {cache_key}: {e}")
+            logger.warning("Cache error", key=cache_key, error=str(e))
             # Fall back to direct DB lookup
             return await vocab_service.get_word_info(word, language, db)
 
-    async def get_words_by_level(
-        self,
-        language: str,
-        level: str,
-        db: AsyncSession,
-        vocab_service: Any
-    ) -> list | None:
+    async def get_words_by_level(self, language: str, level: str, db: AsyncSession, vocab_service: Any) -> list | None:
         """
         Get all words for a specific level with caching.
 
@@ -146,7 +132,7 @@ class VocabularyCacheService:
 
         except Exception as e:
             self.stats["errors"] += 1
-            logger.warning(f"Cache error for {cache_key}: {e}")
+            logger.warning("Cache error", key=cache_key, error=str(e))
             return await vocab_service.get_words_by_level(language, level, db)
 
     async def invalidate_word(self, word: str, language: str) -> bool:
@@ -163,7 +149,7 @@ class VocabularyCacheService:
         cache_key = self._make_key(word, language)
         success = await self.cache.delete(cache_key)
         if success:
-            logger.info(f"Invalidated cache for {cache_key}")
+            logger.debug("Invalidated cache", key=cache_key)
         return success
 
     async def invalidate_level(self, language: str, level: str) -> bool:
@@ -180,7 +166,7 @@ class VocabularyCacheService:
         cache_key = self._make_level_key(language, level)
         success = await self.cache.delete(cache_key)
         if success:
-            logger.info(f"Invalidated level cache for {cache_key}")
+            logger.debug("Invalidated level cache", key=cache_key)
         return success
 
     async def invalidate_language(self, language: str) -> int:
@@ -196,7 +182,7 @@ class VocabularyCacheService:
         pattern = f"vocab:{language}:*"
         deleted = await self.cache.invalidate_pattern(pattern)
         if deleted > 0:
-            logger.info(f"Invalidated {deleted} cache keys for {language}")
+            logger.debug("Invalidated cache keys", count=deleted, language=language)
         return deleted
 
     async def invalidate_all(self) -> bool:
@@ -206,13 +192,7 @@ class VocabularyCacheService:
             logger.info("Cleared all vocabulary cache")
         return success
 
-    async def warm_cache(
-        self,
-        language: str,
-        levels: list,
-        db: AsyncSession,
-        vocab_service: Any
-    ) -> int:
+    async def warm_cache(self, language: str, levels: list, db: AsyncSession, vocab_service: Any) -> int:
         """
         Pre-populate cache with common words.
 
@@ -236,9 +216,9 @@ class VocabularyCacheService:
                     cache_key = self._make_level_key(language, level)
                     await self.cache.set(cache_key, words, self.ttl * 4)
                     cached_count += 1
-                    logger.info(f"Warmed cache for {level}")
+                    logger.debug("Warmed cache", level=level)
             except Exception as e:
-                logger.warning(f"Error warming cache for {level}: {e}")
+                logger.warning("Error warming cache", level=level, error=str(e))
 
         return cached_count
 

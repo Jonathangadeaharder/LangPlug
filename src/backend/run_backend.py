@@ -113,21 +113,20 @@ def main():
 
         # Step 3: Test database and services initialization
         # Skip in CI/test mode to avoid heavy model loading which slows or blocks startup
-        if os.getenv("TESTING") == "1":
-            pass
-        else:
-            import asyncio
+        # Step 3: Test database and services initialization
+        # Skip heavy model loading in CI/test mode (handled inside init_services)
+        import asyncio
 
-            # On Windows, set ProactorEventLoop BEFORE any asyncio.run() calls
-            if sys.platform == "win32":
-                import logging
+        # On Windows, set ProactorEventLoop BEFORE any asyncio.run() calls
+        if sys.platform == "win32":
+            import logging
 
-                asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-                logging.info("[WINDOWS FIX] Set ProactorEventLoopPolicy for subprocess support")
+            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+            logging.info("[WINDOWS FIX] Set ProactorEventLoopPolicy for subprocess support")
 
-            from core.dependencies import init_services
+        from core.dependencies import init_services
 
-            asyncio.run(init_services())
+        asyncio.run(init_services())
 
         # Step 4: Import FastAPI app factory
         # Note: We don't call create_app() here - uvicorn will call it via factory pattern

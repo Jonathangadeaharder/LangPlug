@@ -164,7 +164,9 @@ class TestVocabularyEndpoints:
         assert_vocabulary_response_structure(data)
 
     @pytest.mark.asyncio
-    async def test_When_authenticated_user_marks_word_known_Then_success_returned(self, async_client, url_builder, seeded_vocabulary):
+    async def test_When_authenticated_user_marks_word_known_Then_success_returned(
+        self, async_client, url_builder, seeded_vocabulary
+    ):
         """Authenticated user should be able to mark a word as known."""
         # Arrange
         auth_helper = AsyncAuthHelper(async_client)

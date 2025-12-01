@@ -3,9 +3,9 @@ Translation Management Service
 Handles selective translation analysis and segment building
 """
 
-import logging
 from typing import Any
 
+from core.config.logging_config import get_logger
 from services.filterservice.direct_subtitle_processor import DirectSubtitleProcessor
 from services.vocabulary import (
     get_vocabulary_progress_service,
@@ -14,7 +14,7 @@ from services.vocabulary import (
     get_vocabulary_stats_service,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TranslationManagementService:
@@ -50,7 +50,7 @@ class TranslationManagementService:
         Returns:
             Translation analysis results
         """
-        logger.info(f"Applying selective translations for {len(known_words)} known words")
+        logger.debug("Applying selective translations", known_word_count=len(known_words))
 
         # Re-filter the subtitles excluding known words
         refilter_result = await self.refilter_for_translations(
@@ -62,7 +62,7 @@ class TranslationManagementService:
             srt_path, user_id, known_words, user_level, target_language, refilter_result
         )
 
-        logger.info(f"Generated {len(translation_segments)} translation segments for unknown words")
+        logger.debug("Generated translation segments", count=len(translation_segments))
 
         return self.create_translation_response(refilter_result, translation_segments, known_words)
 

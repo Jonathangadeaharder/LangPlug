@@ -3,15 +3,16 @@ NLLB-200 Translation Service Implementation
 Facebook/Meta's No Language Left Behind model
 """
 
-import logging
 from typing import ClassVar
 
 import torch
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
 
+from core.config.logging_config import get_logger
+
 from .interface import ITranslationService, TranslationResult
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class NLLBTranslationService(ITranslationService):
@@ -85,15 +86,14 @@ class NLLBTranslationService(ITranslationService):
             cuda_available = check_cuda_availability("NLLB")
 
             if cuda_available:
-                logger.info(f"[CUDA] GPU available: {torch.cuda.get_device_name(0)}")
-                logger.info(f"[CUDA] CUDA version: {torch.version.cuda}")
+                logger.info("GPU available for NLLB", device=torch.cuda.get_device_name(0))
                 self.device = 0
                 self.device_str = "cuda"
             else:
                 self.device = -1
                 self.device_str = "cpu"
 
-            logger.info(f"Loading NLLB model: {self.model_name}")
+            logger.info("Loading NLLB model", model=self.model_name)
 
             # Load tokenizer and model
             self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
@@ -112,7 +112,7 @@ class NLLBTranslationService(ITranslationService):
                 max_length=self.max_length,
             )
 
-            logger.info(f"NLLB model loaded on {self.device_str}")
+            logger.info("NLLB model loaded", device=self.device_str)
 
     def translate(self, text: str, source_lang: str, target_lang: str) -> TranslationResult:
         """Translate a single text"""

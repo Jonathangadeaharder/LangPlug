@@ -272,10 +272,10 @@ class TestChunkProcessingVocabularyIntegration:
         VocabularyService should be called correctly during filtering
         This would catch the missing 'db' parameter bug
         """
-        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
-        from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
+        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_service import VocabularyService
+        from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
 
         # Create real service instances
         query_service = get_vocabulary_query_service()
@@ -375,10 +375,10 @@ class TestChunkProcessingBugsReproduction:
         Reproduce bug: VocabularyService.get_word_info() called without 'db' parameter
         Location: subtitle_processor.py line 134
         """
-        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
-        from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
+        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_service import VocabularyService
+        from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
 
         # Create real service instances
         query_service = get_vocabulary_query_service()
@@ -435,10 +435,10 @@ class TestChunkProcessingIntegrationSummary:
         assert prefs is not None
 
         # Test vocabulary service using test database session
-        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
-        from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
+        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_service import VocabularyService
+        from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
 
         # Create real service instances
         query_service = get_vocabulary_query_service()

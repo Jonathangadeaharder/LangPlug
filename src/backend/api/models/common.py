@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class ErrorDetail(BaseModel):
     """Standard error detail structure"""
+
     code: str = Field(..., description="Machine-readable error code")
     message: str = Field(..., description="Human-readable error message")
     details: Any | None = Field(None, description="Additional context about the error")
@@ -21,7 +22,7 @@ class ErrorDetail(BaseModel):
                 "code": "RESOURCE_NOT_FOUND",
                 "message": "The requested resource could not be found",
                 "details": {"id": "123"},
-                "timestamp": "2024-01-01T12:00:00.000000"
+                "timestamp": "2024-01-01T12:00:00.000000",
             }
         }
     )
@@ -29,4 +30,5 @@ class ErrorDetail(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Standard API error response wrapper"""
+
     error: ErrorDetail = Field(..., description="Error details")

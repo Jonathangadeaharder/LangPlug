@@ -10,7 +10,7 @@ import {
   getVocabularyLibraryApiVocabularyLibraryGet,
 } from '@/client/services.gen'
 import { queryKeys } from '@/config/queryClient'
-import type { VocabularyWord, UserVocabularyProgress, VocabularyStats } from '../types'
+import type { VocabularyWord, UserProgressRecord, VocabularyStats } from '../types'
 
 // ========== Queries ==========
 
@@ -110,11 +110,11 @@ export const useRandomWords = (
  */
 export const useUserProgress = (
   language = 'de',
-  options?: Omit<UseQueryOptions<UserVocabularyProgress[]>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<UserProgressRecord[]>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: queryKeys.progress.list(language),
-    queryFn: async (): Promise<UserVocabularyProgress[]> => {
+    queryFn: async (): Promise<UserProgressRecord[]> => {
       // Get vocabulary library which includes is_known status
       const response: { words?: Array<{ id: number; is_known?: boolean }> } = await getVocabularyLibraryApiVocabularyLibraryGet({
         language,
@@ -165,7 +165,7 @@ export const useVocabularyStats = (
 export const useWordProgress = (vocabularyId: number, language = 'de') => {
   return useQuery({
     queryKey: queryKeys.progress.list(language),
-    queryFn: async (): Promise<UserVocabularyProgress[]> => {
+    queryFn: async (): Promise<UserProgressRecord[]> => {
       const response: { words?: Array<{ id: number; is_known?: boolean }> } = await getVocabularyLibraryApiVocabularyLibraryGet({
         language,
         limit: 10000,
@@ -190,7 +190,7 @@ export const useWordProgress = (vocabularyId: number, language = 'de') => {
 export const useIsWordKnown = (vocabularyId: number, language = 'de') => {
   return useQuery({
     queryKey: queryKeys.progress.list(language),
-    queryFn: async (): Promise<UserVocabularyProgress[]> => {
+    queryFn: async (): Promise<UserProgressRecord[]> => {
       const response: { words?: Array<{ id: number; is_known?: boolean }> } = await getVocabularyLibraryApiVocabularyLibraryGet({
         language,
         limit: 10000,

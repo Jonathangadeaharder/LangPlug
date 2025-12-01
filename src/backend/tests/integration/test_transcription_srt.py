@@ -33,6 +33,12 @@ async def test_Whentranscribe_fails_without_serviceCalled_ThenSucceeds(async_htt
         error_data = response.json()
         if "error" in error_data:
             # Accept either service not available or video not found
-            assert "Transcription service is not available" in error_data["error"]["message"] or "Video file not found" in error_data["error"]["message"]
+            assert (
+                "Transcription service is not available" in error_data["error"]["message"]
+                or "Video file not found" in error_data["error"]["message"]
+            )
         else:
-            assert "Transcription service is not available" in error_data["detail"] or "Video file not found" in error_data["detail"]
+            assert (
+                "Transcription service is not available" in error_data["detail"]
+                or "Video file not found" in error_data["detail"]
+            )

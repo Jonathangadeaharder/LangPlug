@@ -9,19 +9,18 @@ Note: These endpoints are primarily for E2E testing purposes.
 In production, consider restricting access or removing these endpoints.
 """
 
-import logging
-
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.error_handlers import handle_api_errors, raise_not_found
 from core.config import settings
+from core.config.logging_config import get_logger
 from core.database import get_async_session
 from core.dependencies import current_active_user, get_vocabulary_service
 from database.models import User
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(tags=["vocabulary-test"])
 
 
@@ -44,9 +43,7 @@ async def get_test_data(
 
     **Authentication Required**: Yes
     """
-    test_vocabulary = [
-        {"id": "test-word-1", "word": "Hallo", "translation": "Hello", "level": "A1", "language": "de"}
-    ]
+    test_vocabulary = [{"id": "test-word-1", "word": "Hallo", "translation": "Hello", "level": "A1", "language": "de"}]
 
     return {
         "test_vocabulary": test_vocabulary,
@@ -117,9 +114,7 @@ async def create_vocabulary(
 
     # Check if word already exists
     result = await db.execute(
-        select(VocabularyWord).where(
-            VocabularyWord.word == request.word, VocabularyWord.language == request.language
-        )
+        select(VocabularyWord).where(VocabularyWord.word == request.word, VocabularyWord.language == request.language)
     )
     existing_word = result.scalar_one_or_none()
 
@@ -146,7 +141,7 @@ async def create_vocabulary(
     db.add(new_word)
     await db.commit()
 
-    logger.info(f"Created test vocabulary for E2E: {request.word} ({cefr_level})")
+    logger.info("Created test vocabulary for E2E", word=request.word, level=cefr_level)
     return {
         "id": new_word.id,
         "word": new_word.word,

@@ -154,7 +154,7 @@ class RefreshTokenService:
         self.db.add(family)
         await self.db.flush()
 
-        logger.info(f"Created refresh token family {family_id} for user {user_id}")
+        logger.info("Created refresh token family", family_id=family_id, user_id=user_id)
         return token, family_id
 
     @transactional
@@ -210,7 +210,7 @@ class RefreshTokenService:
         # Check for token reuse (indicates theft)
         if family.last_used_at is not None:
             logger.warning(
-                f"Token reuse detected for family {family.family_id} (generation {family.generation}). Revoking family."
+                "Token reuse detected, revoking family", family_id=family.family_id, generation=family.generation
             )
 
             # Revoke entire family
@@ -240,7 +240,9 @@ class RefreshTokenService:
         self.db.add(new_family)
         await self.db.flush()
 
-        logger.info(f"Rotated token family {family.family_id} from generation {family.generation} to {new_generation}")
+        logger.info(
+            "Rotated token family", family_id=family.family_id, old_gen=family.generation, new_gen=new_generation
+        )
 
         return new_token, family.user_id
 
@@ -337,7 +339,7 @@ class RefreshTokenService:
         await self._revoke_family_internal(family_id, reason)
         await self.db.flush()
 
-        logger.info(f"Revoked token family {family_id}: {reason}")
+        logger.info("Revoked token family", family_id=family_id, reason=reason)
 
     @transactional
     async def revoke_all_user_tokens(self, user_id: int, reason: str = "revoke_all_sessions"):
@@ -374,7 +376,7 @@ class RefreshTokenService:
         count = result.rowcount
         await self.db.flush()
 
-        logger.info(f"Revoked {count} token families for user {user_id}: {reason}")
+        logger.info("Revoked token families", count=count, user_id=user_id, reason=reason)
 
     @transactional
     async def cleanup_expired_tokens(self):
@@ -409,4 +411,4 @@ class RefreshTokenService:
         count = len(expired_families)
         await self.db.flush()
 
-        logger.info(f"Cleaned up {count} expired refresh token records")
+        logger.info("Cleaned up expired refresh tokens", count=count)

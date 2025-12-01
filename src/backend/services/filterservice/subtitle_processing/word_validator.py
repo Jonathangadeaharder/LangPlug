@@ -3,10 +3,11 @@ Word Validator Service
 Handles validation of words for vocabulary learning
 """
 
-import logging
 import re
 
-logger = logging.getLogger(__name__)
+from core.config.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class WordValidator:

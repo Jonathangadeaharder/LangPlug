@@ -53,12 +53,12 @@ Architecture Notes:
     - Each service manages its own transactional boundaries for atomicity
 """
 
-import logging
 from pathlib import Path
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config.logging_config import get_logger
 from services.interfaces.handler_interface import IChunkHandler
 
 from .chunk_transcription_service import ChunkTranscriptionService
@@ -68,7 +68,7 @@ from .subtitle_generation_service import get_subtitle_generation_service
 from .translation_management_service import get_translation_management_service
 from .vocabulary_filter_service import get_vocabulary_filter_service
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ChunkProcessingError(Exception):
@@ -127,7 +127,7 @@ class ChunkProcessingService(IChunkHandler):
         translation_manager=None,
     ):
         """Initialize with optional dependency injection.
-        
+
         Args:
             db_session: Database session (required for utilities if not provided)
             transcription_service: Audio extraction and transcription service
@@ -136,13 +136,13 @@ class ChunkProcessingService(IChunkHandler):
             vocabulary_filter: Service for filtering vocabulary from subtitles
             subtitle_generator: Service for generating filtered subtitle files
             translation_manager: Service for managing translations
-            
+
         Note:
             If services are not provided, defaults are created.
             This allows for proper testing with mocked dependencies.
         """
         self.db_session = db_session
-        
+
         # Use injected services or create defaults
         self.transcription_service = transcription_service or ChunkTranscriptionService()
         self.translation_service = translation_service or ChunkTranslationService()
@@ -233,9 +233,7 @@ class ChunkProcessingService(IChunkHandler):
                 translation_content = SRTParser.segments_to_srt(translation_segments)
                 PathLib(translation_srt_path).write_text(translation_content, encoding="utf-8")
 
-                logger.info(
-                    f"[CHUNK DEBUG] Wrote {len(translation_segments)} translation segments to {translation_srt_path}"
-                )
+                logger.debug("Wrote translation segments", count=len(translation_segments))
 
             # Complete processing with subtitle paths
             self.utilities.complete_processing(
@@ -253,7 +251,7 @@ class ChunkProcessingService(IChunkHandler):
             self.utilities.cleanup_old_chunk_files(video_file, start_time, end_time)
 
         except Exception as e:
-            logger.error(f"Chunk processing failed for task {task_id}: {e}", exc_info=True)
+            logger.error("Chunk processing failed", task_id=task_id, error=str(e), exc_info=True)
             # Cleanup temporary audio file on error
             if "audio_file" in locals():
                 self.transcription_service.cleanup_temp_audio_file(audio_file, video_file)
@@ -297,10 +295,10 @@ class ChunkProcessingService(IChunkHandler):
             language_preferences=language_preferences,
             db_session=self.db_session,
             task_id=task_id,
-            task_progress=task_progress
+            task_progress=task_progress,
         )
 
-        logger.info(f"[CHUNK DEBUG] Filtered {len(vocabulary)} vocabulary words")
+        logger.debug("Filtered vocabulary", word_count=len(vocabulary))
         return vocabulary
 
     async def _generate_filtered_subtitles(

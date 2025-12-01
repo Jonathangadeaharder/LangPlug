@@ -94,8 +94,8 @@ class TestVocabularyServiceSessionManagement:
         VocabularyService should accept external database session
         This test reproduces Bug #4 - would have caught get_db_session() error
         """
-        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
+        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
 
         # Create real service instances
@@ -113,7 +113,7 @@ class TestVocabularyServiceSessionManagement:
         assert result["word"].lower() == "hallo"
 
     @pytest.mark.asyncio
-    async def test_subtitle_processor_uses_correct_session_pattern(self, german_vocabulary):
+    async def test_subtitle_processor_uses_correct_session_pattern(self, german_vocabulary, test_db_session):
         """
         DirectSubtitleProcessor should use AsyncSessionLocal for database queries
         This test exercises the actual code path in subtitle_processor.py:136
@@ -134,7 +134,7 @@ class TestVocabularyServiceSessionManagement:
 
         # This exercises the real code path including session creation
         result = await processor.process_subtitles(
-            subtitles=subtitles, user_id="test_user", user_level="A1", language="de"
+            subtitles=subtitles, user_id="test_user", db=test_db_session, user_level="A1", language="de"
         )
 
         # Verify actual processing worked
@@ -210,8 +210,8 @@ class TestIntegrationWithoutMocks:
         Test vocabulary lookup using actual VocabularyService and real database
         No mocks - exercises actual production code path
         """
-        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
+        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
 
         # Create real service instances
@@ -230,7 +230,7 @@ class TestIntegrationWithoutMocks:
         assert result["translation_en"] == "world"
 
     @pytest.mark.asyncio
-    async def test_subtitle_processor_vocabulary_integration(self, german_vocabulary):
+    async def test_subtitle_processor_vocabulary_integration(self, german_vocabulary, test_db_session):
         """
         Test subtitle processor with vocabulary service integration
         No mocks - uses real services and database
@@ -254,7 +254,7 @@ class TestIntegrationWithoutMocks:
 
         # Process with real services
         result = await processor.process_subtitles(
-            subtitles=subtitles, user_id="test_user", user_level="A1", language="de"
+            subtitles=subtitles, user_id="test_user", db=test_db_session, user_level="A1", language="de"
         )
 
         # Verify actual processing results
@@ -291,10 +291,10 @@ class TestBugReproduction:
         Reproduces Bug #4: VocabularyService.get_db_session() doesn't exist
         This test would have failed with the buggy code
         """
-        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_progress_service import get_vocabulary_progress_service
+        from services.vocabulary.vocabulary_query_service import get_vocabulary_query_service
         from services.vocabulary.vocabulary_stats_service import get_vocabulary_stats_service
-        
+
         query_service = get_vocabulary_query_service()
         progress_service = get_vocabulary_progress_service()
         stats_service = get_vocabulary_stats_service()

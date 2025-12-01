@@ -50,10 +50,7 @@ async def main():
     try:
         print("[INFO] Starting SRT file processing...")
         result = await processor.process_srt_file(
-            srt_file_path=srt_file_path,
-            user_id=user_id,
-            user_level=user_level,
-            language=language
+            srt_file_path=srt_file_path, user_id=user_id, user_level=user_level, language=language
         )
 
         print("\n[SUCCESS] Processing completed!")
@@ -65,15 +62,16 @@ async def main():
         print(f"[RESULT] Unknown words: {result.get('unknown_words', 'N/A')}")
 
         # Show sample of filtered content if available
-        if Path(result['output_file']).exists():
+        if Path(result["output_file"]).exists():
             print("\n[INFO] Reading first 500 chars of output...")
-            with open(result['output_file'], encoding='utf-8') as f:
+            with open(result["output_file"], encoding="utf-8") as f:
                 sample = f.read(500)
                 print(f"[SAMPLE] {sample}...")
 
     except Exception as e:
         print(f"\n[ERROR] Processing failed: {e}")
         import traceback
+
         print("[TRACEBACK]")
         traceback.print_exc()
         sys.exit(1)

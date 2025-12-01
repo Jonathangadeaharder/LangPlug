@@ -6,12 +6,12 @@ import { VocabularyGame } from './VocabularyGame'
 import { ChunkedLearningPlayer } from './ChunkedLearningPlayer'
 import { handleApiError } from '@/services/api'
 import {
-  getTaskProgressApiProcessProgressTaskIdGet,
   processChunkApiProcessChunkPost,
   profileGetApiProfileGet,
   markWordKnownApiVocabularyMarkKnownPost,
 } from '@/client/services.gen'
 import { logger } from '@/services/logger'
+import { useRealtimeProgress } from '@/hooks/useRealtimeProgress'
 import type { VideoInfo, ProcessingStatus, VocabularyWord } from '@/types'
 
 interface ChunkData {
@@ -64,7 +64,20 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
     current_step: 'Initializing',
     message: 'Starting processing...',
   })
-  const [_taskId, setTaskId] = useState<string | null>(null)
+  // Real-time progress tracking with WebSocket + polling fallback
+  const {
+    taskId: monitoredTaskId,
+    startMonitoring,
+    stopMonitoring,
+    progress: realtimeProgress,
+    status: realtimeStatus,
+    currentStep,
+    message: realtimeMessage,
+    isComplete: realtimeComplete,
+    error: realtimeError,
+    connectionMethod,
+    result: realtimeResult,
+  } = useRealtimeProgress()
   const [gameWords, setGameWords] = useState<VocabularyWord[]>([])
   const [learnedWords, setLearnedWords] = useState<Set<string>>(new Set())
   const [activeLanguages, setActiveLanguages] = useState<{
@@ -172,16 +185,15 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
         },
       })) as { task_id: string; status?: string }
 
-      setTaskId(response.task_id)
-
       logger.info('ChunkedLearningFlow', 'Backend task started', {
         taskId: response.task_id,
         chunkIndex: chunkIndex + 1,
         status: response.status || 'started',
       })
 
-      // Start polling for progress
-      pollProgress(response.task_id, chunkIndex)
+      // Start real-time monitoring (WebSocket with polling fallback)
+      startMonitoring(response.task_id)
+      logger.info('ChunkedLearningFlow', `Started monitoring task ${response.task_id} via ${connectionMethod}`)
     } catch (error) {
       logger.error('ChunkedLearningFlow', 'Failed to start chunk processing', error)
       handleApiError(error, 'ChunkedLearningFlow.processChunk')
@@ -189,113 +201,95 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
     }
   }
 
-  // Poll for processing progress
-  const pollProgress = async (taskId: string, chunkIndex: number) => {
-    const maxAttempts = 120
-    let attempts = 0
-    let pollInterval = 3000 // Poll every 3 seconds
+  // Sync real-time progress to processing status
+  useEffect(() => {
+    // Only sync if we're actively monitoring a task
+    if (!monitoredTaskId) return
 
-    const poll = async () => {
-      try {
-        const progress = (await getTaskProgressApiProcessProgressTaskIdGet({
-          taskId,
-        })) as ProcessingStatus
-        logger.info('ChunkedLearningFlow', 'Progress update', {
-          status: progress.status,
-          progress: progress.progress,
-          step: progress.current_step,
-          vocabularyCount: progress.vocabulary?.length || 0,
-        })
-        setProcessingStatus(progress)
+    // Update processing status from real-time hook
+    setProcessingStatus(prev => ({
+      ...prev,
+      progress: realtimeProgress,
+      current_step: currentStep || prev.current_step,
+      message: realtimeMessage || prev.message,
+      status: realtimeStatus === 'failed' ? 'error' : 
+              realtimeStatus === 'completed' ? 'completed' : 'processing',
+    }))
 
-        if (progress.status === 'completed') {
-          logger.info('ChunkedLearningFlow', 'Processing completed', {
-            chunkIndex: chunkIndex + 1,
-            vocabularyCount: progress.vocabulary?.length || 0,
-            subtitlePath: progress.subtitle_path,
-            translationPath: progress.translation_path,
-          })
+    // Log connection method for debugging
+    if (connectionMethod !== 'disconnected' && realtimeProgress > 0) {
+      logger.debug('ChunkedLearningFlow', `Progress via ${connectionMethod}: ${realtimeProgress}%`)
+    }
+  }, [realtimeProgress, currentStep, realtimeMessage, realtimeStatus, connectionMethod, monitoredTaskId])
 
-          // Validate vocabulary data - fail fast if missing
-          if (!progress.vocabulary) {
-            throw new Error('Processing completed but vocabulary data is missing from response')
-          }
+  // Handle processing completion from real-time hook
+  useEffect(() => {
+    // Only process completion if we're actively monitoring a task and it completed
+    if (!realtimeComplete || !monitoredTaskId) return
 
-          const vocabularyWithIds = progress.vocabulary.map((word: VocabularyWord) => {
-            if (!word.lemma) {
-              throw new Error(`Word "${word.word}" is missing required lemma field`)
-            }
-            return {
-              ...word,
-              lemma: word.lemma,
-            }
-          })
-
-          const updatedChunks = [...chunks]
-          updatedChunks[chunkIndex] = {
-            ...updatedChunks[chunkIndex],
-            vocabulary: vocabularyWithIds,
-            subtitlePath: progress.subtitle_path,
-            translationPath: progress.translation_path || undefined,
-            isProcessed: true,
-          }
-
-          logger.userAction('Entering vocabulary game phase', 'ChunkedLearningFlow', {
-            wordsToLearn: progress.vocabulary?.length || 0,
-            chunkIndex: chunkIndex + 1,
-          })
-
-          // Set game phase BEFORE updating chunks to prevent useEffect race condition
-          setCurrentPhase('game')
-          setGameWords(vocabularyWithIds)
-          setChunks(updatedChunks)
-          return
-        }
-
-        if (progress.status === 'error') {
-          logger.error('ChunkedLearningFlow', `Processing failed: ${progress.message}`)
-          toast.error(`Processing failed: ${progress.message}`)
-          return
-        }
-
-        attempts++
-        if (attempts < maxAttempts) {
-          setTimeout(poll, pollInterval)
-        } else {
-          logger.error('ChunkedLearningFlow', 'Processing timeout')
-          toast.error('Processing timeout')
-        }
-      } catch (error: unknown) {
-        logger.error('ChunkedLearningFlow', 'Error polling progress', error)
-
-        // Check if this is an authentication error (401 Unauthorized)
-        const apiError = error as { response?: { status?: number }; status?: number }
-        if (apiError?.response?.status === 401 || apiError?.status === 401) {
-          logger.error('ChunkedLearningFlow', 'Authentication failed - stopping polling')
-          toast.error('Session expired. Please log in again.')
-
-          // Clear authentication and redirect to login
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
-          localStorage.removeItem('user_id')
-          navigate('/login')
-          return
-        }
-
-        attempts++
-        if (attempts < maxAttempts) {
-          // Exponential backoff: increase interval each time, max 30 seconds
-          pollInterval = Math.min(pollInterval * 1.5, 30000)
-          setTimeout(poll, pollInterval)
-        } else {
-          logger.error('ChunkedLearningFlow', 'Processing failed after max attempts')
-          toast.error('Processing failed. Please try again.')
-        }
-      }
+    const result = realtimeResult as ProcessingStatus | null
+    if (!result) {
+      logger.warn('ChunkedLearningFlow', 'Processing completed but no result data', {
+        taskId: monitoredTaskId,
+        realtimeResult,
+      })
+      return
     }
 
-    poll()
-  }
+    logger.info('ChunkedLearningFlow', 'Processing completed (real-time)', {
+      chunkIndex: currentChunk + 1,
+      vocabularyCount: result.vocabulary?.length || 0,
+      subtitlePath: result.subtitle_path,
+      translationPath: result.translation_path,
+      connectionMethod,
+    })
+
+    // Validate vocabulary data
+    if (!result.vocabulary) {
+      logger.error('ChunkedLearningFlow', 'Processing completed but vocabulary data is missing')
+      toast.error('Processing completed but vocabulary data is missing')
+      return
+    }
+
+    const vocabularyWithIds = result.vocabulary.map((word: VocabularyWord) => {
+      if (!word.lemma) {
+        logger.warn('ChunkedLearningFlow', `Word "${word.word}" is missing lemma field`)
+      }
+      return {
+        ...word,
+        lemma: word.lemma || word.word,
+      }
+    })
+
+    const updatedChunks = [...chunks]
+    updatedChunks[currentChunk] = {
+      ...updatedChunks[currentChunk],
+      vocabulary: vocabularyWithIds,
+      subtitlePath: result.subtitle_path,
+      translationPath: result.translation_path || undefined,
+      isProcessed: true,
+    }
+
+    logger.userAction('Entering vocabulary game phase', 'ChunkedLearningFlow', {
+      wordsToLearn: result.vocabulary?.length || 0,
+      chunkIndex: currentChunk + 1,
+    })
+
+    // Transition to game phase
+    setCurrentPhase('game')
+    setGameWords(vocabularyWithIds)
+    setChunks(updatedChunks)
+    stopMonitoring()
+  }, [realtimeComplete, realtimeResult, currentChunk, chunks, connectionMethod, stopMonitoring, monitoredTaskId])
+
+  // Handle processing errors from real-time hook
+  useEffect(() => {
+    if (!realtimeError) return
+
+    logger.error('ChunkedLearningFlow', `Processing failed: ${realtimeError}`)
+    toast.error(`Processing failed: ${realtimeError}`)
+    stopMonitoring()
+  }, [realtimeError, stopMonitoring])
 
   // Handle individual word answers in the game with improved error handling
   const handleWordAnswered = async (word: string, known: boolean) => {
@@ -484,6 +478,7 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
             chunkNumber={currentChunk + 1}
             totalChunks={chunks.length}
             chunkDuration={`${formatTime(chunk.startTime)} - ${formatTime(chunk.endTime)}`}
+            connectionMethod={connectionMethod}
           />
         )
 
