@@ -4239,10 +4239,10 @@ keyv@^5.5.2:
   dependencies:
     "@keyv/serialize" "^1.1.1"
 
-kill-port@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.npmjs.org/kill-port/-/kill-port-2.0.1.tgz"
-  integrity sha512-e0SVOV5jFo0mx8r7bS29maVWp17qGqLBZ5ricNSajON6//kmb7qqqNnml4twNE8Dtj97UQD+gNFOaipS/q1zzQ==
+kill-port@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/kill-port/-/kill-port-2.0.3.tgz#4cf358127ad49671a9bc278e1e886025e83aea1a"
+  integrity sha512-jhW86Yyqn1DiyKciKfeNVgDMgfisaQBjoJuHlu0WpBUwKY3vjQ6doMp9eL/8VQJLiH5RnaRBlmQXh/JiuM84+A==
   dependencies:
     get-them-args "1.3.2"
     shell-exec "1.0.2"
