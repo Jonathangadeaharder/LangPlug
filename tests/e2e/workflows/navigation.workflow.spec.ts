@@ -266,13 +266,13 @@ test.describe('Video Selection Workflow @smoke', () => {
       
       // Simple check that videos endpoint is accessible
       const response = await page.request.get('http://127.0.0.1:8000/api/videos');
-      expect([200, 401, 404]).includes(response.status());
+      expect([200, 401, 404]).toContain(response.status());
     });
 
     await test.step('Verify scan endpoint works', async () => {
       // Simple check that scan endpoint is accessible
       const response = await page.request.post('http://127.0.0.1:8000/api/videos/scan');
-      expect([200, 401, 404]).includes(response.status());
+      expect([200, 401, 404]).toContain(response.status());
     });
   });
 
@@ -280,11 +280,11 @@ test.describe('Video Selection Workflow @smoke', () => {
     await test.step('Verify series endpoint works', async () => {
       // Simple check that endpoints are accessible
       const videosResponse = await page.request.get('http://127.0.0.1:8000/api/videos');
-      expect([200, 401, 404]).includes(videosResponse.status());
+      expect([200, 401, 404]).toContain(videosResponse.status());
       
       // Test scan endpoint
       const scanResponse = await page.request.post('http://127.0.0.1:8000/api/videos/scan');
-      expect([200, 401, 404]).includes(scanResponse.status());
+      expect([200, 401, 404]).toContain(scanResponse.status());
     });
   });
 });

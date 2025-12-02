@@ -136,13 +136,6 @@ export function useRealtimeProgress(): UseRealtimeProgressReturn {
         taskId: id,
       })) as ProcessingStatus & { result?: unknown }
 
-      logger.debug('Progress', 'Poll response', {
-        status: res.status,
-        progress: res.progress,
-        hasVocabulary: !!res.vocabulary,
-        vocabularyCount: res.vocabulary?.length,
-      })
-
       handleProgressUpdate(res)
     } catch (e) {
       logger.error('Progress', 'Polling error', { error: String(e) })
@@ -153,7 +146,6 @@ export function useRealtimeProgress(): UseRealtimeProgressReturn {
   const startPolling = useCallback(() => {
     clearPolling()
     setConnectionMethod('polling')
-    logger.debug('Progress', 'Starting HTTP polling fallback')
 
     // Initial poll
     poll()
@@ -162,13 +154,11 @@ export function useRealtimeProgress(): UseRealtimeProgressReturn {
     pollingIntervalRef.current = window.setInterval(poll, POLLING_INTERVAL_MS)
   }, [clearPolling, poll])
 
-  // WebSocket connection
+  // Initialize progress monitoring
   // NOTE: This app uses cookie-based authentication (HttpOnly cookies).
-  // WebSocket cannot access cookies, so we fall back to HTTP polling for progress updates.
+  // WebSocket cannot access cookies, so we use HTTP polling for progress updates.
   // This is more reliable and avoids issues with stale localStorage tokens.
-  const connectWebSocket = useCallback(() => {
-    // Cookie-based auth: WebSocket cannot use HttpOnly cookies, use polling instead
-    logger.debug('Progress', 'Using HTTP polling for progress updates (cookie-based auth)')
+  const initializeProgressMonitoring = useCallback(() => {
     startPolling()
   }, [startPolling])
 
@@ -190,9 +180,9 @@ export function useRealtimeProgress(): UseRealtimeProgressReturn {
       cleanup()
 
       // Start HTTP polling for progress updates
-      connectWebSocket()
+      initializeProgressMonitoring()
     },
-    [cleanup, connectWebSocket]
+    [cleanup, initializeProgressMonitoring]
   )
 
   // Stop monitoring

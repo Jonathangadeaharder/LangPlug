@@ -202,7 +202,11 @@ class VideoService:
         # Resolve video path
         videos_path = settings.get_videos_path()
         try:
-            video_full_path = videos_path / video_path
+            video_full_path = (videos_path / video_path).resolve()
+            videos_root = videos_path.resolve()
+            # Prevent path traversal - ensure path stays within videos root
+            if not str(video_full_path).startswith(str(videos_root)):
+                raise ValueError("Path traversal detected: video path escapes root directory")
             # Validate path security
             FileSecurityValidator.validate_file_path(str(video_full_path))
         except ValueError as e:
@@ -213,6 +217,8 @@ class VideoService:
 
         # Determine subtitle path (same name as video, but .srt)
         subtitle_path = video_full_path.with_suffix(".srt")
+        # Validate subtitle path security
+        FileSecurityValidator.validate_file_path(str(subtitle_path))
 
         # Write file content
         content = await subtitle_file.read()
@@ -283,14 +289,11 @@ class VideoService:
 
         srt_path = video_path.with_suffix(".srt")
         if not srt_path.exists():
-            # No subtitles = no vocabulary to extract
-            logger.debug("No subtitles found for video", video_id=video_id)
             return []
 
         # Vocabulary is extracted during chunk processing and stored in the database.
         # This method returns empty until database integration is complete.
         # See: services/processing/chunk_transcription_service.py for extraction logic
-        logger.debug("Vocabulary lookup for video", video_id=video_id)
         return []
 
     def _validate_videos_path(self, videos_path: Path) -> bool:
@@ -342,13 +345,11 @@ class VideoService:
         """Scan for video files directly in videos_path root"""
         videos = []
         direct_videos = list(videos_path.glob("*.mp4"))
-        logger.debug("Found direct video files", count=len(direct_videos))
 
         for video_file in direct_videos:
             video_info = self._create_video_info(video_file, videos_path, "Default")
             if video_info:
                 videos.append(video_info)
-                logger.debug("Added direct video", title=video_info.title)
 
         return videos
 
@@ -356,21 +357,16 @@ class VideoService:
         """Scan for video files in series directories"""
         videos = []
         series_dirs = [d for d in videos_path.iterdir() if d.is_dir()]
-        logger.debug("Found series directories", count=len(series_dirs))
 
         for series_dir in series_dirs:
             try:
                 series_name = series_dir.name
-                logger.debug("Scanning series directory", series=series_name)
-
                 series_videos = list(series_dir.glob("*.mp4"))
-                logger.debug("Found videos in series", count=len(series_videos), series=series_name)
 
                 for video_file in series_videos:
                     video_info = self._create_video_info(video_file, videos_path, series_name)
                     if video_info:
                         videos.append(video_info)
-                        logger.debug("Added series video", title=video_info.title, series=series_name)
             except Exception as e:
                 logger.error("Error processing series directory", dir=str(series_dir), error=str(e))
 
@@ -386,12 +382,10 @@ class VideoService:
         if VideoService._scan_cache is not None:
             cached_videos, cached_time = VideoService._scan_cache
             if now - cached_time < self._cache_ttl:
-                logger.debug("Returning cached video list", count=len(cached_videos))
                 return cached_videos
         
         try:
             videos_path = settings.get_videos_path()
-            logger.debug("Scanning for videos", path=str(videos_path))
 
             if not self._validate_videos_path(videos_path):
                 return []
@@ -501,7 +495,6 @@ class VideoService:
             direct_videos = list(videos_path.glob("*.mp4"))
             result["direct_videos"] = [str(v.name) for v in direct_videos]
             result["total_videos"] += len(direct_videos)
-            logger.debug("Found direct videos", count=len(direct_videos))
         except Exception as e:
             error_msg = f"Error scanning direct videos: {e}"
             logger.error(error_msg)
@@ -520,7 +513,6 @@ class VideoService:
                     series_videos = list(item.glob("*.mp4"))
                     series_info["videos"] = [v.name for v in series_videos]
                     result["total_videos"] += len(series_videos)
-                    logger.debug("Found videos in series", count=len(series_videos), series=item.name)
                 except Exception as e:
                     error_msg = f"Error scanning series {item.name}: {e}"
                     logger.error(error_msg)
@@ -537,8 +529,6 @@ class VideoService:
         try:
             videos_path = settings.get_videos_path()
             result = self._initialize_scan_result(videos_path)
-
-            logger.debug("Scanning videos directory", path=str(videos_path))
 
             if not self._validate_videos_directory(videos_path, result):
                 return result
@@ -570,9 +560,7 @@ class VideoService:
                 videos_index = next(i for i, part in enumerate(path_parts) if part.lower() == "videos")
                 relative_path = Path(*path_parts[videos_index + 1 :])
                 subtitle_file = videos_root / relative_path
-                logger.debug("Converted absolute path to relative")
             except (StopIteration, IndexError):
-                logger.warning("Could not find videos directory in path")
                 subtitle_file = videos_root / Path(subtitle_path).name
         else:
             # Regular relative path handling
@@ -594,7 +582,13 @@ class VideoService:
             SeriesNotFoundError: If series directory doesn't exist
             EpisodeNotFoundError: If episode not found in series
         """
-        videos_path = settings.get_videos_path() / series
+        videos_root = settings.get_videos_path().resolve()
+        videos_path = (videos_root / series).resolve()
+        # Ensure series folder is under videos root (prevents path traversal)
+        try:
+            videos_path.relative_to(videos_root)
+        except ValueError:
+            raise SeriesNotFoundError(series)
         if not videos_path.exists():
             raise SeriesNotFoundError(series)
 
