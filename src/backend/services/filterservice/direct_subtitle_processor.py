@@ -185,11 +185,26 @@ class DirectSubtitleProcessor:
             return result
 
         except Exception as e:
-            logger.error("Error processing SRT file", path=srt_file_path, error=str(e), exc_info=True)
+            error_str = str(e)
+            # Check if this is a spaCy model error and log prominently
+            if "spaCy" in error_str or "spacy" in error_str.lower():
+                logger.error(
+                    "[SRT PROCESSING FAILED] spaCy model not installed",
+                    path=srt_file_path,
+                    error=error_str,
+                    fix="Run: python -m spacy download de_core_news_lg",
+                )
+            else:
+                logger.error(
+                    "[SRT PROCESSING FAILED] Error processing subtitle file",
+                    path=srt_file_path,
+                    error=error_str,
+                    exc_info=True,
+                )
             return {
                 "blocking_words": [],
                 "learning_subtitles": [],
                 "empty_subtitles": [],
                 "filtered_subtitles": [],
-                "statistics": {"error": str(e)},
+                "statistics": {"error": error_str},
             }

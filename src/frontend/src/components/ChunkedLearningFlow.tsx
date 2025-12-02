@@ -245,9 +245,18 @@ export const ChunkedLearningFlow: React.FC<ChunkedLearningFlowProps> = ({
     })
 
     // Validate vocabulary data
-    if (!result.vocabulary) {
-      logger.error('ChunkedLearningFlow', 'Processing completed but vocabulary data is missing')
-      toast.error('Processing completed but vocabulary data is missing')
+    if (!result.vocabulary || result.vocabulary.length === 0) {
+      const message = result.message || 'Processing completed but vocabulary data is missing'
+      logger.error('ChunkedLearningFlow', 'No vocabulary extracted', {
+        message,
+        vocabularyCount: result.vocabulary?.length ?? 0,
+      })
+      // Show more helpful error message based on structured error code
+      if (result.error_code === 'SPACY_MODEL_ERROR') {
+        toast.error('Vocabulary extraction failed - check backend server logs for spaCy model errors')
+      } else {
+        toast.error(message)
+      }
       return
     }
 

@@ -14,19 +14,25 @@ from core.language_preferences import SPACY_MODEL_MAP
 logger = get_logger(__name__)
 
 
-_LANGUAGE_MODEL_OVERRIDES: dict[str, str] = {
-    "de": settings.spacy_model_de,
-    "en": settings.spacy_model_en,
-}
-
 _MODEL_CACHE: dict[str, spacy.Language] = {}
 
 
 def _resolve_model_name(language_code: str) -> str:
+    """Resolve spaCy model name for a given language code.
+
+    Uses dynamic settings for configured languages so that debug-time
+    overrides (e.g. switching to de_core_news_sm) are honored.
+    """
     language_code = (language_code or "").lower()
-    if language_code in _LANGUAGE_MODEL_OVERRIDES:
-        return _LANGUAGE_MODEL_OVERRIDES[language_code]
-    return SPACY_MODEL_MAP.get(language_code, SPACY_MODEL_MAP["default"])
+
+    # Build a mapping that incorporates settings overrides
+    language_to_model = {
+        "de": settings.spacy_model_de or SPACY_MODEL_MAP.get("de", SPACY_MODEL_MAP["default"]),
+        "en": settings.spacy_model_en or SPACY_MODEL_MAP.get("en", SPACY_MODEL_MAP["default"]),
+        # Add more overrides here if needed
+    }
+    # Use the override mapping first, then fall back to SPACY_MODEL_MAP
+    return language_to_model.get(language_code, SPACY_MODEL_MAP.get(language_code, SPACY_MODEL_MAP["default"]))
 
 
 def _load_model(model_name: str) -> spacy.Language:
@@ -36,8 +42,23 @@ def _load_model(model_name: str) -> spacy.Language:
 
     try:
         nlp = spacy.load(model_name)
-        logger.info("Loaded spaCy model '%s' successfully", model_name)
+        logger.info("Loaded spaCy model successfully", model=model_name)
+    except OSError as exc:
+        logger.error(
+            "[SPACY MODEL ERROR] Cannot load model - vocabulary filtering disabled",
+            model=model_name,
+            fix=f"python -m spacy download {model_name}",
+            error=str(exc),
+        )
+        raise RuntimeError(
+            f"Failed to load spaCy model '{model_name}'. Install it with: python -m spacy download {model_name}"
+        ) from exc
     except Exception as exc:
+        logger.error(
+            "[SPACY ERROR] Unexpected error loading model",
+            model=model_name,
+            error=str(exc),
+        )
         raise RuntimeError(
             f"Failed to load spaCy model '{model_name}'. Install it with: python -m spacy download {model_name}"
         ) from exc

@@ -35,10 +35,20 @@ class LemmatizationService:
             # Try to load the German model
             self._nlp = spacy.load("de_core_news_sm")
             self._model_loaded = True
-            logger.info("German spaCy model loaded")
+            logger.info("German spaCy model loaded", model="de_core_news_sm")
             return True
+        except OSError as e:
+            logger.warning(
+                "[SPACY MODEL] de_core_news_sm not found - using simple rule-based lemmatization",
+                error=str(e),
+                fix="python -m spacy download de_core_news_sm",
+            )
+            return False
         except Exception as e:
-            logger.warning("Could not load spaCy German model", error=str(e))
+            logger.warning(
+                "[SPACY MODEL] Could not load German model - using simple rules",
+                error=str(e),
+            )
             return False
 
     def lemmatize(self, word: str, pos: str | None = None) -> str:

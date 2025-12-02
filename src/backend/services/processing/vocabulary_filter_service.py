@@ -181,10 +181,30 @@ class VocabularyFilterService:
             filter_result: Result from subtitle processor
             srt_file_path: Path to SRT file
         """
-        logger.warning("No vocabulary found", path=srt_file_path)
-
-        if filter_result:
-            logger.debug("Filter result", learning=len(filter_result.get("learning_subtitles", [])))
+        # Check for error in statistics (e.g., spaCy model missing)
+        stats = filter_result.get("statistics", {}) if filter_result else {}
+        error_msg = stats.get("error", "")
+        
+        if "spaCy" in error_msg or "spacy" in error_msg.lower():
+            logger.error(
+                "[VOCABULARY FAILED] spaCy model not installed - cannot extract vocabulary",
+                path=srt_file_path,
+                error=error_msg,
+                fix="Run: python -m spacy download de_core_news_lg",
+            )
+        elif error_msg:
+            logger.error(
+                "[VOCABULARY FAILED] Error during vocabulary extraction",
+                path=srt_file_path,
+                error=error_msg,
+            )
+        else:
+            logger.warning(
+                "[VOCABULARY EMPTY] No learning words found in subtitles",
+                path=srt_file_path,
+                blocking_words=len(filter_result.get("blocking_words", [])) if filter_result else 0,
+                learning_subtitles=len(filter_result.get("learning_subtitles", [])) if filter_result else 0,
+            )
 
 
 def get_vocabulary_filter_service() -> VocabularyFilterService:

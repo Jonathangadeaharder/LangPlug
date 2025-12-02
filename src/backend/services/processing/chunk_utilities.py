@@ -214,18 +214,41 @@ class ChunkUtilities:
         task_progress[task_id].status = "completed"
         task_progress[task_id].progress = 100.0
         task_progress[task_id].current_step = "Chunk processing completed"
-        task_progress[task_id].message = "Vocabulary extracted and ready for learning"
 
-        if vocabulary:
+        # Always set vocabulary (even if empty list) so frontend knows processing finished
+        # Empty list is valid (all words known), None means error occurred
+        if vocabulary is not None:
             task_progress[task_id].vocabulary = vocabulary
+            if len(vocabulary) > 0:
+                task_progress[task_id].message = f"Found {len(vocabulary)} words to learn"
+                logger.info(
+                    "[PROCESSING COMPLETE] Vocabulary extracted successfully",
+                    task_id=task_id,
+                    vocabulary_count=len(vocabulary),
+                )
+            else:
+                task_progress[task_id].message = "No new vocabulary words found (all words known or error occurred)"
+                logger.warning(
+                    "[PROCESSING COMPLETE] No vocabulary extracted - check if spaCy models are installed",
+                    task_id=task_id,
+                    fix="python -m spacy download de_core_news_lg",
+                )
+        else:
+            task_progress[task_id].vocabulary = []
+            task_progress[task_id].message = "Vocabulary extraction failed - check server logs"
+            logger.error(
+                "[PROCESSING FAILED] Vocabulary is None - likely spaCy model error",
+                task_id=task_id,
+                fix="python -m spacy download de_core_news_lg",
+            )
 
         if subtitle_path:
             task_progress[task_id].subtitle_path = subtitle_path
-            logger.debug("Set subtitle_path")
+            logger.debug("Set subtitle_path", path=subtitle_path)
 
         if translation_path:
             task_progress[task_id].translation_path = translation_path
-            logger.debug("Set translation_path")
+            logger.debug("Set translation_path", path=translation_path)
 
         logger.debug("Completed processing", task_id=task_id)
 
