@@ -191,7 +191,7 @@ jobs:
           sed -i "s|frontend:latest|${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}-frontend:${{ github.sha }}|g" docker-compose.production.yml
 
       - name: Deploy to production server
-        uses: appleboy/ssh-action@v1.2.3
+        uses: appleboy/ssh-action@v1.2.4
         with:
           host: ${{ secrets.PRODUCTION_HOST }}
           username: ${{ secrets.PRODUCTION_USER }}
